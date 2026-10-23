@@ -1,0 +1,139 @@
+{
+  "id": "first-upload",
+  "status": "published",
+  "order": 4,
+  "number": 2,
+  "title": "유튜브 첫 업로드",
+  "relation": "친한 친구",
+  "place": "친구 집 · 소파",
+  "partnerName": "Jordan",
+  "base": {
+    "context": "친구가 유튜브 채널을 열었다. 첫 영상은 '삼각김밥 10개 연속 먹기'. 업로드 버튼 앞에서 손을 떨고 있다.",
+    "intent": "화이팅! 하고 힘을 실어 주고 싶다.",
+    "partnerLine": "Okay… uploading now.",
+    "partnerIdle": {
+      "expression": "awkward",
+      "motion": "shiver"
+    },
+    "stage": {
+      "set": "living",
+      "time": "day",
+      "partner": "jordan"
+    },
+    "choices": [
+      {
+        "id": "fighting",
+        "line": "Fighting!",
+        "meaning": "화이팅!",
+        "kind": "literal",
+        "reaction": "싸우자고…? 지금 나랑?",
+        "tags": [
+          "한국식 응원",
+          "영어로는 싸움 얘기"
+        ],
+        "why": "영어에서 'fighting'은 '싸우는 중'이라는 뜻이라, 응원보다는 싸움 얘기로 들려요.",
+        "detail": "한국어 '화이팅'은 영어 'fighting'에서 왔지만, 영어권에서는 응원하는 말로 쓰지 않아요. K-콘텐츠 덕분에 알아듣는 사람도 늘었지만, 처음 듣는 사람은 갸우뚱할 수 있어요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "cheer-up",
+        "line": "Cheer up!",
+        "meaning": "힘내!",
+        "kind": "context",
+        "reaction": "잠깐, 나 지금 우울해 보여? 영상이 그렇게 별로야?",
+        "tags": [
+          "속상한 사람에게",
+          "시작 전엔 어색"
+        ],
+        "why": "'Cheer up'은 우울하거나 속상한 사람을 달래는 말이라, 신나서 시작하려는 친구에게는 '너 기분 안 좋아 보여'로 들려요.",
+        "detail": "한국어 '힘내'는 시작 전 응원에도, 속상한 일 뒤 위로에도 써요. 영어는 둘을 나눠요. 앞으로 할 일을 응원할 때는 'You got this', 이미 속상한 사람을 달랠 때는 'Cheer up'이에요.",
+        "expression": "awkward",
+        "motion": "shrug"
+      },
+      {
+        "id": "you-got-this",
+        "line": "You got this!",
+        "meaning": "넌 할 수 있어!",
+        "kind": "natural",
+        "reaction": "그치? 간다! 업로드!",
+        "tags": [
+          "시작 전 응원",
+          "친구끼리 자연스러움"
+        ],
+        "why": "앞으로 할 일을 해낼 수 있다고 믿어 주는 말이라, 시작 직전 응원에 딱 맞아요.",
+        "detail": "'You've got this'를 줄인 말이에요. 시험, 면접, 발표처럼 곧 무언가를 해야 하는 친구에게 가장 많이 써요.",
+        "expression": "delighted",
+        "motion": "spin"
+      }
+    ]
+  },
+  "followUp": {
+    "prompt": "잠깐, 다음 날 조회수가 3이라면?",
+    "from": "업로드 직전",
+    "to": "조회수 3을 확인한 뒤",
+    "context": "다음 날, 조회수 3. 엄마, Jordan 본인, 그리고 나.",
+    "intent": "기죽지 말라고 위로하고 싶다.",
+    "partnerLine": "Three views. One's my mom.",
+    "partnerIdle": {
+      "expression": "awkward",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "living",
+      "time": "evening",
+      "partner": "jordan",
+      "flags": [
+        "tissues"
+      ]
+    },
+    "choices": [
+      {
+        "id": "dont-be-sad",
+        "line": "Don't be sad!",
+        "meaning": "슬퍼하지 마.",
+        "kind": "literal",
+        "reaction": "그 정도는 아니었는데… 이제 좀 슬퍼지네.",
+        "tags": [
+          "직역 위로",
+          "너무 무겁게 들림"
+        ],
+        "why": "큰일을 겪은 사람에게 하는 말처럼 무겁게 들려서, 가벼운 실망을 오히려 키울 수 있어요.",
+        "detail": "한국어 '슬퍼하지 마'를 그대로 옮긴 말이에요. 영어로 가볍게 위로할 때는 상대 감정을 정해 주기보다 상황을 가볍게 다시 보게 하는 말을 더 자주 써요.",
+        "expression": "awkward",
+        "motion": "lean"
+      },
+      {
+        "id": "good-job",
+        "line": "Good job on the video!",
+        "meaning": "영상 수고했어!",
+        "kind": "context",
+        "reaction": "…지금 놀리는 거지?",
+        "tags": [
+          "결과를 칭찬",
+          "비꼬는 걸로 들릴 수도"
+        ],
+        "why": "'Good job'은 결과가 좋았다는 칭찬이라, 조회수 3 앞에서 영상을 칭찬하면 비꼬는 말로 들릴 수 있어요.",
+        "detail": "한국어 '수고했어'는 결과와 상관없이 애쓴 걸 알아주는 말이지만, 'Good job'은 '잘했다'에 가까워요. 노력을 알아주고 싶다면 'You put a lot of work into it'처럼 애쓴 부분을 짚어 말해요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "day-one",
+        "line": "It's only day one!",
+        "meaning": "이제 첫날이잖아!",
+        "kind": "natural",
+        "reaction": "맞아. 3도 0보다는 크지!",
+        "tags": [
+          "가볍게 위로",
+          "다음을 기대하게"
+        ],
+        "why": "아직 시작일 뿐이라고 말해서, 실망을 인정하면서도 다음 영상을 기대하게 만들어요.",
+        "detail": "결과를 부정하지 않고 '시작'으로 다시 보게 하는 말이에요. 'Everyone starts somewhere'(다들 처음엔 그래)도 같은 상황에 자주 써요.",
+        "expression": "happy",
+        "motion": "nod"
+      }
+    ]
+  },
+  "discovery": "'화이팅'과 '힘내'는 영어에서 때에 따라 갈려요. 시작 전엔 'You got this', 잘 안 풀린 뒤엔 'It's only day one' 같은 말이 자연스러워요."
+}

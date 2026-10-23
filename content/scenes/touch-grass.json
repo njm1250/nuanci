@@ -1,0 +1,136 @@
+{
+  "id": "touch-grass",
+  "status": "published",
+  "order": 5,
+  "number": 3,
+  "title": "52시간째 게임 중",
+  "relation": "친한 친구",
+  "place": "친구 집 · 주말",
+  "partnerName": "Jordan",
+  "base": {
+    "context": "Jordan이 주말 내내 게임만 했다. 방에서 안 나온 지 52시간째.",
+    "intent": "야, 밖에 좀 나가라 ㅋㅋ 하고 놀리고 싶다.",
+    "partnerLine": "Wait… what day is it?",
+    "partnerIdle": {
+      "expression": "neutral",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "living",
+      "time": "evening",
+      "partner": "jordan"
+    },
+    "choices": [
+      {
+        "id": "catch-wind",
+        "line": "Go catch some wind.",
+        "meaning": "바람 좀 쐬고 와.",
+        "kind": "literal",
+        "reaction": "바람을… 잡으라고? 무협지야?",
+        "tags": [
+          "한국식 직역",
+          "뜻이 안 통함"
+        ],
+        "why": "'바람 쐬다'를 그대로 옮기면 바람을 붙잡으러 가라는 말처럼 들려요.",
+        "detail": "'Catch the wind'는 돛이나 연이 바람을 받을 때 쓸 법한 말이에요. 밖에 나가 기분 전환하라는 뜻이라면 영어에서는 'fresh air'를 써요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "fresh-air",
+        "line": "Go get some fresh air.",
+        "meaning": "가서 바람 좀 쐬어.",
+        "kind": "context",
+        "reaction": "뭐야, 나 걱정돼? 나 어디 아파 보여?",
+        "tags": [
+          "진심 어린 걱정",
+          "놀릴 땐 너무 다정"
+        ],
+        "why": "뜻은 정확하지만 진심으로 걱정하는 말이라, 놀리려던 분위기와 달리 엄마 잔소리처럼 들릴 수 있어요.",
+        "detail": "'Get some fresh air'는 몸이나 기분을 챙겨 주는 말이에요. 친구를 가볍게 놀리고 싶을 때는 밈을 쓰는 쪽이 분위기에 맞아요.",
+        "expression": "awkward",
+        "motion": "shrug"
+      },
+      {
+        "id": "touch-grass",
+        "line": "Bro, go touch grass.",
+        "meaning": "야, 잔디 좀 만지고 와.",
+        "kind": "natural",
+        "reaction": "팩폭이네 ㅋㅋ 근데 반박을 못 하겠다.",
+        "tags": [
+          "인터넷 밈",
+          "친구끼리 놀리기"
+        ],
+        "why": "인터넷에 너무 빠져 있는 사람에게 '현실로 좀 돌아와'라고 놀리는 밈이라, 친한 친구 사이에서 웃기게 들려요.",
+        "detail": "'Touch grass'는 밖에 나가 잔디라도 만져 보라는 뜻으로, 온라인 세상에 너무 몰입한 사람을 놀릴 때 써요. 놀리는 말이라 친하지 않은 사람이나 진지한 대화에서는 피하는 게 좋아요.",
+        "expression": "dizzy",
+        "motion": "faint"
+      }
+    ]
+  },
+  "followUp": {
+    "prompt": "잠깐, Jordan이 바로 받아친다면?",
+    "from": "내가 놀렸을 때",
+    "to": "Jordan이 받아친 뒤",
+    "context": "Jordan이 내 폰을 가리켰다. 이번 주 스크린 타임 하루 평균 9시간.",
+    "intent": "뼈 맞았다. 인정하고 웃어넘기고 싶다.",
+    "partnerLine": "Your screen time? Nine hours.",
+    "partnerIdle": {
+      "expression": "happy",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "living",
+      "time": "evening",
+      "partner": "jordan"
+    },
+    "choices": [
+      {
+        "id": "hit-my-bone",
+        "line": "You hit my bone.",
+        "meaning": "뼈 맞았다.",
+        "kind": "literal",
+        "reaction": "뼈…? 나 너 안 때렸는데?",
+        "tags": [
+          "한국식 직역",
+          "진짜 다친 줄"
+        ],
+        "why": "'뼈 때리다'를 그대로 옮기면 정말 뼈를 때렸다는 말이라, 상대는 어디 다쳤는지 걱정해요.",
+        "detail": "한국어 '뼈 맞았다'는 아픈 곳을 정확히 찔렸다는 뜻의 비유지만, 영어로는 이런 비유가 통하지 않아요. 비슷한 비유로는 'That hit home'(정곡을 찔렸다)이 있어요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "im-hurt",
+        "line": "I'm hurt.",
+        "meaning": "상처받았어.",
+        "kind": "context",
+        "reaction": "헉, 진짜 상처받았어? 미안, 장난이었어…",
+        "tags": [
+          "진지하게 들림",
+          "분위기 다운"
+        ],
+        "why": "농담을 받아치는 말이 아니라 정말 마음이 상했다는 고백처럼 들려서, 상대가 진지하게 사과하게 돼요.",
+        "detail": "'I'm hurt'는 감정이 정말 다쳤을 때 쓰는 말이에요. 장난스럽게 쓰려면 'Wow, I'm hurt' 하고 과장된 말투를 확실히 실어야 해요.",
+        "expression": "awkward",
+        "motion": "lean"
+      },
+      {
+        "id": "ouch-fair",
+        "line": "Ouch. Fair.",
+        "meaning": "아야. 인정.",
+        "kind": "natural",
+        "reaction": "ㅋㅋ 그치? 우리 둘 다 나가자.",
+        "tags": [
+          "가볍게 인정",
+          "드립 받아치기"
+        ],
+        "why": "'Ouch'로 한 방 맞았다는 걸 인정하고 'Fair'로 맞는 말이라고 받아쳐서, 웃으며 넘어갈 수 있어요.",
+        "detail": "'Fair'나 'Fair enough'는 상대 말이 맞다고 가볍게 인정하는 말이에요. 친구가 정곡을 찌르는 드립을 했을 때 자주 써요.",
+        "expression": "delighted",
+        "motion": "bounce"
+      }
+    ]
+  },
+  "discovery": "'바람 쐬어'는 'get some fresh air', 온라인에 절어 있는 친구에겐 'touch grass'. 뼈 맞았을 땐 'Ouch. Fair.'예요."
+}

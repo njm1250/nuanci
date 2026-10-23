@@ -1,0 +1,147 @@
+{
+  "id": "pudding",
+  "status": "published",
+  "order": 1,
+  "number": 7,
+  "title": "사라진 푸딩",
+  "relation": "룸메이트",
+  "place": "우리 집 · 부엌",
+  "partnerName": "Sam",
+  "base": {
+    "context": "냉장고에 있던 Sam의 푸딩이 사라졌다. 나는 진짜 안 먹었다.",
+    "intent": "응, 안 먹었어! 하고 결백을 말하고 싶다.",
+    "partnerLine": "You didn't eat my pudding, did you?",
+    "partnerIdle": {
+      "expression": "puzzled",
+      "motion": "idle",
+      "prop": "pudding"
+    },
+    "stage": {
+      "set": "dining",
+      "time": "day",
+      "partner": "sam",
+      "flags": [
+        "plate-empty"
+      ]
+    },
+    "choices": [
+      {
+        "id": "yes",
+        "line": "Yes.",
+        "meaning": "응. (안 먹었어)",
+        "kind": "literal",
+        "reaction": "먹었다고?! 내 푸딩을?!",
+        "tags": [
+          "한국식 표현",
+          "자백이 됨"
+        ],
+        "why": "영어는 질문 모양과 상관없이 먹었으면 'Yes', 안 먹었으면 'No'라서, 'Yes'는 먹었다는 자백이 돼요.",
+        "detail": "한국어는 상대 말에 동의하면 '응', 아니면 '아니'로 답해요. 그래서 '안 먹었지?'에 '응'은 안 먹었다는 뜻이지만, 영어는 사실을 기준으로 답해서 반대가 돼요.",
+        "expression": "dizzy",
+        "motion": "faint",
+        "partnerProp": "pudding"
+      },
+      {
+        "id": "yes-i-didnt",
+        "line": "Yes, I didn't.",
+        "meaning": "응, 안 먹었어.",
+        "kind": "context",
+        "reaction": "그래서… 먹었다는 거야, 안 먹었다는 거야?",
+        "tags": [
+          "섞인 대답",
+          "더 헷갈림"
+        ],
+        "why": "'Yes'와 'didn't'가 서로 부딪혀서, 상대는 먹었다는 건지 안 먹었다는 건지 더 헷갈려요.",
+        "detail": "앞의 대답과 뒤 문장의 방향이 같아야 해요. 안 먹었으면 'No, I didn't', 먹었으면 'Yes, I did'예요.",
+        "expression": "puzzled",
+        "motion": "tilt",
+        "partnerProp": "pudding"
+      },
+      {
+        "id": "no-i-didnt",
+        "line": "No, I didn't!",
+        "meaning": "아니, 안 먹었어!",
+        "kind": "natural",
+        "reaction": "휴, 다행이다. 그럼 범인은 누구지…?",
+        "tags": [
+          "사실 기준 대답",
+          "결백 성공"
+        ],
+        "why": "안 먹었으니 'No'로 답하고 'I didn't'로 한 번 더 분명히 해서, 오해 없이 결백이 전해져요.",
+        "detail": "부정으로 묻든 긍정으로 묻든 영어는 사실이 기준이에요. 'Did you eat it?'이든 'You didn't eat it?'이든 안 먹었으면 'No'예요.",
+        "expression": "happy",
+        "motion": "nod",
+        "partnerProp": "pudding"
+      }
+    ]
+  },
+  "followUp": {
+    "prompt": "잠깐, Sam이 배고프지 않냐고 묻는다면?",
+    "from": "푸딩 범인 찾기",
+    "to": "Sam이 간식을 권할 때",
+    "context": "오해가 풀리고, Sam이 새 푸딩을 꺼냈다. 나는 배가 고프다.",
+    "intent": "응, 배고파! 하고 하나 받고 싶다.",
+    "partnerLine": "Aren't you hungry?",
+    "partnerIdle": {
+      "expression": "happy",
+      "motion": "idle",
+      "prop": "pudding"
+    },
+    "stage": {
+      "set": "dining",
+      "time": "day",
+      "partner": "sam"
+    },
+    "choices": [
+      {
+        "id": "no",
+        "line": "No.",
+        "meaning": "아니. (배고파)",
+        "kind": "literal",
+        "reaction": "배 안 고프구나. 그럼 이것도 내 거!",
+        "tags": [
+          "한국식 표현",
+          "간식을 놓침"
+        ],
+        "why": "영어에서 'No'는 '배 안 고파'라는 뜻이라, 배고프다는 마음과 반대로 전해져요.",
+        "detail": "'배 안 고파?'에 한국어로 '아니, 배고파'라고 하듯 답하면 영어로는 'No'만 들려요. 배고프면 질문 모양과 상관없이 'Yes'예요.",
+        "expression": "delighted",
+        "motion": "spin",
+        "partnerProp": "pudding"
+      },
+      {
+        "id": "no-im-hungry",
+        "line": "No, I'm hungry.",
+        "meaning": "아니, 배고파.",
+        "kind": "context",
+        "reaction": "아니라면서 배고프다고? 뭐야?",
+        "tags": [
+          "섞인 대답",
+          "헷갈림"
+        ],
+        "why": "'No'와 'I'm hungry'가 서로 반대 방향이라, 상대는 어느 쪽인지 다시 물어봐야 해요.",
+        "detail": "앞의 대답과 뒤 문장이 같은 방향이어야 해요. 배고프면 'Yes, I'm hungry', 아니면 'No, I'm not'이에요.",
+        "expression": "puzzled",
+        "motion": "tilt",
+        "partnerProp": "pudding"
+      },
+      {
+        "id": "yeah-starving",
+        "line": "Yeah, I'm starving!",
+        "meaning": "응, 배고파 죽겠어!",
+        "kind": "natural",
+        "reaction": "그럼 하나씩 먹자!",
+        "tags": [
+          "사실 기준 대답",
+          "간식 획득"
+        ],
+        "why": "배가 고프니 'Yes'로 답하고 'starving'으로 얼마나 배고픈지까지 전해요.",
+        "detail": "'Starving'은 '굶어 죽을 것 같다'는 과장으로, 아주 배고플 때 흔히 써요.",
+        "expression": "delighted",
+        "motion": "bounce",
+        "partnerProp": "pudding"
+      }
+    ]
+  },
+  "discovery": "영어는 질문 모양이 아니라 사실로 대답해요. 안 먹었으면 'No', 배고프면 'Yes'예요."
+}

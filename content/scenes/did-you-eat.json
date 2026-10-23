@@ -1,0 +1,136 @@
+{
+  "id": "did-you-eat",
+  "status": "published",
+  "order": 7,
+  "number": 6,
+  "title": "오후 2시 사무실",
+  "relation": "회사 동료",
+  "place": "사무실 · 오후",
+  "partnerName": "Alex",
+  "base": {
+    "context": "오후 2시, 사무실에서 Alex와 눈이 마주쳤다.",
+    "intent": "평소처럼 '밥 먹었어?' 하고 인사하고 싶다.",
+    "partnerLine": "Oh, hey!",
+    "partnerIdle": {
+      "expression": "happy",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "office",
+      "time": "day",
+      "partner": "alex"
+    },
+    "choices": [
+      {
+        "id": "did-you-eat",
+        "line": "Did you eat?",
+        "meaning": "밥 먹었어?",
+        "kind": "literal",
+        "reaction": "아직인데… 혹시 같이 먹자는 거야?!",
+        "tags": [
+          "한국식 인사",
+          "밥 약속처럼 들림"
+        ],
+        "why": "영어에서 'Did you eat?'은 인사가 아니라 진짜 질문이라, 같이 밥 먹자는 말로 들릴 수 있어요.",
+        "detail": "한국어 '밥 먹었어?'는 안부를 묻는 인사지만, 영어권에서는 밥을 먹었는지 정말 궁금할 때만 물어요. 대답을 듣고 그냥 지나가면 상대는 어리둥절해요.",
+        "expression": "happy",
+        "motion": "lean"
+      },
+      {
+        "id": "you-look-tired",
+        "line": "You look tired.",
+        "meaning": "피곤해 보이네.",
+        "kind": "context",
+        "reaction": "…나 그렇게 상태 안 좋아 보여?",
+        "tags": [
+          "안색 지적",
+          "걱정보다 흉처럼"
+        ],
+        "why": "챙겨 주려는 말이지만, 영어로는 '안색이 안 좋다'는 지적처럼 들려서 상대가 신경 쓰일 수 있어요.",
+        "detail": "한국에서는 '피곤해 보여'로 상대를 챙기기도 하지만, 영어권에서는 상대의 외모나 상태를 바로 말하는 걸 조심하는 편이에요. 걱정된다면 'Long day?'처럼 묻는 쪽이 부드러워요.",
+        "expression": "awkward",
+        "motion": "facepalm"
+      },
+      {
+        "id": "hows-it-going",
+        "line": "How's it going?",
+        "meaning": "잘 지내?",
+        "kind": "natural",
+        "reaction": "좋지! 너는?",
+        "tags": [
+          "가벼운 인사",
+          "짧게 주고받기"
+        ],
+        "why": "안부를 가볍게 묻는 인사라, 대답도 짧게 주고받고 지나갈 수 있어요.",
+        "detail": "'How's it going?'은 'How are you?'보다 편한 인사예요. 대답은 'Good, you?'처럼 짧게 하면 돼요.",
+        "expression": "happy",
+        "motion": "nod"
+      }
+    ]
+  },
+  "followUp": {
+    "prompt": "잠깐, Alex가 먼저 'How are you?'라고 묻는다면?",
+    "from": "내가 먼저 인사할 때",
+    "to": "Alex가 먼저 물었을 때",
+    "context": "다음 날 아침, Alex가 먼저 인사를 건넸다.",
+    "intent": "나도 잘 지낸다고 가볍게 답하고 싶다.",
+    "partnerLine": "Morning! How are you?",
+    "partnerIdle": {
+      "expression": "happy",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "office",
+      "time": "day",
+      "partner": "alex"
+    },
+    "choices": [
+      {
+        "id": "fine-thank-you",
+        "line": "I'm fine, thank you. And you?",
+        "meaning": "전 괜찮아요, 감사합니다. 당신은요?",
+        "kind": "literal",
+        "reaction": "…교과서 읽는 줄. 혹시 로봇이야?",
+        "tags": [
+          "교과서 문장",
+          "외운 티가 남"
+        ],
+        "why": "틀린 말은 아니지만 교과서 대화문을 그대로 외운 것처럼 딱딱해서, 친한 동료 사이에선 어색한 웃음이 나요.",
+        "detail": "한국 영어 교과서의 대표 문장이라 밈이 되기도 했어요. 실제로는 'Good, you?'나 'Not bad! You?'처럼 짧게 받아요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "so-tired",
+        "line": "Ugh, I'm so tired.",
+        "meaning": "아, 너무 피곤해.",
+        "kind": "context",
+        "reaction": "헉, 무슨 일 있어? 얘기해 봐…",
+        "tags": [
+          "솔직한 대답",
+          "상담이 시작됨"
+        ],
+        "why": "'How are you?'는 가볍게 주고받는 인사라, 힘든 얘기로 답하면 상대가 진지하게 걱정하며 대화가 길어져요.",
+        "detail": "정말 힘든 일이 있다면 말해도 되지만, 지나가며 하는 인사에는 짧고 가볍게 답하는 게 보통이에요.",
+        "expression": "awkward",
+        "motion": "lean"
+      },
+      {
+        "id": "pretty-good",
+        "line": "Pretty good! You?",
+        "meaning": "잘 지내! 너는?",
+        "kind": "natural",
+        "reaction": "나도! 좋은 아침~",
+        "tags": [
+          "짧게 주고받기",
+          "자연스러운 인사"
+        ],
+        "why": "짧게 답하고 바로 되물어서, 인사를 가볍게 주고받는 영어 대화의 리듬에 딱 맞아요.",
+        "detail": "'Good, you?', 'Not bad, you?'도 자주 써요. 되묻는 'You?'를 붙이면 대화가 자연스럽게 이어져요.",
+        "expression": "happy",
+        "motion": "nod"
+      }
+    ]
+  },
+  "discovery": "'밥 먹었어?'는 영어에선 진짜 질문이에요. 안부 인사는 'How's it going?', 대답은 'Pretty good! You?'처럼 짧게 해요."
+}

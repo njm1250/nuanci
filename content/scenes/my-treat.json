@@ -1,0 +1,141 @@
+{
+  "id": "my-treat",
+  "status": "published",
+  "order": 2,
+  "number": 5,
+  "title": "회사 앞 단골 식당",
+  "relation": "회사 동료",
+  "place": "회사 앞 식당 · 저녁",
+  "partnerName": "Alex",
+  "base": {
+    "context": "Alex와 회사 앞 단골 식당에 왔다. 사장님이 주문하지 않은 만두 한 접시를 놓고 가셨다.",
+    "intent": "사장님이 서비스로 주신 거라고 알려 주고 싶다.",
+    "partnerLine": "Wait, we didn't order this.",
+    "partnerIdle": {
+      "expression": "puzzled",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "dining",
+      "time": "evening",
+      "partner": "alex"
+    },
+    "choices": [
+      {
+        "id": "service",
+        "line": "This is service!",
+        "meaning": "이거 서비스야!",
+        "kind": "literal",
+        "reaction": "서비스…? 응, 서비스 좋네. 근데 이건 뭐야?",
+        "tags": [
+          "콩글리시",
+          "공짜라는 뜻이 안 전해짐"
+        ],
+        "why": "영어 'service'는 직원의 응대나 서비스업을 뜻해서, 공짜로 더 준 음식이라는 뜻이 전해지지 않아요.",
+        "detail": "한국에서 '서비스'는 가게가 덤으로 주는 음식이나 할인을 뜻하지만, 영어권에서는 이렇게 쓰지 않아요. 가게가 값을 안 받는다는 건 'on the house'로 말해요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "gift",
+        "line": "It's a gift.",
+        "meaning": "선물이야.",
+        "kind": "context",
+        "reaction": "선물? 누가? 오늘 내 생일 아닌데…",
+        "tags": [
+          "개인적인 선물처럼 들림",
+          "식당에선 어색"
+        ],
+        "why": "'Gift'는 누군가 마음을 담아 주는 선물이라, 식당에서 덤으로 나온 음식에 쓰면 무슨 날인가 싶어요.",
+        "detail": "틀린 말은 아니지만 생일이나 기념일 선물이 먼저 떠오르는 단어예요. 가게에서 공짜로 준 건 'It's free' 또는 'It's on the house'가 자연스러워요.",
+        "expression": "awkward",
+        "motion": "shrug"
+      },
+      {
+        "id": "on-the-house",
+        "line": "It's on the house!",
+        "meaning": "가게에서 공짜로 주는 거야!",
+        "kind": "natural",
+        "reaction": "공짜라고? 이 집 최고다!",
+        "tags": [
+          "가게가 내는 것",
+          "식당에서 자연스러움"
+        ],
+        "why": "'On the house'는 가게가 값을 대신 낸다는 뜻이라, 사장님이 덤으로 준 음식을 딱 맞게 설명해요.",
+        "detail": "식당이나 바에서 직원이 'This one's on the house'라고 하면 공짜라는 뜻이에요. 'House'가 여기서는 가게를 가리켜요.",
+        "expression": "delighted",
+        "motion": "bounce"
+      }
+    ]
+  },
+  "followUp": {
+    "prompt": "잠깐, 다 먹고 계산할 때라면?",
+    "from": "식사 중",
+    "to": "계산하기 직전",
+    "context": "다 먹었다. Alex가 지갑을 꺼낸다.",
+    "intent": "오늘은 내가 쏘고 싶다.",
+    "partnerLine": "Okay, how much do I owe?",
+    "partnerIdle": {
+      "expression": "neutral",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "dining",
+      "time": "evening",
+      "partner": "alex",
+      "flags": [
+        "plate-empty"
+      ]
+    },
+    "choices": [
+      {
+        "id": "shoot",
+        "line": "I'll shoot today!",
+        "meaning": "오늘은 내가 쏠게!",
+        "kind": "literal",
+        "reaction": "쏜다고?! 뭘?! 여기서?!",
+        "tags": [
+          "한국식 직역",
+          "총 쏘는 줄"
+        ],
+        "why": "영어 'shoot'은 총이나 화살을 쏜다는 뜻이라, 밥값을 내겠다는 말이 아니라 위험한 말처럼 들려요.",
+        "detail": "한국어 '쏘다'는 한턱낸다는 뜻으로도 쓰지만 영어 'shoot'에는 그런 뜻이 없어요. 밥값을 내겠다고 할 때는 'It's on me', 'My treat', 'I got this'를 써요.",
+        "expression": "awkward",
+        "motion": "shiver",
+        "meMotion": "aim",
+        "meProp": "blaster"
+      },
+      {
+        "id": "dont-worry-money",
+        "line": "Don't worry about money.",
+        "meaning": "돈 걱정은 하지 마.",
+        "kind": "context",
+        "reaction": "어… 나 돈 없어 보여?",
+        "tags": [
+          "형편 걱정처럼 들림",
+          "괜히 민망"
+        ],
+        "why": "내가 내겠다는 뜻보다 상대의 형편을 걱정하는 말처럼 들려서, 괜히 민망하게 만들 수 있어요.",
+        "detail": "정말 돈 때문에 고민하는 사람을 안심시킬 때 어울리는 말이에요. 단순히 한턱내고 싶을 때는 누가 내는지만 가볍게 말하는 게 자연스러워요.",
+        "expression": "awkward",
+        "motion": "lean"
+      },
+      {
+        "id": "on-me",
+        "line": "This one's on me.",
+        "meaning": "이번엔 내가 낼게.",
+        "kind": "natural",
+        "reaction": "오, 진짜? 다음엔 내가 살게!",
+        "tags": [
+          "가볍게 한턱",
+          "다음을 약속하게"
+        ],
+        "why": "'On me'는 내가 값을 낸다는 뜻이라, 부담 없이 한턱내겠다는 마음을 전해요.",
+        "detail": "'This one's on me'는 '이번 건'이라고 말해서 다음엔 상대가 내도 된다는 여지를 남겨요. 'My treat'도 같은 뜻으로 자주 써요.",
+        "expression": "happy",
+        "motion": "nod"
+      }
+    ]
+  },
+  "discovery": "누가 내는지는 'on'으로 말해요. 서비스는 'on the house', 내가 쏠 땐 'on me'예요."
+}

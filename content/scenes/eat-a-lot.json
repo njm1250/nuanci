@@ -1,9 +1,9 @@
 {
   "id": "eat-a-lot",
   "status": "published",
-  "order": 1,
-  "number": 9,
-  "title": "많이 먹어",
+  "order": 3,
+  "number": 1,
+  "title": "친구를 위한 저녁상",
   "relation": "친구",
   "place": "우리 집 · 저녁",
   "partnerName": "Sam",
@@ -25,6 +25,7 @@
         "id": "eat-a-lot",
         "line": "Eat a lot!",
         "meaning": "많이 먹어!",
+        "kind": "literal",
         "reaction": "응…? 얼마나 먹어야 하는 거지?",
         "tags": [
           "양을 정해주는 말",
@@ -36,9 +37,25 @@
         "motion": "tilt"
       },
       {
+        "id": "enjoy-your-meal",
+        "line": "Enjoy your meal.",
+        "meaning": "맛있게 드세요.",
+        "kind": "context",
+        "reaction": "…여기 식당이야? 팁 줘야 해?",
+        "tags": [
+          "식당 직원 말투",
+          "집에선 거리감"
+        ],
+        "why": "식당에서 직원이 손님에게 하는 인사처럼 들려서, 집에 초대한 친구에게는 거리감이 느껴질 수 있어요.",
+        "detail": "'Enjoy your meal'은 틀린 말은 아니지만 음식을 내주는 서비스 자리에 잘 어울려요. 직접 차린 자리라면 'Help yourself'나 'Dig in'처럼 편하게 권하는 말이 자연스러워요.",
+        "expression": "awkward",
+        "motion": "shrug"
+      },
+      {
         "id": "help-yourself",
         "line": "Help yourself!",
         "meaning": "편하게 먹어!",
+        "kind": "natural",
         "reaction": "편하게 먹으면 되겠다.",
         "tags": [
           "편하게 드세요",
@@ -48,20 +65,6 @@
         "detail": "음식이 차려진 자리에서 가장 흔하게 쓰는 말이에요. 친구에게도, 처음 온 손님에게도 부담 없이 쓸 수 있어요.",
         "expression": "happy",
         "motion": "nod"
-      },
-      {
-        "id": "dig-in",
-        "line": "Dig in!",
-        "meaning": "어서 먹자!",
-        "reaction": "오, 맛있겠다! 바로 먹어야지.",
-        "tags": [
-          "신나게 권하기",
-          "친한 사이"
-        ],
-        "why": "음식이 나왔으니 바로 먹기 시작하자는 캐주얼한 말이에요. 친한 친구 사이에 잘 어울려요.",
-        "detail": "'파고들다'라는 원래 뜻처럼 음식에 달려드는 활기찬 느낌이 있어요. 격식 있는 자리보다는 편한 자리에 어울려요.",
-        "expression": "delighted",
-        "motion": "bounce"
       }
     ]
   },
@@ -69,8 +72,8 @@
     "prompt": "잠깐, 친구가 이미 배부르다고 했다면?",
     "from": "막 식사를 시작할 때",
     "to": "친구가 배부르다고 말한 뒤",
-    "context": "친구가 한 그릇을 다 비우고 수저를 내려놓았다.",
-    "intent": "그래도 더 먹었으면 좋겠다.",
+    "context": "친구가 한 그릇을 다 비우고 수저를 내려놓았다. 근데 케이크도 준비해 뒀다.",
+    "intent": "그래도 디저트는 꼭 먹었으면 좋겠다.",
     "partnerLine": "That was so good. I'm stuffed.",
     "partnerIdle": {
       "expression": "stuffed",
@@ -86,51 +89,51 @@
     },
     "choices": [
       {
-        "id": "have-some-more",
-        "line": "Come on, have some more!",
-        "meaning": "에이, 좀 더 먹어!",
-        "reaction": "진짜 배부른데… 거절하기 미안하네.",
+        "id": "dessert-stomach",
+        "line": "Dessert goes in another stomach!",
+        "meaning": "디저트 배는 따로 있잖아!",
+        "kind": "literal",
+        "reaction": "위가 하나 더…? 나 소 아닌데?",
         "tags": [
-          "한 번 더 권하기",
-          "부담될 수도"
+          "한국식 직역",
+          "위가 두 개?"
         ],
-        "why": "다정한 권유지만, 배부르다고 한 뒤에 다시 권하면 거절하기 어려운 부담이 될 수 있어요.",
-        "detail": "한국에서는 몇 번 더 권하는 게 정이기도 해요. 이 장면처럼 상대가 분명히 배부르다고 했다면, 그 말을 그대로 받아들이는 쪽이 더 편하게 느껴질 수 있어요.",
+        "why": "'디저트 배는 따로'를 그대로 옮기면 정말 위장이 하나 더 있다는 말처럼 들려요.",
+        "detail": "영어에도 같은 농담이 있어요. 다만 '배'가 아니라 '자리(room)'로 말해서 'There's always room for dessert'라고 해요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "sure-youre-full",
+        "line": "Are you sure you're full?",
+        "meaning": "진짜 배불러?",
+        "kind": "context",
+        "reaction": "응, 확실해… 내 말 못 믿어?",
+        "tags": [
+          "다시 확인하기",
+          "의심처럼 들림"
+        ],
+        "why": "한 번 더 챙기려는 마음이지만, 배부르다는 말을 믿지 못하는 것처럼 들릴 수 있어요.",
+        "detail": "한국에서는 '진짜 배불러?' 하고 한 번 더 묻는 게 배려지만, 영어권에서는 상대가 이미 분명히 말한 걸 다시 확인하면 그 말을 의심하는 느낌이 날 수 있어요.",
         "expression": "awkward",
         "motion": "lean"
       },
       {
-        "id": "plenty-more",
-        "line": "There's plenty more if you want it.",
-        "meaning": "더 먹고 싶으면 많이 있어.",
-        "reaction": "먹고 싶으면 더 먹으면 되는구나. 편하다.",
+        "id": "room-for-dessert",
+        "line": "There's always room for dessert!",
+        "meaning": "디저트 들어갈 자리는 있잖아!",
+        "kind": "natural",
+        "reaction": "아 그건 인정… 딱 한 조각만!",
         "tags": [
-          "선택을 맡김",
-          "부담 없는 환대"
+          "영어식 농담",
+          "가볍게 권하기"
         ],
-        "why": "음식이 더 있다는 사실만 알려주고, 먹을지는 상대가 정하게 해요.",
-        "detail": "권유가 아니라 정보처럼 말해서 거절할 필요조차 없게 만들어요. 배부른 사람에게도 부담 없이 마음을 전할 수 있어요.",
-        "expression": "happy",
-        "motion": "nod"
-      },
-      {
-        "id": "pack-some",
-        "line": "I'll pack some up for you to take home!",
-        "meaning": "좀 싸줄게, 집에 가져가!",
-        "reaction": "와, 내일 먹을 것까지 챙겨주네!",
-        "tags": [
-          "다른 방식의 배려",
-          "따뜻한 마무리"
-        ],
-        "why": "지금 더 먹으라고 하지 않고, 음식을 챙겨주는 것으로 마음을 전해요.",
-        "detail": "남은 음식을 싸주는 건 영어권에서도 자연스러운 배려예요. 지금 먹는 양과 상관없이 마음을 전할 수 있는 방법이에요.",
+        "why": "배부른 사람에게도 웃으며 건넬 수 있는 관용 표현이라, 부담 없이 디저트를 권할 수 있어요.",
+        "detail": "식사 뒤 디저트를 권할 때 흔히 쓰는 말이에요. 친구가 정말 못 먹겠다고 하면 'No worries, I'll save you a piece'처럼 물러나면 돼요.",
         "expression": "delighted",
-        "motion": "bounce",
-        "flags": [
-          "takeout"
-        ]
+        "motion": "bounce"
       }
     ]
   },
-  "discovery": "'많이 먹어'의 마음은 영어에서 양보다 '편하게, 원하는 만큼'으로 전해질 때가 많아요."
+  "discovery": "'많이 먹어'는 'Help yourself', '디저트 배는 따로 있잖아'는 'There's always room for dessert'예요."
 }
