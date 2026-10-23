@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export function BlockButton({
   children,
   onClick,
@@ -17,6 +19,14 @@ export function BlockButton({
     <button onClick={onClick} className={`blk-btn ${gold ? "blk-btn-gold" : ""} block ${className}`}>
       <span className={`blk block px-3 py-2.5 ${gold ? "bg-gold" : "bg-cream"} ${faceClassName}`}>{children}</span>
     </button>
+  );
+}
+
+export function BlockLink({ href, children, gold = false, className = "" }: { href: string; children: React.ReactNode; gold?: boolean; className?: string }) {
+  return (
+    <Link href={href} className={`blk-btn ${gold ? "blk-btn-gold" : ""} block ${className}`}>
+      <span className={`blk block px-3 py-3 text-center font-pixel text-[15px] text-ink ${gold ? "bg-gold" : "bg-cream"}`}>{children}</span>
+    </Link>
   );
 }
 

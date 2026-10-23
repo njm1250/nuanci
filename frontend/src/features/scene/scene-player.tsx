@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+
 import { useMemo, useState } from "react";
 import { PixelStage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
-import { BlockButton, Panel } from "./block-ui";
+import { BlockButton, BlockLink, Panel } from "./block-ui";
 import type { Choice, Scene } from "./types";
 import { useCopyLink, useReducedMotion, useSceneFlow } from "./use-scene-flow";
 
@@ -63,7 +64,10 @@ export function ScenePlayer({ scene, nextId }: { scene: Scene; nextId: string })
       <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night">
         <header className="flex h-12 shrink-0 items-center px-4">
           <p className="font-pixel text-[14px] text-paper">
-            <span className="text-paper/50">장면 {scene.number}</span>
+            <Link href="/" className="text-gold">
+              nuanci
+            </Link>
+            <span className="ml-3 text-paper/50">장면 {scene.number}</span>
             <span className="ml-2">{scene.title}</span>
           </p>
         </header>
@@ -164,9 +168,9 @@ export function ScenePlayer({ scene, nextId }: { scene: Scene; nextId: string })
                     <BlockButton onClick={copy} faceClassName="font-pixel text-[14px]">
                       {copyState === "copied" ? "복사됨" : "공유"}
                     </BlockButton>
-                    <Link href={`/scenes/${nextId}`} className="blk-btn blk-btn-gold block flex-1">
-                      <span className="blk block bg-gold px-3 py-2.5 text-center font-pixel text-[15px]">다음 장면</span>
-                    </Link>
+                    <BlockLink href={`/scenes/${nextId}`} gold className="flex-1">
+                      다음 장면
+                    </BlockLink>
                   </>
                 ) : (
                   <BlockButton gold onClick={f.startTransition} className="flex-1" faceClassName="text-center font-pixel text-[15px]">
