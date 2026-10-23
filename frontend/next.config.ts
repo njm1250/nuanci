@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // 같은 와이파이의 휴대폰에서 개발 서버에 접속할 수 있게 사설망 주소를 허용한다
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*"],
   // /api 요청을 BE로 프록시해서 브라우저 입장에서는 같은 출처로 보이게 한다 (CORS 불필요)
   async rewrites() {
     return [
