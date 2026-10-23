@@ -1,0 +1,48 @@
+# 서버(EC2)에서 BE와 DB를 띄운다: docker compose -f compose.prod.yaml up -d --build
+# 값은 같은 폴더의 .env에서 읽는다 (.env.example 참고)
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: nuanci
+      POSTGRES_USER: nuanci
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD가 필요해요}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nuanci"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nuanci
+      SPRING_DATASOURCE_USERNAME: nuanci
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      NUANCI_ADMIN_ID: ${NUANCI_ADMIN_ID:-admin}
+      NUANCI_ADMIN_PASSWORD: ${NUANCI_ADMIN_PASSWORD:?NUANCI_ADMIN_PASSWORD가 필요해요}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # API 도메인으로 HTTPS 인증서를 자동으로 받아 BE로 넘긴다
+  caddy:
+    image: caddy:2
+    command: caddy reverse-proxy --from ${API_DOMAIN:?API_DOMAIN이 필요해요} --to backend:8080
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy-data:/data
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  caddy-data:

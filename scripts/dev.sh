@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 로컬 개발 서버(DB, BE, FE)를 백그라운드로 띄우고 내리는 스크립트
-# 사용법: scripts/dev.sh {up|down|restart|status|logs <be|fe> [줄수]|db-reset}
+# 사용법: scripts/dev.sh {up|down|restart|status|logs <be|fe> [줄수]|db-reset|seed}
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,6 +30,8 @@ start_be() {
     echo "be 이미 실행 중"
     return
   fi
+  # 로컬 관리자 계정 기본값은 admin / admin
+  export NUANCI_ADMIN_PASSWORD="${NUANCI_ADMIN_PASSWORD:-admin}"
   # bootRun이 compose.yaml의 Postgres도 같이 띄운다
   # 서브셸이 호출한 쪽의 출력을 붙잡지 않도록 입출력을 모두 끊고 띄운다
   (cd "$ROOT/backend" || exit 1; nohup ./gradlew bootRun >"$RUN_DIR/be.log" 2>&1 </dev/null &)
@@ -82,8 +84,10 @@ case "${1:-}" in
   status) status ;;
   logs) tail -n "${3:-50}" "$RUN_DIR/${2:?be 또는 fe}.log" ;;
   db-reset) docker compose -f "$ROOT/compose.yaml" down -v ;;
+  # 장면의 원본은 DB라서, 빈 DB에는 content/scenes의 JSON을 직접 올려 채운다
+  seed) "$ROOT/scripts/push-scene.sh" "$ROOT"/content/scenes/*.json ;;
   *)
-    echo "사용법: $0 {up|down|restart|status|logs <be|fe> [줄수]|db-reset}" >&2
+    echo "사용법: $0 {up|down|restart|status|logs <be|fe> [줄수]|db-reset|seed}" >&2
     exit 1
     ;;
 esac

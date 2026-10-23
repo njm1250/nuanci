@@ -1,0 +1,8 @@
+.git
+.dev
+content
+docs
+frontend
+backend/build
+backend/.gradle
+**/.DS_Store

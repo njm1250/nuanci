@@ -5,14 +5,15 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.IdClass
 import jakarta.persistence.Table
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.type.SqlTypes
+import org.hibernate.annotations.ColumnTransformer
 import java.io.Serializable
 import java.time.Instant
 
 object SceneStatus {
 	const val PUBLISHED = "published"
+	const val DRAFT = "draft"
 	const val HIDDEN = "hidden"
+	val ALL = setOf(PUBLISHED, DRAFT, HIDDEN)
 }
 
 @Entity
@@ -47,7 +48,8 @@ class SceneVersion(
 	val version: Int,
 	@Column(name = "content_hash")
 	val contentHash: String,
-	@JdbcTypeCode(SqlTypes.JSON)
+	// 작성한 키 순서를 지키려고 jsonb로 바꾸지 않고 문자열 그대로 json 컬럼에 넣는다
+	@ColumnTransformer(write = "?::json")
 	val content: String,
 	@Column(name = "created_at")
 	val createdAt: Instant,

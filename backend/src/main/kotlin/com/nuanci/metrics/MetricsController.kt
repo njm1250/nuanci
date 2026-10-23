@@ -1,13 +1,12 @@
 package com.nuanci.metrics
 
-import com.nuanci.config.NuanciProperties
-import org.springframework.http.HttpStatus
+import com.nuanci.admin.AdminSessions
+import org.springframework.http.HttpHeaders
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 
 data class ChoiceCount(val step: String, val choiceId: String, val picks: Int)
 
@@ -33,11 +32,11 @@ data class MetricsResponse(val visitors: Int, val attempts: Int, val events: Int
 @RequestMapping("/api/admin/metrics")
 class MetricsController(
 	private val jdbc: JdbcClient,
-	private val props: NuanciProperties,
+	private val sessions: AdminSessions,
 ) {
 	@GetMapping
-	fun metrics(@RequestHeader("X-Admin-Token", required = false) token: String?): MetricsResponse {
-		if (props.adminToken.isNotBlank() && token != props.adminToken) throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+	fun metrics(@RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?): MetricsResponse {
+		sessions.require(auth)
 
 		val choices = jdbc.sql(
 			"""
