@@ -1,0 +1,136 @@
+{
+  "id": "eat-a-lot",
+  "status": "published",
+  "order": 1,
+  "number": 9,
+  "title": "많이 먹어",
+  "relation": "친구",
+  "place": "우리 집 · 저녁",
+  "partnerName": "Sam",
+  "base": {
+    "context": "친구를 집에 초대해 저녁을 차렸다. 친구가 식탁에 앉았다.",
+    "intent": "부담 갖지 말고 많이 먹었으면 좋겠다.",
+    "partnerLine": "Wow, you made all this?",
+    "partnerIdle": {
+      "expression": "happy",
+      "motion": "idle"
+    },
+    "stage": {
+      "set": "dining",
+      "time": "day",
+      "partner": "sam"
+    },
+    "choices": [
+      {
+        "id": "eat-a-lot",
+        "line": "Eat a lot!",
+        "meaning": "많이 먹어!",
+        "reaction": "응…? 얼마나 먹어야 하는 거지?",
+        "tags": [
+          "양을 정해주는 말",
+          "어색하게 들릴 수도"
+        ],
+        "why": "먹는 양을 콕 집어 말해서, 환대보다는 '이만큼 먹어'라는 지시처럼 들릴 수 있어요.",
+        "detail": "한국어 '많이 먹어'는 양보다 마음을 전하는 말이에요. 영어에서는 같은 마음을 '편하게', '원하는 만큼'으로 전하는 경우가 많아요. 아이에게 'Eat up!'이라고 권하는 말은 있지만, 손님에게 먹을 양을 정해주는 말은 잘 쓰지 않아요.",
+        "expression": "puzzled",
+        "motion": "tilt"
+      },
+      {
+        "id": "help-yourself",
+        "line": "Help yourself!",
+        "meaning": "편하게 먹어!",
+        "reaction": "편하게 먹으면 되겠다.",
+        "tags": [
+          "편하게 드세요",
+          "자연스러운 환대"
+        ],
+        "why": "원하는 만큼 알아서 덜어 먹으라는 말이라, 먹는 양을 상대에게 맡기는 환대예요.",
+        "detail": "음식이 차려진 자리에서 가장 흔하게 쓰는 말이에요. 친구에게도, 처음 온 손님에게도 부담 없이 쓸 수 있어요.",
+        "expression": "happy",
+        "motion": "nod"
+      },
+      {
+        "id": "dig-in",
+        "line": "Dig in!",
+        "meaning": "어서 먹자!",
+        "reaction": "오, 맛있겠다! 바로 먹어야지.",
+        "tags": [
+          "신나게 권하기",
+          "친한 사이"
+        ],
+        "why": "음식이 나왔으니 바로 먹기 시작하자는 캐주얼한 말이에요. 친한 친구 사이에 잘 어울려요.",
+        "detail": "'파고들다'라는 원래 뜻처럼 음식에 달려드는 활기찬 느낌이 있어요. 격식 있는 자리보다는 편한 자리에 어울려요.",
+        "expression": "delighted",
+        "motion": "bounce"
+      }
+    ]
+  },
+  "followUp": {
+    "prompt": "잠깐, 친구가 이미 배부르다고 했다면?",
+    "from": "막 식사를 시작할 때",
+    "to": "친구가 배부르다고 말한 뒤",
+    "context": "친구가 한 그릇을 다 비우고 수저를 내려놓았다.",
+    "intent": "그래도 더 먹었으면 좋겠다.",
+    "partnerLine": "That was so good. I'm stuffed.",
+    "partnerIdle": {
+      "expression": "stuffed",
+      "motion": "patBelly"
+    },
+    "stage": {
+      "set": "dining",
+      "time": "evening",
+      "partner": "sam",
+      "flags": [
+        "plate-empty"
+      ]
+    },
+    "choices": [
+      {
+        "id": "have-some-more",
+        "line": "Come on, have some more!",
+        "meaning": "에이, 좀 더 먹어!",
+        "reaction": "진짜 배부른데… 거절하기 미안하네.",
+        "tags": [
+          "한 번 더 권하기",
+          "부담될 수도"
+        ],
+        "why": "다정한 권유지만, 배부르다고 한 뒤에 다시 권하면 거절하기 어려운 부담이 될 수 있어요.",
+        "detail": "한국에서는 몇 번 더 권하는 게 정이기도 해요. 이 장면처럼 상대가 분명히 배부르다고 했다면, 그 말을 그대로 받아들이는 쪽이 더 편하게 느껴질 수 있어요.",
+        "expression": "awkward",
+        "motion": "lean"
+      },
+      {
+        "id": "plenty-more",
+        "line": "There's plenty more if you want it.",
+        "meaning": "더 먹고 싶으면 많이 있어.",
+        "reaction": "먹고 싶으면 더 먹으면 되는구나. 편하다.",
+        "tags": [
+          "선택을 맡김",
+          "부담 없는 환대"
+        ],
+        "why": "음식이 더 있다는 사실만 알려주고, 먹을지는 상대가 정하게 해요.",
+        "detail": "권유가 아니라 정보처럼 말해서 거절할 필요조차 없게 만들어요. 배부른 사람에게도 부담 없이 마음을 전할 수 있어요.",
+        "expression": "happy",
+        "motion": "nod"
+      },
+      {
+        "id": "pack-some",
+        "line": "I'll pack some up for you to take home!",
+        "meaning": "좀 싸줄게, 집에 가져가!",
+        "reaction": "와, 내일 먹을 것까지 챙겨주네!",
+        "tags": [
+          "다른 방식의 배려",
+          "따뜻한 마무리"
+        ],
+        "why": "지금 더 먹으라고 하지 않고, 음식을 챙겨주는 것으로 마음을 전해요.",
+        "detail": "남은 음식을 싸주는 건 영어권에서도 자연스러운 배려예요. 지금 먹는 양과 상관없이 마음을 전할 수 있는 방법이에요.",
+        "expression": "delighted",
+        "motion": "bounce",
+        "flags": [
+          "takeout"
+        ]
+      }
+    ]
+  },
+  "discovery": "'많이 먹어'의 마음은 영어에서 양보다 '편하게, 원하는 만큼'으로 전해질 때가 많아요."
+}

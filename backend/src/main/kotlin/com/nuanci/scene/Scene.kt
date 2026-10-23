@@ -1,0 +1,54 @@
+package com.nuanci.scene
+
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.IdClass
+import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
+import java.io.Serializable
+import java.time.Instant
+
+object SceneStatus {
+	const val PUBLISHED = "published"
+	const val HIDDEN = "hidden"
+}
+
+@Entity
+@Table(name = "scene")
+class Scene(
+	@Id
+	val id: String,
+	var number: Int,
+	var title: String,
+	var status: String,
+	@Column(name = "sort_order")
+	var sortOrder: Int,
+	@Column(name = "current_version")
+	var currentVersion: Int,
+	@Column(name = "updated_at")
+	var updatedAt: Instant,
+)
+
+data class SceneVersionId(
+	val sceneId: String = "",
+	val version: Int = 0,
+) : Serializable
+
+@Entity
+@Table(name = "scene_version")
+@IdClass(SceneVersionId::class)
+class SceneVersion(
+	@Id
+	@Column(name = "scene_id")
+	val sceneId: String,
+	@Id
+	val version: Int,
+	@Column(name = "content_hash")
+	val contentHash: String,
+	@JdbcTypeCode(SqlTypes.JSON)
+	val content: String,
+	@Column(name = "created_at")
+	val createdAt: Instant,
+)
