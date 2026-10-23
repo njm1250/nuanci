@@ -25,6 +25,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       NUANCI_ADMIN_ID: ${NUANCI_ADMIN_ID:-admin}
       NUANCI_ADMIN_PASSWORD: ${NUANCI_ADMIN_PASSWORD:?NUANCI_ADMIN_PASSWORD가 필요해요}
+      # 2GB 서버에서 DB·Caddy와 같이 돌도록 힙을 제한한다
+      JAVA_TOOL_OPTIONS: -Xmx384m -XX:+UseSerialGC
     depends_on:
       postgres:
         condition: service_healthy

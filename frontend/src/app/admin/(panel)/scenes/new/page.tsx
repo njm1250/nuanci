@@ -45,7 +45,7 @@ export default function NewScenePage() {
     <>
       <h1 className="font-pixel-title text-[24px]">새 장면</h1>
       <p className="mt-1 text-[14px] leading-relaxed text-paper-muted">
-        틀을 채우거나 완성된 JSON을 통째로 붙여 넣으세요. 새 장면은 초안으로 들어가요. 무대·동작·소품 이름은 에셋 화면에서 확인할 수 있어요.
+        틀을 채우거나 완성된 JSON을 통째로 붙여 넣으세요. 여러 장면은 {"[ {...}, {...} ]"} 배열로 한 번에 올릴 수 있어요. 새 장면은 초안으로 들어가요. 무대·동작·소품 이름은 에셋 화면에서 확인할 수 있어요.
       </p>
       <div className="mt-4">
         <SceneEditor initial={JSON.stringify(TEMPLATE, null, 2)} />

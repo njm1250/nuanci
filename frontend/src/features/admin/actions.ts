@@ -7,7 +7,9 @@ import { BACKEND, SCENES_TAG } from "@/features/scene/api";
 import { adminFetch } from "./api";
 import { ADMIN_COOKIE } from "./cookie";
 
-export type FormState = { error?: string; warnings?: string[]; ok?: string; id?: string } | null;
+export type SceneResult = { id: string; ok?: string; error?: string; warnings?: string[] };
+
+export type FormState = { error?: string; warnings?: string[]; ok?: string; id?: string; results?: SceneResult[] } | null;
 
 export async function login(_: FormState, form: FormData): Promise<FormState> {
   const res = await fetch(`${BACKEND}/api/admin/login`, {
@@ -34,31 +36,44 @@ export async function logout() {
   redirect("/admin/login");
 }
 
-// 붙여 넣은 장면 JSON을 검사하거나 저장한다. 저장하면 공개 화면 캐시를 바로 비운다
-export async function saveScene(_: FormState, form: FormData): Promise<FormState> {
-  const text = String(form.get("json") ?? "");
-  const dryRun = form.get("intent") === "check";
-  let id: unknown;
-  try {
-    id = JSON.parse(text).id;
-  } catch {
-    return { error: "JSON 형식이 올바르지 않아요" };
-  }
-  if (typeof id !== "string" || !id) return { error: "id가 없어요" };
-
+async function putScene(scene: unknown, body: string, dryRun: boolean): Promise<SceneResult> {
+  const id = (scene as { id?: unknown } | null)?.id;
+  if (typeof id !== "string" || !id) return { id: "?", error: "id가 없어요" };
   const res = await adminFetch(`/api/admin/scenes/${encodeURIComponent(id)}?dryRun=${dryRun}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: text,
+    body,
   });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) return { error: body.message ?? `저장하지 못했어요 (${res.status})` };
-  if (dryRun) {
-    const what = body.created ? "새 장면으로 들어가요" : body.changed ? `새 버전(v${body.version})으로 저장돼요` : "바뀐 내용이 없어요";
-    return { ok: `검사 통과. ${what}`, warnings: body.warnings };
+  const result = await res.json().catch(() => ({}));
+  if (!res.ok) return { id, error: result.message ?? `저장하지 못했어요 (${res.status})` };
+  const what = result.created ? "새 장면" : result.changed ? `새 버전(v${result.version})` : "바뀐 내용 없음";
+  return { id, ok: dryRun ? `검사 통과 · 저장하면 ${what}` : `저장 · ${what}`, warnings: result.warnings };
+}
+
+// 붙여 넣은 장면 JSON을 검사하거나 저장한다. 배열이면 장면마다 따로 처리하고, 저장하면 공개 화면 캐시를 바로 비운다
+export async function saveScene(_: FormState, form: FormData): Promise<FormState> {
+  const text = String(form.get("json") ?? "");
+  const dryRun = form.get("intent") === "check";
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return { error: "JSON 형식이 올바르지 않아요" };
   }
-  updateTag(SCENES_TAG);
-  redirect(`/admin/scenes/${id}?saved=1`);
+
+  if (!Array.isArray(parsed)) {
+    const result = await putScene(parsed, text, dryRun);
+    if (result.error) return { error: result.error };
+    if (dryRun) return { ok: result.ok, warnings: result.warnings };
+    updateTag(SCENES_TAG);
+    redirect(`/admin/scenes/${result.id}?saved=1`);
+  }
+
+  if (parsed.length === 0) return { error: "장면이 없어요" };
+  const results: SceneResult[] = [];
+  for (const scene of parsed) results.push(await putScene(scene, JSON.stringify(scene), dryRun));
+  if (!dryRun && results.some((r) => !r.error)) updateTag(SCENES_TAG);
+  return { results };
 }
 
 export async function setSceneStatus(id: string, status: string) {
