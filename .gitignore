@@ -15,3 +15,6 @@ docs/
 
 # 로컬 개발 서버 로그
 .dev/
+
+# Vercel 프로젝트 연결 정보
+.vercel
