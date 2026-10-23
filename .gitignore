@@ -10,5 +10,8 @@
 .env.*
 !.env.example
 
-# local-only docs (PRD, notes)
+# 로컬 문서
 docs/
+
+# 로컬 개발 서버 로그
+.dev/
