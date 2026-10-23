@@ -154,21 +154,45 @@ export const SETS: Record<SetId, SetDef> = {
   living: {
     label: "거실 · 소파",
     wall: { day: "#c9c3cf", evening: "#827c8c" },
-    me: { x: -0.45, z: -0.2, facing: 0.55, posture: "sit" },
-    partner: { x: 0.45, z: -0.2, facing: -0.55, posture: "sit" },
+    me: { x: -1.0, z: -0.2, facing: 0.55, posture: "sit" },
+    partner: { x: 1.0, z: -0.2, facing: -0.55, posture: "sit" },
     Scenery: ({ evening, flags }) => (
       <>
         <Flat size={[0.8, 0.5]} at={[0, 2.15, WALL_Z]} color={C.leaf} />
-        <Box size={[1.9, 0.42, 0.8]} at={[0, 0.27, -0.45]} color={C.slate} />
-        <Box size={[1.9, 0.62, 0.2]} at={[0, 0.75, -0.8]} color={C.slate} />
+        <Box size={[2.8, 0.42, 0.8]} at={[0, 0.27, -0.45]} color={C.slate} />
+        <Box size={[2.8, 0.62, 0.2]} at={[0, 0.75, -0.8]} color={C.slate} />
         {[-1, 1].map((s) => (
-          <Box key={s} size={[0.2, 0.58, 0.8]} at={[1.05 * s, 0.38, -0.45]} color="#5d6d79" />
+          <Box key={s} size={[0.2, 0.58, 0.8]} at={[1.5 * s, 0.38, -0.45]} color="#5d6d79" />
         ))}
-        <Cyl r={0.02} h={1.7} at={[1.75, 0.85, -0.5]} color={C.ink} />
-        <Cyl r={[0.16, 0.24]} h={0.3} at={[1.75, 1.75, -0.5]} color={evening ? C.lampOn : C.lampOff} />
-        <Box size={[0.36, 0.04, 0.36]} at={[1.75, 0.02, -0.5]} color={C.ink} />
-        {flags.has("tissues") && <Box size={[0.24, 0.12, 0.14]} at={[-1.05, 0.73, -0.45]} color={C.plate} />}
-        <Plant x={-2.1} />
+        <Cyl r={0.02} h={1.7} at={[2.15, 0.85, -0.5]} color={C.ink} />
+        <Cyl r={[0.16, 0.24]} h={0.3} at={[2.15, 1.75, -0.5]} color={evening ? C.lampOn : C.lampOff} />
+        <Box size={[0.36, 0.04, 0.36]} at={[2.15, 0.02, -0.5]} color={C.ink} />
+        {flags.has("tissues") && <Box size={[0.24, 0.12, 0.14]} at={[-1.5, 0.73, -0.45]} color={C.plate} />}
+        <Plant x={-2.45} />
+      </>
+    ),
+  },
+
+  park: {
+    label: "공원 · 벤치",
+    wall: { day: "#bfe0ee", evening: "#2b3350" },
+    me: { x: -0.75, z: -0.2, facing: 0.5, posture: "sit" },
+    partner: { x: 0.75, z: -0.2, facing: -0.5, posture: "sit" },
+    Scenery: ({ evening }) => (
+      <>
+        <Box size={[30, 0.03, 2.4]} at={[0, 0.015, 0]} color={evening ? "#3f5f3a" : "#6f9a4f"} />
+        <Box size={[30, 0.5, 0.3]} at={[0, 0.25, WALL_Z + 0.1]} color={evening ? "#33502f" : "#4f7a4a"} />
+        <Cyl r={0.12} h={1.6} at={[-1.9, 0.8, -0.8]} color={C.woodDark} />
+        <Gem r={0.75} at={[-1.9, 1.95, -0.8]} color={C.leaf} />
+        <Gem r={0.5} at={[-1.5, 2.35, -0.7]} color="#5f8a57" />
+        <Box size={[2.6, 0.08, 0.5]} at={[0, 0.5, -0.4]} color={C.wood} />
+        <Box size={[2.6, 0.32, 0.06]} at={[0, 0.82, -0.66]} color={C.wood} />
+        {[-1.15, 1.15].map((x) => (
+          <Box key={x} size={[0.08, 0.5, 0.42]} at={[x, 0.25, -0.4]} color={C.ink} />
+        ))}
+        <Cyl r={0.04} h={2.4} at={[2.0, 1.2, -0.6]} color={C.ink} />
+        <Box size={[0.3, 0.14, 0.3]} at={[2.0, 2.45, -0.6]} color={C.ink} />
+        <Glow size={[0.22, 0.04, 0.22]} at={[2.0, 2.37, -0.6]} on={evening} />
       </>
     ),
   },

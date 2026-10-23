@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getSceneByNumber, getScenes, nextSceneNumber } from "@/features/scene/api";
+import { getSceneByNumber, getScenes } from "@/features/scene/api";
 import { ScenePlayer } from "@/features/scene/scene-player";
 
 export async function generateStaticParams() {
@@ -17,7 +17,7 @@ async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">
   const { number } = await params;
   const [scene, scenes] = await Promise.all([getSceneByNumber(number), getScenes()]);
   if (!scene) notFound();
-  return <ScenePlayer key={scene.id} scene={scene} nextNumber={nextSceneNumber(scenes, scene.id)} />;
+  return <ScenePlayer key={scene.id} scene={scene} order={scenes.map(({ id, number }) => ({ id, number }))} />;
 }
 
 export default function ScenePage({ params }: PageProps<"/scenes/[number]">) {

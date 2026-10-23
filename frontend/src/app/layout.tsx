@@ -5,11 +5,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "nuanci",
-  description: "하고 싶은 말을, 전하고 싶은 느낌으로.",
+  description: "직역하면 사고 나는 순간들. 황당한 상황 속 그 한마디를 영어권 감성에 딱 맞게 골라 보세요.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1f2633",
+  themeColor: "#0f0e12",
   viewportFit: "cover",
 };
 

@@ -6,22 +6,29 @@
  * 밝은 배경(paper·cream): ink > ink-muted > ink-subtle
  * 픽셀 폰트는 원래 크기 배수로만 쓴다: font-pixel 15px, font-pixel-title 12px·24px
  */
-@theme inline {
-  --color-ink: #1b1b1a;
-  --color-ink-muted: #504e4a;
-  --color-ink-subtle: #63615c;
-  --color-paper: #efe9dc;
-  --color-paper-muted: #c3c0b9;
-  --color-paper-subtle: #a3a3a0;
-  --color-cream: #f7f3ea;
-  --color-gold: #e1ad34;
-  --color-rust: #b4452f;
-  --color-night: #26303f;
-  --color-night-deep: #1f2633;
-  --color-slate-block: #3a4456;
+@theme {
+  --color-ink: #141317;
+  --color-ink-muted: #47454c;
+  --color-ink-subtle: #5d5b62;
+  --color-paper: #f6f4ee;
+  --color-paper-muted: #cbc8bf;
+  --color-paper-subtle: #a5a29b;
+  --color-cream: #ffffff;
+  --color-gold: #c8f031;
+  --color-rust: #d4265f;
+  /* 어두운 배경 위 오류 글자 */
+  --color-rust-light: #ff7aa8;
+  --color-night: #18171c;
+  --color-night-deep: #0f0e12;
+  --color-slate-block: #34323b;
   --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
   --font-pixel: var(--font-galmuri), monospace;
   --font-pixel-title: var(--font-galmuri-title), var(--font-galmuri), monospace;
+  /* SEED 반응형 기준점에 맞춘다 */
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 80rem;
+  --breakpoint-xl: 90rem;
 }
 
 body {
@@ -30,23 +37,29 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* 스크롤 영역의 스크롤바를 얇게, 배경에 묻히게 */
+.scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-slate-block) transparent;
+}
+
 /* 계단식 모서리를 가진 픽셀 블록 */
 .blk {
   clip-path: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
 }
 
 .blk-frame {
-  filter: drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+  filter: drop-shadow(3px 0 0 var(--color-ink)) drop-shadow(-3px 0 0 var(--color-ink)) drop-shadow(0 3px 0 var(--color-ink)) drop-shadow(0 -3px 0 var(--color-ink));
 }
 
 .blk-frame-sm {
-  filter: drop-shadow(2px 0 0 #1b1b1a) drop-shadow(-2px 0 0 #1b1b1a) drop-shadow(0 2px 0 #1b1b1a) drop-shadow(0 -2px 0 #1b1b1a);
+  filter: drop-shadow(2px 0 0 var(--color-ink)) drop-shadow(-2px 0 0 var(--color-ink)) drop-shadow(0 2px 0 var(--color-ink)) drop-shadow(0 -2px 0 var(--color-ink));
 }
 
 /* 아래쪽 두께가 있어서 누르면 블록처럼 내려가는 버튼. 마우스는 올리면 반쯤, 누르면 끝까지 내려간다 */
 .blk-btn {
-  --edge: #b8b0a0;
-  --frame: drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+  --edge: #bdbab2;
+  --frame: drop-shadow(3px 0 0 var(--color-ink)) drop-shadow(-3px 0 0 var(--color-ink)) drop-shadow(0 3px 0 var(--color-ink)) drop-shadow(0 -3px 0 var(--color-ink));
   filter: drop-shadow(0 4px 0 var(--edge)) var(--frame);
   transition: transform 60ms;
 }
@@ -61,7 +74,7 @@ body {
   }
 }
 .blk-btn-gold {
-  --edge: #a87a1c;
+  --edge: #7e9a12;
 }
 
 :focus-visible {

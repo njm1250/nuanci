@@ -1,4 +1,5 @@
-export type SetId = "dining" | "office" | "cafe" | "living" | "street";
+export type SetId = "dining" | "office" | "cafe" | "living" | "street" | "park";
+export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag";
 export type Time = "day" | "evening";
 export type CastId = "me" | "sam" | "alex" | "barista" | "jordan";
 

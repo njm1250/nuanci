@@ -10,6 +10,7 @@ export type TrackEvent = {
 
 const VISITOR_KEY = "nuanci.visitor";
 const ENTRY_KEY = "nuanci.entry";
+const PLAYED_KEY = "nuanci.played";
 export const SHARE_PARAM = "s";
 let fallbackVisitor: string | null = null;
 
@@ -45,6 +46,20 @@ export function track(event: TrackEvent) {
       keepalive: true,
     }).catch(() => {});
   } catch {}
+}
+
+export function markPlayed() {
+  try {
+    localStorage.setItem(PLAYED_KEY, "1");
+  } catch {}
+}
+
+export function hasPlayed() {
+  try {
+    return localStorage.getItem(PLAYED_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 
 // 앱 안에서 장면으로 넘어갈 때는 유입 경로를 주소 대신 세션에 남긴다

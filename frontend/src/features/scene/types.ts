@@ -1,4 +1,4 @@
-import type { StageSpec } from "@/features/stage/types";
+import type { PropId, StageSpec } from "@/features/stage/types";
 
 export type Expression =
   | "neutral"
@@ -6,7 +6,8 @@ export type Expression =
   | "delighted"
   | "puzzled"
   | "awkward"
-  | "stuffed";
+  | "stuffed"
+  | "dizzy";
 
 export type Motion =
   | "idle"
@@ -15,18 +16,32 @@ export type Motion =
   | "bounce"
   | "shrug"
   | "patBelly"
-  | "lean";
+  | "lean"
+  | "faint"
+  | "flop"
+  | "spin"
+  | "shiver"
+  | "aim"
+  | "point"
+  | "facepalm"
+  | "wave";
+
+export type ChoiceKind = "literal" | "context" | "natural";
 
 export type Choice = {
   id: string;
   line: string;
   meaning: string;
+  kind: ChoiceKind;
   reaction: string;
   tags: string[];
   why: string;
   detail: string;
   expression: Expression;
   motion: Motion;
+  meMotion?: Motion;
+  meProp?: PropId;
+  partnerProp?: PropId;
   flags?: string[];
 };
 
@@ -34,7 +49,8 @@ export type Situation = {
   context: string;
   intent: string;
   partnerLine: string;
-  partnerIdle: { expression: Expression; motion: Motion };
+  partnerIdle: { expression: Expression; motion: Motion; prop?: PropId };
+  meIdle?: { motion: Motion; prop?: PropId };
   choices: Choice[];
   stage?: StageSpec;
 };

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { BACKEND, getScene } from "@/features/scene/api";
+import { getAdminJson, getAdminScene } from "@/features/admin/api";
 import { Panel } from "@/features/scene/block-ui";
 import type { Choice } from "@/features/scene/types";
 
@@ -28,13 +28,9 @@ type Metrics = { visitors: number; attempts: number; events: number; scenes: Sce
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
 async function loadMetrics(): Promise<Metrics> {
-  const token = process.env.NUANCI_ADMIN_TOKEN;
-  const res = await fetch(`${BACKEND}/api/admin/metrics`, {
-    headers: token ? { "X-Admin-Token": token } : {},
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`지표를 불러오지 못했어요 (${res.status})`);
-  return res.json();
+  const metrics = await getAdminJson<Metrics>("/api/admin/metrics");
+  if (!metrics) throw new Error("지표를 불러오지 못했어요");
+  return metrics;
 }
 
 function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
@@ -77,7 +73,7 @@ function ChoiceBars({ label, choices, counts }: { label: string; choices: Choice
 }
 
 async function SceneCard({ m }: { m: SceneMetrics }) {
-  const scene = await getScene(m.id);
+  const scene = await getAdminScene(m.id);
   return (
     <Panel>
       <div className="p-4">
@@ -125,15 +121,12 @@ async function MetricsBody() {
 
 export default function MetricsPage() {
   return (
-    <div className="min-h-dvh bg-night-deep break-keep text-ink">
-      <main className="mx-auto min-h-dvh max-w-[640px] bg-night px-4 pb-12 pt-6">
-        <p className="font-pixel text-[15px] text-gold">nuanci</p>
-        <h1 className="mt-4 font-pixel-title text-[24px] text-paper">지표</h1>
-        <p className="mt-1 text-[14px] text-paper-muted">시도는 장면을 한 번 연 것이에요. 비율은 모두 시도 기준이에요.</p>
-        <Suspense fallback={<p className="mt-6 font-pixel text-[15px] text-paper-subtle">불러오는 중…</p>}>
-          <MetricsBody />
-        </Suspense>
-      </main>
-    </div>
+    <>
+      <h1 className="font-pixel-title text-[24px] text-paper">지표</h1>
+      <p className="mt-1 text-[14px] text-paper-muted">시도는 장면을 한 번 연 것이에요. 비율은 모두 시도 기준이에요.</p>
+      <Suspense fallback={<p className="mt-6 font-pixel text-[15px] text-paper-subtle">불러오는 중…</p>}>
+        <MetricsBody />
+      </Suspense>
+    </>
   );
 }

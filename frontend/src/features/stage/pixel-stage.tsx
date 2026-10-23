@@ -9,11 +9,12 @@ import { Figure, headTop } from "./figure";
 import { C } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
 import { SETS } from "./sets";
-import type { StageSpec } from "./types";
+import type { PropId, StageSpec } from "./types";
 
 // 화면 크기와 상관없이 가로 픽셀 수를 고정해서 어떤 크기에서도 같은 도트 밀도로 보이게 한다
 const PIXELS_WIDE = 200;
 const EDGE = 8;
+const BUBBLE_MAX = 208;
 
 type Who = "me" | "partner";
 type Slot = { wrap: HTMLDivElement | null; bubble: HTMLDivElement | null };
@@ -32,23 +33,29 @@ function Rig() {
   return null;
 }
 
-// 머리 위 3D 좌표를 화면 좌표로 옮기고, 말풍선은 화면 안에 들어오게 밀되 꼬리는 머리를 가리키게 한다
+// 머리 위 3D 좌표를 화면 좌표로 옮기고, 말풍선은 화면 안에 들어오게 밀되 꼬리는 머리를 가리키게 한다.
+// 두 사람 말풍선이 함께 떠 있으면 두 머리 사이 중간에서 나눠 각자 자기 쪽 안에서만 펼쳐지게 한다
 function Anchors({ targets, slots }: { targets: Record<Who, THREE.Vector3>; slots: React.RefObject<Record<Who, Slot>> }) {
   const v = useRef(new THREE.Vector3());
   useFrame((state) => {
     const { width, height } = state.size;
+    const xs = { me: 0, partner: 0 };
     for (const who of ["me", "partner"] as const) {
-      const slot = slots.current[who];
-      if (!slot.wrap) continue;
-      const bubbleWidth = slot.bubble?.offsetWidth ?? 0;
       const p = v.current.copy(targets[who]).project(state.camera);
-      const x = (p.x * 0.5 + 0.5) * width;
-      const y = (-p.y * 0.5 + 0.5) * height;
-      slot.wrap.style.setProperty("transform", `translate(${x}px, ${y}px)`);
-      if (slot.bubble) {
-        const left = Math.min(Math.max(-bubbleWidth / 2, EDGE - x), width - EDGE - x - bubbleWidth);
-        slot.bubble.style.setProperty("left", `${left}px`);
-      }
+      xs[who] = (p.x * 0.5 + 0.5) * width;
+      slots.current[who].wrap?.style.setProperty("transform", `translate(${xs[who]}px, ${(-p.y * 0.5 + 0.5) * height}px)`);
+    }
+    const both = Boolean(slots.current.me.bubble && slots.current.partner.bubble);
+    const mid = (xs.me + xs.partner) / 2;
+    for (const who of ["me", "partner"] as const) {
+      const bubble = slots.current[who].bubble;
+      if (!bubble) continue;
+      const [from, to] = !both ? [EDGE, width - EDGE] : who === "me" ? [EDGE, mid - EDGE / 2] : [mid + EDGE / 2, width - EDGE];
+      if (both) bubble.style.setProperty("max-width", `${Math.floor(Math.min(to - from, BUBBLE_MAX))}px`);
+      else bubble.style.removeProperty("max-width");
+      const x = xs[who];
+      const left = Math.min(Math.max(-bubble.offsetWidth / 2, from - x), to - x - bubble.offsetWidth);
+      bubble.style.setProperty("left", `${left}px`);
     }
   });
   return null;
@@ -80,6 +87,10 @@ function Backdrop({ wall }: { wall: string }) {
 }
 
 export type StageState = {
+  meMotion?: Motion;
+  meKey?: number;
+  meProp?: PropId;
+  partnerProp?: PropId;
   partnerMotion: Motion;
   partnerKey: number;
   talkKey: number;
@@ -139,7 +150,15 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
 
         <Backdrop wall={wall} />
         <set.Scenery evening={evening} flags={flags} />
-        <Figure placement={set.me} look={CAST.me} motion="idle" motionKey={0} talkKey={state?.talkKey ?? 0} reduced={reduced} />
+        <Figure
+          placement={set.me}
+          look={CAST.me}
+          motion={state?.meMotion ?? "idle"}
+          motionKey={state?.meKey ?? 0}
+          talkKey={state?.talkKey ?? 0}
+          reduced={reduced}
+          prop={state?.meProp}
+        />
         <Figure
           placement={set.partner}
           look={CAST[spec.partner]}
@@ -147,6 +166,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
           motionKey={state?.partnerKey ?? 0}
           talkKey={0}
           reduced={reduced}
+          prop={state?.partnerProp}
         />
       </Canvas>
 

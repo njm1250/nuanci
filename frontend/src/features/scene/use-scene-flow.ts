@@ -21,12 +21,14 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
   const step: Step = phase === "base" ? "base" : "followUp";
   const situation = step === "base" ? scene.base : scene.followUp;
   const [picked, setPicked] = useState<Record<Step, string | null>>({ base: null, followUp: null });
+  const [seen, setSeen] = useState<Record<Step, string[]>>({ base: [], followUp: [] });
   const choice = phase === "transition" ? null : find(situation, viewed[step]);
 
   function pick(id: string) {
     if (phase === "transition" || viewed[step] === id) return;
     const first = viewed[step] === null;
     if (first) setPicked((p) => ({ ...p, [step]: id }));
+    setSeen((s) => ({ ...s, [step]: [...s[step], id] }));
     setViewed((v) => ({ ...v, [step]: id }));
     setReactionKey((k) => k + 1);
     onEvent?.({ type: first ? "choice_selected" : "alternative_viewed", step, choiceId: id });
@@ -38,6 +40,7 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
     situation,
     choice,
     pickedId: phase === "transition" ? null : picked[step],
+    seenIds: phase === "transition" ? [] : seen[step],
     reactionKey,
     done: phase === "followUp" && choice !== null,
     pick,

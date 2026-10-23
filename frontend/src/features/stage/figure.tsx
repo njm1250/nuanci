@@ -7,7 +7,8 @@ import type { Motion } from "@/features/scene/types";
 import { targetPose } from "./pose";
 import { C } from "./palette";
 import { Box, Gem, Mat } from "./primitives";
-import type { Look, Placement } from "./types";
+import { HeldProp } from "./props";
+import type { Look, Placement, PropId } from "./types";
 
 export const HIP = { sit: 0.6, stand: 0.86 };
 export const headTop = (p: Placement) => HIP[p.posture] + 1.28;
@@ -20,6 +21,7 @@ export function Figure({
   motionKey,
   talkKey,
   reduced,
+  prop,
 }: {
   placement: Placement;
   look: Look;
@@ -27,6 +29,7 @@ export function Figure({
   motionKey: number;
   talkKey: number;
   reduced: boolean;
+  prop?: PropId;
 }) {
   const root = useRef<THREE.Group>(null!);
   const torso = useRef<THREE.Group>(null!);
@@ -48,13 +51,22 @@ export function Figure({
       if (p.rArmX > -1) p.rArmX = -0.1;
     }
     const tt = now - talkStart.current.at;
-    if (!reduced && tt < 1.1) {
+    // 따로 정한 동작이 있으면 말할 때 손짓으로 덮어쓰지 않는다
+    if (!reduced && tt < 1.1 && motion === "idle") {
       p.rArmX = -1.3 + Math.sin(tt * 12) * 0.18;
       p.headX += Math.sin(tt * 14) * 0.06;
     }
     const k = reduced ? 1 : 1 - Math.exp(-12 * dt);
     const to = (a: number, b: number) => a + (b - a) * k;
+    // 한 바퀴 돈 뒤 다음 동작에서 거꾸로 감기지 않게 각도를 한 바퀴만큼 되돌린다
+    if (Math.abs(root.current.rotation.y - p.rootSpin) > Math.PI) root.current.rotation.y -= Math.sign(root.current.rotation.y - p.rootSpin) * Math.PI * 2;
+    root.current.position.x = to(root.current.position.x, p.rootX);
     root.current.position.y = to(root.current.position.y, p.rootY);
+    root.current.rotation.y = to(root.current.rotation.y, p.rootSpin);
+    // 쓰러질 때는 상대 반대쪽으로 넘어진다. 앉아 있으면 엉덩이를 축으로 상체만 옆으로 쓰러진다
+    const tilt = p.rootTilt * (placement.x > 0 ? -1 : 1);
+    root.current.rotation.z = to(root.current.rotation.z, sit ? 0 : tilt);
+    torso.current.rotation.z = to(torso.current.rotation.z, sit ? tilt * 0.8 : 0);
     torso.current.rotation.x = to(torso.current.rotation.x, p.torsoX);
     head.current.rotation.x = to(head.current.rotation.x, p.headX);
     head.current.rotation.y = to(head.current.rotation.y, p.headY);
@@ -69,6 +81,7 @@ export function Figure({
     <group ref={ref} position={[0.3 * side, 0.58, 0]}>
       <Box size={[0.13, 0.5, 0.13]} at={[0, -0.25, 0]} color={look.shirt} />
       <Box size={[0.11, 0.11, 0.11]} at={[0, -0.53, 0]} color={C.skin} />
+      {side === -1 && prop && <HeldProp id={prop} />}
     </group>
   );
 
