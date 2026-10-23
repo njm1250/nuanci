@@ -61,3 +61,71 @@
     transform: none;
   }
 }
+
+@keyframes wipe {
+  0% {
+    transform: translateX(-100%);
+  }
+  45%,
+  55% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.pd {
+  font-family: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateX(110%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes xp {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* 계단식 모서리를 가진 픽셀 블록 */
+.blk {
+  clip-path: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+}
+
+.blk-frame {
+  filter: drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+}
+
+.blk-frame-sm {
+  filter: drop-shadow(2px 0 0 #1b1b1a) drop-shadow(-2px 0 0 #1b1b1a) drop-shadow(0 2px 0 #1b1b1a) drop-shadow(0 -2px 0 #1b1b1a);
+}
+
+.blk-btn {
+  --edge: #b8b0a0;
+  filter: drop-shadow(0 4px 0 var(--edge)) drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+  transition: transform 60ms;
+}
+.blk-btn:active {
+  transform: translateY(4px);
+  filter: drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+}
+.blk-btn-gold {
+  --edge: #a87a1c;
+}

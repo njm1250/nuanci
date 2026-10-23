@@ -3,9 +3,19 @@ import { plex } from "./fonts";
 
 const variants = [
   {
+    href: "/prototype/craft",
+    name: "블록 게임풍 UI",
+    desc: "픽셀 무대에 블록 게임 느낌의 자체 UI(눌리는 블록 버튼, 계단 모서리 패널, 쌓이는 진행 블록).",
+  },
+  {
     href: "/prototype/pixel",
     name: "픽셀 무대 (최신)",
     desc: "정면 무대를 픽셀 기본으로. 장면 1(사무실)과 9(식탁)를 이어서 플레이.",
+  },
+  {
+    href: "/prototype/styles",
+    name: "렌더 스타일 비교",
+    desc: "같은 키트를 픽셀·1비트·리소로 그려본 비교.",
   },
   {
     href: "/prototype/kit",

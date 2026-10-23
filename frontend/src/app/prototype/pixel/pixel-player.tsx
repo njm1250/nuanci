@@ -1,62 +1,40 @@
 "use client";
 
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import { useMemo, useState } from "react";
-import { plex } from "../fonts";
 import { PixelStage } from "../kit/pixel-stage";
 import type { StageSpec } from "../kit/types";
 import type { Choice, Scene } from "../scene";
 import { SCENES } from "../scenes";
 import { useCopyLink, useReducedMotion, useSceneFlow } from "../use-scene-flow";
 
-const INK = "text-[#1b1b1a]";
-const primary = "mt-8 w-full bg-[#1b1b1a] py-4 text-[15px] font-semibold text-[#f2f0eb] active:translate-y-px";
+const ACCENT = "text-[#b4452f]";
+const primary = "h-12 rounded-xl bg-[#191917] px-6 text-[15px] font-semibold text-white active:scale-[0.98] transition-transform";
+const secondary = "h-12 rounded-xl border border-[#191917]/15 px-5 text-[15px] font-medium active:scale-[0.98] transition-transform";
 
-function Section({ label, className = "", children }: { label: string; className?: string; children: React.ReactNode }) {
+function Sheet({ choice, others, onPick, onClose }: { choice: Choice; others: Choice[]; onPick: (id: string) => void; onClose: () => void }) {
   return (
-    <section className={className}>
-      <h2 className="text-[12px] font-semibold tracking-wide text-[#1b1b1a]/45">{label}</h2>
-      <div className="mt-1.5">{children}</div>
-    </section>
-  );
-}
-
-function Expander({ label, open, onToggle, children }: { label: string; open: boolean; onToggle: () => void; children: React.ReactNode }) {
-  return (
-    <div className="border-b-2 border-[#1b1b1a]">
-      <button onClick={onToggle} aria-expanded={open} className="flex w-full items-center justify-between py-3.5 text-left text-[15px]">
-        {label}
-        <span className="text-[18px] leading-none">{open ? "−" : "+"}</span>
-      </button>
-      {open && <div className="animate-[rise-in_180ms_ease-out] pb-4">{children}</div>}
+    <div className="absolute inset-0 z-20 flex flex-col justify-end bg-black/25 animate-[fade-in_150ms]" onClick={onClose}>
+      <div
+        className="max-h-[78%] animate-[sheet-up_220ms_ease-out] overflow-y-auto rounded-t-2xl bg-white px-5 pb-8 pt-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto h-1 w-9 rounded-full bg-[#191917]/15" />
+        <p className="mt-5 text-[13px] font-semibold text-[#191917]/45">왜 그렇게 들릴까?</p>
+        <p className="mt-1.5 text-[15px] leading-relaxed">{choice.detail}</p>
+        <p className="mt-7 text-[13px] font-semibold text-[#191917]/45">다른 말이라면?</p>
+        <ul className="mt-1 divide-y divide-[#191917]/10">
+          {others.map((c) => (
+            <li key={c.id}>
+              <button onClick={() => onPick(c.id)} className="w-full py-3.5 text-left">
+                <span className="block text-[16px] font-medium">{c.line}</span>
+                <span className="mt-0.5 block text-[13px] text-[#191917]/55">{c.reaction}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
-  );
-}
-
-function Steps({ second }: { second: boolean }) {
-  const cell = (on: boolean) => `px-4 py-2 ${on ? "bg-[#1b1b1a] text-[#f2f0eb]" : "text-[#1b1b1a]/40"}`;
-  return (
-    <div className="grid grid-cols-2 border-b-2 border-[#1b1b1a] text-[12px] font-semibold">
-      <div className={cell(!second)}>1 기본 상황</div>
-      <div className={cell(second)}>2 만약에?</div>
-    </div>
-  );
-}
-
-function ChoiceList({ choices, onPick, showMeaning }: { choices: Choice[]; onPick: (id: string) => void; showMeaning: boolean }) {
-  return (
-    <ol className="border-t-2 border-[#1b1b1a]">
-      {choices.map((c, i) => (
-        <li key={c.id} className="border-b-2 border-[#1b1b1a]">
-          <button onClick={() => onPick(c.id)} className="flex w-full items-start gap-3 py-4 text-left hover:bg-white">
-            <span className="mt-0.5 grid size-6 shrink-0 place-items-center border-2 border-[#1b1b1a] text-[12px] font-semibold">{i + 1}</span>
-            <span>
-              <span className="block text-[18px] font-semibold leading-snug">{c.line}</span>
-              {showMeaning && <span className="mt-0.5 block text-[14px] text-[#1b1b1a]/55">{c.meaning}</span>}
-            </span>
-          </button>
-        </li>
-      ))}
-    </ol>
   );
 }
 
@@ -65,7 +43,7 @@ function ScenePlayer({ scene, onNext }: { scene: Scene; onNext: () => void }) {
   const reduced = useReducedMotion();
   const { state: copyState, copy } = useCopyLink();
   const [showMeaning, setShowMeaning] = useState(false);
-  const [open, setOpen] = useState<"detail" | "others" | null>(null);
+  const [sheet, setSheet] = useState(false);
   const { situation, choice, phase } = f;
   const later = phase !== "base";
   const stageSituation = later ? scene.followUp : scene.base;
@@ -76,16 +54,17 @@ function ScenePlayer({ scene, onNext }: { scene: Scene; onNext: () => void }) {
   }, [stageSituation, choice]);
 
   const pick = (id: string) => {
-    setOpen(null);
+    setSheet(false);
     f.pick(id);
   };
 
   return (
-    <>
-      <div className="aspect-[16/11] w-full border-y-2 border-[#1b1b1a]">
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="relative aspect-[4/3] w-full shrink-0">
         <PixelStage
           spec={spec}
           reduced={reduced}
+          bubbleClassName="pd font-medium"
           state={{
             partnerMotion: choice?.motion ?? stageSituation.partnerIdle.motion,
             partnerKey: f.reactionKey * 10 + (later ? 1 : 0),
@@ -93,103 +72,93 @@ function ScenePlayer({ scene, onNext }: { scene: Scene; onNext: () => void }) {
             reaction: choice?.expression ?? null,
             meLine: choice?.line,
             partnerLine: stageSituation.partnerLine,
+            meTurn: phase !== "transition" && !choice,
           }}
         />
+        {later && (
+          <span className="absolute bottom-3 left-3 animate-[fade-in_300ms] bg-white/90 px-2 py-1 text-[12px] font-medium">
+            만약에 · {scene.followUp.to}
+          </span>
+        )}
+        {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-[wipe_520ms_ease-in-out_both] bg-[#191917]" />}
       </div>
-      <Steps second={later} />
 
-      <main className="px-4 pb-14 pt-6">
+      <section className="flex flex-1 flex-col px-5 pb-6 pt-5">
         {phase === "transition" ? (
-          <div key="transition" className="animate-[rise-in_220ms_ease-out]">
-            <Section label="잠깐, 만약에?">
-              <p className="text-[22px] font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
-            </Section>
-            <dl className="mt-6 grid grid-cols-[3rem_1fr] gap-y-2 border-y-2 border-[#1b1b1a] py-4 text-[15px]">
-              <dt className="text-[#1b1b1a]/45">이전</dt>
-              <dd className="text-[#1b1b1a]/50 line-through">{scene.followUp.from}</dd>
-              <dt className="font-semibold">지금</dt>
-              <dd className="font-semibold">{scene.followUp.to}</dd>
-            </dl>
-            <button onClick={f.enterFollowUp} className={primary}>
+          <div key="transition" className="flex flex-1 flex-col animate-[rise-in_200ms_ease-out]">
+            <p className={`text-[13px] font-semibold ${ACCENT}`}>만약에</p>
+            <p className="mt-1 text-[20px] font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
+            <p className="mt-3 text-[14px] text-[#191917]/55">
+              <s>{scene.followUp.from}</s> → <span className="text-[#191917]">{scene.followUp.to}</span>
+            </p>
+            <button onClick={f.enterFollowUp} className={`${primary} mt-auto w-full`}>
               다시 골라보기
             </button>
           </div>
         ) : !choice ? (
-          <div key={`ask-${phase}`} className="animate-[rise-in_220ms_ease-out]">
-            <Section label="상황">
-              <p className="text-[17px] leading-relaxed">{situation.context}</p>
-            </Section>
-            <Section label="내 마음" className="mt-5">
-              <p className="text-[16px] leading-relaxed">{situation.intent}</p>
-            </Section>
-            <Section label="뭐라고 말할까?" className="mt-8">
-              <ChoiceList choices={situation.choices} onPick={pick} showMeaning={showMeaning} />
-              <button onClick={() => setShowMeaning((v) => !v)} className="mt-3 text-[13px] underline underline-offset-4">
+          <div key={`ask-${phase}`} className="flex flex-1 flex-col animate-[rise-in_200ms_ease-out]">
+            <p className="text-[14px] leading-relaxed text-[#191917]/55">{situation.context}</p>
+            <p className="mt-1.5 text-[20px] font-semibold leading-snug">{situation.intent}</p>
+            <div className="mt-6 flex items-center justify-between text-[13px]">
+              <span className="font-semibold text-[#191917]/45">뭐라고 말할까?</span>
+              <button onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="text-[#191917]/55">
                 {showMeaning ? "뜻 숨기기" : "뜻 보기"}
               </button>
-            </Section>
+            </div>
+            <ul className="mt-1 divide-y divide-[#191917]/10 border-y border-[#191917]/10">
+              {situation.choices.map((c) => (
+                <li key={c.id}>
+                  <button onClick={() => pick(c.id)} className="flex w-full items-center justify-between gap-3 py-4 text-left active:bg-[#191917]/5">
+                    <span>
+                      <span className="block text-[17px] font-medium leading-snug">{c.line}</span>
+                      {showMeaning && <span className="mt-0.5 block text-[13px] text-[#191917]/50">{c.meaning}</span>}
+                    </span>
+                    <span className="text-[18px] text-[#191917]/25">›</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : (
-          <div key={`react-${choice.id}`} className="animate-[rise-in_220ms_ease-out]">
-            <Section label="내가 한 말">
-              <p className="text-[17px] font-semibold leading-snug">“{choice.line}”</p>
-            </Section>
-            <Section label={`${scene.partnerName}의 속마음`} className="mt-6">
-              <p className="text-[22px] font-semibold leading-snug">{choice.reaction}</p>
-              <div className="mt-3 flex flex-wrap gap-1.5 text-[12px]">
-                {choice.tags.map((t) => (
-                  <span key={t} className="border-2 border-[#1b1b1a] px-1.5 py-0.5 font-semibold">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </Section>
-            <Section label="왜 그렇게 들릴까" className="mt-6">
-              <p className="text-[16px] leading-relaxed text-[#1b1b1a]/85">{choice.why}</p>
-            </Section>
-
-            <div className="mt-6 border-t-2 border-[#1b1b1a]">
-              <Expander label="더 자세히" open={open === "detail"} onToggle={() => setOpen(open === "detail" ? null : "detail")}>
-                <p className="text-[15px] leading-relaxed text-[#1b1b1a]/85">{choice.detail}</p>
-              </Expander>
-              <Expander label="다른 말이라면?" open={open === "others"} onToggle={() => setOpen(open === "others" ? null : "others")}>
-                <ul className="space-y-2">
-                  {situation.choices
-                    .filter((c) => c.id !== choice.id)
-                    .map((c) => (
-                      <li key={c.id}>
-                        <button onClick={() => pick(c.id)} className="w-full border-2 border-[#1b1b1a] bg-white px-3 py-2.5 text-left">
-                          <span className="block text-[16px] font-semibold">{c.line}</span>
-                          <span className="text-[13px] text-[#1b1b1a]/60">{c.reaction}</span>
-                        </button>
-                      </li>
-                    ))}
-                </ul>
-              </Expander>
-            </div>
-
+          <div key={`react-${choice.id}`} className="flex flex-1 flex-col animate-[rise-in_200ms_ease-out]">
+            <p className="text-[13px] font-semibold text-[#191917]/45">{scene.partnerName}의 속마음</p>
+            <p className="mt-1 text-[20px] font-semibold leading-snug">{choice.reaction}</p>
+            <p className={`mt-2 text-[13px] font-medium ${ACCENT}`}>{choice.tags.join(" · ")}</p>
             {f.done ? (
-              <>
-                <div className="mt-8 border-2 border-[#1b1b1a] bg-white p-4">
-                  <h2 className="text-[12px] font-semibold tracking-wide">오늘의 발견</h2>
-                  <p className="mt-1.5 text-[17px] leading-relaxed">{scene.discovery}</p>
-                </div>
-                <button onClick={onNext} className={primary}>
-                  다음 장면
-                </button>
-                <button onClick={copy} className="mt-2 w-full border-2 border-[#1b1b1a] py-3.5 text-[14px]">
-                  {copyState === "copied" ? "링크를 복사했어요" : "친구는 뭐라고 할까? 링크 복사"}
-                </button>
-              </>
+              <div className="mt-5 border-l-2 border-[#b4452f] pl-3">
+                <p className={`text-[12px] font-semibold ${ACCENT}`}>오늘의 발견</p>
+                <p className="mt-0.5 text-[15px] leading-relaxed">{scene.discovery}</p>
+              </div>
             ) : (
-              <button onClick={f.startTransition} className={primary}>
-                상황을 바꿔볼까요?
-              </button>
+              <p className="mt-3 text-[15px] leading-relaxed text-[#191917]/70">{choice.why}</p>
             )}
+            <button onClick={() => setSheet(true)} className="mt-3 self-start text-[14px] text-[#191917]/55 underline underline-offset-4">
+              더 알아보기
+            </button>
+            <div className="mt-auto flex gap-2 pt-6">
+              {f.done ? (
+                <>
+                  <button onClick={copy} className={secondary}>
+                    {copyState === "copied" ? "복사됨" : "공유"}
+                  </button>
+                  <button onClick={onNext} className={`${primary} flex-1`}>
+                    다음 장면
+                  </button>
+                </>
+              ) : (
+                <button onClick={f.startTransition} className={`${primary} flex-1`}>
+                  상황을 바꿔보기
+                </button>
+              )}
+            </div>
           </div>
         )}
-      </main>
-    </>
+      </section>
+
+      {sheet && choice && (
+        <Sheet choice={choice} others={situation.choices.filter((c) => c.id !== choice.id)} onPick={pick} onClose={() => setSheet(false)} />
+      )}
+    </div>
   );
 }
 
@@ -197,12 +166,12 @@ export function PixelPlayer() {
   const [index, setIndex] = useState(0);
   const scene = SCENES[index];
   return (
-    <div className={`${plex.className} min-h-dvh bg-[#f2f0eb] ${INK} break-keep`}>
-      <div className="mx-auto max-w-xl">
-        <header className="flex h-12 items-center justify-between px-4">
-          <span className="text-[15px] font-semibold">nuanci</span>
-          <span className="text-[13px] text-[#1b1b1a]/55">
-            장면 {scene.number} · {scene.title}
+    <div className="pd flex min-h-dvh justify-center bg-[#e9e7e1] text-[#191917] break-keep">
+      <div className="flex h-dvh w-full max-w-[480px] flex-col bg-[#f6f5f1]">
+        <header className="flex h-12 shrink-0 items-center justify-between px-5 text-[14px]">
+          <span>
+            <span className="text-[#191917]/45">장면 {scene.number}</span>
+            <span className="ml-2 font-semibold">{scene.title}</span>
           </span>
         </header>
         <ScenePlayer key={scene.number} scene={scene} onNext={() => setIndex((i) => (i + 1) % SCENES.length)} />
