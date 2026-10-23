@@ -45,6 +45,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      # PageProps 같은 라우트 타입은 빌드 때 생기므로 타입 검사 전에 따로 만든다
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm run lint
 
