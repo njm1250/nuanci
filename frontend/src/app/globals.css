@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+/*
+ * 글자색은 배경마다 3단계만 쓴다. 가장 흐린 단계도 대비 4.5:1 이상.
+ * 어두운 배경(night·ink): paper > paper-muted > paper-subtle
+ * 밝은 배경(paper·cream): ink > ink-muted > ink-subtle
+ * 픽셀 폰트는 원래 크기 배수로만 쓴다: font-pixel 15px, font-pixel-title 12px·24px
+ */
 @theme inline {
   --color-ink: #1b1b1a;
+  --color-ink-muted: #504e4a;
+  --color-ink-subtle: #63615c;
   --color-paper: #efe9dc;
+  --color-paper-muted: #c3c0b9;
+  --color-paper-subtle: #a3a3a0;
   --color-cream: #f7f3ea;
   --color-gold: #e1ad34;
   --color-rust: #b4452f;
@@ -33,23 +43,42 @@ body {
   filter: drop-shadow(2px 0 0 #1b1b1a) drop-shadow(-2px 0 0 #1b1b1a) drop-shadow(0 2px 0 #1b1b1a) drop-shadow(0 -2px 0 #1b1b1a);
 }
 
-/* 아래쪽 두께가 있어서 누르면 블록처럼 내려가는 버튼 */
+/* 아래쪽 두께가 있어서 누르면 블록처럼 내려가는 버튼. 마우스는 올리면 반쯤, 누르면 끝까지 내려간다 */
 .blk-btn {
   --edge: #b8b0a0;
-  filter: drop-shadow(0 4px 0 var(--edge)) drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+  --frame: drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+  filter: drop-shadow(0 4px 0 var(--edge)) var(--frame);
   transition: transform 60ms;
 }
 .blk-btn:active {
   transform: translateY(4px);
-  filter: drop-shadow(3px 0 0 #1b1b1a) drop-shadow(-3px 0 0 #1b1b1a) drop-shadow(0 3px 0 #1b1b1a) drop-shadow(0 -3px 0 #1b1b1a);
+  filter: var(--frame);
+}
+@media (hover: hover) and (pointer: fine) {
+  .blk-btn:hover:not(:active) {
+    transform: translateY(2px);
+    filter: drop-shadow(0 2px 0 var(--edge)) var(--frame);
+  }
 }
 .blk-btn-gold {
   --edge: #a87a1c;
 }
 
+:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 4px;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
 
@@ -88,12 +117,6 @@ body {
   }
   100% {
     transform: translateX(100%);
-  }
-}
-
-@keyframes sheet-up {
-  from {
-    transform: translateY(100%);
   }
 }
 

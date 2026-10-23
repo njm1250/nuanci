@@ -41,6 +41,7 @@ export type Situation = {
 
 export type Scene = {
   id: string;
+  version: number;
   number: number;
   title: string;
   relation: string;
@@ -49,4 +50,11 @@ export type Scene = {
   base: Situation;
   followUp: Situation & { prompt: string; from: string; to: string };
   discovery: string;
+};
+
+export type SceneSummary = {
+  id: string;
+  number: number;
+  title: string;
+  version: number;
 };
