@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
-data class Avatar(val hero: String = "boy", val accessory: String? = null)
+data class Avatar(val hero: String = "boy", val accessory: String? = null, val hidden: List<String> = emptyList())
 
 data class MeResponse(val name: String?, val email: String?, val picture: String?, val cleared: List<String>, val avatar: Avatar?)
 
@@ -43,13 +43,15 @@ class MeController(private val accounts: AccountStore) {
 		return response(account)
 	}
 
-	// 아지트에서 꾸민 모습을 저장한다. 어떤 아이템을 얻었는지는 아직 FE가 판단해서, 여기서는 값 형식만 본다
+	// 아지트에서 꾸민 모습과 치워 둔 물건을 저장한다. 어떤 아이템을 얻었는지는 아직 FE가 판단해서, 여기서는 값 형식만 본다
 	@PutMapping("/avatar")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	fun avatar(@CookieValue(SESSION_COOKIE, required = false) token: String?, @RequestBody req: Avatar) {
 		val account = require(token)
-		if (req.hero !in HEROES || (req.accessory != null && !ITEM_ID.matches(req.accessory))) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-		accounts.saveAvatar(account.id, req.hero, req.accessory)
+		val valid = req.hero in HEROES && (req.accessory == null || ITEM_ID.matches(req.accessory)) &&
+			req.hidden.size <= MAX_HIDDEN && req.hidden.all(ITEM_ID::matches)
+		if (!valid) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+		accounts.saveAvatar(account.id, req.hero, req.accessory, req.hidden.distinct())
 	}
 
 	@PostMapping("/cleared")
@@ -68,10 +70,11 @@ class MeController(private val accounts: AccountStore) {
 	private fun require(token: String?) = accounts.account(token) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 
 	private fun response(account: Account) =
-		MeResponse(account.name, account.email, account.picture, accounts.cleared(account.id), account.hero?.let { Avatar(it, account.accessory) })
+		MeResponse(account.name, account.email, account.picture, accounts.cleared(account.id), account.hero?.let { Avatar(it, account.accessory, account.roomHidden) })
 
 	companion object {
 		private val HEROES = setOf("boy", "girl")
 		private val ITEM_ID = Regex("^[a-z][a-z-]{0,39}$")
+		private const val MAX_HIDDEN = 20
 	}
 }

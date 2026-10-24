@@ -22,15 +22,31 @@ type Slot = { wrap: HTMLDivElement | null; bubble: HTMLDivElement | null };
 function Rig() {
   const get = useThree((s) => s.get);
   const size = useThree((s) => s.size);
-  const setDpr = useThree((s) => s.setDpr);
   useEffect(() => {
-    setDpr(PIXELS_WIDE / size.width);
     const camera = get().camera;
     camera.zoom = Math.min(size.width / 5.6, size.height / 3.85);
     camera.lookAt(0, 1.35, 0);
     camera.updateProjectionMatrix();
-  }, [get, size, setDpr]);
+  }, [get, size]);
   return null;
+}
+
+// 무대 너비와 상관없이 항상 가로 200픽셀로 그리도록 해상도 배율을 정한다.
+// Canvas의 dpr 속성으로 넘겨야 다시 그릴 때마다 기본값으로 돌아가 픽셀 크기가 바뀌는 일이 없다
+function usePixelDpr() {
+  const box = useRef<HTMLDivElement>(null);
+  const [dpr, setDpr] = useState(0.5);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const width = entry.contentRect.width;
+      if (width > 0) setDpr(PIXELS_WIDE / width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return { box, dpr };
 }
 
 // 머리 위 3D 좌표를 화면 좌표로 옮기고, 말풍선은 화면 안에 들어오게 밀되 꼬리는 머리를 가리키게 한다.
@@ -136,6 +152,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
   const symbol = state?.reaction ? REACTION_SYMBOLS[state.reaction] : null;
   const ink = evening && spec.set === "street" ? "text-paper" : "text-ink";
   const frameloop = useFrameloop(spec, state, reduced);
+  const { box, dpr } = usePixelDpr();
 
   const bubble = (who: Who, text: React.ReactNode, key: string) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
@@ -155,11 +172,11 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
   );
 
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: wall }}>
+    <div ref={box} className="absolute inset-0 overflow-hidden" style={{ background: wall }}>
       <Canvas
         frameloop={frameloop}
         orthographic
-        dpr={0.5}
+        dpr={dpr}
         camera={{ position: [0, 1.6, 10], zoom: 70, near: 0.1, far: 50 }}
         gl={{ antialias: false }}
         style={{ imageRendering: "pixelated" }}

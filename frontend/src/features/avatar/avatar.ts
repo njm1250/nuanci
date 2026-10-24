@@ -3,10 +3,11 @@
 import { useSyncExternalStore } from "react";
 import type { AccessoryId, Hero } from "@/features/stage/types";
 
-export type Avatar = { hero: Hero; accessory: AccessoryId | null };
+// hidden은 얻었지만 아지트에서 치워 둔 물건 id다. 얻은 물건은 기본으로 놓여 있다
+export type Avatar = { hero: Hero; accessory: AccessoryId | null; hidden: string[] };
 
 const KEY = "nuanci.avatar";
-const DEFAULT: Avatar = { hero: "boy", accessory: null };
+const DEFAULT: Avatar = { hero: "boy", accessory: null, hidden: [] };
 const listeners = new Set<() => void>();
 let lastRaw: string | null = null;
 let lastValue: Avatar = DEFAULT;
@@ -53,7 +54,7 @@ export function setAvatar(next: Avatar, saveToAccount: boolean) {
 export function adoptAvatar(saved: Avatar | null) {
   if (!saved) return;
   try {
-    localStorage.setItem(KEY, JSON.stringify(saved));
+    localStorage.setItem(KEY, JSON.stringify({ ...DEFAULT, ...saved }));
   } catch {}
   listeners.forEach((l) => l());
 }

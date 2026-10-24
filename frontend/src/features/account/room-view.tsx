@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { setAvatar, useAvatar } from "@/features/avatar/avatar";
 import { earnedRewards, nextReward, REWARDS, ruleHint, type Reward } from "@/features/rewards/rewards";
 import { Panel } from "@/features/scene/block-ui";
@@ -12,8 +11,8 @@ import { GoogleButton } from "./google-button";
 
 const HERO_LABELS: Record<Hero, string> = { boy: "남자", girl: "여자" };
 
-// 아지트: 장면 속 주인공을 꾸미고, 얻은 물건을 방에 두는 곳. 아이템을 누르면 아직 못 얻었어도 어떤 건지 미리 입혀 보고 놓아 본다.
-// 쓰고 두는 건 로그인한 뒤에만 되고, 비로그인이면 미리 보기까지만 된다
+// 아지트: 장면 속 주인공을 꾸미고, 얻은 물건을 방에 두는 곳. 아직 못 얻은 아이템은 무엇인지 감춰서 얻는 재미를 남긴다.
+// 쓰고 두는 건 로그인한 뒤에만 된다
 export function RoomView() {
   const cleared = useCleared();
   const account = useAccount();
@@ -21,24 +20,22 @@ export function RoomView() {
   const member = account.status === "member";
   const earned = earnedRewards(cleared);
   const owns = (r: Reward) => earned.some((e) => e.id === r.id);
-  const [preview, setPreview] = useState<Reward | null>(null);
   const next = nextReward(cleared);
+  const placed = member ? earned.filter((r) => r.kind === "room" && !avatar.hidden.includes(r.id)).map((r) => r.id) : [];
+  const isOn = (r: Reward) => (r.kind === "wear" ? avatar.accessory === r.accessory : placed.includes(r.id));
 
-  const placed = member ? earned.filter((r) => r.kind === "room").map((r) => r.id) : [];
-  const roomPreview = preview?.kind === "room" && !placed.includes(preview.id) ? [preview.id] : [];
-  const worn = preview?.kind === "wear" ? preview.accessory : (avatar.accessory ?? undefined);
-
-  const choose = (r: Reward) => {
-    if (r.kind === "wear" && member && owns(r)) {
-      setAvatar({ ...avatar, accessory: avatar.accessory === r.accessory ? null : r.accessory }, true);
-      setPreview(null);
-      return;
-    }
-    setPreview(preview?.id === r.id ? null : r);
+  // 쓴 아이템은 다시 누르면 벗고, 놓인 물건은 다시 누르면 치운다
+  const toggle = (r: Reward) => {
+    if (r.kind === "wear") return setAvatar({ ...avatar, accessory: isOn(r) ? null : r.accessory }, true);
+    const hidden = isOn(r) ? [...avatar.hidden, r.id] : avatar.hidden.filter((id) => id !== r.id);
+    setAvatar({ ...avatar, hidden }, true);
   };
 
   const status = (r: Reward) => {
-    if (owns(r) && member) return r.kind === "wear" ? (avatar.accessory === r.accessory ? "쓰는 중" : "눌러서 쓰기") : "방에 놓여 있어요";
+    if (owns(r) && member) {
+      if (r.kind === "wear") return isOn(r) ? "쓰는 중 · 눌러서 벗기" : "눌러서 쓰기";
+      return isOn(r) ? "놓여 있어요 · 눌러서 치우기" : "치워 뒀어요 · 눌러서 놓기";
+    }
     if (owns(r)) return "로그인하면 쓸 수 있어요";
     return `${ruleHint(r.rule, cleared)} 얻어요`;
   };
@@ -48,14 +45,9 @@ export function RoomView() {
       <Panel>
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           <Stage
-            spec={{ set: "room", time: "day", partner: "mochi", hero: avatar.hero, accessory: worn, flags: [`books-${cleared.length}`, ...placed, ...roomPreview] }}
+            spec={{ set: "room", time: "day", partner: "mochi", hero: avatar.hero, accessory: avatar.accessory ?? undefined, flags: [`books-${cleared.length}`, ...placed] }}
             state={{ partnerMotion: "idle", partnerKey: 0, talkKey: 0, reaction: null, meLine: "여기가 내 아지트야!" }}
           />
-          {preview && (
-            <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
-              <span className="text-gold">미리 보기</span> {preview.name}
-            </p>
-          )}
         </div>
       </Panel>
       <p className="mt-3 text-[13px] leading-relaxed text-paper-muted">
@@ -81,22 +73,22 @@ export function RoomView() {
           </button>
         ))}
       </div>
-      <p className="mt-2 text-[12px] text-paper-subtle">이야기상 성별이 정해진 장면은 그 장면을 따라요.</p>
 
       <h2 className="mt-6 font-pixel text-[15px] text-paper">꾸미기</h2>
       <ul className="mt-2 grid grid-cols-2 gap-3">
         {REWARDS.map((r) => {
           const usable = owns(r) && member;
-          const active = preview?.id === r.id || (r.kind === "wear" && usable && avatar.accessory === r.accessory);
+          const active = usable && isOn(r);
           return (
             <li key={r.id}>
               <button
                 type="button"
-                onClick={() => choose(r)}
-                aria-pressed={active}
+                onClick={() => toggle(r)}
+                disabled={!usable}
+                aria-pressed={usable ? active : undefined}
                 className={`blk block w-full px-3 py-3 text-left ${active ? "bg-gold text-ink" : usable ? "bg-cream text-ink" : "bg-slate-block text-paper"}`}
               >
-                <span className="block font-pixel text-[15px]">{r.name}</span>
+                <span className="block font-pixel text-[15px]">{owns(r) ? r.name : "???"}</span>
                 <span className={`mt-0.5 block text-[12px] ${active || usable ? "text-ink-subtle" : "text-paper-subtle"}`}>{status(r)}</span>
               </button>
             </li>

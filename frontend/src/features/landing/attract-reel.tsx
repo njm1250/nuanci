@@ -33,7 +33,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
   return (
     <div className="absolute inset-0">
       <Stage
-        spec={{ ...beat.stage, hero: beat.stage.hero ?? avatar.hero, accessory: avatar.accessory ?? undefined }}
+        spec={{ ...beat.stage, hero: avatar.hero, accessory: avatar.accessory ?? undefined }}
         reduced={reduced}
         state={{
           partnerMotion: said ? beat.motion : beat.partnerIdle,

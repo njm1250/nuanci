@@ -93,11 +93,12 @@ class AccountApiTest {
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON
-			content = """{"hero":"girl","accessory":"crown"}"""
+			content = """{"hero":"girl","accessory":"crown","hidden":["plant"]}"""
 		}.andExpect { status { isNoContent() } }
 		mvc.get("/api/me") { cookie(session) }.andExpect {
 			jsonPath("$.avatar.hero") { value("girl") }
 			jsonPath("$.avatar.accessory") { value("crown") }
+			jsonPath("$.avatar.hidden[0]") { value("plant") }
 		}
 		mvc.put("/api/me/avatar") {
 			cookie(session)

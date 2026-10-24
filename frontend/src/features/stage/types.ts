@@ -3,7 +3,7 @@ export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag" | "mic" | 
 export type Time = "day" | "evening";
 export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong";
 
-// 주인공. 장면이 정하지 않으면 사용자가 아지트에서 고른 쪽으로 나온다
+// 주인공. 사용자가 아지트에서 고른 모습으로 모든 장면에 나온다
 export type Hero = "boy" | "girl";
 
 // 주인공이 쓰는 꾸미기 아이템. 장면 내용에는 영향이 없고 겉모습만 바꾼다
