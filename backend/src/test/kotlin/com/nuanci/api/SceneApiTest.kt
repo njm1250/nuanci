@@ -85,7 +85,8 @@ class SceneApiTest {
 
 		mvc.get("/api/admin/scenes/touch-grass") { header("Authorization", "Bearer $token") }.andExpect {
 			status { isOk() }
-			jsonPath("$.base.choices[0].kind") { value("literal") }
+			jsonPath("$.base.choices[0].verdict") { value("bad") }
+			jsonPath("$.base.choices[0].trap") { value("literal") }
 		}
 	}
 
@@ -118,6 +119,25 @@ class SceneApiTest {
 		assertEquals(1, scene.path("shared").asInt())
 		assertEquals(1, scene.path("fromNext").asInt())
 		assertEquals(2, scene.path("choices").size())
+	}
+
+	@Test
+	fun `관리자 기기로 등록한 방문자의 이벤트는 지표에서 뺀다`() {
+		val token = mvc.adminToken()
+		val me = UUID.randomUUID()
+		send(event("scene_viewed", UUID.randomUUID(), entry = "home"))
+		send(event("scene_viewed", UUID.randomUUID(), entry = "home") + ("visitorId" to me.toString()))
+		mvc.post("/api/admin/metrics/internal-visitors") {
+			header("Authorization", "Bearer $token")
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"visitorId":"$me"}"""
+		}.andExpect { status { isNoContent() } }
+
+		val body = mapper.readTree(mvc.get("/api/admin/metrics") { header("Authorization", "Bearer $token") }.andReturn().response.contentAsString)
+		assertEquals(1, body.path("visitors").asInt())
+		assertEquals(1, body.path("internalVisitors").asInt())
+		assertEquals(1, body.path("internalEvents").asInt())
+		assertEquals(1, body.path("scenes").first { it.path("id").asString() == "eat-a-lot" }.path("viewed").asInt())
 	}
 
 	companion object {

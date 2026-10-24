@@ -52,8 +52,9 @@ class SceneStore(
 		scene.updatedAt = Instant.now()
 	}
 
-	fun content(scene: Scene): ObjectNode =
-		(mapper.readTree(latest(scene).content) as ObjectNode).put("status", scene.status).put("version", scene.currentVersion)
+	fun content(scene: Scene): ObjectNode = read(latest(scene)).put("status", scene.status)
+
+	fun read(version: SceneVersion): ObjectNode = upgrade(mapper.readTree(version.content) as ObjectNode).put("version", version.version)
 
 	fun latest(scene: Scene): SceneVersion = versions.findById(SceneVersionId(scene.id, scene.currentVersion)).orElseThrow()
 
@@ -67,8 +68,15 @@ class SceneStore(
 		for (step in listOf("base", "followUp")) {
 			require(node.path(step).path("choices").isArray) { "${step}.choices가 없어요" }
 			for (choice in node.path(step).path("choices")) {
-				val kind = choice.path("kind").asString("")
-				require(kind in SceneCheck.KINDS) { "${step} 선택지 ${choice.path("id").asString("")}의 kind는 ${SceneCheck.KINDS} 중 하나여야 해요" }
+				val name = "${step} 선택지 ${choice.path("id").asString("")}"
+				val verdict = choice.path("verdict").asString("")
+				val trap = choice.path("trap").asString("")
+				require(verdict in SceneCheck.VERDICTS) { "${name}의 verdict는 ${SceneCheck.VERDICTS} 중 하나여야 해요" }
+				if (verdict == "good") {
+					require(trap.isEmpty()) { "${name}는 자연스러운 말이라 trap을 비워야 해요" }
+				} else {
+					require(trap in SceneCheck.TRAPS) { "${name}의 trap은 ${SceneCheck.TRAPS.keys} 중 하나여야 해요" }
+				}
 			}
 		}
 		if (node.has("status")) require(node.path("status").asString("") in SceneStatus.ALL) { "status는 ${SceneStatus.ALL} 중 하나여야 해요" }
@@ -79,10 +87,24 @@ class SceneStore(
 		require(owner == null || owner == id) { "number ${number}는 이미 장면 ${owner}가 쓰고 있어요" }
 	}
 
+	// 예전 버전은 선택지를 kind(literal/context/natural) 하나로 나눠 저장했다. 읽을 때 판정과 함정으로 바꿔 준다
+	private fun upgrade(content: ObjectNode): ObjectNode {
+		for (step in listOf("base", "followUp")) {
+			for (choice in content.path(step).path("choices")) {
+				if (choice !is ObjectNode || !choice.has("kind") || choice.has("verdict")) continue
+				val kind = choice.remove("kind").asString("")
+				choice.put("verdict", LEGACY_VERDICTS[kind] ?: "bad")
+				if (kind != "natural") choice.put("trap", if (kind == "context") "context" else "literal")
+			}
+		}
+		return content
+	}
+
 	private fun sha256(text: String): String =
 		MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }
 
 	companion object {
 		private val ID = Regex("^[a-z0-9]+(-[a-z0-9]+)*$")
+		private val LEGACY_VERDICTS = mapOf("natural" to "good", "context" to "meh", "literal" to "bad")
 	}
 }

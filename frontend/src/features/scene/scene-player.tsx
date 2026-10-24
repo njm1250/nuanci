@@ -10,7 +10,7 @@ import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
-import type { Choice, ChoiceKind, Expression, Scene } from "./types";
+import { TRAP_LABELS, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
 import { useCopyLink, useReducedMotion, useSceneFlow } from "./use-scene-flow";
@@ -23,10 +23,9 @@ function MineBadge({ dark }: { dark: boolean }) {
   return <span className={`shrink-0 px-1.5 py-1 font-pixel-title text-[12px] leading-none ${dark ? "bg-paper text-ink" : "bg-ink text-paper"}`}>내 선택</span>;
 }
 
-const KIND_LABELS: Record<ChoiceKind, string> = { literal: "직역", context: "맥락 주의", natural: "자연스러움" };
-
-function KindChip({ kind }: { kind: ChoiceKind }) {
-  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-pixel-title text-[12px] leading-none opacity-80">{KIND_LABELS[kind]}</span>;
+// 검수 미리보기에서만 보이는 함정 유형 표시
+function TrapChip({ choice }: { choice: Choice }) {
+  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-pixel-title text-[12px] leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "자연스러움"}</span>;
 }
 
 // 상대 반응 위로 튀어나오는 만화 효과음 글자
@@ -41,16 +40,16 @@ const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
 };
 
 // 고른 말의 판정. 채점처럼 O / △ / X로 보여주고 색만으로 구분하지 않게 기호를 함께 쓴다
-const VERDICTS: Record<ChoiceKind, { label: string; color: string; glyph: string }> = {
-  natural: { label: "자연스러워요", color: "bg-good", glyph: "M3 1h4v1h1v1h1v4H8v1H7v1H3V8H2V7H1V3h1V2h1zM3 3h4v4H3z" },
-  context: { label: "맥락에 따라 어색해요", color: "bg-warn", glyph: "M4 1h2v2h1v2h1v2h1v2H1V7h1V5h1V3h1zM4 5h2v1h1v2H3V6h1z" },
-  literal: { label: "직역이라 어색해요", color: "bg-bad", glyph: "M1 1h2v1h1v1h2V2h1V1h2v2H8v1H7v2h1v1h1v2H7V8H6V7H4v1H3v1H1V7h1V6h1V4H2V3H1z" },
+const VERDICTS: Record<Verdict, { label: string; color: string; glyph: string }> = {
+  good: { label: "자연스러워요", color: "bg-good", glyph: "M3 1h4v1h1v1h1v4H8v1H7v1H3V8H2V7H1V3h1V2h1zM3 3h4v4H3z" },
+  meh: { label: "상황에 따라 어색해요", color: "bg-warn", glyph: "M4 1h2v2h1v2h1v2h1v2H1V7h1V5h1V3h1zM4 5h2v1h1v2H3V6h1z" },
+  bad: { label: "어색해요", color: "bg-bad", glyph: "M1 1h2v1h1v1h2V2h1V1h2v2H8v1H7v2h1v1h1v2H7V8H6V7H4v1H3v1H1V7h1V6h1V4H2V3H1z" },
 };
 
-function VerdictMark({ kind, pop = false }: { kind: ChoiceKind; pop?: boolean }) {
-  const v = VERDICTS[kind];
+function VerdictMark({ choice, pop = false }: { choice: Choice; pop?: boolean }) {
+  const v = VERDICTS[choice.verdict];
   return (
-    <span role="img" aria-label={v.label} className={`grid size-6 shrink-0 place-items-center ${v.color} ${pop ? "animate-[stamp_260ms_ease-out_60ms_both]" : ""}`}>
+    <span role="img" aria-label={choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label} className={`grid size-6 shrink-0 place-items-center ${v.color} ${pop ? "animate-[stamp_260ms_ease-out_60ms_both]" : ""}`}>
       <svg width="16" height="16" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="var(--color-ink)" aria-hidden>
         <path d={v.glyph} fillRule="evenodd" />
       </svg>
@@ -89,7 +88,7 @@ function HiddenReaction() {
   );
 }
 
-function ResultBody({ choice, n, mine, active, showKind, revealed, verdictKey }: { choice: Choice; n: number; mine: boolean; active: boolean; showKind: boolean; revealed: boolean; verdictKey?: number }) {
+function ResultBody({ choice, n, mine, active, showTrap, revealed, verdictKey }: { choice: Choice; n: number; mine: boolean; active: boolean; showTrap: boolean; revealed: boolean; verdictKey?: number }) {
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
@@ -97,9 +96,9 @@ function ResultBody({ choice, n, mine, active, showKind, revealed, verdictKey }:
         <span className="flex items-start justify-between gap-2">
           <span className="text-[16px] font-semibold leading-snug">{choice.line}</span>
           <span className="flex shrink-0 items-center gap-1.5">
-            {showKind && <KindChip kind={choice.kind} />}
+            {showTrap && <TrapChip choice={choice} />}
             {mine && <MineBadge dark={active} />}
-            {revealed && <VerdictMark key={verdictKey} kind={choice.kind} pop={active} />}
+            {revealed && <VerdictMark key={verdictKey} choice={choice} pop={active} />}
           </span>
         </span>
         {revealed ? (
@@ -126,7 +125,7 @@ export function ScenePlayer(props: PlayerProps) {
   return <SceneRun key={bfcacheId} {...props} />;
 }
 
-// 장면 하나를 처음 질문부터 정리까지 진행하는 화면. 검수 미리보기에서는 이벤트를 보내지 않고 선택지 종류를 보여준다
+// 장면 하나를 처음 질문부터 정리까지 진행하는 화면. 검수 미리보기에서는 이벤트를 보내지 않고 함정 유형을 보여준다
 function SceneRun({ scene: original, order = [], preview = false }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
@@ -167,7 +166,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 고른 말에 맞춰 소리를 내고, 마지막 선택이면 장면을 끝낸 팡파르를 붙인다
   const play = (c: Choice) => {
     if (c.id === choice?.id) return;
-    sfx[c.kind === "natural" ? "good" : c.kind === "context" ? "meh" : "bad"]();
+    sfx[c.verdict]();
     if (phase === "followUp" && !pickedId) sfx.clear();
     f.pick(c.id);
   };
@@ -262,7 +261,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                       </span>
                       {preview && (
                         <span className="text-ink-subtle">
-                          <KindChip kind={c.kind} />
+                          <TrapChip choice={c} />
                         </span>
                       )}
                     </BlockButton>
@@ -286,16 +285,16 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                       <Panel dark>
                         <div className="relative overflow-hidden px-3 py-3" aria-current="true">
                           {!reduced && (
-                            <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.kind].color}`} />
+                            <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.verdict].color}`} />
                           )}
                           <span className="relative block">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showKind={preview} revealed verdictKey={f.reactionKey} />
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} />
                           </span>
                         </div>
                       </Panel>
                     ) : (
                       <BlockButton onClick={() => play(c)} className="w-full text-left">
-                        <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showKind={preview} revealed={seenIds.includes(c.id)} />
+                        <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={seenIds.includes(c.id)} />
                       </BlockButton>
                     )}
                   </li>

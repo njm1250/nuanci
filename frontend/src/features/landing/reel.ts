@@ -19,11 +19,11 @@ export type ReelBeat = {
 
 const funny = (c: Choice) => (GAG_MOTIONS.includes(c.motion) || c.meProp ? 1 : 0);
 
-// 장면마다 직역 선택지 중 가장 웃긴 순간(과장된 동작·소품이 있는 쪽)을 골라 랜딩 데모로 쓴다
+// 장면마다 X 판정 선택지 중 가장 웃긴 순간(과장된 동작·소품이 있는 쪽)을 골라 랜딩 데모로 쓴다
 export function reelBeats(scenes: Scene[], count = 3): ReelBeat[] {
   return scenes.slice(0, count).flatMap((scene) => {
     const options = [scene.base, scene.followUp]
-      .map((situation) => ({ situation, choice: situation.choices.find((c) => c.kind === "literal") }))
+      .map((situation) => ({ situation, choice: situation.choices.find((c) => c.verdict === "bad") }))
       .filter((o): o is { situation: typeof o.situation; choice: Choice } => Boolean(o.choice && o.situation.stage));
     const pick = options.sort((a, b) => funny(b.choice) - funny(a.choice))[0];
     if (!pick) return [];

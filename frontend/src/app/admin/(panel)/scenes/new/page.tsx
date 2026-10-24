@@ -3,11 +3,12 @@ import { SceneEditor } from "@/features/admin/scene-editor";
 
 export const metadata: Metadata = { title: "새 장면 · nuanci" };
 
-const choice = (id: string, kind: string) => ({
+const choice = (id: string, verdict: string, trap?: string) => ({
   id,
   line: "",
   meaning: "",
-  kind,
+  verdict,
+  ...(trap ? { trap } : {}),
   reaction: "",
   tags: ["", ""],
   why: "",
@@ -23,7 +24,7 @@ const situation = (extra: object = {}) => ({
   partnerLine: "",
   partnerIdle: { expression: "neutral", motion: "idle" },
   stage: { set: "dining", time: "day", partner: "sam" },
-  choices: [choice("literal-id", "literal"), choice("context-id", "context"), choice("natural-id", "natural")],
+  choices: [choice("bad-id", "bad", "literal"), choice("meh-id", "meh", "context"), choice("good-id", "good")],
 });
 
 const TEMPLATE = {

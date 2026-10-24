@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/features/admin/actions";
+import { MarkDevice } from "@/features/admin/mark-device";
 
 const NAV = [
   { href: "/admin", label: "장면" },
@@ -26,6 +27,7 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           </form>
         </header>
         <main className="pt-2">{children}</main>
+        <MarkDevice />
       </div>
     </div>
   );

@@ -49,6 +49,12 @@ class SceneAdminController(
 		}
 	}
 
+	@GetMapping("/mix")
+	fun mix(@RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?): SceneMix {
+		sessions.require(auth)
+		return SceneCheck.mix(scenes.findAll().filter { it.status != SceneStatus.HIDDEN }.map { store.content(it) })
+	}
+
 	@GetMapping("/{id}")
 	fun get(@PathVariable id: String, @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?): ObjectNode {
 		sessions.require(auth)

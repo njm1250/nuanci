@@ -85,3 +85,11 @@ export async function setSceneStatus(id: string, status: string) {
   updateTag(SCENES_TAG);
   redirect(`/admin/scenes/${id}`);
 }
+
+export async function markInternalVisitor(visitorId: string) {
+  await adminFetch("/api/admin/metrics/internal-visitors", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ visitorId }),
+  });
+}

@@ -25,7 +25,8 @@
         "id": "eat-a-lot",
         "line": "Eat a lot!",
         "meaning": "많이 먹어!",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "literal",
         "reaction": "응…? 얼마나 먹어야 하는 거지?",
         "tags": [
           "양을 정해주는 말",
@@ -40,7 +41,8 @@
         "id": "enjoy-your-meal",
         "line": "Enjoy your meal.",
         "meaning": "맛있게 드세요.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "formal",
         "reaction": "…여기 식당이야? 팁 줘야 해?",
         "tags": [
           "식당 직원 말투",
@@ -55,7 +57,7 @@
         "id": "help-yourself",
         "line": "Help yourself!",
         "meaning": "편하게 먹어!",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "편하게 먹으면 되겠다.",
         "tags": [
           "편하게 드세요",
@@ -92,7 +94,8 @@
         "id": "dessert-stomach",
         "line": "Dessert goes in another stomach!",
         "meaning": "디저트 배는 따로 있잖아!",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "literal",
         "reaction": "위가 하나 더…? 나 소 아닌데?",
         "tags": [
           "한국식 직역",
@@ -107,7 +110,8 @@
         "id": "sure-youre-full",
         "line": "Are you sure you're full?",
         "meaning": "진짜 배불러?",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "misread",
         "reaction": "응, 확실해… 내 말 못 믿어?",
         "tags": [
           "다시 확인하기",
@@ -122,7 +126,7 @@
         "id": "room-for-dessert",
         "line": "There's always room for dessert!",
         "meaning": "디저트 들어갈 자리는 있잖아!",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "아 그건 인정… 딱 한 조각만!",
         "tags": [
           "영어식 농담",

@@ -25,7 +25,8 @@
         "id": "service",
         "line": "This is service!",
         "meaning": "이거 서비스야!",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "konglish",
         "reaction": "서비스…? 응, 서비스 좋네. 근데 이건 뭐야?",
         "tags": [
           "콩글리시",
@@ -40,7 +41,8 @@
         "id": "gift",
         "line": "It's a gift.",
         "meaning": "선물이야.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "misread",
         "reaction": "선물? 누가? 오늘 내 생일 아닌데…",
         "tags": [
           "개인적인 선물처럼 들림",
@@ -55,7 +57,7 @@
         "id": "on-the-house",
         "line": "It's on the house!",
         "meaning": "가게에서 공짜로 주는 거야!",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "공짜라고? 이 집 최고다!",
         "tags": [
           "가게가 내는 것",
@@ -92,7 +94,8 @@
         "id": "shoot",
         "line": "I'll shoot today!",
         "meaning": "오늘은 내가 쏠게!",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "literal",
         "reaction": "쏜다고?! 뭘?! 여기서?!",
         "tags": [
           "한국식 직역",
@@ -109,7 +112,8 @@
         "id": "dont-worry-money",
         "line": "Don't worry about money.",
         "meaning": "돈 걱정은 하지 마.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "misread",
         "reaction": "어… 나 돈 없어 보여?",
         "tags": [
           "형편 걱정처럼 들림",
@@ -124,7 +128,7 @@
         "id": "on-me",
         "line": "This one's on me.",
         "meaning": "이번엔 내가 낼게.",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "오, 진짜? 다음엔 내가 살게!",
         "tags": [
           "가볍게 한턱",

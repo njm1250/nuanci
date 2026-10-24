@@ -25,7 +25,8 @@
         "id": "fighting",
         "line": "Fighting!",
         "meaning": "화이팅!",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "konglish",
         "reaction": "싸우자고…? 지금 나랑?",
         "tags": [
           "한국식 응원",
@@ -40,7 +41,8 @@
         "id": "cheer-up",
         "line": "Cheer up!",
         "meaning": "힘내!",
-        "kind": "context",
+        "verdict": "bad",
+        "trap": "context",
         "reaction": "잠깐, 나 지금 우울해 보여? 영상이 그렇게 별로야?",
         "tags": [
           "속상한 사람에게",
@@ -55,7 +57,7 @@
         "id": "you-got-this",
         "line": "You got this!",
         "meaning": "넌 할 수 있어!",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "그치? 간다! 업로드!",
         "tags": [
           "시작 전 응원",
@@ -92,7 +94,8 @@
         "id": "dont-be-sad",
         "line": "Don't be sad!",
         "meaning": "슬퍼하지 마.",
-        "kind": "literal",
+        "verdict": "meh",
+        "trap": "context",
         "reaction": "그 정도는 아니었는데… 이제 좀 슬퍼지네.",
         "tags": [
           "직역 위로",
@@ -107,7 +110,8 @@
         "id": "good-job",
         "line": "Good job on the video!",
         "meaning": "영상 수고했어!",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "misread",
         "reaction": "…지금 놀리는 거지?",
         "tags": [
           "결과를 칭찬",
@@ -122,7 +126,7 @@
         "id": "day-one",
         "line": "It's only day one!",
         "meaning": "이제 첫날이잖아!",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "맞아. 3도 0보다는 크지!",
         "tags": [
           "가볍게 위로",
