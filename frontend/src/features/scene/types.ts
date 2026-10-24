@@ -1,4 +1,4 @@
-import type { PropId, StageSpec } from "@/features/stage/types";
+import type { Hero, PropId, StageSpec } from "@/features/stage/types";
 
 export type Expression =
   | "neutral"
@@ -79,6 +79,7 @@ export type Scene = {
   relation: string;
   place: string;
   partnerName: string;
+  hero?: Hero;
   base: Situation;
   followUp: Situation & { prompt: string; from: string; to: string };
   discovery: string;

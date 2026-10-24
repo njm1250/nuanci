@@ -150,6 +150,7 @@ export function Figure({
             ) : look.hairStyle === "none" ? null : (
               <Gem r={0.3} at={[0, 0.1, -0.06]} color={look.hair} scale={[1.08, 0.72, 1.06]} />
             )}
+            {look.hairStyle === "long" && <Box size={[0.52, 0.5, 0.2]} at={[0, -0.16, -0.17]} color={look.hair} />}
             {look.hairStyle === "bun" && (
               <mesh position={[0, 0.3, -0.16]}>
                 <octahedronGeometry args={[0.12, 0]} />
