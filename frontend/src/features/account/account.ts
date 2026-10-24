@@ -9,7 +9,8 @@ export type Me = { name: string | null; email: string | null; picture: string | 
 
 export type AccountState = { status: "loading" | "guest" | "member"; me: Me | null; google: boolean };
 
-let state: AccountState = { status: "loading", me: null, google: false };
+const INITIAL: AccountState = { status: "loading", me: null, google: false };
+let state: AccountState = INITIAL;
 const listeners = new Set<() => void>();
 let started = false;
 
@@ -25,7 +26,8 @@ export function useAccount() {
       return () => listeners.delete(on);
     },
     () => state,
-    () => state,
+    // 서버에서 그린 HTML과 맞도록 하이드레이션 중에는 항상 처음 상태를 쓴다
+    () => INITIAL,
   );
 }
 

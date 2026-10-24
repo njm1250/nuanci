@@ -119,7 +119,8 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10 md:space-y-0">
+      <div className="space-y-6">
       <Profile />
 
       <Panel>
@@ -138,7 +139,9 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
           <Arrow />
         </span>
       </Link>
+      </div>
 
+      <div className="space-y-6">
       <Section title="설정">
         <div className={rowClass}>
           <span id="sound-label">효과음</span>
@@ -183,6 +186,7 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
         </div>
       )}
       <p className="text-center text-[12px] text-paper-subtle">© 2026 nuanci</p>
+      </div>
       {element}
     </div>
   );

@@ -35,7 +35,8 @@ export function RoomView() {
   const hint = (r: Reward) => (owns(r) ? (member ? null : "로그인 필요") : ruleHint(r.rule, cleared));
 
   return (
-    <>
+    <div className="md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10">
+      <div className="md:sticky md:top-6">
       <Panel>
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           <Stage
@@ -51,7 +52,10 @@ export function RoomView() {
         </p>
       )}
 
-      <h2 className="mt-6 font-pixel text-[15px] text-paper">주인공</h2>
+      </div>
+
+      <div>
+      <h2 className="mt-6 font-pixel text-[15px] text-paper md:mt-0">주인공</h2>
       <div className="mt-2 grid grid-cols-2 gap-3">
         {(["boy", "girl"] as const).map((hero) => (
           <button
@@ -104,6 +108,7 @@ export function RoomView() {
           </div>
         </Panel>
       )}
-    </>
+      </div>
+    </div>
   );
 }
