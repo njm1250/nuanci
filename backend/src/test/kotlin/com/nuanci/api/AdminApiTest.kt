@@ -114,7 +114,6 @@ class AdminApiTest {
 			status { isBadRequest() }
 			jsonPath("$.message") { value(org.hamcrest.Matchers.containsString("trap")) }
 		}
-		putScene("eat-a-lot", eatALot.replace("\"partnerName\": \"Sam\",", "\"partnerName\": \"Sam\", \"hero\": \"cat\","), token).andExpect { status { isBadRequest() } }
 		val taken = eatALot.replace("\"id\": \"eat-a-lot\"", "\"id\": \"copy\"")
 		putScene("copy", taken, token).andExpect { status { isBadRequest() } }
 		putScene("other-id", eatALot, token).andExpect { status { isBadRequest() } }

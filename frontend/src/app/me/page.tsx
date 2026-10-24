@@ -9,9 +9,9 @@ export const metadata: Metadata = { title: "내 정보 · nuanci" };
 export default async function MePage() {
   const total = (await getScenes()).length;
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
-      <main className="flex w-full max-w-[480px] flex-col bg-night px-4 pb-6">
-        <header className="flex h-12 items-center">
+    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep md:bg-night">
+      <main className="flex w-full max-w-[480px] flex-col bg-night px-4 pb-6 md:max-w-[1080px] md:px-8 md:pb-12">
+        <header className="flex h-12 items-center md:h-16">
           <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-gold">
             nuanci
           </Link>

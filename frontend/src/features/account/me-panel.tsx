@@ -82,21 +82,21 @@ function Profile() {
     <Panel>
       <div className="p-4">
         {notice === "failed" && <p className="mb-3 text-[13px] text-rust">로그인하지 못했어요. 다시 시도해 주세요.</p>}
-        <p className="font-pixel-title text-[24px] leading-[1.25]">로그인하면 이렇게 돼요</p>
+        <p className="font-pixel-title text-[24px] leading-[1.25]">로그인하면</p>
         <ul className="mt-3 space-y-2 text-[14px] leading-snug text-ink-muted">
           <li className="flex gap-2">
-            <span className="text-ink">·</span>기기를 바꿔도 해 본 장면과 표현 모음이 그대로 이어져요
+            <span className="text-ink">·</span>기기를 바꿔도 기록이 이어져요
           </li>
           <li className="flex gap-2">
             <span className="text-ink">·</span>
             <span>
-              장면에서 얻은 아이템으로 주인공을 꾸미고 아지트에 둘 수 있어요
-              {waiting > 0 && <span className="ml-1 font-semibold text-ink">지금 {waiting}개를 얻었어요</span>}
+              얻은 아이템으로 주인공과 아지트를 꾸며요
+              {waiting > 0 && <span className="ml-1 font-semibold text-ink">· {waiting}개 얻음</span>}
             </span>
           </li>
         </ul>
         <GoogleButton next="/me" enabled={account.google} />
-        <p className="mt-2 text-center text-[12px] text-ink-subtle">지금까지 한 기록은 로그인하면 그대로 옮겨져요</p>
+        <p className="mt-2 text-center text-[12px] text-ink-subtle">지금까지 한 기록도 함께 옮겨져요</p>
       </div>
     </Panel>
   );
@@ -119,7 +119,8 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10 md:space-y-0">
+      <div className="space-y-6">
       <Profile />
 
       <Panel>
@@ -133,17 +134,21 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
         <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
           <span>
             <span className="block font-pixel text-[15px]">아지트</span>
-            <span className="block text-[13px] text-paper-subtle">주인공을 꾸미고 얻은 물건을 둬요</span>
+            <span className="block text-[13px] text-paper-subtle">주인공 꾸미기 · 물건 두기</span>
           </span>
           <Arrow />
         </span>
       </Link>
+      </div>
 
+      <div className="space-y-6">
       <Section title="설정">
         <div className={rowClass}>
-          <span>효과음</span>
-          <button type="button" onClick={toggleSound} aria-pressed={sound} className={`min-h-11 px-1 font-pixel text-[15px] ${sound ? "text-ink" : "text-ink-subtle"}`}>
-            {sound ? "켜짐" : "꺼짐"}
+          <span id="sound-label">효과음</span>
+          <button type="button" role="switch" aria-checked={sound} aria-labelledby="sound-label" onClick={toggleSound} className="grid min-h-11 place-items-center">
+            <span className={`flex h-6 w-11 items-center p-0.5 ${sound ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
+              <span className="size-5 bg-ink" />
+            </span>
           </button>
         </div>
       </Section>
@@ -181,6 +186,7 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
         </div>
       )}
       <p className="text-center text-[12px] text-paper-subtle">© 2026 nuanci</p>
+      </div>
       {element}
     </div>
   );

@@ -30,7 +30,7 @@ export function reelBeats(scenes: Scene[], count = 3): ReelBeat[] {
     const { situation, choice } = pick;
     return [
       {
-        stage: { ...situation.stage!, hero: scene.hero, flags: [...(situation.stage!.flags ?? []), ...(choice.flags ?? [])] },
+        stage: { ...situation.stage!, flags: [...(situation.stage!.flags ?? []), ...(choice.flags ?? [])] },
         partnerLine: situation.partnerLine,
         partnerIdle: situation.partnerIdle.motion,
         partnerIdleProp: situation.partnerIdle.prop,

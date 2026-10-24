@@ -7,9 +7,9 @@ export const metadata: Metadata = { title: "아지트 · nuanci" };
 
 export default function RoomPage() {
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
-      <main className="w-full max-w-[480px] bg-night px-4 pb-12">
-        <header className="flex h-12 items-center">
+    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep md:bg-night">
+      <main className="w-full max-w-[480px] bg-night px-4 pb-12 md:max-w-[1080px] md:px-8">
+        <header className="flex h-12 items-center md:h-16">
           <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-gold">
             nuanci
           </Link>

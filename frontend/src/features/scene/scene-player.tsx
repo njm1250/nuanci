@@ -92,7 +92,7 @@ function HiddenReaction() {
   return (
     <span className="mt-1.5 flex items-center gap-2 text-[14px] leading-snug text-ink-subtle">
       <span className="grid size-[18px] shrink-0 place-items-center border-2 border-ink-subtle font-pixel text-[12px] leading-none">?</span>
-      눌러서 반응 보기
+      반응 보기
     </span>
   );
 }
@@ -277,9 +277,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
 
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
-    // 장면이 주인공 성별을 정하지 않았으면 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
-    return { ...base, hero: scene.hero ?? avatar.hero, accessory: avatar.accessory ?? undefined, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
-  }, [stageSituation, stageChoice, scene.hero, avatar]);
+    // 주인공은 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
+    return { ...base, hero: avatar.hero, accessory: avatar.accessory ?? undefined, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
+  }, [stageSituation, stageChoice, avatar]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {

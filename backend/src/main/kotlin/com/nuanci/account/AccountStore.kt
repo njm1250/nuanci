@@ -10,7 +10,7 @@ import java.time.Instant
 import java.util.Base64
 import java.util.UUID
 
-data class Account(val id: UUID, val email: String?, val name: String?, val picture: String?, val hero: String?, val accessory: String?)
+data class Account(val id: UUID, val email: String?, val name: String?, val picture: String?, val hero: String?, val accessory: String?, val roomHidden: List<String>)
 
 // 사용자 계정, 로그인 세션, 계정에 저장한 끝낸 장면을 다룬다. 세션 토큰은 해시만 DB에 남긴다
 @Service
@@ -46,7 +46,7 @@ class AccountStore(private val jdbc: JdbcClient) {
 		if (token.isNullOrBlank()) return null
 		return jdbc.sql(
 			"""
-			select u.id, u.email, u.name, u.picture, u.hero, u.accessory from user_session s join app_user u on u.id = s.user_id
+			select u.id, u.email, u.name, u.picture, u.hero, u.accessory, u.room_hidden from user_session s join app_user u on u.id = s.user_id
 			where s.token_hash = :hash and s.expires_at > now()
 			""",
 		).param("hash", hash(token))
@@ -54,6 +54,7 @@ class AccountStore(private val jdbc: JdbcClient) {
 				Account(
 					rs.getObject("id", UUID::class.java), rs.getString("email"), rs.getString("name"), rs.getString("picture"),
 					rs.getString("hero"), rs.getString("accessory"),
+					rs.getString("room_hidden")?.split(",")?.filter { it.isNotBlank() }.orEmpty(),
 				)
 			}
 			.optional().orElse(null)
@@ -88,9 +89,9 @@ class AccountStore(private val jdbc: JdbcClient) {
 		).param("visitor", visitorId).param("user", userId).update()
 	}
 
-	fun saveAvatar(userId: UUID, hero: String, accessory: String?) {
-		jdbc.sql("update app_user set hero = :hero, accessory = :accessory where id = :id")
-			.param("hero", hero).param("accessory", accessory).param("id", userId).update()
+	fun saveAvatar(userId: UUID, hero: String, accessory: String?, hidden: List<String>) {
+		jdbc.sql("update app_user set hero = :hero, accessory = :accessory, room_hidden = :hidden where id = :id")
+			.param("hero", hero).param("accessory", accessory).param("hidden", hidden.joinToString(",")).param("id", userId).update()
 	}
 
 	fun delete(userId: UUID) {

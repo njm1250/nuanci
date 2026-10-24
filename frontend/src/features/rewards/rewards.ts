@@ -42,12 +42,17 @@ export function nextReward(cleared: string[]) {
   return next ? { reward: next, remaining: (next.rule as { count: number }).count - cleared.length } : null;
 }
 
+// 다음 목표 문구. 남은 게 적을 때는 남은 양을 강조할수록 더 하고 싶어진다
+export function nextGoalText(next: { reward: Reward; remaining: number }) {
+  return next.remaining === 1 ? `한 장면만 더 하면 ${next.reward.name}` : `${next.remaining}장면 더 하면 ${next.reward.name}`;
+}
+
 // 아직 못 얻은 아이템의 조건. 장면 보상은 안 해 본 장면의 제목이 드러나지 않게 돌려 말한다
 export function ruleHint(rule: Rule, cleared: string[]) {
   switch (rule.type) {
     case "milestone":
-      return `장면 ${rule.count - cleared.length}개 더 해 보면`;
+      return `장면 ${rule.count - cleared.length}개 더`;
     case "scene":
-      return "어떤 장면을 해 보면";
+      return "어떤 장면에서";
   }
 }
