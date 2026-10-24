@@ -465,7 +465,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <span
                   key={`burst-${stageKey}`}
                   aria-hidden
-                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(2,end)_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
+                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(4,end)_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
                   {burst.text}
                 </span>
@@ -544,7 +544,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               <p className="mt-4 font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-[rise_240ms_steps(3,end)_both]" style={{ animationDelay: `${i * 70}ms` }}>
+                  <li key={c.id} className="animate-[rise_240ms_ease-out_both]" style={{ animationDelay: `${i * 70}ms` }}>
                     {c.id === choice.id ? (
                       <Panel dark>
                         <div className="relative overflow-hidden px-3 py-3" aria-current="true">
