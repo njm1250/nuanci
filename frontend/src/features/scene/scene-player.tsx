@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PixelStage } from "@/features/stage/pixel-stage";
-import { GAG_MOTIONS } from "@/features/stage/catalog";
 import type { StageSpec } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
@@ -41,6 +40,24 @@ const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
   neutral: { text: "…", bad: false },
 };
 
+// 고른 말의 판정. 채점처럼 O / △ / X로 보여주고 색만으로 구분하지 않게 기호를 함께 쓴다
+const VERDICTS: Record<ChoiceKind, { label: string; color: string; glyph: string }> = {
+  natural: { label: "자연스러워요", color: "bg-good", glyph: "M3 1h4v1h1v1h1v4H8v1H7v1H3V8H2V7H1V3h1V2h1zM3 3h4v4H3z" },
+  context: { label: "맥락에 따라 어색해요", color: "bg-warn", glyph: "M4 1h2v2h1v2h1v2h1v2H1V7h1V5h1V3h1zM4 5h2v1h1v2H3V6h1z" },
+  literal: { label: "직역이라 어색해요", color: "bg-bad", glyph: "M1 1h2v1h1v1h2V2h1V1h2v2H8v1H7v2h1v1h1v2H7V8H6V7H4v1H3v1H1V7h1V6h1V4H2V3H1z" },
+};
+
+function VerdictMark({ kind, pop = false }: { kind: ChoiceKind; pop?: boolean }) {
+  const v = VERDICTS[kind];
+  return (
+    <span role="img" aria-label={v.label} className={`grid size-6 shrink-0 place-items-center ${v.color} ${pop ? "animate-[pop_320ms_ease-out_120ms_both]" : ""}`}>
+      <svg width="16" height="16" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="var(--color-ink)" aria-hidden>
+        <path d={v.glyph} fillRule="evenodd" />
+      </svg>
+    </span>
+  );
+}
+
 function SoundToggle() {
   const on = useSoundEnabled();
   return (
@@ -72,16 +89,17 @@ function HiddenReaction() {
   );
 }
 
-function ResultBody({ choice, n, mine, active, showKind, revealed }: { choice: Choice; n: number; mine: boolean; active: boolean; showKind: boolean; revealed: boolean }) {
+function ResultBody({ choice, n, mine, active, showKind, revealed, verdictKey }: { choice: Choice; n: number; mine: boolean; active: boolean; showKind: boolean; revealed: boolean; verdictKey?: number }) {
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
           <span className="text-[16px] font-semibold leading-snug">{choice.line}</span>
-          <span className="flex shrink-0 gap-1.5">
+          <span className="flex shrink-0 items-center gap-1.5">
             {showKind && <KindChip kind={choice.kind} />}
             {mine && <MineBadge dark={active} />}
+            {revealed && <VerdictMark key={verdictKey} kind={choice.kind} pop={active} />}
           </span>
         </span>
         {revealed ? (
@@ -148,27 +166,13 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
 
   // 고른 말에 맞춰 소리를 내고, 마지막 선택이면 장면을 끝낸 팡파르를 붙인다
   const play = (c: Choice) => {
-    sfx.tap();
-    sfx.react(c.expression);
-    if (GAG_MOTIONS.includes(c.motion)) sfx.thud();
+    if (c.id === choice?.id) return;
+    sfx[c.kind === "natural" ? "good" : c.kind === "context" ? "meh" : "bad"]();
     if (phase === "followUp" && !pickedId) sfx.clear();
     f.pick(c.id);
   };
 
-  // 흔들림은 드물게 나오는 과장된 동작(장면당 1~2번)에만 써서 놀람을 살린다.
-  // 어이없는 반응은 효과음 글자와 소리만, 좋은 반응은 무대가 살짝 통통 튀게 한다
-  const stage = useRef<HTMLDivElement>(null);
-  const gag = choice ? GAG_MOTIONS.includes(choice.motion) : false;
   const burst = choice ? BURSTS[choice.expression] : null;
-  useEffect(() => {
-    if (!choice || reduced || !stage.current) return;
-    if (gag) {
-      const keyframes = [0, -6, 5, -4, 3, -1, 0].map((x, i) => ({ translate: `${x}px ${i % 2 ? 1 : -1}px` }));
-      stage.current.animate(keyframes, { duration: 320, delay: 70, easing: "ease-out" });
-    } else if (!BURSTS[choice.expression].bad) {
-      stage.current.animate([{ scale: 1 }, { scale: 1.02 }, { scale: 1 }], { duration: 220, delay: 70, easing: "ease-out" });
-    }
-  }, [f.reactionKey, choice, gag, reduced]);
 
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink">
@@ -181,7 +185,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           <SoundToggle />
         </header>
 
-        <div ref={stage} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
+        <div className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
               <PixelStage
@@ -216,9 +220,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   {burst.text}
                 </span>
               )}
-              {gag && !reduced && phase !== "transition" && (
-                <span key={`flash-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 animate-[flash_160ms_ease-out_70ms_both] bg-white" />
-              )}
+
             </div>
           </Panel>
         </div>
@@ -282,8 +284,17 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   <li key={c.id} className="animate-[rise_240ms_ease-out_both]" style={{ animationDelay: `${i * 70}ms` }}>
                     {c.id === choice.id ? (
                       <Panel dark>
-                        <div className="px-3 py-3" aria-current="true">
-                          <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showKind={preview} revealed />
+                        <div className="relative overflow-hidden px-3 py-3" aria-current="true">
+                          {!reduced && (
+                            <span
+                              key={`glow-${f.reactionKey}`}
+                              aria-hidden
+                              className={`pointer-events-none absolute left-6 top-1/2 size-[640px] animate-[glow_700ms_ease-out_both] rounded-full ${VERDICTS[c.kind].color}`}
+                            />
+                          )}
+                          <span className="relative block">
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showKind={preview} revealed verdictKey={f.reactionKey} />
+                          </span>
                         </div>
                       </Panel>
                     ) : (

@@ -18,6 +18,10 @@
   --color-rust: #d4265f;
   /* 어두운 배경 위 오류 글자 */
   --color-rust-light: #ff7aa8;
+  /* 판정 색: 자연스러움 O, 맥락 주의 △, 직역 X */
+  --color-good: #5be38a;
+  --color-warn: #ffc24b;
+  --color-bad: #ff6b6b;
   --color-night: #18171c;
   --color-night-deep: #0f0e12;
   --color-slate-block: #34323b;
@@ -132,13 +136,15 @@ body {
   }
 }
 
-/* 과장된 동작에만 쓰는 옅은 번쩍임. 넓은 면적이 확 밝아지지 않게 30%로 둔다 */
-@keyframes flash {
+/* 고른 줄에서 판정 색이 번지듯 퍼졌다가 사라진다 */
+@keyframes glow {
   from {
-    opacity: 0.3;
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0);
   }
   to {
     opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
