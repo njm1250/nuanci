@@ -135,7 +135,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
   );
 
   return (
-    <div className="relative h-full w-full overflow-hidden" style={{ background: wall }}>
+    <div className="absolute inset-0 overflow-hidden" style={{ background: wall }}>
       <Canvas
         orthographic
         dpr={0.5}
