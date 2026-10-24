@@ -136,15 +136,29 @@ body {
   }
 }
 
-/* 고른 줄에서 판정 색이 번지듯 퍼졌다가 사라진다 */
-@keyframes glow {
+/* 고른 줄 배경이 판정 색으로 짧게 물들었다 사라진다 */
+@keyframes tint {
   from {
-    opacity: 0.5;
-    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.35;
   }
   to {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* 채점 도장: 크게 기울어진 채로 날아와 쾅 찍힌다 */
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.9) rotate(-14deg);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(0.9) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
   }
 }
 

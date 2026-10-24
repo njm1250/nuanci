@@ -114,6 +114,13 @@ function whooshNoise() {
   src.start(t);
 }
 
+const FANFARES = [
+  [1047, 1319, 1568, 2093],
+  [784, 1047, 1319, 1568, 2093],
+  [1319, 1175, 1319, 1568, 2093],
+  [1047, 1568, 1319, 2093],
+];
+
 export const sfx = {
   // 자연스러움: 위로 올라가는 맑은 두 음 "띠링"
   good: () => {
@@ -128,6 +135,9 @@ export const sfx = {
     low(311, 0.17, 0.3);
   },
   whoosh: whooshNoise,
-  // 장면을 끝내면 판정음 뒤에 짧은 팡파르
-  clear: () => [1047, 1319, 1568, 2093].forEach((f, i) => bell(f, 0.7 + i * 0.08, i === 3 ? 0.7 : 0.3, 0.09)),
+  // 장면을 끝내면 정답 여부와 상관없이 판정음 뒤에 팡파르가 울린다. 매번 같은 소리에 무뎌지지 않게 멜로디는 무작위로 고른다
+  clear: () => {
+    const melody = FANFARES[Math.floor(Math.random() * FANFARES.length)];
+    melody.forEach((f, i) => bell(f, 0.75 + i * 0.08, i === melody.length - 1 ? 0.7 : 0.3, 0.09));
+  },
 };

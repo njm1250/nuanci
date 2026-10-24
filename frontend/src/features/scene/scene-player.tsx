@@ -50,7 +50,7 @@ const VERDICTS: Record<ChoiceKind, { label: string; color: string; glyph: string
 function VerdictMark({ kind, pop = false }: { kind: ChoiceKind; pop?: boolean }) {
   const v = VERDICTS[kind];
   return (
-    <span role="img" aria-label={v.label} className={`grid size-6 shrink-0 place-items-center ${v.color} ${pop ? "animate-[pop_320ms_ease-out_120ms_both]" : ""}`}>
+    <span role="img" aria-label={v.label} className={`grid size-6 shrink-0 place-items-center ${v.color} ${pop ? "animate-[stamp_260ms_ease-out_60ms_both]" : ""}`}>
       <svg width="16" height="16" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="var(--color-ink)" aria-hidden>
         <path d={v.glyph} fillRule="evenodd" />
       </svg>
@@ -286,11 +286,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                       <Panel dark>
                         <div className="relative overflow-hidden px-3 py-3" aria-current="true">
                           {!reduced && (
-                            <span
-                              key={`glow-${f.reactionKey}`}
-                              aria-hidden
-                              className={`pointer-events-none absolute left-6 top-1/2 size-[640px] animate-[glow_700ms_ease-out_both] rounded-full ${VERDICTS[c.kind].color}`}
-                            />
+                            <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.kind].color}`} />
                           )}
                           <span className="relative block">
                             <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showKind={preview} revealed verdictKey={f.reactionKey} />
