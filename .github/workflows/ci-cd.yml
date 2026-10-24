@@ -20,6 +20,10 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    # PR에서는 바뀐 파일 목록을 GitHub API로 받아 오므로 PR 읽기 권한이 필요하다
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
