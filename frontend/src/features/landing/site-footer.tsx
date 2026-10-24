@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 export const notices = {
@@ -71,13 +72,13 @@ export function SiteFooter({ contactEmail }: { contactEmail?: string }) {
   return (
     <footer className="mx-4 mt-auto border-t border-slate-block pb-6 pt-3 md:mx-0 md:mt-6 md:flex md:items-center md:justify-between md:gap-4 md:pb-0 md:pt-4">
       <nav aria-label="서비스 안내" className="flex flex-wrap items-center justify-center text-paper-subtle md:-ml-2 md:justify-start">
-        <button type="button" onClick={() => openNotice("terms")} className={linkClass}>
+        <Link href="/terms" className={linkClass}>
           이용약관
-        </button>
+        </Link>
         <span aria-hidden="true" className="text-paper-subtle">·</span>
-        <button type="button" onClick={() => openNotice("privacy")} className={`${linkClass} font-semibold text-paper-muted`}>
+        <Link href="/privacy" className={`${linkClass} font-semibold text-paper-muted`}>
           개인정보처리방침
-        </button>
+        </Link>
         <span aria-hidden="true" className="text-paper-subtle">·</span>
         {contactEmail ? (
           <a href={contactHref(contactEmail)} className={linkClass}>

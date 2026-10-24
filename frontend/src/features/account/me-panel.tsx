@@ -154,14 +154,14 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
       </Section>
 
       <Section title="안내">
-        <button type="button" onClick={() => open("terms")} className={rowClass}>
+        <Link href="/terms" className={rowClass}>
           이용약관
           <Arrow />
-        </button>
-        <button type="button" onClick={() => open("privacy")} className={`${rowClass} font-semibold`}>
+        </Link>
+        <Link href="/privacy" className={`${rowClass} font-semibold`}>
           개인정보처리방침
           <Arrow />
-        </button>
+        </Link>
         {contactEmail ? (
           <a href={contactHref(contactEmail)} className={rowClass}>
             문의 / 오류 제보

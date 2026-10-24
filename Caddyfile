@@ -1,0 +1,4 @@
+# API 도메인으로 HTTPS 인증서를 자동으로 받아 BE로 넘긴다. API_DOMAIN에 쉼표로 여러 주소를 적으면 모두 받는다
+{$API_DOMAIN} {
+	reverse_proxy backend:8080
+}
