@@ -26,8 +26,9 @@
   --color-night-deep: #0f0e12;
   --color-slate-block: #34323b;
   --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
-  --font-pixel: var(--font-galmuri), monospace;
-  --font-pixel-title: var(--font-galmuri-title), var(--font-galmuri), monospace;
+  /* 픽셀 글꼴은 흔한 글자(core)를 먼저 쓰고, 없는 글자만 Rest 파일에서 받는다 (fonts/galmuri.css) */
+  --font-pixel: "Galmuri14", "Galmuri14 Rest", monospace;
+  --font-pixel-title: "Galmuri11 Bold", "Galmuri11 Bold Rest", "Galmuri14", "Galmuri14 Rest", monospace;
   /* SEED 반응형 기준점에 맞춘다 */
   --breakpoint-sm: 30rem;
   --breakpoint-md: 48rem;
