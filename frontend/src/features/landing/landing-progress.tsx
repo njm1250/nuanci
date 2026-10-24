@@ -98,12 +98,17 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
           </li>
         ))}
       </ul>
-      <Link href="/scenes" className="mt-3 flex min-h-11 items-center justify-end gap-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
-        전체 보기 ({scenes.length})
-        <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
-          <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
-        </svg>
-      </Link>
+      <div className="mt-3 flex justify-between">
+        <Link href="/expressions" className="-ml-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
+          표현 모음 ({done})
+        </Link>
+        <Link href="/scenes" className="-mr-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
+          전체 보기 ({scenes.length})
+          <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
+            <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
+          </svg>
+        </Link>
+      </div>
     </section>
   );
 }

@@ -140,6 +140,20 @@ class SceneApiTest {
 		assertEquals(1, body.path("scenes").first { it.path("id").asString() == "eat-a-lot" }.path("viewed").asInt())
 	}
 
+	@Test
+	fun `공개 장면의 첫 선택 분포를 준다`() {
+		send(event("choice_selected", UUID.randomUUID(), step = "base", choiceId = "eat-a-lot"))
+		send(event("choice_selected", UUID.randomUUID(), step = "base", choiceId = "eat-a-lot"))
+		send(event("choice_selected", UUID.randomUUID(), step = "base", choiceId = "help-yourself"))
+		mvc.get("/api/scenes/eat-a-lot/picks").andExpect {
+			status { isOk() }
+			jsonPath("$.base.total") { value(3) }
+			jsonPath("$.base.picks.eat-a-lot") { value(2) }
+			jsonPath("$.followUp.total") { value(0) }
+		}
+		mvc.get("/api/scenes/nope/picks").andExpect { status { isNotFound() } }
+	}
+
 	companion object {
 		private val VISITOR = UUID.randomUUID()
 	}

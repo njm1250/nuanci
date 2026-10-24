@@ -108,9 +108,9 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
   const targets = useMemo(
     () => ({
       me: new THREE.Vector3(set.me.x, headTop(set.me) + 0.12, set.me.z ?? 0),
-      partner: new THREE.Vector3(set.partner.x, headTop(set.partner) + 0.12, set.partner.z ?? 0),
+      partner: new THREE.Vector3(set.partner.x, headTop(set.partner, CAST[spec.partner]) + 0.12, set.partner.z ?? 0),
     }),
-    [set],
+    [set, spec.partner],
   );
   const slots = useRef<Record<Who, Slot>>({ me: { wrap: null, bubble: null }, partner: { wrap: null, bubble: null } });
   const wall = set.wall[spec.time];

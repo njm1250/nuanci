@@ -116,6 +116,6 @@ class MetricsController(
 	}
 
 	companion object {
-		private const val EXTERNAL = "not exists (select 1 from internal_visitor i where i.visitor_id = e.visitor_id)"
+		const val EXTERNAL = "not exists (select 1 from internal_visitor i where i.visitor_id = e.visitor_id)"
 	}
 }

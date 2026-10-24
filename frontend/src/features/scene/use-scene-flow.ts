@@ -63,16 +63,25 @@ export function useReducedMotion() {
   );
 }
 
-export function useCopyLink(path: string, onCopied?: () => void) {
+// 휴대폰에서는 공유 시트(카톡·인스타 등)를 열고, 지원하지 않는 브라우저에서는 문구와 링크를 복사한다
+export function useShare(path: string, text: string, onShared?: () => void) {
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
-  async function copy() {
+  async function share() {
+    const url = `${location.origin}${path}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ text, url });
+        onShared?.();
+      } catch {}
+      return;
+    }
     try {
-      await navigator.clipboard.writeText(`${location.origin}${path}`);
+      await navigator.clipboard.writeText(`${text}\n${url}`);
       setState("copied");
-      onCopied?.();
+      onShared?.();
     } catch {
       setState("failed");
     }
   }
-  return { state, copy };
+  return { state, share };
 }

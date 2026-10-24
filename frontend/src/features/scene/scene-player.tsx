@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Mascot } from "@/features/mascot/mascot";
 import { PixelStage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
@@ -13,7 +14,7 @@ import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
-import { useCopyLink, useReducedMotion, useSceneFlow } from "./use-scene-flow";
+import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 
 function Num({ n, dark = false }: { n: number; dark?: boolean }) {
   return <span className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] ${dark ? "bg-paper text-ink" : "bg-ink text-paper"}`}>{n}</span>;
@@ -88,7 +89,48 @@ function HiddenReaction() {
   );
 }
 
-function ResultBody({ choice, n, mine, active, showTrap, revealed, verdictKey }: { choice: Choice; n: number; mine: boolean; active: boolean; showTrap: boolean; revealed: boolean; verdictKey?: number }) {
+// 표본이 적으면 비율이 들쭉날쭉해서 이만큼 모이기 전엔 보여주지 않는다
+const MIN_PICKS = 20;
+
+type StepPicks = { total: number; picks: Record<string, number> };
+type PickStats = { base: StepPicks; followUp: StepPicks };
+
+// 사람들이 첫 답으로 무엇을 골랐는지 불러온다. 실패하면 비율 없이 진행한다
+function usePickStats(sceneId: string, preview: boolean) {
+  const [stats, setStats] = useState<PickStats | null>(null);
+  useEffect(() => {
+    if (preview) return;
+    let alive = true;
+    fetch(`/api/scenes/${encodeURIComponent(sceneId)}/picks`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s) => alive && setStats(s))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [sceneId, preview]);
+  return stats;
+}
+
+function ResultBody({
+  choice,
+  n,
+  mine,
+  active,
+  showTrap,
+  revealed,
+  verdictKey,
+  share,
+}: {
+  choice: Choice;
+  n: number;
+  mine: boolean;
+  active: boolean;
+  showTrap: boolean;
+  revealed: boolean;
+  verdictKey?: number;
+  share?: number;
+}) {
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
@@ -112,6 +154,9 @@ function ResultBody({ choice, n, mine, active, showTrap, revealed, verdictKey }:
           <HiddenReaction />
         )}
         {active && <span className="mt-2 block font-pixel text-[15px] text-paper-muted">{choice.tags.join(" · ")}</span>}
+        {revealed && share !== undefined && (
+          <span className={`mt-1.5 block text-[13px] tabular-nums ${active ? "text-paper-muted" : "text-ink-subtle"}`}>첫 답으로 {share}%가 골랐어요</span>
+        )}
       </span>
     </span>
   );
@@ -145,8 +190,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   }, [scene.id, scene.version, attemptId, preview]);
 
   const f = useSceneFlow(scene, send);
+  const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
-  const { state: copyState, copy } = useCopyLink(`/scenes/${scene.number}?${SHARE_PARAM}=1`, () => send({ type: "share_link_copied" }));
+  const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=1`, `"${scene.title}" 이 상황, 영어로 뭐라고 할래? 3개 중에 골라 봐`, () =>
+    send({ type: "share_link_copied" }),
+  );
   const [showMeaning, setShowMeaning] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const { situation, choice, pickedId, seenIds, phase } = f;
@@ -163,15 +211,28 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     scroller.current?.scrollTo({ top: 0 });
   }, [phase]);
 
+  // X일 때만 무대 칸을 짧게 흔든다. 화면 전체가 아니라 무대만 흔들어서 틀렸다는 신호로만 쓴다
+  const stageBox = useRef<HTMLDivElement>(null);
+  const shake = () => {
+    if (reduced) return;
+    stageBox.current?.animate(
+      [{ transform: "translateX(0)" }, { transform: "translateX(-3px)" }, { transform: "translateX(3px)" }, { transform: "translateX(-2px)" }, { transform: "translateX(0)" }],
+      { duration: 280, delay: 60, easing: "ease-out" },
+    );
+  };
+
   // 고른 말에 맞춰 소리를 내고, 마지막 선택이면 장면을 끝낸 팡파르를 붙인다
   const play = (c: Choice) => {
     if (c.id === choice?.id) return;
     sfx[c.verdict]();
+    if (c.verdict === "bad") shake();
     if (phase === "followUp" && !pickedId) sfx.clear();
     f.pick(c.id);
   };
 
   const burst = choice ? BURSTS[choice.expression] : null;
+  const stepPicks = stats?.[later ? "followUp" : "base"];
+  const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink">
@@ -184,7 +245,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           <SoundToggle />
         </header>
 
-        <div className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
+        <div ref={stageBox} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
               <PixelStage
@@ -275,6 +336,26 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <div className="blk mb-8 animate-[rise_240ms_ease-out] bg-night-deep px-4 py-3">
                   <p className="font-pixel text-[15px] text-paper-subtle">한 줄 정리</p>
                   <p className="mt-0.5 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
+                  {!preview && (
+                    <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-gold">
+                      표현 모음에 담았어요
+                      <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
+                        <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
+                      </svg>
+                    </Link>
+                  )}
+                </div>
+              )}
+              {f.done && !preview && (
+                <div className="blk mb-8 flex animate-[rise_240ms_ease-out_120ms_both] items-center gap-3 bg-slate-block py-3 pl-3 pr-4">
+                  <Mascot scale={3} className="shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
+                    <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
+                  </div>
+                  <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
+                    {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+                  </BlockButton>
                 </div>
               )}
               <p className="font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
@@ -288,13 +369,13 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                             <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.verdict].color}`} />
                           )}
                           <span className="relative block">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} />
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} />
                           </span>
                         </div>
                       </Panel>
                     ) : (
                       <BlockButton onClick={() => play(c)} className="w-full text-left">
-                        <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={seenIds.includes(c.id)} />
+                        <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={seenIds.includes(c.id)} share={shareOf(c)} />
                       </BlockButton>
                     )}
                   </li>
@@ -327,20 +408,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             ) : f.done && preview ? (
               <BlockLink href={`/admin/scenes/${scene.id}`}>편집 화면으로</BlockLink>
             ) : f.done ? (
-              <div className="flex gap-3">
-                <BlockButton onClick={copy} faceClassName="py-3.5 font-pixel text-[15px]">
-                  {copyState === "copied" ? "복사됨" : copyState === "failed" ? "복사 실패" : "링크 복사"}
-                </BlockButton>
-                {next ? (
-                  <BlockLink href={`/scenes/${next.number}`} entry="next" gold className="flex-1">
-                    다음 장면
-                  </BlockLink>
-                ) : (
-                  <BlockLink href="/" gold className="flex-1">
-                    모두 해 봤어요
-                  </BlockLink>
-                )}
-              </div>
+              next ? (
+                <BlockLink href={`/scenes/${next.number}`} entry="next" gold>
+                  다음 장면
+                </BlockLink>
+              ) : (
+                <BlockLink href="/" gold>
+                  모두 해 봤어요
+                </BlockLink>
+              )
             ) : (
               <BlockButton gold onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 만약에 상황이 바뀐다면?
