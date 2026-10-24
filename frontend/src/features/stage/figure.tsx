@@ -11,7 +11,9 @@ import { HeldProp } from "./props";
 import type { Look, Placement, PropId } from "./types";
 
 export const HIP = { sit: 0.6, stand: 0.86 };
-export const headTop = (p: Placement) => HIP[p.posture] + 1.28;
+// 동물 캐릭터는 머리가 크고 귀가 솟아 있어서 말풍선을 조금 더 위에 띄운다
+const HEAD_SCALE = 1.25;
+export const headTop = (p: Placement, look?: Look) => HIP[p.posture] + (look?.animal ? 1.48 : 1.28);
 
 // 단순한 로우폴리 인물. 앉기·서기 자세와 반응 동작을 공통으로 처리한다
 export function Figure({
@@ -40,6 +42,8 @@ export function Figure({
   const talkStart = useRef({ key: talkKey, at: -99 });
   const sit = placement.posture === "sit";
   const hip = HIP[placement.posture];
+  const animal = look.animal;
+  const skin = animal?.fur ?? C.skin;
 
   useFrame((state, dt) => {
     const now = state.clock.elapsedTime;
@@ -69,7 +73,8 @@ export function Figure({
     torso.current.rotation.z = to(torso.current.rotation.z, sit ? tilt * 0.8 : 0);
     torso.current.rotation.x = to(torso.current.rotation.x, p.torsoX);
     head.current.rotation.x = to(head.current.rotation.x, p.headX);
-    head.current.rotation.y = to(head.current.rotation.y, p.headY);
+    // 동물 캐릭터는 얼굴이 보이게 고개를 관객 쪽으로 반쯤 돌리고 있다
+    head.current.rotation.y = to(head.current.rotation.y, p.headY - (animal ? placement.facing * 0.55 : 0));
     head.current.rotation.z = to(head.current.rotation.z, p.headZ);
     lArm.current.rotation.x = to(lArm.current.rotation.x, p.lArmX);
     lArm.current.rotation.z = to(lArm.current.rotation.z, p.lArmZ);
@@ -80,7 +85,7 @@ export function Figure({
   const arm = (side: 1 | -1, ref: React.RefObject<THREE.Group>) => (
     <group ref={ref} position={[0.3 * side, 0.58, 0]}>
       <Box size={[0.13, 0.5, 0.13]} at={[0, -0.25, 0]} color={look.shirt} />
-      <Box size={[0.11, 0.11, 0.11]} at={[0, -0.53, 0]} color={C.skin} />
+      <Box size={[0.11, 0.11, 0.11]} at={[0, -0.53, 0]} color={skin} />
       {side === -1 && prop && <HeldProp id={prop} />}
     </group>
   );
@@ -108,11 +113,41 @@ export function Figure({
           {look.apron && <Box size={[0.36, 0.5, 0.04]} at={[0, 0.22, 0.3]} color={look.apron} />}
           {arm(1, lArm)}
           {arm(-1, rArm)}
-          <group ref={head} position={[0, 0.98, 0]}>
-            <Gem r={0.29} at={[0, 0, 0]} color={C.skin} />
+          {animal?.kind === "cat" && <Box size={[0.07, 0.07, 0.42]} at={[0, 0.12, -0.42]} color={animal.fur} rot={[-0.7, 0, 0]} />}
+          {animal?.kind === "bear" && <Gem r={0.08} at={[0, 0.1, -0.33]} color={animal.fur} />}
+          <group ref={head} position={[0, animal ? 1.02 : 0.98, 0]} scale={animal ? HEAD_SCALE : 1}>
+            <Gem r={0.29} at={[0, 0, 0]} color={skin} />
+            {animal?.kind === "cat" &&
+              [-1, 1].map((s) => (
+                <group key={s} position={[0.17 * s, 0.27, 0]} rotation={[0, 0, -0.3 * s]}>
+                  <mesh>
+                    <coneGeometry args={[0.12, 0.24, 4]} />
+                    <Mat color={animal.fur} />
+                  </mesh>
+                  <mesh position={[0, -0.03, 0.05]} scale={[0.55, 0.65, 0.4]}>
+                    <coneGeometry args={[0.12, 0.24, 4]} />
+                    <Mat color={animal.inner} />
+                  </mesh>
+                </group>
+              ))}
+            {animal?.kind === "bear" && (
+              <>
+                {[-1, 1].map((s) => (
+                  <Gem key={s} r={0.11} at={[0.22 * s, 0.24, -0.02]} color={animal.fur} />
+                ))}
+                <Gem r={0.11} at={[0, -0.08, 0.22]} color={animal.inner} scale={[1, 0.7, 0.6]} />
+              </>
+            )}
+            {animal &&
+              [-1, 1].map((s) => (
+                <mesh key={s} position={[0.19 * s, -0.07, 0.21]}>
+                  <boxGeometry args={[0.07, 0.035, 0.03]} />
+                  <meshBasicMaterial color="#f28fa5" />
+                </mesh>
+              ))}
             {look.hairStyle === "curly" ? (
               <Gem r={0.36} at={[0, 0.12, -0.08]} color={look.hair} scale={[1.05, 0.85, 1]} />
-            ) : (
+            ) : look.hairStyle === "none" ? null : (
               <Gem r={0.3} at={[0, 0.1, -0.06]} color={look.hair} scale={[1.08, 0.72, 1.06]} />
             )}
             {look.hairStyle === "bun" && (
@@ -124,7 +159,7 @@ export function Figure({
             {look.hairStyle === "cap" && <Box size={[0.5, 0.06, 0.62]} at={[0, 0.2, 0.06]} color={look.apron ?? C.ink} />}
             {[-1, 1].map((s) => (
               <mesh key={s} position={[0.15 * s, 0.03, 0.23]}>
-                <boxGeometry args={[0.05, 0.07, 0.05]} />
+                <boxGeometry args={animal ? [0.07, 0.1, 0.06] : [0.05, 0.07, 0.05]} />
                 <meshBasicMaterial color={C.ink} />
               </mesh>
             ))}

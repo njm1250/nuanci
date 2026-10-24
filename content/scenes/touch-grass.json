@@ -25,7 +25,8 @@
         "id": "catch-wind",
         "line": "Go catch some wind.",
         "meaning": "바람 좀 쐬고 와.",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "literal",
         "reaction": "바람을… 잡으라고? 무협지야?",
         "tags": [
           "한국식 직역",
@@ -40,7 +41,8 @@
         "id": "fresh-air",
         "line": "Go get some fresh air.",
         "meaning": "가서 바람 좀 쐬어.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "context",
         "reaction": "뭐야, 나 걱정돼? 나 어디 아파 보여?",
         "tags": [
           "진심 어린 걱정",
@@ -55,7 +57,7 @@
         "id": "touch-grass",
         "line": "Bro, go touch grass.",
         "meaning": "야, 잔디 좀 만지고 와.",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "팩폭이네 ㅋㅋ 근데 반박을 못 하겠다.",
         "tags": [
           "인터넷 밈",
@@ -89,7 +91,8 @@
         "id": "hit-my-bone",
         "line": "You hit my bone.",
         "meaning": "뼈 맞았다.",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "literal",
         "reaction": "뼈…? 나 너 안 때렸는데?",
         "tags": [
           "한국식 직역",
@@ -104,7 +107,8 @@
         "id": "im-hurt",
         "line": "I'm hurt.",
         "meaning": "상처받았어.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "context",
         "reaction": "헉, 진짜 상처받았어? 미안, 장난이었어…",
         "tags": [
           "진지하게 들림",
@@ -119,7 +123,7 @@
         "id": "ouch-fair",
         "line": "Ouch. Fair.",
         "meaning": "아야. 인정.",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "ㅋㅋ 그치? 우리 둘 다 나가자.",
         "tags": [
           "가볍게 인정",

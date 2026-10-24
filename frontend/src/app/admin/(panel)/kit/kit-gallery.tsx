@@ -48,7 +48,7 @@ export function KitGallery() {
   return (
     <div className="mt-6 space-y-5">
       <Panel>
-        <div className="aspect-[4/3] w-full overflow-hidden">
+        <div className="relative aspect-[4/3] w-full overflow-hidden">
           <PixelStage
             spec={{ set, time, partner }}
             state={{

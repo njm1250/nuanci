@@ -25,7 +25,8 @@
         "id": "did-you-eat",
         "line": "Did you eat?",
         "meaning": "밥 먹었어?",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "literal",
         "reaction": "아직인데… 혹시 같이 먹자는 거야?!",
         "tags": [
           "한국식 인사",
@@ -40,7 +41,8 @@
         "id": "you-look-tired",
         "line": "You look tired.",
         "meaning": "피곤해 보이네.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "culture",
         "reaction": "…나 그렇게 상태 안 좋아 보여?",
         "tags": [
           "안색 지적",
@@ -55,7 +57,7 @@
         "id": "hows-it-going",
         "line": "How's it going?",
         "meaning": "잘 지내?",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "좋지! 너는?",
         "tags": [
           "가벼운 인사",
@@ -89,7 +91,8 @@
         "id": "fine-thank-you",
         "line": "I'm fine, thank you. And you?",
         "meaning": "전 괜찮아요, 감사합니다. 당신은요?",
-        "kind": "literal",
+        "verdict": "meh",
+        "trap": "textbook",
         "reaction": "…교과서 읽는 줄. 혹시 로봇이야?",
         "tags": [
           "교과서 문장",
@@ -104,7 +107,8 @@
         "id": "so-tired",
         "line": "Ugh, I'm so tired.",
         "meaning": "아, 너무 피곤해.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "context",
         "reaction": "헉, 무슨 일 있어? 얘기해 봐…",
         "tags": [
           "솔직한 대답",
@@ -119,7 +123,7 @@
         "id": "pretty-good",
         "line": "Pretty good! You?",
         "meaning": "잘 지내! 너는?",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "나도! 좋은 아침~",
         "tags": [
           "짧게 주고받기",

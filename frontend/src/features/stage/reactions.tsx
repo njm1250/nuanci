@@ -1,5 +1,29 @@
 import type { Expression } from "@/features/scene/types";
 
+// 하얀 유령 픽셀. k는 외곽선·눈, w는 몸
+const SOUL = [
+  "...kkkkk...",
+  "..kwwwwwk..",
+  ".kwwwwwwwk.",
+  "kwwkwwwkwwk",
+  "kwwkwwwkwwk",
+  "kwwwwwwwwwk",
+  "kwwwwkwwwwk",
+  "kwwwwwwwwwk",
+  "kwkwwkwwkwk",
+  "kk.kk.kk.kk",
+];
+
+function Soul() {
+  return (
+    <svg width="33" height="30" viewBox="0 0 11 10" shapeRendering="crispEdges" className="animate-[soul_1400ms_ease-out_both]" aria-hidden>
+      {SOUL.flatMap((row, y) =>
+        [...row].map((cell, x) => (cell === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={cell === "k" ? "#141317" : "#f4f7ff"} />)),
+      )}
+    </svg>
+  );
+}
+
 export const REACTION_SYMBOLS: Partial<Record<Expression, React.ReactNode>> = {
   puzzled: <span className="text-[30px] font-bold leading-none">?</span>,
   delighted: <span className="text-[30px] font-bold leading-none">!</span>,
@@ -15,9 +39,6 @@ export const REACTION_SYMBOLS: Partial<Record<Expression, React.ReactNode>> = {
     </svg>
   ),
   neutral: <span className="text-[24px] font-bold leading-none tracking-widest">…</span>,
-  dizzy: (
-    <svg width="40" height="20" viewBox="0 0 20 10" shapeRendering="crispEdges" fill="#e1ad34" stroke="currentColor" strokeWidth="0.6">
-      <path d="M3 1h1v2h2v1h-2v2h-1v-2h-2v-1h2z M10 3h1v2h2v1h-2v2h-1v-2h-2v-1h2z M16 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z" />
-    </svg>
-  ),
+  // 기절: 머리 위로 영혼이 스르륵 빠져나간다
+  dizzy: <Soul />,
 };

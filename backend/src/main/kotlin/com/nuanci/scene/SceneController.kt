@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.node.ObjectNode
 
 data class SceneSummary(val id: String, val number: Int, val title: String, val version: Int)
@@ -16,7 +15,7 @@ data class SceneSummary(val id: String, val number: Int, val title: String, val 
 class SceneController(
 	private val scenes: SceneRepository,
 	private val versions: SceneVersionRepository,
-	private val mapper: JsonMapper,
+	private val store: SceneStore,
 ) {
 	@GetMapping
 	fun list(): List<SceneSummary> =
@@ -26,7 +25,6 @@ class SceneController(
 	fun get(@PathVariable id: String): ObjectNode {
 		val scene = scenes.findById(id).orElse(null)?.takeIf { it.status == SceneStatus.PUBLISHED }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-		val version = versions.findById(SceneVersionId(id, scene.currentVersion)).orElseThrow()
-		return (mapper.readTree(version.content) as ObjectNode).put("version", version.version)
+		return store.read(versions.findById(SceneVersionId(id, scene.currentVersion)).orElseThrow())
 	}
 }

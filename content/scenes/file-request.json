@@ -25,7 +25,8 @@
         "id": "please-send",
         "line": "Please send me the file.",
         "meaning": "파일 보내주세요.",
-        "kind": "literal",
+        "verdict": "meh",
+        "trap": "blunt",
         "reaction": "부탁이라기보다… 지시 같은데?",
         "tags": [
           "please 붙인 지시",
@@ -40,7 +41,7 @@
         "id": "could-you",
         "line": "Could you send me the file?",
         "meaning": "파일 보내줄 수 있어?",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "내게 부탁하는구나.",
         "tags": [
           "부드러운 요청"
@@ -54,7 +55,7 @@
         "id": "wondering",
         "line": "I was wondering if you could send me the file.",
         "meaning": "혹시 파일 보내줄 수 있을까 해서.",
-        "kind": "context",
+        "verdict": "good",
         "reaction": "조심스럽게 꺼내는 부탁이네.",
         "tags": [
           "더 간접적인 요청"
@@ -87,7 +88,8 @@
         "id": "could-you-again",
         "line": "Could you send me the file?",
         "meaning": "파일 보내줄 수 있어?",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "context",
         "reaction": "파일을 보내달라는 부탁이구나.",
         "tags": [
           "다시 요청"
@@ -101,7 +103,8 @@
         "id": "still-waiting",
         "line": "I'm still waiting for the file.",
         "meaning": "아직 파일 기다리고 있어.",
-        "kind": "literal",
+        "verdict": "meh",
+        "trap": "blunt",
         "reaction": "아직 기다리고 있다는 걸 알리는구나.",
         "tags": [
           "기다림 강조"
@@ -115,7 +118,7 @@
         "id": "any-update",
         "line": "Any update on the file?",
         "meaning": "파일 어떻게 돼 가?",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "아, 맞다. 확인해 볼게!",
         "tags": [
           "가볍게 확인",

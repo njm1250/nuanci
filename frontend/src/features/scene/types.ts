@@ -26,13 +26,29 @@ export type Motion =
   | "facepalm"
   | "wave";
 
-export type ChoiceKind = "literal" | "context" | "natural";
+// 판정은 들었을 때 어떤지(O / △ / X), 함정은 왜 어색한지다. 자연스러운 말에는 함정이 없다
+export type Verdict = "good" | "meh" | "bad";
+
+export type Trap = "literal" | "konglish" | "answer" | "textbook" | "blunt" | "formal" | "context" | "misread" | "culture";
+
+export const TRAP_LABELS: Record<Trap, string> = {
+  literal: "직역",
+  konglish: "콩글리시",
+  answer: "대답 방식",
+  textbook: "교과서식",
+  blunt: "너무 직설적",
+  formal: "너무 격식",
+  context: "맥락 어긋남",
+  misread: "다른 뜻으로 들림",
+  culture: "문화 차이",
+};
 
 export type Choice = {
   id: string;
   line: string;
   meaning: string;
-  kind: ChoiceKind;
+  verdict: Verdict;
+  trap?: Trap;
   reaction: string;
   tags: string[];
   why: string;

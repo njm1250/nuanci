@@ -27,7 +27,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
   const beat = beats[reduced ? 0 : step.index];
 
   return (
-    <div className="relative h-full w-full">
+    <div className="absolute inset-0">
       <PixelStage
         spec={beat.stage}
         reduced={reduced}

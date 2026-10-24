@@ -25,7 +25,8 @@
         "id": "go-in-carefully",
         "line": "Go in carefully!",
         "meaning": "조심히 들어가!",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "literal",
         "reaction": "들어가…? 어디로? 조심히?",
         "tags": [
           "한국식 직역",
@@ -40,7 +41,8 @@
         "id": "be-careful",
         "line": "Be careful.",
         "meaning": "조심해.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "misread",
         "reaction": "왜?! 뭐가 있는데?! 무섭게…",
         "tags": [
           "경고처럼 들림",
@@ -55,7 +57,7 @@
         "id": "get-home-safe",
         "line": "Get home safe!",
         "meaning": "조심히 들어가!",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "응, 너도! 도착하면 연락해~",
         "tags": [
           "헤어질 때 인사",
@@ -89,7 +91,8 @@
         "id": "no-no",
         "line": "No, no!",
         "meaning": "아냐아냐!",
-        "kind": "literal",
+        "verdict": "bad",
+        "trap": "culture",
         "reaction": "아니라고…? 오늘 별로였어?",
         "tags": [
           "한국식 겸손",
@@ -104,7 +107,8 @@
         "id": "youre-welcome",
         "line": "You're welcome.",
         "meaning": "천만에.",
-        "kind": "context",
+        "verdict": "meh",
+        "trap": "formal",
         "reaction": "…내가 무슨 큰 신세 진 거야?",
         "tags": [
           "도움 준 뒤 말투",
@@ -119,7 +123,7 @@
         "id": "same-here",
         "line": "Same here! Anytime.",
         "meaning": "나도! 언제든.",
-        "kind": "natural",
+        "verdict": "good",
         "reaction": "ㅋㅋ 다음에 또 놀자!",
         "tags": [
           "마음 돌려주기",

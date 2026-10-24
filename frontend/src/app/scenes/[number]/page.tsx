@@ -10,7 +10,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/scenes/[number]">): Promise<Metadata> {
   const scene = await getSceneByNumber((await params).number);
-  return { title: scene ? `${scene.title} · nuanci` : "nuanci" };
+  if (!scene) return { title: "nuanci" };
+  const description = `"${scene.base.partnerLine}" 너라면 영어로 뭐라고 할래?`;
+  return { title: `${scene.title} · nuanci`, description, openGraph: { title: `${scene.title} · nuanci`, description } };
 }
 
 async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">["params"] }) {
