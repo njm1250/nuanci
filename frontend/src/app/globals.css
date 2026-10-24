@@ -6,6 +6,9 @@
  * 밝은 배경(paper·cream): ink > ink-muted > ink-subtle
  * 픽셀 폰트는 원래 크기 배수로만 쓴다: font-pixel 15px, font-pixel-title 12px·24px
  */
+/* 다시 온 방문자. layout의 인라인 스크립트가 그리기 전에 html에 data-returning을 붙인다 */
+@custom-variant returning (&:where([data-returning], [data-returning] *));
+
 @theme {
   --color-ink: #141317;
   --color-ink-muted: #47454c;

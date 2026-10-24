@@ -5,6 +5,8 @@ import { useEffect, useSyncExternalStore } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome } from "@/features/scene/track";
+import { Mascot } from "@/features/mascot/mascot";
+import { nextReward } from "@/features/rewards/rewards";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
@@ -25,11 +27,6 @@ function NewChip() {
   return <span className="shrink-0 bg-gold px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">NEW</span>;
 }
 
-function NewCount({ n, className = "" }: { n: number; className?: string }) {
-  if (n === 0) return null;
-  return <span className={`inline-block bg-gold px-1.5 py-1 align-middle font-pixel-title text-[12px] leading-none text-ink ${className}`}>새 장면 {n}개</span>;
-}
-
 function Check() {
   return (
     <svg width="14" height="14" viewBox="0 0 7 7" shapeRendering="crispEdges" aria-hidden className="fill-ink">
@@ -45,7 +42,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   useEffect(trackHome, []);
   const target = next ?? scenes[0];
   if (!target) return null;
-  const label = !returning ? "바로 시작하기" : next ? "이어서 하기" : "처음부터 다시 하기";
+  const label = !returning ? "바로 시작하기" : next ? "다음 장면 해 보기" : "처음부터 다시 하기";
   const note = !returning ? "가입 없이 · 1분이면 끝나요" : next ? `다음 · ${next.relation} · ${next.place}` : "모든 장면을 다 해 봤어요";
   return (
     <>
@@ -91,6 +88,21 @@ function Progress({ scenes, cleared }: { scenes: ShelfScene[]; cleared: string[]
   );
 }
 
+// 다음 꾸미기 아이템까지 남은 장면 수. 진행도를 다음에 할 이유로 이어 주고 아지트로 보낸다
+function NextGoal({ cleared }: { cleared: string[] }) {
+  const next = nextReward(cleared);
+  if (!next) return null;
+  return (
+    <Link href="/me/room" className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block">
+      <Mascot scale={2} className="shrink-0" />
+      <span className="min-w-0 flex-1 text-[13px] text-paper-muted">
+        장면 <span className="font-semibold text-gold">{next.remaining}개</span> 더 해 보면 {next.reward.name}
+      </span>
+      <span className="shrink-0 font-pixel text-[15px] text-paper-subtle">아지트</span>
+    </Link>
+  );
+}
+
 // 다시 온 방문자에게 진행도와 다음에 볼 장면 몇 개만 보여준다. 장면이 늘어도 메인이 길어지지 않게 전체 목록은 따로 둔다
 export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?: number }) {
   const { returning, cleared, fresh } = useVisitor(scenes);
@@ -100,15 +112,13 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
   return (
     <section className="animate-[fade-in_200ms] px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10">
       <div className="flex items-baseline justify-between">
-        <h2 className="font-pixel text-[15px]">
-          {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
-          <NewCount n={fresh.length} className="ml-2" />
-        </h2>
-        <p className="font-pixel text-[15px] text-paper-subtle">
-          <span className="text-gold">{done}</span> / {scenes.length}
+        <h2 className="font-pixel text-[15px]">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</h2>
+        <p className="text-[13px] text-paper-subtle">
+          {scenes.length}개 중 <span className="font-semibold text-gold">{done}개</span> 해 봤어요
         </p>
       </div>
       <Progress scenes={scenes} cleared={cleared} />
+      <NextGoal cleared={cleared} />
       {upNext.length === 0 && <p className="mt-3 text-[14px] leading-relaxed text-paper">새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.</p>}
       <ul className="mt-4 grid gap-3 md:grid-cols-3">
         {upNext.map((s, i) => (
@@ -122,7 +132,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
           표현 모음 ({done * PAIRS_PER_SCENE}개)
         </Link>
         <Link href="/scenes" className="-mr-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
-          전체 보기 ({scenes.length})
+          전체 보기
           <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
             <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
           </svg>
@@ -140,12 +150,11 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
     <>
       <div className="flex items-baseline justify-between">
         <p className="text-[14px] text-paper-muted">아무거나 골라 보세요. 해 본 장면은 제목이 열려요.</p>
-        <p className="font-pixel text-[15px] text-paper-subtle">
-          <span className="text-gold">{done}</span> / {scenes.length}
+        <p className="shrink-0 text-[13px] text-paper-subtle">
+          {scenes.length}개 중 <span className="font-semibold text-gold">{done}개</span>
         </p>
       </div>
       <Progress scenes={scenes} cleared={cleared} />
-      {fresh.length > 0 && <NewCount n={fresh.length} className="mt-3" />}
       <ul className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {scenes.map((s) => (
           <li key={s.id}>
