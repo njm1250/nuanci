@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
-import { contactHref, useNotice } from "@/features/landing/site-footer";
+import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { ReactionFace } from "@/features/scene/reaction-face";
@@ -159,13 +159,13 @@ function Profile() {
 }
 
 // 내 정보 화면. 프로필, 내 활동 숫자, 설정, 안내를 순서대로 모은다
-export function MePanel({ total, contactEmail }: { total: number; contactEmail?: string }) {
+export function MePanel({ total }: { total: number }) {
   const account = useAccount();
   const cleared = useCleared();
   const sound = useSoundEnabled();
   const dark = useTheme() === "dark";
   const member = account.status === "member";
-  const { open, element } = useNotice();
+  const { open: openInquiry, element } = useInquiry();
   const [busy, setBusy] = useState(false);
 
   const remove = async () => {
@@ -224,17 +224,10 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
           개인정보처리방침
           <Arrow />
         </Link>
-        {contactEmail ? (
-          <a href={contactHref(contactEmail)} className={rowClass}>
-            문의 / 오류 제보
-            <Arrow />
-          </a>
-        ) : (
-          <button type="button" onClick={() => open("contact")} className={rowClass}>
-            문의 / 오류 제보
-            <Arrow />
-          </button>
-        )}
+        <button type="button" onClick={() => openInquiry()} className={rowClass}>
+          문의 / 오류 제보
+          <Arrow />
+        </button>
       </Section>
 
       {member && (

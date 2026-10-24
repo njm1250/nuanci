@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { reportError } from "@/features/monitor/report";
 
 // 화면을 그리다 오류가 나면 서버에 남기고, 다시 시도하거나 홈으로 갈 수 있게 한다
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  const { open, element } = useInquiry();
   useEffect(() => {
     reportError(error.message || `render error ${error.digest ?? ""}`, error.stack);
   }, [error]);
@@ -17,9 +19,15 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         <button type="button" onClick={reset} className="blk-btn blk-btn-primary mt-6 block w-full">
           <span className="blk block bg-cta px-3 py-3 font-pixel text-[15px] text-cta-text">다시 시도</span>
         </button>
-        <Link href="/" className="mt-3 inline-flex min-h-11 items-center font-pixel text-[15px] text-paper-muted underline underline-offset-4">
-          홈으로
-        </Link>
+        <div className="mt-3 flex justify-center gap-4">
+          <Link href="/" className="inline-flex min-h-11 items-center font-pixel text-[15px] text-paper-muted underline underline-offset-4">
+            홈으로
+          </Link>
+          <button type="button" onClick={() => open("error")} className="inline-flex min-h-11 items-center font-pixel text-[15px] text-paper-muted underline underline-offset-4">
+            무슨 일이었는지 알려 주기
+          </button>
+        </div>
+        {element}
       </div>
     </div>
   );

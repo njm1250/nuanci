@@ -96,7 +96,9 @@ class AccountStore(private val jdbc: JdbcClient) {
 			.param("badge", badge).param("id", userId).update()
 	}
 
+	// 계정을 지우면 문의에 남은 계정 연결도 끊는다. 문의 내용은 답변을 위해 남긴다
 	fun delete(userId: UUID) {
+		jdbc.sql("update inquiry set user_id = null where user_id = :id").param("id", userId).update()
 		jdbc.sql("delete from app_user where id = :id").param("id", userId).update()
 	}
 

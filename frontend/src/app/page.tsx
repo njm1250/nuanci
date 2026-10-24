@@ -69,7 +69,7 @@ export default async function Home() {
           <SceneShelf scenes={shelf} />
         </div>
         <div className="order-5 flex flex-1 flex-col pt-6 md:order-none md:col-span-2 md:row-start-5 md:pt-0">
-          <SiteFooter contactEmail={process.env.CONTACT_EMAIL} />
+          <SiteFooter />
         </div>
 
         <div className="order-6 sticky bottom-0 returning:hidden border-t-[3px] border-night-deep bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:static md:col-start-2 md:row-start-3 md:self-start md:border-0 md:px-0 md:pb-0 md:pt-8">
