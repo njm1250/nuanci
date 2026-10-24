@@ -34,7 +34,7 @@ function MineBadge({ dark }: { dark: boolean }) {
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 function TrapChip({ choice }: { choice: Choice }) {
-  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-pixel-title text-[12px] leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "자연스러움"}</span>;
+  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-pixel-title text-[12px] leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "전달됨"}</span>;
 }
 
 // 상대 반응 위로 튀어나오는 만화 효과음 글자
@@ -53,20 +53,28 @@ const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
   crying: { text: "흑흑", bad: true },
 };
 
-// 고른 말의 판정. 채점처럼 O / △ / X로 보여주고 색만으로 구분하지 않게 기호를 함께 쓴다
+// 고른 말의 판정. 맞고 틀림을 채점하기보다 내 뜻이 상대에게 전달됐는지로 말한다. 색만으로 구분하지 않게 기호를 함께 쓴다
 const VERDICTS: Record<Verdict, { label: string; color: string; glyph: string }> = {
-  good: { label: "자연스러워요", color: "bg-good", glyph: "M3 1h4v1h1v1h1v4H8v1H7v1H3V8H2V7H1V3h1V2h1zM3 3h4v4H3z" },
-  meh: { label: "상황에 따라 어색해요", color: "bg-warn", glyph: "M4 1h2v2h1v2h1v2h1v2H1V7h1V5h1V3h1zM4 5h2v1h1v2H3V6h1z" },
-  bad: { label: "어색해요", color: "bg-bad", glyph: "M1 1h2v1h1v1h2V2h1V1h2v2H8v1H7v2h1v1h1v2H7V8H6V7H4v1H3v1H1V7h1V6h1V4H2V3H1z" },
+  good: { label: "전달됨", color: "bg-good", glyph: "M3 1h4v1h1v1h1v4H8v1H7v1H3V8H2V7H1V3h1V2h1zM3 3h4v4H3z" },
+  meh: { label: "반만 전달됨", color: "bg-warn", glyph: "M4 1h2v2h1v2h1v2h1v2H1V7h1V5h1V3h1zM4 5h2v1h1v2H3V6h1z" },
+  bad: { label: "사고", color: "bg-bad", glyph: "M1 1h2v1h1v1h2V2h1V1h2v2H8v1H7v2h1v1h1v2H7V8H6V7H4v1H3v1H1V7h1V6h1V4H2V3H1z" },
 };
 
 function VerdictMark({ choice, pop = false }: { choice: Choice; pop?: boolean }) {
   const v = VERDICTS[choice.verdict];
+  // 지금 보고 있는 줄에는 기호 옆에 판정 글자도 같이 찍는다
   return (
-    <span role="img" aria-label={choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label} className={`grid size-6 shrink-0 place-items-center ${v.color} ${pop ? "animate-[stamp_260ms_ease-out_60ms_both]" : ""}`}>
-      <svg width="16" height="16" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="var(--color-ink)" aria-hidden>
-        <path d={v.glyph} fillRule="evenodd" />
-      </svg>
+    <span role="img" aria-label={choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label} className={`flex shrink-0 items-center ${v.color} ${pop ? "animate-[stamp_260ms_ease-out_60ms_both]" : ""}`}>
+      <span className="grid size-6 place-items-center">
+        <svg width="16" height="16" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="var(--color-ink)" aria-hidden>
+          <path d={v.glyph} fillRule="evenodd" />
+        </svg>
+      </span>
+      {pop && (
+        <span aria-hidden className="pr-1.5 font-pixel text-[12px] leading-none text-ink">
+          {v.label}
+        </span>
+      )}
     </span>
   );
 }
