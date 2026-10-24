@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Expression, Motion } from "@/features/scene/types";
 import { CAST, HEROES } from "./cast";
+import { DecorPieces } from "./decor";
 import { Figure, headTop } from "./figure";
 import { C } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
@@ -28,6 +29,26 @@ function Rig() {
     camera.lookAt(0, 1.35, 0);
     camera.updateProjectionMatrix();
   }, [get, size]);
+  return null;
+}
+
+// 무대를 한 장 그려 그림 주소로 넘긴다. 그리고 바로 읽어서 그리기 버퍼를 남겨 두지 않아도 된다.
+// 카메라 줌과 인물 자세가 자리 잡도록 잠깐 기다렸다가 한 번만 찍는다
+function Snapshot({ onSnapshot }: { onSnapshot: (url: string) => void }) {
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
+  const callback = useRef(onSnapshot);
+  useEffect(() => {
+    callback.current = onSnapshot;
+  });
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      gl.render(scene, camera);
+      callback.current(gl.domElement.toDataURL("image/png"));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [gl, scene, camera]);
   return null;
 }
 
@@ -112,6 +133,9 @@ export type StageState = {
   talkKey: number;
   reaction: Expression | null;
   meLine?: string;
+  // 대사 대신 주인공 말풍선에 잠깐 띄우는 그림과 글. meNoteKey가 바뀔 때마다 새로 뜬다
+  meNote?: React.ReactNode;
+  meNoteKey?: string;
   partnerLine?: string;
   meTurn?: boolean;
 };
@@ -124,7 +148,8 @@ const SETTLE_MS = 2500;
 // 무대가 바뀐 직후와 반복 동작 중에만 매 프레임 그리고, 멈춰 있을 때는 그리기를 쉬어 배터리와 CPU를 아낀다.
 // 크기가 바뀌면 three.js가 알아서 한 번 다시 그린다
 function useFrameloop(spec: StageSpec, state: StageState | undefined, reduced: boolean) {
-  const busyKey = JSON.stringify([spec, state]);
+  // 말풍선 그림(meNote)은 React 요소라 글자로 바꿀 수 없어서 빼고, 대신 meNoteKey로 바뀐 것을 안다
+  const busyKey = JSON.stringify([spec, state], (key, value) => (key === "meNote" ? undefined : value));
   const looping = !reduced && (LOOPING.has(state?.partnerMotion ?? "idle") || LOOPING.has(state?.meMotion ?? "idle"));
   const [settled, setSettled] = useState<string | null>(null);
   useEffect(() => {
@@ -136,10 +161,25 @@ function useFrameloop(spec: StageSpec, state: StageState | undefined, reduced: b
 }
 
 // 세트·시간·등장인물 조합을 픽셀 무대로 그리고, 캐릭터 머리 위에 말풍선과 반응 기호를 붙인다
-export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; state?: StageState; reduced?: boolean }) {
+// onSnapshot을 주면 snapshotKey가 바뀔 때마다 무대를 한 장 찍어 넘긴다(장면 목록 썸네일)
+export function PixelStage({
+  spec,
+  state,
+  reduced = false,
+  onSnapshot,
+  snapshotKey,
+}: {
+  spec: StageSpec;
+  state?: StageState;
+  reduced?: boolean;
+  onSnapshot?: (url: string) => void;
+  snapshotKey?: string;
+}) {
   const set = SETS[spec.set];
   const evening = spec.time === "evening";
   const flags = useMemo(() => new Set(spec.flags), [spec.flags]);
+  // flags에 bare가 있으면 세트 기본 소품을 빼고 장면이 직접 적은 소품만 붙인다(식탁 세트를 식당으로 쓸 때처럼)
+  const decor = useMemo(() => [...(flags.has("bare") ? [] : (set.decor ?? [])), ...(spec.decor ?? [])], [set, flags, spec.decor]);
   const targets = useMemo(
     () => ({
       me: new THREE.Vector3(set.me.x, headTop(set.me) + 0.12, set.me.z ?? 0),
@@ -182,12 +222,14 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
         style={{ imageRendering: "pixelated" }}
       >
         <Rig />
+        {onSnapshot && <Snapshot key={snapshotKey} onSnapshot={onSnapshot} />}
         {state && <Anchors targets={targets} slots={slots} />}
         <ambientLight intensity={evening ? 1.7 : 2.1} />
         <directionalLight position={[-3, 4, 6]} intensity={evening ? 0.9 : 1.2} />
 
         <Backdrop wall={wall} />
         <set.Scenery evening={evening} flags={flags} />
+        <DecorPieces items={decor} />
         <Figure
           placement={set.me}
           look={{ ...CAST[HEROES[spec.hero ?? "boy"]], wear: spec.wear }}
@@ -210,7 +252,9 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
 
       {state && (
         <div className={`pointer-events-none absolute inset-0 ${ink}`}>
-          {bubble("me", state.meLine ?? (state.meTurn ? <TypingDots /> : null), state.meLine ?? "turn")}
+          {state.meNote
+            ? bubble("me", state.meNote, `note-${state.meNoteKey ?? ""}`)
+            : bubble("me", state.meLine ?? (state.meTurn ? <TypingDots /> : null), state.meLine ?? "turn")}
           {symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
               <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-[pop_260ms_steps(3,end)]">

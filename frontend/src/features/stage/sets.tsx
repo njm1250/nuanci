@@ -2,7 +2,7 @@
 
 import { C } from "./palette";
 import { Box, Cyl, Flat, Gem, Glow } from "./primitives";
-import type { Placement, SetId } from "./types";
+import type { Decor, Placement, SetId } from "./types";
 import { SET_WALLS } from "./walls";
 
 type SceneryProps = { evening: boolean; flags: Set<string> };
@@ -13,6 +13,8 @@ export type SetDef = {
   me: Placement;
   partner: Placement;
   Scenery: (p: SceneryProps) => React.ReactNode;
+  // 세트에 기본으로 붙는 소품 스티커(decor.tsx). 어느 장면이든 사람이 사는 곳처럼 보이게 하고, Mochi와 푸딩을 숨겨 둔다
+  decor?: Decor[];
 };
 
 const R = Math.PI / 2;
@@ -71,7 +73,6 @@ export const SETS: Record<SetId, SetDef> = {
     Scenery: ({ evening, flags }) => (
       <>
         <Window x={-1.9} y={1.95} evening={evening} />
-        <Flat size={[0.5, 0.65]} at={[2.05, 1.8, WALL_Z]} color={C.leaf} />
         <Pendant x={0} on={evening} />
         <Box size={[1.7, 0.08, 1.0]} at={[0, 0.78, 0]} color={C.wood} />
         {[-0.76, 0.76].map((x) => (
@@ -93,6 +94,12 @@ export const SETS: Record<SetId, SetDef> = {
         {flags.has("takeout") && <Box size={[0.3, 0.14, 0.22]} at={[0.42, 0.9, 0.35]} color={C.plate} />}
       </>
     ),
+    decor: [
+      { id: "fridge", x: 2.35 },
+      { id: "pudding", x: 2.22, y: 1.8, z: -0.8 },
+      { id: "calendar", x: -0.75, y: 2.2 },
+      { id: "mochi", x: -2.35 },
+    ],
   },
 
   office: {
@@ -107,7 +114,6 @@ export const SETS: Record<SetId, SetDef> = {
         <Cyl r={0.2} h={0.04} at={[0.35, 2.35, WALL_Z + 0.01]} color={C.paper} sides={12} rot={[R, 0, 0]} />
         <Box size={[0.025, 0.14, 0.02]} at={[0.35, 2.4, WALL_Z + 0.05]} color={C.ink} />
         <Box size={[0.025, 0.11, 0.02]} at={[0.35, 2.35, WALL_Z + 0.05]} color={C.ink} rot={[0, 0, evening ? Math.PI : -R]} />
-        <Flat size={[0.9, 0.6]} at={[1.75, 1.85, WALL_Z]} color={C.paper} />
         <Box size={[1.2, 0.06, 0.7]} at={[0.4, 0.76, 0]} color={C.paper} />
         {[-0.15, 0.95].map((x) => (
           <Box key={x} size={[0.05, 0.73, 0.05]} at={[x, 0.37, 0.3]} color={C.metal} />
@@ -122,6 +128,15 @@ export const SETS: Record<SetId, SetDef> = {
         <Plant x={-2.35} />
       </>
     ),
+    decor: [
+      { id: "whiteboard", x: 2.05 },
+      { id: "calendar", x: -0.55 },
+      { id: "aircon", x: -1.75 },
+      { id: "papers", x: -0.05, y: 0.79, z: 0.15 },
+      { id: "pudding", x: 0.55, y: 0.79, z: -0.2 },
+      { id: "multitap", x: 0.4, z: -0.9 },
+      { id: "mochi", x: 2.4, z: -0.6 },
+    ],
   },
 
   cafe: {
@@ -150,6 +165,12 @@ export const SETS: Record<SetId, SetDef> = {
         <Plant x={-2.2} />
       </>
     ),
+    decor: [
+      { id: "poster", x: -1.85 },
+      { id: "umbrella-stand", x: -1.55 },
+      { id: "mug", x: 0.35, y: 1.06, z: 0.15 },
+      { id: "mochi", x: -0.02, y: 1.06, z: 0.05 },
+    ],
   },
 
   living: {
@@ -159,7 +180,6 @@ export const SETS: Record<SetId, SetDef> = {
     partner: { x: 1.0, z: -0.2, facing: -0.55, posture: "sit" },
     Scenery: ({ evening, flags }) => (
       <>
-        <Flat size={[0.8, 0.5]} at={[0, 2.15, WALL_Z]} color={C.leaf} />
         <Box size={[2.8, 0.42, 0.8]} at={[0, 0.27, -0.45]} color={C.slate} />
         <Box size={[2.8, 0.62, 0.2]} at={[0, 0.75, -0.8]} color={C.slate} />
         {[-1, 1].map((s) => (
@@ -172,6 +192,13 @@ export const SETS: Record<SetId, SetDef> = {
         <Plant x={-2.45} />
       </>
     ),
+    decor: [
+      { id: "picture", x: 0, y: 2.15 },
+      { id: "aircon", x: 1.25 },
+      { id: "slippers", x: -0.3, z: 0.4 },
+      { id: "parcel", x: -1.95, z: -0.9 },
+      { id: "mochi", x: 0.35, y: 1.06, z: -0.8 },
+    ],
   },
 
   park: {
@@ -196,6 +223,10 @@ export const SETS: Record<SetId, SetDef> = {
         <Glow size={[0.22, 0.04, 0.22]} at={[2.0, 2.37, -0.6]} on={evening} />
       </>
     ),
+    decor: [
+      { id: "shopping-bag", x: -1.5, z: -0.15 },
+      { id: "mochi", x: 1.55, z: -0.1 },
+    ],
   },
 
   elevator: {
@@ -221,6 +252,7 @@ export const SETS: Record<SetId, SetDef> = {
         <Glow size={[1.6, 0.04, 0.6]} at={[0, 3.05, -0.4]} on />
       </>
     ),
+    decor: [{ id: "notice", x: -1.05 }],
   },
 
   store: {
@@ -253,6 +285,11 @@ export const SETS: Record<SetId, SetDef> = {
         {flags.has("snack") && <Box size={[0.22, 0.28, 0.06]} at={[0.55, 1.14, 0.1]} color={C.mustard} rot={[0, 0.3, 0.15]} />}
       </>
     ),
+    decor: [
+      { id: "poster", x: 0.2, y: 2.2 },
+      { id: "parcel", x: -0.55 },
+      { id: "mochi", x: 2.25, y: 2.0, z: -0.85 },
+    ],
   },
 
   karaoke: {
@@ -276,6 +313,7 @@ export const SETS: Record<SetId, SetDef> = {
         <Gem r={0.17} at={[0, 2.75, -0.3]} color="#c9ced2" />
       </>
     ),
+    decor: [{ id: "tambourine", x: -1.55, y: 0.67, z: -0.45 }],
   },
 
   gym: {
@@ -303,6 +341,7 @@ export const SETS: Record<SetId, SetDef> = {
         <Box size={[0.16, 0.04, 0.04]} at={[1.95, 0.32, -0.6]} color={C.ink} />
       </>
     ),
+    decor: [{ id: "fan", x: 1.45 }],
   },
 
   room: {
@@ -494,5 +533,10 @@ export const SETS: Record<SetId, SetDef> = {
         <Glow size={[0.24, 0.04, 0.16]} at={[1.78, 2.62, -0.4]} on={evening} />
       </>
     ),
+    decor: [
+      { id: "poster", x: 0.02, y: 1.25, z: -0.87 },
+      { id: "parcel", x: -2.25, z: -0.7 },
+      { id: "mochi", x: 2.35, z: 0.3 },
+    ],
   },
 };

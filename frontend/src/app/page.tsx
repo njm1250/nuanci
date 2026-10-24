@@ -26,7 +26,7 @@ export default async function Home() {
   const summaries = await getScenes();
   const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
   const beats = reelBeats(scenes);
-  const shelf = scenes.map(({ id, number, title, relation, place }) => ({ id, number, title, relation, place }));
+  const shelf = scenes.map(({ id, number, title, relation, place, base }) => ({ id, number, title, relation, place, stage: base.stage }));
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep md:bg-night">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />

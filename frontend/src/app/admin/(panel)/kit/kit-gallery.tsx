@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Panel } from "@/features/scene/block-ui";
 import type { Expression, Motion } from "@/features/scene/types";
-import { ACCESSORY_IDS, EXPRESSIONS, GAG_MOTIONS, MOTIONS, PARTNER_IDS, PROP_IDS, SET_IDS } from "@/features/stage/catalog";
+import { ACCESSORY_IDS, DECOR_IDS, EXPRESSIONS, GAG_MOTIONS, MOTIONS, PARTNER_IDS, PROP_IDS, SET_IDS } from "@/features/stage/catalog";
 import { Stage } from "@/features/stage/stage";
-import type { AccessoryId, CastId, Hero, PropId, SetId, Time } from "@/features/stage/types";
+import type { AccessoryId, CastId, DecorId, Hero, PropId, SetId, Time } from "@/features/stage/types";
 
 function Pick<T extends string>({ label, value, options, onChange, mark }: { label: string; value: T | ""; options: readonly T[]; onChange: (v: T | "") => void; mark?: readonly string[] }) {
   return (
@@ -35,12 +35,14 @@ export function KitGallery() {
   const [partnerProp, setPartnerProp] = useState<PropId | "">("");
   const [meMotion, setMeMotion] = useState<Motion | "">("");
   const [meProp, setMeProp] = useState<PropId | "">("");
+  const [decor, setDecor] = useState<DecorId | "">("");
+  const [decorX, setDecorX] = useState(0);
   const [key, setKey] = useState(1);
   const replay = () => setKey((k) => k + 1);
 
   const snippet = {
     ...(hero !== "boy" && { hero }),
-    stage: { set, time, partner },
+    stage: { set, time, partner, ...(decor && { decor: [{ id: decor, x: decorX }] }) },
     motion: motion || "idle",
     ...(expression && { expression }),
     ...(meMotion && { meMotion }),
@@ -53,7 +55,7 @@ export function KitGallery() {
       <Panel>
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           <Stage
-            spec={{ set, time, partner, hero, wear: accessory ? [{ id: accessory }] : undefined }}
+            spec={{ set, time, partner, hero, wear: accessory ? [{ id: accessory }] : undefined, decor: decor ? [{ id: decor, x: decorX }] : undefined }}
             state={{
               partnerMotion: motion || "idle",
               partnerKey: key,
@@ -79,6 +81,11 @@ export function KitGallery() {
         <Pick label="상대 소품 partnerProp" value={partnerProp} options={PROP_IDS} onChange={setPartnerProp} />
         <Pick label="내 동작 meMotion" value={meMotion} options={MOTIONS} mark={GAG_MOTIONS} onChange={(v) => (setMeMotion(v), replay())} />
         <Pick label="내 소품 meProp" value={meProp} options={PROP_IDS} onChange={setMeProp} />
+        <Pick label="소품 스티커 decor" value={decor} options={DECOR_IDS} onChange={setDecor} />
+        <label className="block font-pixel text-[15px] text-paper-muted">
+          스티커 위치 x ({decorX.toFixed(1)})
+          <input type="range" min={-2.6} max={2.6} step={0.1} value={decorX} onChange={(e) => setDecorX(Number(e.target.value))} className="mt-3 block w-full" />
+        </label>
       </div>
       <button type="button" onClick={replay} className="blk-btn blk-btn-gold block w-full">
         <span className="blk block bg-gold px-3 py-3 text-center font-pixel text-[15px] text-ink">동작 다시 보기</span>

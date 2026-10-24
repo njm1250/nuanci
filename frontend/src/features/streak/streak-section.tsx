@@ -38,15 +38,14 @@ export function StreakSection({ member }: { member: boolean }) {
             </div>
           </div>
 
-          <ol className="grid grid-cols-7 gap-1 py-3" aria-label="최근 7일">
+          {/* 카페 도장 쿠폰처럼 한 날에 도장 하나. 도장마다 조금씩 다르게 기울여 손으로 찍은 것처럼 보이게 한다 */}
+          <ol className="grid grid-cols-7 gap-1 border-t-2 border-dashed border-ink/25 py-3" aria-label="최근 7일 도장">
             {week.map((done, i) => {
               const today = i === 6;
               return (
-                <li key={i} className="flex flex-col items-center gap-1.5" aria-label={`${labels[i]}요일${today ? " 오늘" : ""}, ${done ? "함" : "안 함"}`}>
+                <li key={i} className="flex flex-col items-center gap-1.5" aria-label={`${labels[i]}요일${today ? " 오늘" : ""}, ${done ? "도장 찍음" : "안 함"}`}>
                   <span className={`text-[12px] leading-none ${today ? "font-semibold text-ink" : "text-ink-subtle"}`}>{labels[i]}</span>
-                  <span className={`grid size-8 place-items-center ${done ? "bg-ink" : today ? "border-2 border-dashed border-ink/40" : "bg-ink/10"}`}>
-                    {done && <Flame size={18} />}
-                  </span>
+                  <StampSlot done={done} today={today} tilt={STAMP_TILTS[i]} />
                 </li>
               );
             })}
@@ -95,6 +94,28 @@ export function StreakSection({ member }: { member: boolean }) {
         </div>
       </Panel>
     </section>
+  );
+}
+
+// 도장 칸의 둥근 테두리(12×12 도트)
+const RING = ["....xxxx....", "..xx....xx..", ".x........x.", ".x........x.", "x..........x", "x..........x", "x..........x", "x..........x", ".x........x.", ".x........x.", "..xx....xx..", "....xxxx...."];
+const STAMP_TILTS = [-8, 5, -3, 9, -6, 3, -10];
+
+function Ring({ color, size }: { color: string; size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 12 12" shapeRendering="crispEdges" aria-hidden className="absolute inset-0">
+      {RING.flatMap((row, y) => row.split("").map((c, x) => (c === "x" ? <rect key={`${y}-${x}`} x={x} y={y} width={1} height={1} fill={color} /> : null)))}
+    </svg>
+  );
+}
+
+// 하루 한 칸. 한 날에는 빨간 "참" 도장이 찍히고, 오늘 아직 안 했으면 점선 칸으로 남는다
+function StampSlot({ done, today, tilt }: { done: boolean; today: boolean; tilt: number }) {
+  return (
+    <span className="relative grid size-9 place-items-center" style={done ? { rotate: `${tilt}deg` } : undefined}>
+      <Ring color={done ? "#c42b2b" : today ? "rgb(20 19 23 / 0.45)" : "rgb(20 19 23 / 0.15)"} size={36} />
+      {done && <span className="relative font-pixel-title text-[12px] leading-none text-[#c42b2b]">참</span>}
+    </span>
   );
 }
 

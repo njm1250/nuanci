@@ -5,6 +5,7 @@ import { useState, useSyncExternalStore } from "react";
 import { contactHref, useNotice } from "@/features/landing/site-footer";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
+import { ReactionFace } from "@/features/scene/reaction-face";
 import { toggleSound, useSoundEnabled } from "@/features/scene/sfx";
 import { deleteAccount, logout, useAccount } from "./account";
 import { GoogleButton } from "./google-button";
@@ -47,14 +48,77 @@ function Stat({ href, label, value }: { href: string; label: string; value: stri
   );
 }
 
-// 맨 위 프로필. 비로그인이면 로그인하면 얻는 것을 구체적으로 보여주고 구글 로그인으로 보낸다
+// 사원증의 직급. 해 본 장면 수로 올라간다
+const RANKS = [
+  { min: 0, name: "인턴" },
+  { min: 3, name: "사원" },
+  { min: 10, name: "대리" },
+  { min: 20, name: "과장" },
+  { min: 35, name: "차장" },
+  { min: 55, name: "부장" },
+];
+// 사원증 아래 바코드 막대 너비(도트)
+const BARCODE = [2, 1, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 1, 3, 2, 1, 1, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 2];
+
+// 내 활동 숫자를 담은 nuanci 사원증. 이름과 사진, 해 본 장면 수로 오르는 직급, 이름 옆 연속 기록 뱃지를 단다
+function IdCard({ cleared, total }: { cleared: number; total: number }) {
+  const account = useAccount();
+  const avatar = useAvatar();
+  const streak = useStreak();
+  const me = account.status === "member" ? account.me : null;
+  // 고른 뱃지가 실제로 얻은 것일 때만 이름 옆에 단다
+  const badge = avatar.badge && streak?.badges.includes(avatar.badge) ? avatar.badge : null;
+  let level = 0;
+  RANKS.forEach((r, i) => {
+    if (cleared >= r.min) level = i;
+  });
+  const next = RANKS[level + 1];
+  return (
+    <Panel>
+      <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-pixel text-[15px] text-paper">
+        <span>
+          <span className="text-gold">nuanci</span> 사원증
+        </span>
+        <span aria-hidden className="h-2 w-10 bg-paper/30" />
+      </div>
+      <div className="flex gap-4 px-4 pt-4">
+        {me?.picture ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={me.picture} alt="" width={80} height={96} referrerPolicy="no-referrer" className="h-24 w-20 shrink-0 border-2 border-ink object-cover" />
+        ) : (
+          <span className="grid h-24 w-20 shrink-0 place-items-end justify-center border-2 border-ink bg-[#cfe4ec] pb-2">
+            <ReactionFace expression="happy" size={60} />
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] text-ink-subtle">이름</p>
+          <p className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-[17px] font-semibold">{me ? (me.name ?? "이름 없음") : "손님"}</span>
+            {badge && <StreakBadge days={badge} />}
+          </p>
+          <p className="mt-2 text-[12px] text-ink-subtle">직급</p>
+          <p className="font-pixel-title text-[24px] leading-none">{RANKS[level].name}</p>
+          {next && <p className="mt-1.5 text-[13px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
+        <Stat href="/scenes" label="해 본 장면" value={`${cleared}/${total}`} />
+        <Stat href="/expressions" label="표현 모음" value={`${cleared * PAIRS_PER_SCENE}`} />
+      </div>
+      <div aria-hidden className="flex h-9 items-stretch gap-[2px] px-4 py-2">
+        {BARCODE.map((w, i) => (
+          <span key={i} className="bg-ink" style={{ width: w * 2 }} />
+        ))}
+        <span className="ml-auto self-end font-pixel text-[15px] leading-none text-ink-subtle">{me?.email ? "" : "GUEST"}</span>
+      </div>
+    </Panel>
+  );
+}
+
+// 맨 위 프로필. 비로그인이면 로그인하면 얻는 것을 구체적으로 보여주고 구글 로그인으로 보낸다. 로그인했으면 이름은 사원증에 있어서 이메일과 알림만 남긴다
 function Profile() {
   const account = useAccount();
   const notice = useSyncExternalStore(noop, () => new URLSearchParams(location.search).get("login"), () => null);
-  const avatar = useAvatar();
-  const streak = useStreak();
-  // 고른 뱃지가 실제로 얻은 것일 때만 이름 옆에 단다
-  const badge = avatar.badge && streak?.badges.includes(avatar.badge) ? avatar.badge : null;
 
   if (account.status === "loading") {
     return (
@@ -67,22 +131,8 @@ function Profile() {
     return (
       <Panel>
         <div className="p-4">
-          {notice === "1" && <p className="mb-3 text-[13px] text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합쳤어요.</p>}
-          <div className="flex items-center gap-3">
-            {account.me.picture ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={account.me.picture} alt="" width={48} height={48} referrerPolicy="no-referrer" className="size-12 shrink-0" />
-            ) : (
-              <span className="grid size-12 shrink-0 place-items-center bg-ink font-pixel text-[15px] text-paper">{(account.me.name ?? "?").slice(0, 1)}</span>
-            )}
-            <div className="min-w-0">
-              <p className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-[17px] font-semibold">{account.me.name ?? "이름 없음"}</span>
-                {badge && <StreakBadge days={badge} />}
-              </p>
-              <p className="truncate text-[13px] text-ink-subtle">{account.me.email}</p>
-            </div>
-          </div>
+          {notice === "1" && <p className="mb-2 text-[13px] text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합쳤어요.</p>}
+          <p className="truncate text-[14px] text-ink-muted">{account.me.email}로 로그인했어요</p>
         </div>
       </Panel>
     );
@@ -128,14 +178,9 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
   return (
     <div className="space-y-6 md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10 md:space-y-0">
       <div className="space-y-6">
-      <Profile />
+      <IdCard cleared={cleared.length} total={total} />
 
-      <Panel>
-        <div className="grid grid-cols-2 divide-x-2 divide-ink/10">
-          <Stat href="/scenes" label="해 본 장면" value={`${cleared.length}/${total}`} />
-          <Stat href="/expressions" label="표현 모음" value={`${cleared.length * PAIRS_PER_SCENE}`} />
-        </div>
-      </Panel>
+      <Profile />
 
       <StreakSection member={member} />
 

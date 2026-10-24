@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "영어 상황별 대화 게임 전�
 export default async function ScenesPage() {
   const summaries = await getScenes();
   const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
-  const shelf = scenes.map(({ id, number, title, relation, place }) => ({ id, number, title, relation, place }));
+  const shelf = scenes.map(({ id, number, title, relation, place, base }) => ({ id, number, title, relation, place, stage: base.stage }));
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
       <main className="w-full max-w-[480px] bg-night px-4 pb-12 md:max-w-[1080px] md:px-8">

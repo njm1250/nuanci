@@ -7,13 +7,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { bookEntry, spoken } from "@/features/collection/pairs";
 import { Mascot } from "@/features/mascot/mascot";
 import { useHeroLook } from "@/features/rewards/hero-look";
+import { RewardIcon } from "@/features/rewards/reward-icon";
 import { RewardReveal } from "@/features/rewards/reward-reveal";
-import { usePendingRewards, useRewards, type RewardItem } from "@/features/rewards/rewards";
+import { COLOR_HEX, isUnopened, usePendingRewards, useRewards, type RewardItem } from "@/features/rewards/rewards";
 import { playStreak, useStreakMoment, type StreakMoment } from "@/features/streak/streak";
 import { StreakMomentCard } from "@/features/streak/streak-ui";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 무대를 늦게 불러오지 않는다
 import { PixelStage as Stage } from "@/features/stage/pixel-stage";
-import type { StageSpec } from "@/features/stage/types";
+import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
 import { ImagineBubble } from "./imagine-bubble";
@@ -189,6 +190,24 @@ function Arrow() {
 // 축하 소리가 겹치지 않게 하나씩 차례로 울린다
 const STREAK_DELAY = 1600;
 const AFTER_STREAK = 750;
+// 새 물건 카드가 들어오는 순간 주인공도 무대에서 그 물건을 받고, 이만큼 보여준 뒤 원래 엔딩으로 돌아간다
+const PRIZE_MS = 4000;
+
+// 완료 화면에서 무대에 올릴 새 물건. 쓰는 아이템을 먼저 골라 주인공이 직접 써 보게 한다
+function stagePrize(granted: RewardItem[]) {
+  return granted.find((i) => i.kind === "wear" && !isUnopened(i)) ?? granted[0] ?? null;
+}
+
+// 무대 위 주인공 말풍선에 띄우는 새 물건. 상자는 열기 전이라 무엇인지 감춘다
+function PrizeNote({ item }: { item: RewardItem }) {
+  const box = isUnopened(item);
+  return (
+    <span className="flex items-center gap-1.5">
+      <RewardIcon id={box ? "box" : item.id} color={item.owned?.color} size={24} />
+      <span>{box ? "깜짝 상자다!" : `${item.name} 득템!`}</span>
+    </span>
+  );
+}
 
 // 장면을 끝낸 뒤의 완료 화면. 이 장면의 발견(한 줄 정리와 모은 표현)을 가운데 두고, 연속 기록·새 물건은 작게 덧붙인 뒤 친구에게 문제 내기를 권한다
 function WrapUp({
@@ -326,8 +345,28 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const stageKey = f.reactionKey * 10 + (later ? 1 : 0) + (wrapped ? 5 : 0);
   const stageSituation = later ? scene.followUp : scene.base;
 
+  // 팡파르(와 연속 기록 줄)가 끝나고 새 물건 카드가 들어올 때 주인공도 무대에서 그 물건을 받는다. 잠깐 보여준 뒤 엔딩으로 돌아간다
+  const prize = stagePrize(granted);
+  const [prizeStep, setPrizeStep] = useState<"wait" | "on" | "off">("wait");
+  const prizeId = prize?.id;
+  useEffect(() => {
+    if (!wrapped || !prizeId || prizeStep === "off") return;
+    const wait = prizeStep === "wait" ? STREAK_DELAY + (streakMoment ? AFTER_STREAK : 0) : PRIZE_MS;
+    const t = window.setTimeout(() => setPrizeStep(prizeStep === "wait" ? "on" : "off"), wait);
+    return () => clearTimeout(t);
+  }, [wrapped, prizeId, prizeStep, streakMoment]);
+  const prizeOn = wrapped && prize !== null && prizeStep === "on";
+  // 새로 받은 쓰는 아이템은 받는 순간 무대에서 미리 써 본다. 같은 자리(머리·얼굴·목)에 쓰던 것은 잠깐 벗는다
+  const tryOn = prizeOn && prize.kind === "wear" && !isUnopened(prize) ? prize : null;
+  const shownWear: Worn[] = tryOn
+    ? [
+        ...look.wear.filter((w) => rewards?.items.find((i) => i.id === w.id)?.slot !== tryOn.slot),
+        { id: tryOn.id as AccessoryId, color: tryOn.owned?.color ? COLOR_HEX[tryOn.owned.color] : undefined },
+      ]
+    : look.wear;
+
   // 쓰고 있는 아이템 목록은 렌더마다 새로 만들어져서, 내용이 바뀔 때만 무대를 다시 계산하도록 문자열로 비교한다
-  const wearKey = JSON.stringify(look.wear);
+  const wearKey = JSON.stringify(shownWear);
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
     // 주인공은 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
@@ -399,9 +438,12 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 spec={spec}
                 reduced={reduced}
                 state={{
-                  meMotion: celebrate ? "clap" : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
-                  meKey: stageKey,
-                  meProp: stageChoice?.meProp ?? stageSituation.meIdle?.prop,
+                  meMotion: prizeOn ? "bounce" : celebrate ? "clap" : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
+                  meKey: prizeOn ? stageKey + 1000 : stageKey,
+                  // 방에 둘 물건과 상자는 선물 상자를 들고 받는다
+                  meProp: prizeOn && !tryOn ? "gift" : (stageChoice?.meProp ?? stageSituation.meIdle?.prop),
+                  meNote: prizeOn ? <PrizeNote item={prize} /> : undefined,
+                  meNoteKey: prize?.id,
                   partnerProp: stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
                   partnerMotion: stageChoice?.motion ?? stageSituation.partnerIdle.motion,
                   partnerKey: stageKey,
