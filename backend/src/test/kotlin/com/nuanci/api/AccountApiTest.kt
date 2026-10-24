@@ -99,19 +99,19 @@ class AccountApiTest {
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON
-			content = """{"hero":"girl","accessory":"crown","hidden":[]}"""
+			content = """{"hero":"girl","accessory":"crown","placed":[]}"""
 		}.andExpect { status { isForbidden() } }
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON
-			content = """{"hero":"girl","wear":["cap"],"hidden":["plant"]}"""
+			content = """{"hero":"girl","wear":["cap"],"placed":[]}"""
 		}.andExpect { status { isNoContent() } }
 		mvc.get("/api/me") { cookie(session) }.andExpect {
 			jsonPath("$.avatar.hero") { value("girl") }
 			jsonPath("$.avatar.wear[0]") { value("cap") }
-			jsonPath("$.avatar.hidden[0]") { value("plant") }
+			jsonPath("$.avatar.placed.length()") { value(0) }
 		}
-		// 머리와 얼굴에는 하나씩 함께 쓸 수 있다
+		// 얻은 물건만 쓰고 둘 수 있다
 		mvc.post("/api/rewards/sync") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON
@@ -120,9 +120,18 @@ class AccountApiTest {
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON
-			content = """{"hero":"boy","wear":["cap","glasses"],"hidden":[]}"""
+			content = """{"hero":"boy","wear":["cap"],"placed":["plant"]}"""
 		}.andExpect { status { isNoContent() } }
-		mvc.get("/api/me") { cookie(session) }.andExpect { jsonPath("$.avatar.wear.length()") { value(2) } }
+		mvc.get("/api/me") { cookie(session) }.andExpect {
+			jsonPath("$.avatar.wear.length()") { value(1) }
+			jsonPath("$.avatar.placed[0]") { value("plant") }
+		}
+		// 얻지 않은 물건은 둘 수 없다
+		mvc.put("/api/me/avatar") {
+			cookie(session)
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"hero":"boy","wear":[],"placed":["guitar"]}"""
+		}.andExpect { status { isForbidden() } }
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON

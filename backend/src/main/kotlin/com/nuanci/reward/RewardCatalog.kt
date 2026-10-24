@@ -27,31 +27,25 @@ object RewardCatalog {
 
 	private fun room(id: String, name: String, rule: Rule) = RewardDef(id, name, "room", rule)
 
+	// 받는 간격이 너무 촘촘하면 보상이 흔해져서, 장면 수 보상은 5~10장면마다, 장면 기념품은 기억에 남는 장면 몇 개에만 둔다.
+	// 나머지 방 물건은 깜짝 상자에서 나온다
 	val ITEMS = listOf(
 		wear("cap", "모자", "head", Rule.Milestone(1), "red", "blue", "yellow"),
-		room("plant", "화분", Rule.Milestone(3)),
-		wear("glasses", "동그란 안경", "face", Rule.Milestone(5), "yellow", "red", "black"),
-		wear("headphones", "헤드폰", "head", Rule.Milestone(9), "blue", "red", "yellow"),
-		wear("scarf", "목도리", "neck", Rule.Milestone(11), "red", "green", "yellow"),
-		room("poster", "포스터", Rule.Milestone(12)),
-		wear("cat-ears", "고양이 귀", "head", Rule.Milestone(14), "black", "pink", "yellow"),
-		wear("sunglasses", "선글라스", "face", Rule.Milestone(17)),
-		wear("crown", "왕관", "head", Rule.Milestone(20)),
-		wear("bowtie", "나비넥타이", "neck", Rule.Milestone(22), "red", "yellow", "pink"),
-		wear("beanie", "비니", "head", Rule.Milestone(26), "blue", "pink", "green"),
-		wear("flower", "꽃 핀", "head", Rule.Milestone(30), "pink", "yellow", "red"),
+		room("plant", "화분", Rule.Milestone(5)),
+		wear("glasses", "동그란 안경", "face", Rule.Milestone(10), "yellow", "red", "black"),
+		wear("headphones", "헤드폰", "head", Rule.Milestone(15), "blue", "red", "yellow"),
+		room("poster", "포스터", Rule.Milestone(20)),
+		wear("scarf", "목도리", "neck", Rule.Milestone(30), "red", "green", "yellow"),
+		wear("cat-ears", "고양이 귀", "head", Rule.Milestone(40), "black", "pink", "yellow"),
+		wear("crown", "왕관", "head", Rule.Milestone(50)),
+		wear("sunglasses", "선글라스", "face", Rule.Milestone(60)),
+		wear("bowtie", "나비넥타이", "neck", Rule.Milestone(70), "red", "yellow", "pink"),
+		wear("beanie", "비니", "head", Rule.Milestone(80), "blue", "pink", "green"),
+		wear("flower", "꽃 핀", "head", Rule.Milestone(100), "pink", "yellow", "red"),
 		room("pudding", "푸딩", Rule.Scene("pudding")),
 		room("fishbowl", "어항", Rule.Scene("elevator-stuck")),
-		room("cake", "케이크", Rule.Scene("roommate-interrogation")),
-		room("mic", "마이크", Rule.Scene("friday-karaoke")),
-		room("gamepad", "게임패드", Rule.Scene("touch-grass")),
 		room("dumbbell", "아령", Rule.Scene("gym-day-one")),
-		room("ramen", "컵라면", Rule.Scene("two-am-store")),
-		room("camera", "카메라", Rule.Scene("park-photo")),
-		room("vase", "꽃병", Rule.Scene("blind-date")),
-		room("mirror", "거울", Rule.Scene("haircut")),
 		wear("badge", "사원증", "neck", Rule.Bundle("회사", listOf("file-request", "did-you-eat", "pop-quiz-panic", "ten-minutes-before-meeting", "boss-treats-dinner"))),
-		room("coffee", "커피잔", Rule.Bundle("카페", listOf("cafe-to-go", "leaving-the-cafe"))),
 		room("mirrorball", "미러볼", Rule.Bundle("노래방", listOf("karaoke-breakup", "friday-karaoke"))),
 		room("frame", "사진 액자", Rule.Share),
 		room("rug", "러그", Rule.Box),
@@ -61,10 +55,18 @@ object RewardCatalog {
 		room("guitar", "기타", Rule.Box),
 		room("lights", "꼬마전구", Rule.Box),
 		room("beanbag", "빈백", Rule.Box),
+		room("cake", "케이크", Rule.Box),
+		room("mic", "마이크", Rule.Box),
+		room("gamepad", "게임패드", Rule.Box),
+		room("ramen", "컵라면", Rule.Box),
+		room("camera", "카메라", Rule.Box),
+		room("vase", "꽃병", Rule.Box),
+		room("mirror", "거울", Rule.Box),
+		room("coffee", "커피잔", Rule.Box),
 	)
 
 	// 깜짝 상자가 열리는 장면 수. 상자에서는 아직 없는 물건만 나와서 꽝이 없다
-	val BOXES = listOf(7, 15, 25, 35, 45)
+	val BOXES = listOf(12, 25, 45, 65, 90)
 
 	private val byId = ITEMS.associateBy { it.id }
 

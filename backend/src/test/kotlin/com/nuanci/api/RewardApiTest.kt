@@ -28,6 +28,7 @@ class RewardApiTest {
 	@Autowired lateinit var mvc: MockMvc
 	@Autowired lateinit var store: SceneStore
 	@Autowired lateinit var mapper: JsonMapper
+	@Autowired lateinit var rewards: com.nuanci.reward.RewardStore
 
 	@BeforeEach
 	fun seed() = store.loadFixtures(mapper)
@@ -56,7 +57,7 @@ class RewardApiTest {
 			jsonPath("$.granted[0]") { value("cap") }
 			jsonPath("${item("cap")}.owned.color") { value("red") }
 			jsonPath("${item("plant")}.name") { value(null as Any?) }
-			jsonPath("${item("plant")}.lock.remaining") { value(2) }
+			jsonPath("${item("plant")}.lock.remaining") { value(4) }
 			jsonPath("$.next.name") { value("화분") }
 			jsonPath("$.shareCode") { exists() }
 		}
@@ -66,15 +67,34 @@ class RewardApiTest {
 	}
 
 	@Test
-	fun `예전 기기 기록으로 받을 보상을 채우고 깜짝 상자는 없는 물건만 준다`() {
+	fun `예전 기기 기록으로 받을 보상을 채운다`() {
 		val visitor = UUID.randomUUID()
 		val all = listOf("did-you-eat", "eat-a-lot", "file-request", "first-upload", "get-home-safe", "my-treat", "pudding", "touch-grass")
 		sync(visitor, all).andExpect {
 			status { isOk() }
-			jsonPath("${item("glasses")}.owned.reason") { value("milestone") }
-			jsonPath("$.items[?(@.lock == null && @.owned.reason == 'box')]") { isNotEmpty() }
-			jsonPath("$.next.name") { value("헤드폰") }
+			jsonPath("${item("plant")}.owned.reason") { value("milestone") }
+			jsonPath("${item("glasses")}.owned") { value(null as Any?) }
+			jsonPath("$.next.name") { value("동그란 안경") }
 		}
+	}
+
+	@Test
+	fun `깜짝 상자는 없는 물건만 준다`() {
+		val visitor = UUID.randomUUID()
+		val granted = rewards.evaluate(visitor, (1..25).map { "s$it" }, "sync")
+		val boxes = granted.filter { it.reason == "box" }
+		kotlin.test.assertEquals(2, boxes.size)
+		kotlin.test.assertEquals(2, boxes.map { it.rewardId }.distinct().size)
+	}
+
+	@Test
+	fun `동시에 동기화해도 깜짝 상자를 더 주지 않는다`() {
+		val visitor = UUID.randomUUID()
+		val all = (1..12).map { "s$it" }
+		val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+		(1..4).map { pool.submit { rewards.evaluate(visitor, all, "sync") } }.forEach { it.get() }
+		pool.shutdown()
+		kotlin.test.assertEquals(1, rewards.grants(visitor).count { it.reason == "box" })
 	}
 
 	@Test

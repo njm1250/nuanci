@@ -20,10 +20,7 @@ export default async function ExpressionsPage() {
           </Link>
           <BackButton />
         </header>
-        <h1 className="font-pixel-title text-[24px]">표현 모음</h1>
-        <div className="mt-3">
-          <ExpressionBook entries={scenes.map(bookEntry)} />
-        </div>
+        <ExpressionBook entries={scenes.map(bookEntry)} />
       </main>
     </div>
   );

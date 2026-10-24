@@ -8,6 +8,10 @@ import { useCleared } from "@/features/scene/progress";
 import { toggleSound, useSoundEnabled } from "@/features/scene/sfx";
 import { deleteAccount, logout, useAccount } from "./account";
 import { GoogleButton } from "./google-button";
+import { useAvatar } from "@/features/avatar/avatar";
+import { StreakSection } from "@/features/streak/streak-section";
+import { useStreak } from "@/features/streak/streak";
+import { StreakBadge } from "@/features/streak/streak-ui";
 
 const noop = () => () => {};
 const PAIRS_PER_SCENE = 2;
@@ -46,6 +50,10 @@ function Stat({ href, label, value }: { href: string; label: string; value: stri
 function Profile() {
   const account = useAccount();
   const notice = useSyncExternalStore(noop, () => new URLSearchParams(location.search).get("login"), () => null);
+  const avatar = useAvatar();
+  const streak = useStreak();
+  // 고른 뱃지가 실제로 얻은 것일 때만 이름 옆에 단다
+  const badge = avatar.badge && streak?.badges.includes(avatar.badge) ? avatar.badge : null;
 
   if (account.status === "loading") {
     return (
@@ -67,7 +75,10 @@ function Profile() {
               <span className="grid size-12 shrink-0 place-items-center bg-ink font-pixel text-[15px] text-paper">{(account.me.name ?? "?").slice(0, 1)}</span>
             )}
             <div className="min-w-0">
-              <p className="truncate text-[17px] font-semibold">{account.me.name ?? "이름 없음"}</p>
+              <p className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-[17px] font-semibold">{account.me.name ?? "이름 없음"}</span>
+                {badge && <StreakBadge days={badge} />}
+              </p>
               <p className="truncate text-[13px] text-ink-subtle">{account.me.email}</p>
             </div>
           </div>
@@ -123,6 +134,8 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
           <Stat href="/expressions" label="표현 모음" value={`${cleared.length * PAIRS_PER_SCENE}`} />
         </div>
       </Panel>
+
+      <StreakSection member={member} />
 
       <Link href="/me/room" className="blk-btn block">
         <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">

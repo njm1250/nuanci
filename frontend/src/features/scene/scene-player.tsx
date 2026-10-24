@@ -9,6 +9,8 @@ import { Mascot } from "@/features/mascot/mascot";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { RewardReveal } from "@/features/rewards/reward-reveal";
 import { usePendingRewards, useRewards, type RewardItem } from "@/features/rewards/rewards";
+import { playStreak, useStreakMoment, type StreakMoment } from "@/features/streak/streak";
+import { StreakMomentCard } from "@/features/streak/streak-ui";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 무대를 늦게 불러오지 않는다
 import { PixelStage as Stage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
@@ -180,6 +182,11 @@ function Arrow() {
   );
 }
 
+// 완료 화면의 팡파르(0.75초부터 1.6초쯤까지)가 끝난 뒤 연속 기록 줄이 들어오고, 새 물건 카드는 그다음에 들어온다.
+// 축하 소리가 겹치지 않게 하나씩 차례로 울린다
+const STREAK_DELAY = 1600;
+const AFTER_STREAK = 750;
+
 // 장면을 끝낸 뒤의 완료 화면. 이번에 모은 표현을 먼저 크게 보여주고, 그다음 친구에게 문제 내기를 권한다
 function WrapUp({
   scene,
@@ -189,6 +196,7 @@ function WrapUp({
   granted,
   reduced,
   onRewardShown,
+  streak,
 }: {
   scene: Scene;
   share: () => void;
@@ -197,8 +205,16 @@ function WrapUp({
   granted: RewardItem[];
   reduced: boolean;
   onRewardShown: (ids: string[]) => void;
+  streak: StreakMoment | null;
 }) {
   const { pairs } = bookEntry(scene);
+  // 오늘 처음 이어졌으면 연속 기록을 먼저 보여주고, 새 물건은 그 뒤에 들어온다
+  const streakShown = useRef(false);
+  useEffect(() => {
+    if (!streak || streakShown.current) return;
+    streakShown.current = true;
+    sfx.streak((STREAK_DELAY + 120) / 1000);
+  }, [streak]);
   return (
     <div className="animate-[rise_240ms_ease-out]">
       <div className="flex items-end gap-3">
@@ -208,10 +224,15 @@ function WrapUp({
           <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{scene.title}</p>
         </div>
       </div>
-      {/* 새로 얻은 물건이 있으면 완료 제목 바로 아래에서 보여주고, 그 자리에서 쓰게 한다 */}
-      {granted.length > 0 && (
+      {streak && (
         <div className="mt-5">
-          <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} />
+          <StreakMomentCard current={streak.current} newBadge={streak.newBadge} reduced={reduced} delay={STREAK_DELAY} />
+        </div>
+      )}
+      {/* 새로 얻은 물건이 있으면 완료 제목 바로 아래에서 보여주고, 쓰기·방에 두기는 직접 누른다 */}
+      {granted.length > 0 && (
+        <div className={streak ? "mt-3" : "mt-5"}>
+          <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={streak ? AFTER_STREAK : 0} />
         </div>
       )}
       <p className="mt-4 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
@@ -269,7 +290,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const [attemptId] = useState(uuid);
   const send = (e: Omit<TrackEvent, "sceneId" | "sceneVersion" | "attemptId">) => {
     if (preview) return;
-    if (e.type === "scene_completed") markCleared(scene.id);
+    if (e.type === "scene_completed") {
+      markCleared(scene.id);
+      void playStreak(scene.id);
+    }
     track({ ...e, sceneId: scene.id, sceneVersion: scene.version, attemptId });
   };
   const cleared = useCleared();
@@ -286,6 +310,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const look = useHeroLook();
   const rewards = useRewards();
   const granted = usePendingRewards(scene.id);
+  const streakMoment = useStreakMoment(scene.id);
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
   const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
@@ -343,11 +368,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     setWrapped(true);
   };
 
-  // 새 아이템을 쓴 채로 완료 화면에 오면 주인공이 손뼉을 치며 바로 써 본다
+  // 새 아이템을 써 보면 주인공이 손뼉을 친다
   const celebrate = wrapped && granted.some((i) => i.kind === "wear" && look.isWorn(i.id));
   // 새로 얻은 물건을 계속 쓰거나 둔 채로 다음 장면에 가는지 지표로 남긴다
   const keptNew = granted.filter((i) => (i.kind === "wear" ? look.isWorn(i.id) : look.placed.includes(i.id)));
-  const wearingNew = keptNew.some((i) => i.kind === "wear");
   const goNext = () => {
     send({ type: "next_clicked" });
     keptNew.forEach((i) => send({ type: "reward_equipped", choiceId: i.id }));
@@ -429,6 +453,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               granted={granted}
               reduced={reduced}
               onRewardShown={(ids) => ids.forEach((id) => send({ type: "reward_shown", choiceId: id }))}
+              streak={streakMoment}
             />
           ) : !choice ? (
             <div key={`ask-${phase}`}>
@@ -529,7 +554,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             ) : f.done ? (
               next ? (
                 <BlockLink href={`/scenes/${next.number}`} entry="next" gold onClick={goNext}>
-                  {wearingNew ? "쓰고 다음 장면" : "다음 장면"}
+                  다음 장면
                 </BlockLink>
               ) : (
                 <BlockLink href="/" gold>

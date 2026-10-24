@@ -15,7 +15,8 @@ export function useHeroLook() {
         return item ? [{ id, color: item.owned?.color ? COLOR_HEX[item.owned.color] : undefined }] : [];
       })
     : avatar.wear.map((id) => ({ id }));
-  const placed = (rewards?.items ?? []).filter((i) => i.kind === "room" && isUsable(i) && !avatar.hidden.includes(i.id)).map((i) => i.id);
+  const usableRooms = (rewards?.items ?? []).filter((i) => i.kind === "room" && isUsable(i)).map((i) => i.id);
+  const placed = avatar.placed ? usableRooms.filter((id) => avatar.placed!.includes(id)) : usableRooms.filter((id) => !(avatar.hidden ?? []).includes(id));
   return { avatar, hero: avatar.hero, wear, placed, isWorn: (id: string) => wear.some((w) => w.id === id) };
 }
 
@@ -23,6 +24,11 @@ export function useHeroLook() {
 export function putOn(avatar: Avatar, item: RewardItem, items: RewardItem[]): Avatar {
   const sameSlot = new Set(items.filter((i) => i.slot === item.slot).map((i) => i.id));
   return { ...avatar, wear: [...avatar.wear.filter((id) => !sameSlot.has(id)), item.id as AccessoryId] };
+}
+
+// 아지트에 물건을 두거나 치운다. placed는 지금 놓인 목록(useHeroLook의 placed)이다
+export function place(avatar: Avatar, placed: string[], id: string, on: boolean): Avatar {
+  return { ...avatar, placed: on ? [...placed.filter((p) => p !== id), id] : placed.filter((p) => p !== id) };
 }
 
 export function takeOff(avatar: Avatar, item: RewardItem): Avatar {

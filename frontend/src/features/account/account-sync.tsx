@@ -5,6 +5,7 @@ import { adoptAvatar, type Avatar } from "@/features/avatar/avatar";
 import { mergeCleared } from "@/features/scene/progress";
 import { markPlayed } from "@/features/scene/track";
 import { syncRewards } from "@/features/rewards/rewards";
+import { syncStreak } from "@/features/streak/streak";
 import { loadAccount, saveAvatarIfNew } from "./account";
 import { CARRY_PARAM } from "./in-app";
 
@@ -32,7 +33,7 @@ export function AccountSync() {
     takeCarry();
     void (async () => {
       await loadAccount();
-      await syncRewards();
+      await Promise.all([syncRewards(), syncStreak()]);
       saveAvatarIfNew();
     })();
   }, []);

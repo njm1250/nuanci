@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { setAvatar } from "@/features/avatar/avatar";
-import { putOn, takeOff, useHeroLook } from "@/features/rewards/hero-look";
+import { place, putOn, takeOff, useHeroLook } from "@/features/rewards/hero-look";
 import { RewardCard } from "@/features/rewards/reward-reveal";
 import { RewardIcon } from "@/features/rewards/reward-icon";
 import {
@@ -13,7 +13,6 @@ import {
   lockHint,
   markAllRewardsSeen,
   nextGoalParts,
-  openedHere,
   ownedReason,
   setRewardColor,
   useRewards,
@@ -77,6 +76,7 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
   const tab: Tab = picked ?? (linked === "room" || linked === "log" ? linked : "wear");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showLocked, setShowLocked] = useState(false);
+  const [shownId, setShownId] = useState<string | null>(null);
 
   // 새 표시는 이 화면에 있는 동안 남기고, 떠날 때 본 것으로 남긴다
   useEffect(() => () => markAllRewardsSeen(), []);
@@ -88,7 +88,7 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
 
   const setOn = (r: RewardItem, on: boolean) => {
     if (r.kind === "wear") return setAvatar(on ? putOn(avatar, r, items) : takeOff(avatar, r), member);
-    setAvatar({ ...avatar, hidden: on ? avatar.hidden.filter((id) => id !== r.id) : [...avatar.hidden, r.id] }, member);
+    setAvatar(place(avatar, look.placed, r.id, on), member);
   };
 
   // 안 쓰던 아이템은 누르면 바로 쓰고, 쓰고 있는 아이템은 처음 누르면 골라서 색을 바꿀 수 있게 하고 한 번 더 누르면 벗는다
@@ -106,8 +106,16 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
   const fill = COLS - (ownedCount % COLS);
   const preview = fill < 3 ? fill + COLS : fill;
   const log = items.filter(isUsable).sort((a, b) => b.owned!.grantedAt.localeCompare(a.owned!.grantedAt));
-  // 장면 완료 화면에서 열지 않고 넘어간 상자는 여기서 연다
-  const boxes = items.filter((i) => isUnopened(i) || openedHere(i));
+  // 장면 완료 화면에서 열지 않고 넘어간 상자는 여기서 하나씩 연다. 여러 개여도 한 칸만 쓰고, 연 물건 카드는 닫으면 다음 상자가 나온다
+  const unopened = items.filter(isUnopened);
+  const shown = items.find((i) => i.id === shownId && !isUnopened(i)) ?? null;
+  const closeShown = () => {
+    if (!shown) return;
+    // 닫으면 그 물건이 들어간 칸을 골라서 어디에 생겼는지 보여준다
+    setTab(shown.kind === "wear" ? "wear" : "room");
+    setSelectedId(shown.id);
+    setShownId(null);
+  };
   const next = rewards?.next;
 
   return (
@@ -131,12 +139,16 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
       </div>
 
       <div className="mt-3 md:mt-0">
-        {boxes.length > 0 && (
-          <div className="mb-5 space-y-3">
-            {boxes.map((b) => (
-              <RewardCard key={b.id} item={b} reduced={reduced} />
-            ))}
+        {shown ? (
+          <div className="mb-5">
+            <RewardCard key={shown.id} item={shown} reduced={reduced} onClose={closeShown} />
           </div>
+        ) : (
+          unopened.length > 0 && (
+            <div className="mb-5">
+              <RewardCard key={unopened[0].id} item={unopened[0]} reduced={reduced} stacked={unopened.length > 1} onOpened={setShownId} />
+            </div>
+          )
         )}
 
         <div role="tablist" aria-label="아지트" className="grid grid-cols-3 gap-2">

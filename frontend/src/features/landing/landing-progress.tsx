@@ -6,6 +6,7 @@ import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
+import { DailyExpression } from "./daily-expression";
 import { isUnopened, nextGoalParts, useRewards } from "@/features/rewards/rewards";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
@@ -185,6 +186,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
           </BlockLink>
         </>
       )}
+      <DailyExpression scenes={scenes} />
       <div className="mt-3 flex justify-between">
         <Link href="/expressions" className="-ml-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
           표현 모음 ({done * PAIRS_PER_SCENE}개)
