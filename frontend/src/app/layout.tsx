@@ -5,6 +5,7 @@ import { AccountSync } from "@/features/account/account-sync";
 import { NavTracker } from "@/features/collection/back-button";
 import { ErrorReporter } from "@/features/monitor/error-reporter";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/features/site/metadata";
+import { THEME_COLORS, THEME_SCRIPT } from "@/features/theme/theme-script";
 import "./fonts/galmuri.css";
 import "./globals.css";
 
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 const RETURNING_SCRIPT = `try{var c=localStorage.getItem("nuanci.cleared");if(localStorage.getItem("nuanci.played")==="1"||(c&&c!=="[]"))document.documentElement.setAttribute("data-returning","")}catch(e){}`;
 
 export const viewport: Viewport = {
-  themeColor: "#0f0e12",
+  themeColor: THEME_COLORS.dark,
   viewportFit: "cover",
 };
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         {/* 첫 화면을 그리기 전에 다시 온 방문자인지 표시해서, 재방문 홈 배치로 바뀔 때 화면이 깜빡이지 않게 한다 */}
         <script dangerouslySetInnerHTML={{ __html: RETURNING_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-full">
         {children}

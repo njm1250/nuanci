@@ -12,6 +12,7 @@ import { useAvatar } from "@/features/avatar/avatar";
 import { StreakSection } from "@/features/streak/streak-section";
 import { useStreak } from "@/features/streak/streak";
 import { StreakBadge } from "@/features/streak/streak-ui";
+import { setTheme, useTheme } from "@/features/theme/theme";
 
 const noop = () => () => {};
 const PAIRS_PER_SCENE = 2;
@@ -112,6 +113,7 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
   const account = useAccount();
   const cleared = useCleared();
   const sound = useSoundEnabled();
+  const light = useTheme() === "light";
   const member = account.status === "member";
   const { open, element } = useNotice();
   const [busy, setBusy] = useState(false);
@@ -154,6 +156,14 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
           <span id="sound-label">효과음</span>
           <button type="button" role="switch" aria-checked={sound} aria-labelledby="sound-label" onClick={toggleSound} className="grid min-h-11 place-items-center">
             <span className={`flex h-6 w-11 items-center p-0.5 ${sound ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
+              <span className="size-5 bg-ink" />
+            </span>
+          </button>
+        </div>
+        <div className={rowClass}>
+          <span id="theme-label">밝은 화면</span>
+          <button type="button" role="switch" aria-checked={light} aria-labelledby="theme-label" onClick={() => setTheme(light ? "dark" : "light")} className="grid min-h-11 place-items-center">
+            <span className={`flex h-6 w-11 items-center p-0.5 ${light ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
               <span className="size-5 bg-ink" />
             </span>
           </button>

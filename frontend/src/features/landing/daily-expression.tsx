@@ -5,21 +5,15 @@ import { Mark } from "@/features/collection/expression-book";
 import { bookEntry, type ExpressionPair } from "@/features/collection/pairs";
 import { useCleared } from "@/features/scene/progress";
 import type { Scene } from "@/features/scene/types";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-const KST_OFFSET = 9 * 60 * 60 * 1000;
-
-// 한국 시간으로 오늘이 며칠째인지. 같은 날에는 같은 표현이 나오게 하는 데 쓴다
-function today() {
-  return Math.floor((Date.now() + KST_OFFSET) / DAY_MS);
-}
+import { useKstDay } from "@/features/streak/kst-day";
 
 // 홈의 오늘의 복습. 해 본 장면에서 하루 한 쌍을 골라, 영어는 가려 두고 눌러야 보여준다.
 // 스스로 떠올려 본 뒤 확인하면 다시 읽기만 할 때보다 오래 기억한다
 export function DailyExpression({ scenes }: { scenes: { id: string; title: string }[] }) {
   const cleared = useCleared();
   const pool = scenes.filter((s) => cleared.includes(s.id));
-  const day = today();
+  // 같은 날에는 같은 표현이 나오게 한국 시간 날짜로 고른다
+  const day = useKstDay() ?? 0;
   const pick = pool.length > 0 ? pool[day % pool.length] : null;
   const [loaded, setLoaded] = useState<{ id: string; pair: ExpressionPair } | null>(null);
   const [shownFor, setShownFor] = useState<string | null>(null);

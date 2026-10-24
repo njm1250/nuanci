@@ -3,15 +3,14 @@
 import { setAvatar, useAvatar } from "@/features/avatar/avatar";
 import { Panel } from "@/features/scene/block-ui";
 import { badgeLabel, Flame, Medal } from "./streak-ui";
+import { kstNoon, useKstDay } from "./kst-day";
 import { useStreak } from "./streak";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "narrow", timeZone: "Asia/Seoul" });
 
-// 최근 7일의 요일 이름(한국 시간). 마지막이 오늘이다
-function weekLabels() {
-  const now = Date.now();
-  return Array.from({ length: 7 }, (_, i) => weekday.format(new Date(now - (6 - i) * DAY_MS)));
+// 최근 7일의 요일 이름(한국 시간). 마지막이 오늘이다. 날짜를 모르는 서버에서는 비워 둔다
+function weekLabels(today: number | null) {
+  return Array.from({ length: 7 }, (_, i) => (today === null ? "" : weekday.format(kstNoon(today - 6 + i))));
 }
 
 // 내 정보의 연속 기록. 지금 이어 온 날과 최근 일주일, 다음 뱃지까지 남은 날, 모은 뱃지를 보여준다.
@@ -21,7 +20,7 @@ export function StreakSection({ member }: { member: boolean }) {
   const avatar = useAvatar();
   const current = streak?.current ?? 0;
   const week = streak?.week ?? Array<boolean>(7).fill(false);
-  const labels = weekLabels();
+  const labels = weekLabels(useKstDay());
   const next = streak?.nextBadge ?? null;
   const earned = streak?.badges ?? [];
   const pick = (days: number) => setAvatar({ ...avatar, badge: avatar.badge === days ? 0 : days }, true);

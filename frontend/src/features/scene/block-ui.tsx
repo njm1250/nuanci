@@ -61,7 +61,7 @@ export function BlockLink({
 export function Panel({ children, className = "", dark = false }: { children: React.ReactNode; className?: string; dark?: boolean }) {
   return (
     <div className={`blk-frame ${className}`}>
-      <div className={`blk h-full ${dark ? "bg-slate-block text-paper" : "bg-paper text-ink"}`}>{children}</div>
+      <div className={`blk h-full ${dark ? "bg-slate-block text-paper" : "bg-card text-ink"}`}>{children}</div>
     </div>
   );
 }
