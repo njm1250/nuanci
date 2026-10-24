@@ -160,7 +160,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
         <div key={key} className="blk-frame-sm animate-[fade-in_160ms]">
           <div
             ref={(el) => void (slots.current[who].bubble = el)}
-            className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 text-[13px] font-medium leading-snug text-ink break-keep"
+            className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-line text-[15px] leading-snug text-ink break-keep"
           >
             {text}
           </div>
@@ -213,7 +213,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
           {bubble("me", state.meLine ?? (state.meTurn ? <TypingDots /> : null), state.meLine ?? "turn")}
           {symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
-              <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-[pop_260ms_ease-out]">
+              <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-[pop_260ms_steps(3,end)]">
                 {symbol}
               </div>
             </div>

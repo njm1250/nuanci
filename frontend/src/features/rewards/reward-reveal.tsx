@@ -225,8 +225,11 @@ export function RewardCard({
             </div>
           )}
           {item.kind === "room" && sceneTitle !== undefined && (
-            <Link href="/me/room?tab=room" className={`ml-auto flex min-h-11 items-center px-1 font-pixel text-[15px] underline underline-offset-4 ${tone.muted}`}>
+            <Link href="/me/room?tab=room" className={`ml-auto flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] ${tone.muted}`}>
               아지트
+              <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
+                <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
+              </svg>
             </Link>
           )}
         </div>

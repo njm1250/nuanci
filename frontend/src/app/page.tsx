@@ -32,7 +32,9 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
       <main className="flex min-h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:min-h-0 md:self-start md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_auto_1fr_auto_auto] md:content-start md:gap-x-10 md:px-8 md:pb-10">
         <header className="order-1 flex h-12 shrink-0 items-center px-4 md:order-none md:col-span-2 md:h-16 md:px-0">
-          <p className="font-pixel text-[15px] text-gold">nuanci</p>
+          <p className="font-pixel text-[15px] text-paper">
+            <span className="hl">nuanci</span>
+          </p>
           <div className="-mr-2 ml-auto flex items-center">
             <StreakChip />
             <Link href="/me" aria-label="내 정보" className="grid size-11 place-items-center text-paper-muted hover:text-paper">
@@ -57,9 +59,9 @@ export default async function Home() {
           <h1 className="font-pixel-title text-[24px] leading-[1.25]">
             직역하면
             <br />
-            사고 나는 순간들
+            <span className="hl">사고 나는</span> 순간들
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-paper-muted">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
+          <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
         </section>
 
         {/* 다시 온 방문자는 데모와 소개 대신 진행 상황과 다음 장면만 본다. 첫 방문자에게는 아무것도 그리지 않는다 */}

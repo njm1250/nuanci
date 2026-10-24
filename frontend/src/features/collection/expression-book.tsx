@@ -43,7 +43,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
             눌러서 보기
           </button>
         ) : (
-          <p className="text-[16px] font-semibold leading-snug">{pair.right}</p>
+          <p className="font-line text-[20px] leading-snug">{pair.right}</p>
         )}
       </div>
     </li>

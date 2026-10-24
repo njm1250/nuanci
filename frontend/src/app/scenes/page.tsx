@@ -14,8 +14,8 @@ export default async function ScenesPage() {
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
       <main className="w-full max-w-[480px] bg-night px-4 pb-12 md:max-w-[1080px] md:px-8">
         <header className="flex h-12 items-center md:h-16">
-          <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-gold">
-            nuanci
+          <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-paper">
+            <span className="hl">nuanci</span>
           </Link>
         </header>
         <h1 className="font-pixel-title text-[24px]">전체 장면</h1>

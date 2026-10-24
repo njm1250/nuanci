@@ -28,10 +28,6 @@ function Num({ n, dark = false }: { n: number; dark?: boolean }) {
   return <span className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] ${dark ? "bg-card text-ink" : "bg-ink text-paper"}`}>{n}</span>;
 }
 
-function MineBadge({ dark }: { dark: boolean }) {
-  return <span className={`shrink-0 px-1.5 py-1 font-pixel-title text-[12px] leading-none ${dark ? "bg-card text-ink" : "bg-ink text-paper"}`}>내 선택</span>;
-}
-
 // 검수 미리보기에서만 보이는 함정 유형 표시
 function TrapChip({ choice }: { choice: Choice }) {
   return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-pixel-title text-[12px] leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "자연스러움"}</span>;
@@ -53,20 +49,23 @@ const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
   crying: { text: "흑흑", bad: true },
 };
 
-// 고른 말의 판정. 채점처럼 O / △ / X로 보여주고 색만으로 구분하지 않게 기호를 함께 쓴다
-const VERDICTS: Record<Verdict, { label: string; color: string; glyph: string }> = {
-  good: { label: "자연스러워요", color: "bg-good", glyph: "M3 1h4v1h1v1h1v4H8v1H7v1H3V8H2V7H1V3h1V2h1zM3 3h4v4H3z" },
-  meh: { label: "상황에 따라 어색해요", color: "bg-warn", glyph: "M4 1h2v2h1v2h1v2h1v2H1V7h1V5h1V3h1zM4 5h2v1h1v2H3V6h1z" },
-  bad: { label: "어색해요", color: "bg-bad", glyph: "M1 1h2v1h1v1h2V2h1V1h2v2H8v1H7v2h1v1h1v2H7V8H6V7H4v1H3v1H1V7h1V6h1V4H2V3H1z" },
+// 고른 말의 판정. 초등학교 "참 잘했어요" 도장처럼 글자를 새긴 도장으로 찍어서 색만으로 구분하지 않는다
+const VERDICTS: Record<Verdict, { label: string; color: string; stamp: string }> = {
+  good: { label: "자연스러워요", color: "bg-good", stamp: "참 잘했어요" },
+  meh: { label: "상황에 따라 어색해요", color: "bg-warn", stamp: "애매해요" },
+  bad: { label: "어색해요", color: "bg-bad", stamp: "사고 발생" },
 };
 
-function VerdictMark({ choice, pop = false }: { choice: Choice; pop?: boolean }) {
+// 살짝 기운 채로 찍히는 판정 도장. 픽셀 무대에 맞게 부드럽게 커지지 않고 몇 프레임으로 끊어서 쾅 찍힌다
+function VerdictStamp({ choice, pop = false }: { choice: Choice; pop?: boolean }) {
   const v = VERDICTS[choice.verdict];
   return (
-    <span role="img" aria-label={choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label} className={`grid size-6 shrink-0 place-items-center ${v.color} ${pop ? "animate-[stamp_260ms_ease-out_60ms_both]" : ""}`}>
-      <svg width="16" height="16" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="var(--color-ink)" aria-hidden>
-        <path d={v.glyph} fillRule="evenodd" />
-      </svg>
+    <span
+      role="img"
+      aria-label={choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label}
+      className={`-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink outline-2 outline-offset-1 outline-ink ${v.color} ${pop ? "animate-[stamp_280ms_steps(4,end)_60ms_both]" : ""}`}
+    >
+      {v.stamp}
     </span>
   );
 }
@@ -149,15 +148,14 @@ function ResultBody({
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="text-[16px] font-semibold leading-snug">{choice.line}</span>
-          <span className="flex shrink-0 items-center gap-1.5">
+          <span className="font-line text-[20px] leading-snug">{choice.line}</span>
+          <span className="flex shrink-0 items-center gap-1.5 pt-1">
             {showTrap && <TrapChip choice={choice} />}
-            {mine && <MineBadge dark={active} />}
-            {revealed && <VerdictMark key={verdictKey} choice={choice} pop={active} />}
+            {revealed && <VerdictStamp key={verdictKey} choice={choice} pop={active} />}
           </span>
         </span>
         {revealed ? (
-          <span className={`mt-1.5 flex items-start gap-2 leading-snug ${active ? "text-[15px] font-semibold text-paper" : "text-[14px] text-ink-muted"}`}>
+          <span className={`mt-1.5 flex items-start gap-2 leading-snug ${active ? "text-[16px] font-semibold text-paper" : "text-[15px] text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -166,9 +164,13 @@ function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {active && <span className="mt-2 block text-[14px] leading-relaxed text-paper-muted">{choice.why}</span>}
-        {revealed && share !== undefined && (
-          <span className={`mt-1.5 block text-[13px] tabular-nums ${active ? "text-paper-muted" : "text-ink-subtle"}`}>첫 답으로 {share}%가 골랐어요</span>
+        {active && <span className="mt-2 block text-[16px] leading-relaxed text-paper-muted">{choice.why}</span>}
+        {revealed && (mine || share !== undefined) && (
+          <span className={`mt-1.5 block text-[13px] tabular-nums ${active ? "text-paper-muted" : "text-ink-subtle"}`}>
+            {mine && <span className="font-semibold">내 선택</span>}
+            {mine && share !== undefined && " · "}
+            {share !== undefined && `첫 답으로 ${share}%가 골랐어요`}
+          </span>
         )}
       </span>
     </span>
@@ -228,18 +230,18 @@ function WrapUp({
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-5">
         <div className="blk bg-cream px-4 py-4 text-ink">
-          <p className="text-[15px] font-semibold leading-relaxed">{scene.discovery}</p>
-          <ul className="mt-3 space-y-2.5 border-t-2 border-ink/10 pt-3">
+          <p className="text-[16px] font-semibold leading-relaxed">{scene.discovery}</p>
+          <ul className="mt-3 space-y-3 border-t-2 border-dashed border-ink/20 pt-3">
             {pairs.map((p) => (
               <li key={p.right}>
-                <p className="text-[16px] font-semibold leading-snug">{p.right}</p>
+                <p className="font-line text-[20px] leading-snug">{p.right}</p>
                 <p className="text-[13px] text-ink-subtle">
                   {spoken(p.intent)} · <s>{p.wrong}</s>
                 </p>
               </li>
             ))}
           </ul>
-          <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[13px] text-ink-muted underline underline-offset-4">
+          <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-ink-muted hover:text-ink">
             표현 모음에 담았어요
             <Arrow />
           </Link>
@@ -259,12 +261,15 @@ function WrapUp({
           <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
           <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
         </div>
-        <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
+        <BlockButton primary onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
           {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
         </BlockButton>
       </div>
 
-      <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4">
+      <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
+        <span className="-scale-x-100">
+          <Arrow />
+        </span>
         다른 말 다시 보기
       </button>
     </div>
@@ -380,8 +385,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink">
       <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8">
         <header className="flex h-12 shrink-0 items-center gap-2 px-4 font-pixel text-[15px] md:col-span-2 md:h-16 md:px-0">
-          <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2 text-gold">
-            {preview ? "검수" : "nuanci"}
+          <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2">
+            <span className="hl">{preview ? "검수" : "nuanci"}</span>
           </Link>
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
           <SoundToggle />
@@ -417,7 +422,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <span
                   key={`burst-${stageKey}`}
                   aria-hidden
-                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_ease-out_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
+                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(2,end)_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
                   {burst.text}
                 </span>
@@ -454,7 +459,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             />
           ) : !choice ? (
             <div key={`ask-${phase}`}>
-              <p className="font-pixel text-[15px] leading-[1.6] text-paper-muted">{situation.context}</p>
+              <p className="text-[16px] leading-relaxed text-paper-muted">{situation.context}</p>
               <p className="mt-1.5 font-pixel-title text-[24px] leading-[1.25] text-paper">{situation.intent}</p>
               <div className="mt-4 flex items-center justify-between">
                 <span className="font-pixel text-[15px] text-paper-subtle">뭐라고 말할까?</span>
@@ -462,9 +467,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   type="button"
                   onClick={() => setShowMeaning((v) => !v)}
                   aria-pressed={showMeaning}
-                  className="-mr-2 flex min-h-11 items-center px-2 font-pixel text-[15px] text-paper-muted underline underline-offset-4"
+                  className="-mr-2 flex min-h-11 items-center px-2"
                 >
-                  {showMeaning ? "뜻 숨기기" : "뜻 보기"}
+                  <span className={`border-2 px-2 py-0.5 font-pixel text-[15px] ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>
+                    {showMeaning ? "뜻 숨기기" : "뜻 보기"}
+                  </span>
                 </button>
               </div>
               <ul className="mt-2 space-y-3">
@@ -473,8 +480,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                     <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[16px] font-semibold leading-snug">{c.line}</span>
-                        {showMeaning && <span className="block text-[13px] text-ink-subtle">{c.meaning}</span>}
+                        <span className="block font-line text-[20px] leading-snug">{c.line}</span>
+                        {showMeaning && <span className="mt-0.5 block text-[14px] text-ink-subtle">{c.meaning}</span>}
                       </span>
                       {preview && (
                         <span className="text-ink-subtle">
@@ -489,12 +496,12 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           ) : (
             <div key={`result-${phase}`}>
               {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
-              <p className="text-[15px] font-medium leading-snug text-paper">&ldquo;{situation.partnerLine}&rdquo;</p>
-              <p className="mt-1 font-pixel text-[15px] leading-[1.6] text-paper-muted">{situation.intent}</p>
+              <p className="font-line text-[18px] leading-snug text-paper">&ldquo;{situation.partnerLine}&rdquo;</p>
+              <p className="mt-1 text-[15px] leading-relaxed text-paper-muted">{situation.intent}</p>
               <p className="mt-4 font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-[rise_240ms_ease-out_both]" style={{ animationDelay: `${i * 70}ms` }}>
+                  <li key={c.id} className="animate-[rise_240ms_steps(3,end)_both]" style={{ animationDelay: `${i * 70}ms` }}>
                     {c.id === choice.id ? (
                       <Panel dark>
                         <div className="relative overflow-hidden px-3 py-3" aria-current="true">
@@ -504,15 +511,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                           <span className="relative block">
                             <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} />
                             <span className="block pl-9">
-                              {detailOpen && <span className="mt-2 block animate-[fade-in_150ms] text-[14px] leading-relaxed text-paper-muted">{c.detail}</span>}
+                              {detailOpen && <span className="mt-2 block animate-[fade-in_150ms] text-[16px] leading-relaxed text-paper-muted">{c.detail}</span>}
                               <button
                                 type="button"
                                 onClick={() => setDetailOpen((v) => !v)}
                                 aria-expanded={detailOpen}
-                                className="-mx-1 -mb-2 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4"
+                                className="-mx-1 -mb-2 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper"
                               >
                                 <Caret open={detailOpen} />
-                                {detailOpen ? "접기" : "더 자세히"}
+                                {detailOpen ? "접기" : "왜 그런지 더 보기"}
                               </button>
                             </span>
                           </span>
@@ -539,27 +546,27 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         {(choice || phase === "transition") && (
           <footer className="shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
             {phase === "transition" ? (
-              <BlockButton gold onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+              <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 이번엔 뭐라고 할까?
               </BlockButton>
             ) : f.done && preview ? (
               <BlockLink href={`/admin/scenes/${scene.id}`}>편집 화면으로</BlockLink>
             ) : f.done && !wrapped ? (
-              <BlockButton gold onClick={wrapUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+              <BlockButton primary onClick={wrapUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 다 봤어요
               </BlockButton>
             ) : f.done ? (
               next ? (
-                <BlockLink href={`/scenes/${next.number}`} entry="next" gold onClick={goNext}>
+                <BlockLink href={`/scenes/${next.number}`} entry="next" primary onClick={goNext}>
                   다음 장면
                 </BlockLink>
               ) : (
-                <BlockLink href="/" gold>
+                <BlockLink href="/" primary>
                   모두 해 봤어요
                 </BlockLink>
               )
             ) : (
-              <BlockButton gold onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+              <BlockButton primary onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 만약에 상황이 바뀐다면?
               </BlockButton>
             )}

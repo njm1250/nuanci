@@ -43,11 +43,11 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   useEffect(trackHome, []);
   const target = next ?? scenes[0];
   if (!target || returning) return null;
-  const label = !returning ? "바로 시작하기" : next ? "다음 장면 해 보기" : "처음부터 다시 하기";
-  const note = !returning ? "가입 없이 · 1분이면 끝나요" : next ? `다음 · ${next.relation} · ${next.place}` : "모든 장면을 다 해 봤어요";
+  const label = !returning ? "사고 치러 가기" : next ? "다음 장면 해 보기" : "처음부터 다시 하기";
+  const note = !returning ? "가입 없음. 진짜로. · 한 장면에 1분" : next ? `다음 · ${next.relation} · ${next.place}` : "모든 장면을 다 해 봤어요";
   return (
     <>
-      <BlockLink href={`/scenes/${target.number}`} entry="home" gold>
+      <BlockLink href={`/scenes/${target.number}`} entry="home" primary>
         {label}
       </BlockLink>
       <p className="mt-3 text-center text-[13px] text-paper-subtle">{note}</p>
@@ -83,7 +83,7 @@ function SceneCard({ scene, done, fresh = false }: { scene: ShelfScene; done: bo
 function Progress({ scenes, cleared }: { scenes: ShelfScene[]; cleared: string[] }) {
   const done = scenes.filter((s) => cleared.includes(s.id)).length;
   return (
-    <div className="mt-2 h-2 bg-night-deep" role="progressbar" aria-valuenow={done} aria-valuemax={scenes.length} aria-label="해 본 장면">
+    <div className="mt-2 h-3 border-2 border-paper" role="progressbar" aria-valuenow={done} aria-valuemax={scenes.length} aria-label="해 본 장면">
       <div className="h-full bg-gold" style={{ width: `${scenes.length ? (done / scenes.length) * 100 : 0}%` }} />
     </div>
   );
@@ -97,17 +97,19 @@ function Arrow() {
   );
 }
 
-// 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 한다
+// 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 하고, 제목에만 형광펜을 긋는다
 function FeaturedScene({ scene, fresh }: { scene: ShelfScene; fresh: boolean }) {
   return (
-    <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn blk-btn-gold mt-4 block">
-      <span className="blk block bg-gold px-4 py-4 text-ink">
+    <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn mt-4 block">
+      <span className="blk block bg-cream px-4 pb-4 pt-4 text-ink">
         {fresh && <span className="mb-2 inline-block bg-ink px-1.5 py-1 font-pixel-title text-[12px] leading-none text-paper">NEW</span>}
-        <span className="block font-pixel-title text-[24px] leading-[1.25]">{scene.title}</span>
+        <span className="block font-pixel-title text-[24px] leading-[1.25]">
+          <span className="hl">{scene.title}</span>
+        </span>
         <span className="mt-1 block text-[13px] text-ink-muted">
           {scene.relation} · {scene.place}
         </span>
-        <span className="mt-3 flex items-center justify-between border-t-2 border-ink/15 pt-3 font-pixel text-[15px]">
+        <span className="mt-3 flex items-center justify-between bg-ink px-3 py-2.5 font-pixel text-[15px] text-paper">
           다음 장면 해 보기
           <Arrow />
         </span>
@@ -130,12 +132,12 @@ function NextGoal() {
       <Mascot scale={2} className="shrink-0" />
       <span className="min-w-0 flex-1 text-[13px] text-paper-muted">
         {before}
-        <span className="mx-0.5 bg-gold px-1 font-semibold text-ink">{em}</span>
+        <span className="hl mx-0.5 font-semibold">{em}</span>
         {after}
       </span>
       <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
         {box ? (
-          <span className="bg-gold px-1 font-pixel-title text-[11px] leading-[1.4] text-ink">새 상자</span>
+          <span className="hl font-pixel-title text-[12px] leading-[1.4]">새 상자</span>
         ) : (
           unseen && <span aria-label="새 물건" className="size-2 bg-gold" />
         )}
@@ -181,7 +183,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
       ) : (
         <>
           <p className="mt-3 text-[14px] leading-relaxed text-paper">새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.</p>
-          <BlockLink href={`/scenes/${scenes[0]?.number ?? 1}`} entry="home" gold className="mt-4">
+          <BlockLink href={`/scenes/${scenes[0]?.number ?? 1}`} entry="home" primary className="mt-4">
             처음부터 다시 하기
           </BlockLink>
         </>
