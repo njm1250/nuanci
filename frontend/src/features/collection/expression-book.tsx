@@ -49,8 +49,8 @@ function Locked({ entry }: { entry: BookEntry }) {
   return (
     <EntryLink href={`/scenes/${entry.number}`} entry="home" className="blk-btn block h-full">
       <span className="blk flex h-full flex-col justify-center bg-slate-block px-4 py-3 text-paper">
-        <span className="font-pixel text-[15px]" aria-label="아직 안 해 본 장면">
-          ???
+        <span className="font-pixel text-[15px]">
+          {entry.title}
         </span>
         <span className="text-[13px] text-paper-subtle">
           {entry.relation} · {entry.place}

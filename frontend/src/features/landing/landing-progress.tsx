@@ -54,7 +54,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   );
 }
 
-// 안 해 본 장면은 제목을 "???"로 가리고 관계·장소만 단서로 보여준다
+// 장면 카드. 제목은 상황만 담아서 처음부터 보여주고, 정답 표현은 장면 안에서만 알 수 있다
 function SceneCard({ scene, done, next = false, fresh = false }: { scene: ShelfScene; done: boolean; next?: boolean; fresh?: boolean }) {
   return (
     <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn block h-full" style={next ? ({ "--edge": "var(--color-night-deep)" } as React.CSSProperties) : undefined}>
@@ -65,8 +65,8 @@ function SceneCard({ scene, done, next = false, fresh = false }: { scene: ShelfS
           <span className={`grid size-6 shrink-0 place-items-center ${done ? "bg-gold" : "border-2 border-ink/30"}`}>{done && <Check />}</span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[16px] font-semibold leading-snug" aria-label={done ? undefined : "아직 안 해 본 장면"}>
-            {done ? scene.title : "???"}
+          <span className="block truncate text-[16px] font-semibold leading-snug">
+            {scene.title}
           </span>
           <span className={`block truncate text-[13px] ${next ? "text-paper-subtle" : "text-ink-subtle"}`}>
             {scene.relation} · {scene.place}
@@ -149,7 +149,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   return (
     <>
       <div className="flex items-baseline justify-between">
-        <p className="text-[14px] text-paper-muted">아무거나 골라 보세요. 해 본 장면은 제목이 열려요.</p>
+        <p className="text-[14px] text-paper-muted">아무거나 골라 보세요.</p>
         <p className="shrink-0 text-[13px] text-paper-subtle">
           {scenes.length}개 중 <span className="font-semibold text-gold">{done}개</span>
         </p>
