@@ -416,7 +416,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             </div>
           ) : (
             <div key={`result-${phase}`}>
-              <p className="font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
+              {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
+              <p className="text-[15px] font-medium leading-snug text-paper">&ldquo;{situation.partnerLine}&rdquo;</p>
+              <p className="mt-1 font-pixel text-[15px] leading-[1.6] text-paper-muted">{situation.intent}</p>
+              <p className="mt-4 font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_240ms_ease-out_both]" style={{ animationDelay: `${i * 70}ms` }}>
