@@ -13,7 +13,7 @@ export default function RoomPage() {
           <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-gold">
             nuanci
           </Link>
-          <BackButton />
+          <BackButton fallback="/me" />
         </header>
         <h1 className="mb-4 font-pixel-title text-[24px]">아지트</h1>
         <RoomView />

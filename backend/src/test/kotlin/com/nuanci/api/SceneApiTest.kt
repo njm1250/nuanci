@@ -207,6 +207,19 @@ class SceneApiTest {
 		assertEquals(0, metrics("member").path("activeAccounts").asInt())
 	}
 
+	@Test
+	fun `화면 오류를 받아 두고 관리자만 본다`() {
+		mvc.post("/api/errors") {
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"message":"TypeError: x is undefined","stack":"at Scene","url":"https://nuanci.app/scenes/1"}"""
+		}.andExpect { status { isAccepted() } }
+		mvc.get("/api/admin/errors").andExpect { status { isUnauthorized() } }
+		mvc.get("/api/admin/errors") { header("Authorization", "Bearer ${mvc.adminToken()}") }.andExpect {
+			status { isOk() }
+			jsonPath("$[0].message") { value("TypeError: x is undefined") }
+		}
+	}
+
 	companion object {
 		private val VISITOR = UUID.randomUUID()
 	}
