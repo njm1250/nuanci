@@ -23,6 +23,36 @@ export type AccessoryId =
 // 쓰고 있는 아이템과 얻을 때 고른 색. 색이 없으면 아이템 기본색
 export type Worn = { id: AccessoryId; color?: string };
 
+// 무대에 붙이는 소품 스티커(decor.tsx). 벽 소품은 (x, y)가 가운데, 바닥·가구 위 소품은 밑면 가운데다
+export type DecorId =
+  | "fridge"
+  | "postit"
+  | "calendar"
+  | "picture"
+  | "poster"
+  | "whiteboard"
+  | "menu"
+  | "notice"
+  | "aircon"
+  | "multitap"
+  | "cabinet"
+  | "rice-cooker"
+  | "shopping-bag"
+  | "soju"
+  | "cup-ramen"
+  | "parcel"
+  | "umbrella-stand"
+  | "fan"
+  | "tissue"
+  | "mug"
+  | "papers"
+  | "slippers"
+  | "tambourine"
+  | "mochi"
+  | "pudding";
+
+export type Decor = { id: DecorId; x: number; y?: number; z?: number };
+
 export type StageSpec = {
   set: SetId;
   hero?: Hero;
@@ -30,6 +60,8 @@ export type StageSpec = {
   time: Time;
   partner: CastId;
   flags?: string[];
+  // 세트 기본 소품 위에 이 장면에만 더 붙이는 소품. 기본 소품을 빼려면 flags에 "bare"를 넣는다
+  decor?: Decor[];
 };
 
 export type Placement = {

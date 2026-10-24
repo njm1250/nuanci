@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+// 영어 대사 전용 손글씨 글꼴. 한글이 없어서 한글은 Pretendard로 넘어간다
+import "@fontsource/pangolin/latin-400.css";
 import { AccountSync } from "@/features/account/account-sync";
 import { NavTracker } from "@/features/collection/back-button";
 import { ErrorReporter } from "@/features/monitor/error-reporter";
@@ -20,7 +22,7 @@ export const metadata: Metadata = {
 const RETURNING_SCRIPT = `try{var c=localStorage.getItem("nuanci.cleared");if(localStorage.getItem("nuanci.played")==="1"||(c&&c!=="[]"))document.documentElement.setAttribute("data-returning","")}catch(e){}`;
 
 export const viewport: Viewport = {
-  themeColor: THEME_COLORS.dark,
+  themeColor: THEME_COLORS.light,
   viewportFit: "cover",
 };
 

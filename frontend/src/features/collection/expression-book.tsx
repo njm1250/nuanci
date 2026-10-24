@@ -9,7 +9,7 @@ import type { BookEntry, ExpressionPair } from "./pairs";
 
 export function Mark({ good }: { good: boolean }) {
   return (
-    <span aria-label={good ? "자연스러워요" : "어색해요"} className={`grid size-5 shrink-0 place-items-center font-pixel text-[12px] leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
+    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-pixel text-[12px] leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
       {good ? "O" : "X"}
     </span>
   );
@@ -27,7 +27,10 @@ function Arrow() {
 function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boolean; onReveal: () => void }) {
   return (
     <li className="py-3">
-      <p className="text-[13px] text-ink-muted">{pair.gist}</p>
+      <p className="text-[12px] text-ink-subtle">
+        {pair.who} · {pair.when}
+      </p>
+      <p className="mt-0.5 text-[13px] text-ink-muted">{pair.intent}</p>
       <p className="mt-1.5 flex items-center gap-2 text-[14px] text-ink-subtle">
         <Mark good={false} />
         <s className="min-w-0">{pair.wrong}</s>
@@ -40,7 +43,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
             눌러서 보기
           </button>
         ) : (
-          <p className="text-[16px] font-semibold leading-snug">{pair.right}</p>
+          <p className="font-line text-[20px] leading-snug">{pair.right}</p>
         )}
       </div>
     </li>
@@ -62,7 +65,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
   const count = open.reduce((n, e) => n + e.pairs.length, 0);
   const traps = [...new Set(open.flatMap((e) => e.pairs.flatMap((p) => (p.trap ? [p.trap] : []))))];
   const q = query.trim().toLowerCase();
-  const matches = (p: ExpressionPair) => (!trap || p.trap === trap) && (!q || [p.gist, p.right, p.wrong].some((t) => t.toLowerCase().includes(q)));
+  const matches = (p: ExpressionPair) => (!trap || p.trap === trap) && (!q || [p.intent, p.right, p.wrong, p.who, p.when].some((t) => t.toLowerCase().includes(q)));
   const shown = open.map((e) => ({ entry: e, pairs: e.pairs.filter(matches) })).filter((g) => g.pairs.length > 0);
 
   const toggleHide = () => {

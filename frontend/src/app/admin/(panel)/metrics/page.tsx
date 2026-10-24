@@ -48,6 +48,17 @@ function difficulty(rate: number, total: number) {
   return "어려움";
 }
 
+// 틀린 보기의 함정 품질. 첫 답으로 거의 아무도 안 고르면 함정이 아니라 구경거리라서 그럴듯한 실수로 바꿀 후보다.
+// 30~60%면 많이들 걸리는 좋은 함정이다. 표본이 적으면 판단하지 않는다
+const TRAP_SAMPLE = 30;
+
+function trapQuality(share: number, total: number) {
+  if (total < TRAP_SAMPLE) return null;
+  if (share < 10) return { text: "구경거리", className: "bg-rust text-paper" };
+  if (share >= 30 && share <= 60) return { text: "좋은 함정", className: "bg-good text-ink" };
+  return null;
+}
+
 function firstPicks(choices: Choice[], counts: ChoiceCount[]) {
   const total = counts.reduce((n, c) => n + c.picks, 0);
   const good = counts.filter((c) => choices.find((x) => x.id === c.choiceId)?.verdict === "good").reduce((n, c) => n + c.picks, 0);
@@ -72,6 +83,7 @@ function Stat({ label, value, sub }: { label: string; value: number; sub?: strin
 
 function ChoiceBars({ label, choices, counts }: { label: string; choices: Choice[]; counts: ChoiceCount[] }) {
   const { total, rate } = firstPicks(choices, counts);
+  const quality = (picks: number) => trapQuality(pct(picks, total), total);
   return (
     <div className="mt-4">
       <p className="font-pixel text-[15px] text-ink-subtle">
@@ -87,6 +99,7 @@ function ChoiceBars({ label, choices, counts }: { label: string; choices: Choice
                   <span className={`grid size-5 shrink-0 place-items-center font-pixel text-[12px] leading-none ${MARKS[c.verdict].color}`}>{MARKS[c.verdict].text}</span>
                   <span className="font-medium">{c.line}</span>
                   {c.trap && <span className="shrink-0 text-[12px] text-ink-subtle">{TRAP_LABELS[c.trap]}</span>}
+                  {c.verdict !== "good" && quality(picks) && <span className={`shrink-0 px-1 font-pixel text-[11px] leading-[1.5] ${quality(picks)!.className}`}>{quality(picks)!.text}</span>}
                 </span>
                 <span className="shrink-0 text-[13px] font-medium tabular-nums">
                   {picks} · {pct(picks, total)}%

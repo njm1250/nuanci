@@ -7,8 +7,8 @@ export function LegalPage({ title, updated, children }: { title: string; updated
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep md:bg-night">
       <main className="w-full max-w-[720px] bg-night px-4 pb-16 md:px-8">
         <header className="flex h-12 items-center md:h-16">
-          <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-gold">
-            nuanci
+          <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-paper">
+            <span className="hl">nuanci</span>
           </Link>
           <BackButton />
         </header>

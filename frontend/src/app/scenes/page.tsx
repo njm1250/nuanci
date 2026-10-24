@@ -9,13 +9,13 @@ export const metadata: Metadata = { title: "영어 상황별 대화 게임 전�
 export default async function ScenesPage() {
   const summaries = await getScenes();
   const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
-  const shelf = scenes.map(({ id, number, title, relation, place }) => ({ id, number, title, relation, place }));
+  const shelf = scenes.map(({ id, number, title, relation, place, base }) => ({ id, number, title, relation, place, stage: base.stage }));
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
       <main className="w-full max-w-[480px] bg-night px-4 pb-12 md:max-w-[1080px] md:px-8">
         <header className="flex h-12 items-center md:h-16">
-          <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-gold">
-            nuanci
+          <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-paper">
+            <span className="hl">nuanci</span>
           </Link>
         </header>
         <h1 className="font-pixel-title text-[24px]">전체 장면</h1>

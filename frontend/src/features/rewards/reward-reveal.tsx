@@ -61,9 +61,9 @@ export function RewardReveal({
   }, [items, rewards, onShown, after]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {items.map((item) => (
-        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} delay={ENTER_DELAY + after} />
+        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} delay={ENTER_DELAY + after} compact />
       ))}
     </div>
   );
@@ -79,6 +79,7 @@ export function RewardCard({
   stacked = false,
   onOpened,
   onClose,
+  compact = false,
 }: {
   item: RewardItem;
   sceneTitle?: string;
@@ -87,6 +88,7 @@ export function RewardCard({
   stacked?: boolean;
   onOpened?: (id: string) => void;
   onClose?: () => void;
+  compact?: boolean;
 }) {
   // 상자를 연 순간에는 기다리지 않고 바로 튀어나온다
   const [opened, setOpened] = useState(false);
@@ -123,21 +125,25 @@ export function RewardCard({
   const pickColor = (color: (typeof item.colors)[number]) => setRewardColor(item.id, color);
 
   const enter = reduced ? undefined : { animation: `rise 260ms ease-out ${delay}ms both` };
+  // 완료 화면에서는 그 장면의 발견이 중심이라 차분한 색과 작은 크기로 덧붙인다. 아지트에서는 크게 보여준다
+  const tone = compact
+    ? { card: "bg-slate-block text-paper", muted: "text-paper-subtle", ring: "border-paper", box: "size-12", icon: 34, name: "text-[16px]" }
+    : { card: "bg-gold text-ink", muted: "text-ink-muted", ring: "border-ink", box: "size-16", icon: 44, name: "text-[20px]" };
 
   if (isUnopened(item)) {
     return (
       <div className="blk-frame" style={enter}>
-        <div className="blk flex items-center gap-3 bg-gold px-3 py-3 text-ink">
-          <div className="relative size-16 shrink-0">
+        <div className={`blk flex items-center gap-3 px-3 py-3 ${tone.card}`}>
+          <div className={`relative shrink-0 ${tone.box}`}>
             {/* 남은 상자가 더 있으면 뒤에 한 장 더 겹쳐 그려서 쌓여 있는 것을 보여준다 */}
-            {stacked && <span aria-hidden className="absolute -right-1.5 -top-1.5 size-16 bg-cream/60" />}
-            <div className={`relative grid size-16 place-items-center bg-cream ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
-              <RewardIcon id="box" size={44} />
+            {stacked && <span aria-hidden className={`absolute -right-1.5 -top-1.5 bg-cream/60 ${tone.box}`} />}
+            <div className={`relative grid place-items-center bg-cream ${tone.box} ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
+              <RewardIcon id="box" size={tone.icon} />
             </div>
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-pixel text-[15px]">깜짝 상자</p>
-            <p className="mt-0.5 text-[13px] text-ink-muted">아지트에 둘 물건 하나</p>
+            <p className={`mt-0.5 text-[13px] ${tone.muted}`}>아지트에 둘 물건 하나</p>
           </div>
           <button type="button" onClick={open} disabled={shaking} className="blk min-h-11 shrink-0 bg-ink px-4 font-pixel text-[15px] text-gold">
             열기
@@ -149,22 +155,23 @@ export function RewardCard({
 
   return (
     <div className="blk-frame" style={enter}>
-      <div className="blk relative overflow-hidden bg-gold px-3 py-3 text-ink">
+      <div className={`blk relative overflow-hidden px-3 py-3 ${tone.card}`}>
         <div className="relative flex items-center gap-3">
-          <div className="relative grid size-16 shrink-0 place-items-center">
-            {!reduced && (
+          <div className={`relative grid shrink-0 place-items-center ${tone.box}`}>
+            {!reduced && !compact && (
               <span
                 aria-hidden
                 className="absolute -inset-5 [background:repeating-conic-gradient(#fff9_0deg_12deg,transparent_12deg_30deg)] [mask-image:radial-gradient(closest-side,#000_40%,transparent)]"
                 style={{ animation: `rays 1400ms ease-out ${delay + POP_AFTER}ms both` }}
               />
             )}
-            <div className="relative grid size-16 place-items-center bg-cream">
+            <div className={`relative grid place-items-center bg-cream ${tone.box}`}>
               <span style={reduced ? undefined : { animation: `reward-pop 560ms ease-out ${delay + POP_AFTER}ms both` }}>
-                <RewardIcon id={item.id} color={owned.color} size={44} />
+                <RewardIcon id={item.id} color={owned.color} size={tone.icon} />
               </span>
             </div>
             {!reduced &&
+              !compact &&
               SPARKS.map(([dx, dy], i) => (
                 <span
                   key={i}
@@ -175,9 +182,9 @@ export function RewardCard({
               ))}
           </div>
           <div className="min-w-0 flex-1 self-start">
-            <p className="font-pixel text-[13px] text-ink-muted">새 물건</p>
-            <p className="truncate font-pixel-title text-[20px] leading-[1.25]">{item.name}</p>
-            <p className="truncate text-[12px] text-ink-muted">{ownedReason(owned, sceneTitle)}</p>
+            <p className={`font-pixel text-[13px] ${tone.muted}`}>새 물건</p>
+            <p className={`truncate font-pixel-title leading-[1.25] ${tone.name}`}>{item.name}</p>
+            <p className={`truncate text-[12px] ${tone.muted}`}>{ownedReason(owned, sceneTitle)}</p>
           </div>
           {onClose && (
             <button type="button" onClick={onClose} aria-label="닫기" className="-mr-1 -mt-1 grid size-11 shrink-0 place-items-center self-start text-ink">
@@ -208,7 +215,7 @@ export function RewardCard({
                   aria-checked={owned.color === c}
                   aria-label={COLOR_LABELS[c]}
                   onClick={() => pickColor(c)}
-                  className={`grid size-11 place-items-center border-[3px] ${owned.color === c ? "border-ink" : "border-transparent"}`}
+                  className={`grid size-11 place-items-center border-[3px] ${owned.color === c ? tone.ring : "border-transparent"}`}
                 >
                   <span className="grid size-6 place-items-center text-paper" style={{ background: COLOR_HEX[c] }}>
                     {owned.color === c && <Check />}
@@ -218,8 +225,11 @@ export function RewardCard({
             </div>
           )}
           {item.kind === "room" && sceneTitle !== undefined && (
-            <Link href="/me/room?tab=room" className="ml-auto flex min-h-11 items-center px-1 font-pixel text-[15px] text-ink-muted underline underline-offset-4">
+            <Link href="/me/room?tab=room" className={`ml-auto flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] ${tone.muted}`}>
               아지트
+              <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
+                <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
+              </svg>
             </Link>
           )}
         </div>
