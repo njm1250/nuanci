@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { bookEntry } from "@/features/collection/pairs";
 import { Mascot } from "@/features/mascot/mascot";
-import { PixelStage } from "@/features/stage/pixel-stage";
+// 장면 화면은 상대 대사가 무대 말풍선에만 있어서 무대를 늦게 불러오지 않는다
+import { PixelStage as Stage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
@@ -324,7 +325,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         <div ref={stageBox} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
-              <PixelStage
+              <Stage
                 spec={spec}
                 reduced={reduced}
                 state={{

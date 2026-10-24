@@ -3,6 +3,7 @@
 import { C } from "./palette";
 import { Box, Cyl, Flat, Gem, Glow } from "./primitives";
 import type { Placement, SetId } from "./types";
+import { SET_WALLS } from "./walls";
 
 type SceneryProps = { evening: boolean; flags: Set<string> };
 
@@ -64,7 +65,7 @@ function Chair({ x, back }: { x: number; back: 1 | -1 }) {
 export const SETS: Record<SetId, SetDef> = {
   dining: {
     label: "집 · 식탁",
-    wall: { day: "#c7ced1", evening: "#8f9aa6" },
+    wall: SET_WALLS.dining,
     me: { x: -1.15, facing: R, posture: "sit" },
     partner: { x: 1.15, facing: -R, posture: "sit" },
     Scenery: ({ evening, flags }) => (
@@ -96,7 +97,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   office: {
     label: "사무실 · 책상",
-    wall: { day: "#d3d6cf", evening: "#9a9e98" },
+    wall: SET_WALLS.office,
     me: { x: -1.25, facing: R, posture: "stand" },
     partner: { x: 1.3, facing: -R, posture: "sit" },
     Scenery: ({ evening, flags }) => (
@@ -125,7 +126,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   cafe: {
     label: "카페 · 카운터",
-    wall: { day: "#dccdb9", evening: "#8e7f6f" },
+    wall: SET_WALLS.cafe,
     me: { x: -1.05, facing: R, posture: "stand" },
     partner: { x: 1.05, z: -0.65, facing: -R, posture: "stand" },
     Scenery: ({ evening, flags }) => (
@@ -153,7 +154,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   living: {
     label: "거실 · 소파",
-    wall: { day: "#c9c3cf", evening: "#827c8c" },
+    wall: SET_WALLS.living,
     me: { x: -1.0, z: -0.2, facing: 0.55, posture: "sit" },
     partner: { x: 1.0, z: -0.2, facing: -0.55, posture: "sit" },
     Scenery: ({ evening, flags }) => (
@@ -175,7 +176,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   park: {
     label: "공원 · 벤치",
-    wall: { day: "#bfe0ee", evening: "#2b3350" },
+    wall: SET_WALLS.park,
     me: { x: -0.75, z: -0.2, facing: 0.5, posture: "sit" },
     partner: { x: 0.75, z: -0.2, facing: -0.5, posture: "sit" },
     Scenery: ({ evening }) => (
@@ -199,7 +200,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   elevator: {
     label: "엘리베이터 안",
-    wall: { day: "#b9c0c4", evening: "#9aa1a6" },
+    wall: SET_WALLS.elevator,
     me: { x: -0.55, facing: 0.35, posture: "stand" },
     partner: { x: 0.55, facing: -0.35, posture: "stand" },
     Scenery: ({ flags }) => (
@@ -224,7 +225,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   store: {
     label: "편의점 · 계산대",
-    wall: { day: "#e8ecee", evening: "#9fa7ad" },
+    wall: SET_WALLS.store,
     me: { x: -0.95, facing: R, posture: "stand" },
     partner: { x: 1.0, z: -0.65, facing: -R, posture: "stand" },
     Scenery: ({ flags }) => (
@@ -256,7 +257,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   karaoke: {
     label: "노래방",
-    wall: { day: "#3b2f5c", evening: "#2a2142" },
+    wall: SET_WALLS.karaoke,
     me: { x: -0.95, z: -0.2, facing: 0.55, posture: "sit" },
     partner: { x: 0.95, z: -0.2, facing: -0.55, posture: "sit" },
     Scenery: ({ flags }) => (
@@ -279,7 +280,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   gym: {
     label: "헬스장",
-    wall: { day: "#d7dadc", evening: "#8f969b" },
+    wall: SET_WALLS.gym,
     me: { x: -0.7, facing: R, posture: "stand" },
     partner: { x: 0.7, facing: -R, posture: "stand" },
     Scenery: () => (
@@ -306,7 +307,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   street: {
     label: "거리 · 헤어질 때",
-    wall: { day: "#cfdde3", evening: "#2b3350" },
+    wall: SET_WALLS.street,
     me: { x: -0.7, facing: R, posture: "stand" },
     partner: { x: 0.7, facing: -R, posture: "stand" },
     Scenery: ({ evening }) => (

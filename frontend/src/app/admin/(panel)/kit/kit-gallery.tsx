@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Panel } from "@/features/scene/block-ui";
 import type { Expression, Motion } from "@/features/scene/types";
 import { EXPRESSIONS, GAG_MOTIONS, MOTIONS, PARTNER_IDS, PROP_IDS, SET_IDS } from "@/features/stage/catalog";
-import { PixelStage } from "@/features/stage/pixel-stage";
+import { Stage } from "@/features/stage/stage";
 import type { CastId, Hero, PropId, SetId, Time } from "@/features/stage/types";
 
 function Pick<T extends string>({ label, value, options, onChange, mark }: { label: string; value: T | ""; options: readonly T[]; onChange: (v: T | "") => void; mark?: readonly string[] }) {
@@ -51,7 +51,7 @@ export function KitGallery() {
     <div className="mt-6 space-y-5">
       <Panel>
         <div className="relative aspect-[4/3] w-full overflow-hidden">
-          <PixelStage
+          <Stage
             spec={{ set, time, partner, hero }}
             state={{
               partnerMotion: motion || "idle",

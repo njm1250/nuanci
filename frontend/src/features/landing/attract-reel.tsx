@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
-import { PixelStage } from "@/features/stage/pixel-stage";
+import { Stage } from "@/features/stage/stage";
 import type { ReelBeat } from "./reel";
 
 const ASK_MS = 1900;
@@ -28,7 +28,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
 
   return (
     <div className="absolute inset-0">
-      <PixelStage
+      <Stage
         spec={beat.stage}
         reduced={reduced}
         state={{
