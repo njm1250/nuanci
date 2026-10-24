@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import { AccountSync } from "@/features/account/account-sync";
+import { NavTracker } from "@/features/collection/back-button";
+import { ErrorReporter } from "@/features/monitor/error-reporter";
 import "./fonts/galmuri.css";
 import "./globals.css";
 
@@ -27,6 +29,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         {children}
         <AccountSync />
+        <NavTracker />
+        <ErrorReporter />
       </body>
     </html>
   );
