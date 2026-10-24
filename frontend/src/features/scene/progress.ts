@@ -47,7 +47,7 @@ export function markCleared(id: string) {
   listeners.forEach((l) => l());
 }
 
-// 추천 순서에서 아직 안 깬 첫 장면. 다 깼으면 null
+// 추천 순서에서 아직 안 해 본 첫 장면. 다 해 봤으면 null
 export function nextUncleared<T extends { id: string }>(order: T[], cleared: string[], after?: string) {
   const start = after ? order.findIndex((s) => s.id === after) + 1 : 0;
   const rest = [...order.slice(start), ...order.slice(0, start)];

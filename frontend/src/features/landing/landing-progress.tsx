@@ -24,14 +24,14 @@ function Check() {
   );
 }
 
-// 첫 방문이면 첫 장면으로, 다시 오면 아직 안 깬 다음 장면으로 보내는 시작 버튼
+// 첫 방문이면 첫 장면으로, 다시 오면 아직 안 해 본 다음 장면으로 보내는 시작 버튼
 export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const { returning, cleared } = useVisitor();
   const next = nextUncleared(scenes, cleared);
   const target = next ?? scenes[0];
   if (!target) return null;
-  const label = !returning ? "첫 장면 시작하기" : next ? "이어서 하기" : "처음부터 다시 하기";
-  const note = !returning ? "가입 없이 바로 · 한 장면 1분" : next ? `다음 장면 · ${next.title}` : "모든 장면을 깼어요";
+  const label = !returning ? "바로 시작하기" : next ? "이어서 하기" : "처음부터 다시 하기";
+  const note = !returning ? "가입 없이 · 1분이면 끝나요" : next ? `다음 · ${next.relation} · ${next.place}` : "모든 장면을 다 해 봤어요";
   return (
     <>
       <BlockLink href={`/scenes/${target.number}`} entry="home" gold>
@@ -42,6 +42,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   );
 }
 
+// 안 해 본 장면은 제목을 "???"로 가리고 관계·장소만 단서로 보여준다
 function SceneCard({ scene, done, next = false }: { scene: ShelfScene; done: boolean; next?: boolean }) {
   return (
     <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn block h-full" style={next ? ({ "--edge": "var(--color-night-deep)" } as React.CSSProperties) : undefined}>
@@ -52,7 +53,9 @@ function SceneCard({ scene, done, next = false }: { scene: ShelfScene; done: boo
           <span className={`grid size-6 shrink-0 place-items-center ${done ? "bg-gold" : "border-2 border-ink/30"}`}>{done && <Check />}</span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[16px] font-semibold leading-snug">{scene.title}</span>
+          <span className="block truncate text-[16px] font-semibold leading-snug" aria-label={done ? undefined : "아직 안 해 본 장면"}>
+            {done ? scene.title : "???"}
+          </span>
           <span className={`block truncate text-[13px] ${next ? "text-paper-subtle" : "text-ink-subtle"}`}>
             {scene.relation} · {scene.place}
           </span>
@@ -64,7 +67,7 @@ function SceneCard({ scene, done, next = false }: { scene: ShelfScene; done: boo
 
 function Progress({ scenes, cleared }: { scenes: ShelfScene[]; cleared: string[] }) {
   return (
-    <div className="mt-2 flex gap-1" role="progressbar" aria-valuenow={scenes.filter((s) => cleared.includes(s.id)).length} aria-valuemax={scenes.length} aria-label="깬 장면">
+    <div className="mt-2 flex gap-1" role="progressbar" aria-valuenow={scenes.filter((s) => cleared.includes(s.id)).length} aria-valuemax={scenes.length} aria-label="해 본 장면">
       {scenes.map((s) => (
         <span key={s.id} className={`h-2 flex-1 ${cleared.includes(s.id) ? "bg-gold" : "bg-night-deep"}`} />
       ))}
@@ -81,7 +84,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
   return (
     <section className="animate-[fade-in_200ms] px-4 pb-6 pt-10 md:px-0">
       <div className="flex items-baseline justify-between">
-        <h2 className="font-pixel text-[15px]">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 깼어요"}</h2>
+        <h2 className="font-pixel text-[15px]">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</h2>
         <p className="font-pixel text-[15px] text-paper-subtle">
           <span className="text-gold">{done}</span> / {scenes.length}
         </p>
@@ -96,7 +99,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
         ))}
       </ul>
       <Link href="/scenes" className="mt-3 flex min-h-11 items-center justify-end gap-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
-        전체 장면 보기 ({scenes.length})
+        전체 보기 ({scenes.length})
         <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
           <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
         </svg>
@@ -112,7 +115,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   return (
     <>
       <div className="flex items-baseline justify-between">
-        <p className="text-[14px] text-paper-muted">잠금 없이 아무 장면이나 골라 보세요.</p>
+        <p className="text-[14px] text-paper-muted">아무거나 골라 보세요. 해 본 장면은 제목이 열려요.</p>
         <p className="font-pixel text-[15px] text-paper-subtle">
           <span className="text-gold">{done}</span> / {scenes.length}
         </p>

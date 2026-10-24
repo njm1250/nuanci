@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PixelStage } from "@/features/stage/pixel-stage";
+import { GAG_MOTIONS } from "@/features/stage/catalog";
 import type { StageSpec } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
 import { ReactionFace } from "./reaction-face";
-import type { Choice, ChoiceKind, Scene } from "./types";
+import { sfx, toggleSound, useSoundEnabled } from "./sfx";
+import type { Choice, ChoiceKind, Expression, Scene } from "./types";
 import { markCleared, nextUncleared, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
 import { useCopyLink, useReducedMotion, useSceneFlow } from "./use-scene-flow";
@@ -26,6 +28,29 @@ const KIND_LABELS: Record<ChoiceKind, string> = { literal: "직역", context: "�
 
 function KindChip({ kind }: { kind: ChoiceKind }) {
   return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-pixel-title text-[12px] leading-none opacity-80">{KIND_LABELS[kind]}</span>;
+}
+
+// 상대 반응 위로 튀어나오는 만화 효과음 글자
+const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
+  puzzled: { text: "엥?", bad: true },
+  awkward: { text: "흠칫", bad: true },
+  dizzy: { text: "털썩", bad: true },
+  stuffed: { text: "끄억", bad: true },
+  happy: { text: "오~", bad: false },
+  delighted: { text: "꺄!", bad: false },
+  neutral: { text: "…", bad: false },
+};
+
+function SoundToggle() {
+  const on = useSoundEnabled();
+  return (
+    <button type="button" onClick={toggleSound} aria-pressed={on} aria-label={on ? "소리 끄기" : "소리 켜기"} className="-mr-2 ml-auto grid size-11 shrink-0 place-items-center text-paper-muted hover:text-paper">
+      <svg width="20" height="20" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="currentColor" aria-hidden>
+        <path d="M1 3h2v4H1zM3 3h1V2h1V1h1v8H5V8H4V7H3z" />
+        {on ? <path d="M7 3h1v4H7zM8 2h1v1H8zM8 7h1v1H8zM9 3h1v4H9z" /> : <path d="M7 3h1v1H7zM9 3h1v1H9zM8 4h1v2H8zM7 6h1v1H7zM9 6h1v1H9z" />}
+      </svg>
+    </button>
+  );
 }
 
 function Caret({ open }: { open: boolean }) {
@@ -121,6 +146,28 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     scroller.current?.scrollTo({ top: 0 });
   }, [phase]);
 
+  // 고른 말에 맞춰 소리를 내고, 마지막 선택이면 장면을 끝낸 팡파르를 붙인다
+  const play = (c: Choice) => {
+    sfx.tap();
+    sfx.react(c.expression);
+    if (GAG_MOTIONS.includes(c.motion)) sfx.thud();
+    if (phase === "followUp" && !pickedId) sfx.clear();
+    f.pick(c.id);
+  };
+
+  // 반응이 어이없을수록 무대를 세게 흔든다. 아주 짧게 멈췄다 흔들어 맞은 느낌을 낸다
+  const stage = useRef<HTMLDivElement>(null);
+  const gag = choice ? GAG_MOTIONS.includes(choice.motion) : false;
+  const burst = choice ? BURSTS[choice.expression] : null;
+  useEffect(() => {
+    if (!choice || reduced || !stage.current) return;
+    const strong = gag || choice.expression === "dizzy";
+    const keyframes = !BURSTS[choice.expression].bad
+      ? [{ scale: 1 }, { scale: 1.025 }, { scale: 1 }]
+      : (strong ? [0, -9, 8, -6, 5, -3, 0] : [0, -5, 5, -3, 2, 0]).map((x, i) => ({ translate: `${x}px ${i % 2 ? 2 : -1}px` }));
+    stage.current.animate(keyframes, { duration: strong ? 420 : 300, delay: 70, easing: "ease-out" });
+  }, [f.reactionKey, choice, gag, reduced]);
+
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink">
       <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8">
@@ -129,9 +176,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             {preview ? "검수" : "nuanci"}
           </Link>
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
+          <SoundToggle />
         </header>
 
-        <div className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
+        <div ref={stage} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
               <PixelStage
@@ -157,6 +205,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 </p>
               )}
               {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-[wipe_520ms_ease-in-out_both] bg-ink" />}
+              {burst && !reduced && phase !== "transition" && (
+                <span
+                  key={`burst-${f.reactionKey}`}
+                  aria-hidden
+                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_ease-out_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
+                >
+                  {burst.text}
+                </span>
+              )}
+              {gag && !reduced && phase !== "transition" && (
+                <span key={`flash-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 animate-[flash_160ms_ease-out_70ms_both] bg-white" />
+              )}
             </div>
           </Panel>
         </div>
@@ -190,7 +250,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               <ul className="mt-2 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id}>
-                    <BlockButton onClick={() => f.pick(c.id)} className="w-full text-left" faceClassName="flex items-center gap-3">
+                    <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} />
                       <span className="min-w-0 flex-1">
                         <span className="block text-[16px] font-semibold leading-snug">{c.line}</span>
@@ -214,7 +274,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   <p className="mt-0.5 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
                 </div>
               )}
-              <p className="font-pixel text-[15px] text-paper-subtle">다른 말도 눌러서 비교해 보세요</p>
+              <p className="font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_240ms_ease-out_both]" style={{ animationDelay: `${i * 70}ms` }}>
@@ -225,7 +285,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                         </div>
                       </Panel>
                     ) : (
-                      <BlockButton onClick={() => f.pick(c.id)} className="w-full text-left">
+                      <BlockButton onClick={() => play(c)} className="w-full text-left">
                         <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showKind={preview} revealed={seenIds.includes(c.id)} />
                       </BlockButton>
                     )}
@@ -269,12 +329,12 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   </BlockLink>
                 ) : (
                   <BlockLink href="/" gold className="flex-1">
-                    모든 장면 완료!
+                    모두 해 봤어요
                   </BlockLink>
                 )}
               </div>
             ) : (
-              <BlockButton gold onClick={f.startTransition} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+              <BlockButton gold onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 상황 바꿔서 한 번 더
               </BlockButton>
             )}
