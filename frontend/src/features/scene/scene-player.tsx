@@ -343,7 +343,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </div>
             ) : (
               <BlockButton gold onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
-                상황 바꿔서 한 번 더
+                만약에 상황이 바뀐다면?
               </BlockButton>
             )}
           </footer>
