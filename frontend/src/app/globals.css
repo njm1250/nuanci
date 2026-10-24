@@ -162,6 +162,25 @@ body {
   }
 }
 
+/* 기절할 때 영혼이 머리에서 빠져나와 흔들리며 떠오른다 */
+@keyframes soul {
+  0% {
+    opacity: 0;
+    transform: translate(0, 10px) scale(0.6);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-2px, 0) scale(1);
+  }
+  65% {
+    transform: translate(3px, -8px);
+  }
+  100% {
+    opacity: 0.9;
+    transform: translate(0, -14px);
+  }
+}
+
 @keyframes typing {
   0%,
   80%,
