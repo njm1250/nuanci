@@ -8,6 +8,7 @@ const NAV = [
   { href: "/admin/order", label: "순서" },
   { href: "/admin/kit", label: "에셋" },
   { href: "/admin/metrics", label: "지표" },
+  { href: "/admin/query", label: "SQL 조회" },
 ];
 
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {

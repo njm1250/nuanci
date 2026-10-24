@@ -1,5 +1,9 @@
 package com.nuanci.api
 
+import com.nuanci.account.AccountStore
+import com.nuanci.account.GoogleProfile
+import jakarta.servlet.http.Cookie
+import org.springframework.jdbc.core.simple.JdbcClient
 import com.nuanci.TEST_ADMIN_PASSWORD
 import com.nuanci.TestcontainersConfiguration
 import com.nuanci.adminToken
@@ -30,6 +34,8 @@ class SceneApiTest {
 	@Autowired lateinit var mvc: MockMvc
 	@Autowired lateinit var mapper: JsonMapper
 	@Autowired lateinit var store: SceneStore
+	@Autowired lateinit var accounts: AccountStore
+	@Autowired lateinit var jdbc: JdbcClient
 
 	@BeforeEach
 	fun seed() = store.loadFixtures(mapper)
@@ -171,6 +177,34 @@ class SceneApiTest {
 			jsonPath("$.followUp.total") { value(0) }
 		}
 		mvc.get("/api/scenes/nope/picks").andExpect { status { isNotFound() } }
+	}
+
+	@Test
+	fun `로그인 당시 계정을 기록하고 여러 브라우저는 계정 하나로 센다`() {
+		val user = accounts.upsertGoogle(GoogleProfile("metrics-user", "metrics@example.com", "지표", null))
+		val session = Cookie("nuanci_session", accounts.createSession(user))
+		val token = mvc.adminToken()
+		val browser = UUID.randomUUID()
+		listOf(browser, UUID.randomUUID()).forEach { visitor ->
+			mvc.post("/api/events") {
+				cookie(session)
+				contentType = MediaType.APPLICATION_JSON
+				content = mapper.writeValueAsString(mapOf("type" to "home_viewed", "visitorId" to visitor, "userId" to UUID.randomUUID()))
+			}.andExpect { status { isAccepted() } }
+		}
+		// 같은 브라우저의 로그아웃 후 이벤트도 로그인 기록과 섞지 않는다
+		send(mapOf("type" to "home_viewed", "visitorId" to browser))
+		jdbc.sql("insert into scene_event(type, visitor_id, created_at) values ('home_viewed', :id, now())").param("id", UUID.randomUUID()).update()
+		fun metrics(audience: String) = mapper.readTree(mvc.get("/api/admin/metrics?audience=$audience") { header("Authorization", "Bearer $token") }.andReturn().response.contentAsString)
+		assertEquals(2, metrics("member").path("visitors").asInt())
+		assertEquals(1, metrics("member").path("activeAccounts").asInt())
+		assertEquals(1, metrics("guest").path("visitors").asInt())
+		assertEquals(0, metrics("guest").path("activeAccounts").asInt())
+		assertEquals(1, metrics("unknown").path("events").asInt())
+		assertEquals(3, metrics("all").path("visitors").asInt())
+		accounts.delete(user)
+		assertEquals(2, metrics("member").path("events").asInt())
+		assertEquals(0, metrics("member").path("activeAccounts").asInt())
 	}
 
 	companion object {

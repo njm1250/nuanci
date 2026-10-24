@@ -1,5 +1,8 @@
 package com.nuanci.event
 
+import com.nuanci.account.AccountStore
+import com.nuanci.account.SESSION_COOKIE
+import org.springframework.web.bind.annotation.CookieValue
 import com.nuanci.scene.SceneRepository
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Pattern
@@ -36,17 +39,19 @@ data class EventRequest(
 class EventController(
 	private val events: SceneEventRepository,
 	private val scenes: SceneRepository,
+	private val accounts: AccountStore,
 ) {
 	@PostMapping
 	@ResponseStatus(HttpStatus.ACCEPTED)
-	fun record(@Valid @RequestBody req: EventRequest) {
+	fun record(@Valid @RequestBody req: EventRequest, @CookieValue(SESSION_COOKIE, required = false) token: String?) {
+		val account = accounts.account(token)
 		// 홈 방문만 장면 없이 받는다. 나머지는 장면·버전·시도가 모두 있어야 한다
 		if (req.type != "home_viewed") {
 			if (req.sceneId == null || req.sceneVersion == null || req.attemptId == null) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "scene required")
 			if (!scenes.existsById(req.sceneId)) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown scene")
 		}
 		events.save(
-			SceneEvent(req.type, req.sceneId, req.sceneVersion, req.attemptId, req.visitorId, req.step, req.choiceId, req.entry),
+			SceneEvent(req.type, req.sceneId, req.sceneVersion, req.attemptId, req.visitorId, req.step, req.choiceId, req.entry, userId = account?.id, authState = if (account == null) "guest" else "member"),
 		)
 	}
 }

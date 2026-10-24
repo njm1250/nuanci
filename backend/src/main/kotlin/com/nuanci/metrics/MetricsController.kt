@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -43,6 +45,9 @@ data class MetricsResponse(
 	val internalVisitors: Int,
 	val internalEvents: Int,
 	val scenes: List<SceneMetrics>,
+	val activeAccounts: Int,
+	val registeredAccounts: Int,
+	val unknownEvents: Int,
 )
 
 data class InternalVisitorRequest(val visitorId: UUID)
@@ -56,14 +61,16 @@ class MetricsController(
 	private val sessions: AdminSessions,
 ) {
 	@GetMapping
-	fun metrics(@RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?): MetricsResponse {
+	fun metrics(@RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?, @RequestParam(defaultValue = "all") audience: String): MetricsResponse {
 		sessions.require(auth)
+		if (audience !in setOf("all", "guest", "member", "unknown")) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid audience")
+		val filter = if (audience == "all") EXTERNAL else "$EXTERNAL and e.auth_state = '$audience'"
 
 		val choices = jdbc.sql(
 			"""
 			select scene_id, step, choice_id, count(*) as picks
 			from scene_event e
-			where type = 'choice_selected' and $EXTERNAL
+			where type = 'choice_selected' and $filter
 			group by scene_id, step, choice_id
 			order by picks desc
 			""",
@@ -84,7 +91,7 @@ class MetricsController(
 				   count(*) filter (where e.type = 'share_link_copied') as shared,
 				   count(distinct e.attempt_id) filter (where e.type = 'scene_viewed' and e.entry = 'next') as from_next
 			from scene s
-			left join scene_event e on e.scene_id = s.id and $EXTERNAL
+			left join scene_event e on e.scene_id = s.id and $filter
 			where s.status = 'published'
 			group by s.id, s.number, s.title, s.current_version, s.sort_order
 			order by s.sort_order
@@ -109,7 +116,7 @@ class MetricsController(
 			)
 		}.list()
 
-		val totals = jdbc.sql("select count(distinct visitor_id) as v, count(distinct attempt_id) as a, count(*) as e from scene_event e where $EXTERNAL")
+		val totals = jdbc.sql("select count(distinct visitor_id) as v, count(distinct attempt_id) as a, count(*) as e from scene_event e where $filter")
 			.query { rs, _ -> Triple(rs.getInt("v"), rs.getInt("a"), rs.getInt("e")) }
 			.single()
 		val funnel = jdbc.sql(
@@ -120,13 +127,20 @@ class MetricsController(
 				   count(distinct visitor_id) filter (where type = 'scene_completed') as answered,
 				   count(distinct visitor_id) filter (where type = 'wrap_viewed') as wrapped,
 				   count(distinct visitor_id) filter (where type = 'next_clicked') as next
-			from scene_event e where $EXTERNAL
+			from scene_event e where $filter
 			""",
 		).query { rs, _ -> Funnel(rs.getInt("home"), rs.getInt("started"), rs.getInt("first_pick"), rs.getInt("answered"), rs.getInt("wrapped"), rs.getInt("next")) }.single()
 		val internalVisitors = jdbc.sql("select count(*) from internal_visitor").query(Int::class.java).single()
 		val internalEvents = jdbc.sql("select count(*) from scene_event e where not $EXTERNAL").query(Int::class.java).single()
 
-		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes)
+		val activeAccounts = jdbc.sql("select count(distinct e.user_id) from scene_event e where $filter").query(Int::class.java).single()
+		val registeredAccounts = jdbc.sql("""
+			select count(*) from app_user u where not exists (
+				select 1 from user_visitor uv join internal_visitor i on i.visitor_id = uv.visitor_id where uv.user_id = u.id
+			)
+		""").query(Int::class.java).single()
+		val unknownEvents = jdbc.sql("select count(*) from scene_event e where $EXTERNAL and e.auth_state = 'unknown'").query(Int::class.java).single()
+		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents)
 	}
 
 	@PostMapping("/internal-visitors")

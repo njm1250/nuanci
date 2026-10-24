@@ -36,7 +36,7 @@ export function visitorId() {
   }
 }
 
-// 익명 이용 이벤트를 보낸다. 실패해도 장면 진행을 막지 않는다
+// 이용 이벤트를 보낸다. 로그인 상태는 서버에서 쿠키로 확인한다. 실패해도 장면 진행을 막지 않는다
 export function track(event: TrackEvent) {
   try {
     void fetch("/api/events", {
