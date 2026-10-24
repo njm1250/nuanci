@@ -160,7 +160,7 @@ function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {active && <span className="mt-2 block font-pixel text-[15px] text-paper-muted">{choice.tags.join(" · ")}</span>}
+        {active && <span className="mt-2 block text-[14px] leading-relaxed text-paper-muted">{choice.why}</span>}
         {revealed && share !== undefined && (
           <span className={`mt-1.5 block text-[13px] tabular-nums ${active ? "text-paper-muted" : "text-ink-subtle"}`}>첫 답으로 {share}%가 골랐어요</span>
         )}
@@ -426,6 +426,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                           )}
                           <span className="relative block">
                             <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} />
+                            <span className="block pl-9">
+                              {detailOpen && <span className="mt-2 block animate-[fade-in_150ms] text-[14px] leading-relaxed text-paper-muted">{c.detail}</span>}
+                              <button
+                                type="button"
+                                onClick={() => setDetailOpen((v) => !v)}
+                                aria-expanded={detailOpen}
+                                className="-mx-1 -mb-2 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4"
+                              >
+                                <Caret open={detailOpen} />
+                                {detailOpen ? "접기" : "더 자세히"}
+                              </button>
+                            </span>
                           </span>
                         </div>
                       </Panel>
@@ -437,20 +449,6 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   </li>
                 ))}
               </ul>
-              <div key={choice.id} className="mt-8 animate-[fade-in_200ms]">
-                <p className="font-pixel text-[15px] text-paper">왜 그렇게 들릴까?</p>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-paper-muted">{choice.why}</p>
-                {detailOpen && <p className="mt-2 animate-[fade-in_150ms] text-[14px] leading-relaxed text-paper-muted">{choice.detail}</p>}
-                <button
-                  type="button"
-                  onClick={() => setDetailOpen((v) => !v)}
-                  aria-expanded={detailOpen}
-                  className="-mx-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4"
-                >
-                  <Caret open={detailOpen} />
-                  {detailOpen ? "접기" : "더 자세히"}
-                </button>
-              </div>
               {f.done && preview && (
                 <div className="blk mt-6 bg-night-deep px-4 py-3">
                   <p className="font-pixel text-[15px] text-paper-subtle">한 줄 정리</p>
