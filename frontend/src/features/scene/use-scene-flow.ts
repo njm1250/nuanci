@@ -63,14 +63,15 @@ export function useReducedMotion() {
   );
 }
 
-// 휴대폰에서는 공유 시트(카톡·인스타 등)를 열고, 지원하지 않는 브라우저에서는 문구와 링크를 복사한다
+// 휴대폰에서는 공유 시트(카톡·인스타 등)를 열고, 지원하지 않는 브라우저에서는 문구와 링크를 복사한다.
+// 링크를 url로 따로 넘기면 앱마다 문구 앞에 띄어쓰기 없이 붙여서, 문구 맨 끝 줄에 넣어 보낸다
 export function useShare(path: string, text: string, onShared?: () => void) {
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
   async function share() {
     const url = `${location.origin}${path}`;
     if (navigator.share) {
       try {
-        await navigator.share({ text, url });
+        await navigator.share({ text: `${text}\n${url}` });
         onShared?.();
       } catch {}
       return;
