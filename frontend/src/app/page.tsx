@@ -25,7 +25,7 @@ export default async function Home() {
         </header>
 
         {beats.length > 0 && (
-          <div className="order-3 px-4 md:order-none md:row-span-2 md:px-0 returning:md:row-start-3 returning:md:row-span-1">
+          <div className="order-3 px-4 md:order-none md:row-span-2 md:px-0 returning:hidden">
             <Panel>
               <div className="relative aspect-[4/3] max-h-[40dvh] w-full overflow-hidden md:max-h-none">
                 <AttractReel beats={beats} />
@@ -43,7 +43,7 @@ export default async function Home() {
           <p className="mt-3 text-[15px] leading-relaxed text-paper-muted">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
         </section>
 
-        {/* 다시 온 방문자는 진행 상황과 다음 장면을 데모보다 먼저 보고, 소개 글은 숨긴다. 첫 방문자에게는 아무것도 그리지 않는다 */}
+        {/* 다시 온 방문자는 데모와 소개 대신 진행 상황과 다음 장면만 본다. 첫 방문자에게는 아무것도 그리지 않는다 */}
         <div className="order-2 md:order-none md:col-span-2 md:row-start-4 returning:md:row-start-2">
           <SceneShelf scenes={shelf} />
         </div>
@@ -51,7 +51,7 @@ export default async function Home() {
           <SiteFooter contactEmail={process.env.CONTACT_EMAIL} />
         </div>
 
-        <div className="order-6 sticky bottom-0 border-t-[3px] border-night-deep bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:static md:col-start-2 md:row-start-3 md:self-start md:border-0 md:px-0 md:pb-0 md:pt-8">
+        <div className="order-6 sticky bottom-0 returning:hidden border-t-[3px] border-night-deep bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:static md:col-start-2 md:row-start-3 md:self-start md:border-0 md:px-0 md:pb-0 md:pt-8">
           <LandingCta scenes={shelf} />
         </div>
       </main>

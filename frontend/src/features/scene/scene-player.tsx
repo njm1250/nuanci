@@ -92,7 +92,7 @@ function HiddenReaction() {
   return (
     <span className="mt-1.5 flex items-center gap-2 text-[14px] leading-snug text-ink-subtle">
       <span className="grid size-[18px] shrink-0 place-items-center border-2 border-ink-subtle font-pixel text-[12px] leading-none">?</span>
-      눌러서 반응 보기
+      반응 보기
     </span>
   );
 }

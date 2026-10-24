@@ -55,7 +55,7 @@ function Locked({ entry }: { entry: BookEntry }) {
         <span className="text-[13px] text-paper-subtle">
           {entry.relation} · {entry.place}
         </span>
-        <span className="mt-3 font-pixel text-[15px] text-gold">해 보고 표현 열기</span>
+        <span className="mt-3 font-pixel text-[15px] text-gold">해 보기</span>
       </span>
     </EntryLink>
   );
@@ -71,7 +71,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
   return (
     <>
       <div className="flex items-baseline justify-between">
-        <p className="text-[14px] text-paper-muted">{open.length > 0 ? "해 본 장면의 표현이 여기 모여요." : "장면을 해 보면 표현이 여기 모여요."}</p>
+        <p className="text-[14px] text-paper-muted">{open.length === 0 && "장면을 해 보면 표현이 여기 모여요."}</p>
         <p className="shrink-0 font-pixel text-[15px] text-paper-subtle">
           표현 <span className="text-gold">{count}</span> / {total}개
         </p>

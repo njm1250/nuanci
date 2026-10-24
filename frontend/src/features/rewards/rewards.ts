@@ -46,8 +46,8 @@ export function nextReward(cleared: string[]) {
 export function ruleHint(rule: Rule, cleared: string[]) {
   switch (rule.type) {
     case "milestone":
-      return `장면 ${rule.count - cleared.length}개 더 해 보면`;
+      return `장면 ${rule.count - cleared.length}개 더`;
     case "scene":
-      return "어떤 장면을 해 보면";
+      return "어떤 장면에서";
   }
 }
