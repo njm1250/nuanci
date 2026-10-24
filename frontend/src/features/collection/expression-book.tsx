@@ -37,6 +37,9 @@ function Entry({ entry }: { entry: BookEntry }) {
             </li>
           ))}
         </ul>
+        <EntryLink href={`/scenes/${entry.number}`} entry="home" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-ink-muted underline underline-offset-4">
+          이 상황 다시 해보기
+        </EntryLink>
       </div>
     </div>
   );
@@ -69,8 +72,8 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
     <>
       <div className="flex items-baseline justify-between">
         <p className="text-[14px] text-paper-muted">{open.length > 0 ? "끝낸 장면의 표현이 여기 모여요." : "장면을 끝내면 표현이 여기 모여요."}</p>
-        <p className="font-pixel text-[15px] text-paper-subtle">
-          <span className="text-gold">{count}</span> / {total}
+        <p className="shrink-0 font-pixel text-[15px] text-paper-subtle">
+          표현 <span className="text-gold">{count}</span> / {total}개
         </p>
       </div>
       <div className="mt-2 h-2 bg-night-deep" role="progressbar" aria-valuenow={count} aria-valuemax={total} aria-label="모은 표현">

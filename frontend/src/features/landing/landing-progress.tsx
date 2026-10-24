@@ -9,6 +9,8 @@ import { hasPlayed, trackHome } from "@/features/scene/track";
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
 const noop = () => () => {};
+// 장면 하나를 끝내면 기본 상황과 만약에에서 표현이 하나씩 모인다
+const PAIRS_PER_SCENE = 2;
 
 function useVisitor(scenes: ShelfScene[] = []) {
   const played = useSyncExternalStore(noop, hasPlayed, () => false);
@@ -96,7 +98,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
   const done = scenes.filter((s) => cleared.includes(s.id)).length;
   const upNext = scenes.filter((s) => !cleared.includes(s.id)).slice(0, limit);
   return (
-    <section className="animate-[fade-in_200ms] px-4 pb-6 pt-10 md:px-0">
+    <section className="animate-[fade-in_200ms] px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10">
       <div className="flex items-baseline justify-between">
         <h2 className="font-pixel text-[15px]">
           {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
@@ -117,7 +119,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
       </ul>
       <div className="mt-3 flex justify-between">
         <Link href="/expressions" className="-ml-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
-          표현 모음 ({done})
+          표현 모음 ({done * PAIRS_PER_SCENE}개)
         </Link>
         <Link href="/scenes" className="-mr-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
           전체 보기 ({scenes.length})
