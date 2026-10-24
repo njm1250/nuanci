@@ -31,6 +31,10 @@ class SceneEvent(
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	val id: Long? = null,
+	@Column(name = "user_id")
+	val userId: UUID? = null,
+	@Column(name = "auth_state")
+	val authState: String = "unknown",
 )
 
 interface SceneEventRepository : JpaRepository<SceneEvent, Long>
