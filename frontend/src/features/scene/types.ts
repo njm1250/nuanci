@@ -7,7 +7,12 @@ export type Expression =
   | "puzzled"
   | "awkward"
   | "stuffed"
-  | "dizzy";
+  | "dizzy"
+  | "love"
+  | "angry"
+  | "shocked"
+  | "sleepy"
+  | "crying";
 
 export type Motion =
   | "idle"
@@ -24,7 +29,12 @@ export type Motion =
   | "aim"
   | "point"
   | "facepalm"
-  | "wave";
+  | "wave"
+  | "bow"
+  | "clap"
+  | "sob"
+  | "dance"
+  | "panic";
 
 // 판정은 들었을 때 어떤지(O / △ / X), 함정은 왜 어색한지다. 자연스러운 말에는 함정이 없다
 export type Verdict = "good" | "meh" | "bad";

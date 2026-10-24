@@ -3,6 +3,7 @@
 import { C } from "./palette";
 import { Box, Cyl, Flat, Gem, Glow } from "./primitives";
 import type { Placement, SetId } from "./types";
+import { SET_WALLS } from "./walls";
 
 type SceneryProps = { evening: boolean; flags: Set<string> };
 
@@ -64,7 +65,7 @@ function Chair({ x, back }: { x: number; back: 1 | -1 }) {
 export const SETS: Record<SetId, SetDef> = {
   dining: {
     label: "집 · 식탁",
-    wall: { day: "#c7ced1", evening: "#8f9aa6" },
+    wall: SET_WALLS.dining,
     me: { x: -1.15, facing: R, posture: "sit" },
     partner: { x: 1.15, facing: -R, posture: "sit" },
     Scenery: ({ evening, flags }) => (
@@ -96,7 +97,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   office: {
     label: "사무실 · 책상",
-    wall: { day: "#d3d6cf", evening: "#9a9e98" },
+    wall: SET_WALLS.office,
     me: { x: -1.25, facing: R, posture: "stand" },
     partner: { x: 1.3, facing: -R, posture: "sit" },
     Scenery: ({ evening, flags }) => (
@@ -125,7 +126,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   cafe: {
     label: "카페 · 카운터",
-    wall: { day: "#dccdb9", evening: "#8e7f6f" },
+    wall: SET_WALLS.cafe,
     me: { x: -1.05, facing: R, posture: "stand" },
     partner: { x: 1.05, z: -0.65, facing: -R, posture: "stand" },
     Scenery: ({ evening, flags }) => (
@@ -153,7 +154,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   living: {
     label: "거실 · 소파",
-    wall: { day: "#c9c3cf", evening: "#827c8c" },
+    wall: SET_WALLS.living,
     me: { x: -1.0, z: -0.2, facing: 0.55, posture: "sit" },
     partner: { x: 1.0, z: -0.2, facing: -0.55, posture: "sit" },
     Scenery: ({ evening, flags }) => (
@@ -175,7 +176,7 @@ export const SETS: Record<SetId, SetDef> = {
 
   park: {
     label: "공원 · 벤치",
-    wall: { day: "#bfe0ee", evening: "#2b3350" },
+    wall: SET_WALLS.park,
     me: { x: -0.75, z: -0.2, facing: 0.5, posture: "sit" },
     partner: { x: 0.75, z: -0.2, facing: -0.5, posture: "sit" },
     Scenery: ({ evening }) => (
@@ -197,9 +198,168 @@ export const SETS: Record<SetId, SetDef> = {
     ),
   },
 
+  elevator: {
+    label: "엘리베이터 안",
+    wall: SET_WALLS.elevator,
+    me: { x: -0.55, facing: 0.35, posture: "stand" },
+    partner: { x: 0.55, facing: -0.35, posture: "stand" },
+    Scenery: ({ flags }) => (
+      <>
+        {[-1, 1].map((s) => (
+          <Box key={s} size={[0.1, 3.4, 1.8]} at={[1.6 * s, 1.7, -0.25]} color="#8c9296" />
+        ))}
+        {[-0.55, 0.55].map((x) => (
+          <Flat key={x} size={[0.03, 2.6]} at={[x, 1.5, WALL_Z + 0.01]} color="#8c9296" />
+        ))}
+        <Box size={[2.6, 0.05, 0.06]} at={[0, 1.0, -1.0]} color="#6e757a" />
+        <Box size={[0.22, 0.55, 0.04]} at={[1.25, 1.35, -1.05]} color={C.ink} />
+        {[1.5, 1.38, 1.26].map((y, i) => (
+          <Glow key={y} size={[0.07, 0.05, 0.02]} at={[1.25, y, -1.02]} on={i === 1} />
+        ))}
+        <Flat size={[0.6, 0.22]} at={[0, 2.65, WALL_Z + 0.01]} color={C.ink} />
+        <Flat size={[0.2, 0.1]} at={[0, 2.65, WALL_Z + 0.02]} color={flags.has("stuck") ? "#d4265f" : "#e1ad34"} />
+        <Glow size={[1.6, 0.04, 0.6]} at={[0, 3.05, -0.4]} on />
+      </>
+    ),
+  },
+
+  store: {
+    label: "편의점 · 계산대",
+    wall: SET_WALLS.store,
+    me: { x: -0.95, facing: R, posture: "stand" },
+    partner: { x: 1.0, z: -0.65, facing: -R, posture: "stand" },
+    Scenery: ({ flags }) => (
+      <>
+        <Flat size={[8, 0.14]} at={[0, 2.85, WALL_Z + 0.01]} color={C.teal} />
+        <Flat size={[8, 0.06]} at={[0, 2.74, WALL_Z + 0.01]} color={C.mustard} />
+        <Box size={[1.3, 1.7, 0.35]} at={[-1.75, 0.85, -0.85]} color="#d9d6cf" />
+        {[0.45, 0.95, 1.45].map((y, row) =>
+          [-2.2, -1.95, -1.7, -1.45, -1.2].map((x, i) => (
+            <Box key={`${y}-${x}`} size={[0.18, 0.28, 0.12]} at={[x, y + 0.14, -0.7]} color={["#d4265f", C.mustard, C.teal, "#f08aa8", C.navy][(i + row) % 5]} />
+          )),
+        )}
+        <Box size={[0.8, 2.0, 0.4]} at={[2.25, 1.0, -0.85]} color={C.metal} />
+        <Flat size={[0.6, 1.6]} at={[2.25, 1.05, -0.64]} color="#cfe8f0" />
+        <Box size={[1.4, 1.0, 0.6]} at={[0.75, 0.5, 0]} color="#f3f1ea" />
+        <Flat size={[1.4, 0.1]} at={[0.75, 0.8, 0.31]} color={C.teal} />
+        <Box size={[0.32, 0.22, 0.28]} at={[1.1, 1.11, -0.1]} color={C.ink} />
+        <Box size={[0.22, 0.12, 0.02]} at={[1.1, 1.28, -0.02]} color="#9fd3e8" />
+        {flags.has("ramen") && (
+          <>
+            <Cyl r={[0.09, 0.07]} h={0.16} at={[0.3, 1.08, 0.1]} color="#d4265f" />
+            <Cyl r={0.092} h={0.02} at={[0.3, 1.17, 0.1]} color={C.plate} />
+          </>
+        )}
+        {flags.has("snack") && <Box size={[0.22, 0.28, 0.06]} at={[0.55, 1.14, 0.1]} color={C.mustard} rot={[0, 0.3, 0.15]} />}
+      </>
+    ),
+  },
+
+  karaoke: {
+    label: "노래방",
+    wall: SET_WALLS.karaoke,
+    me: { x: -0.95, z: -0.2, facing: 0.55, posture: "sit" },
+    partner: { x: 0.95, z: -0.2, facing: -0.55, posture: "sit" },
+    Scenery: ({ flags }) => (
+      <>
+        <Flat size={[1.8, 1.0]} at={[0, 2.1, WALL_Z + 0.01]} color="#141a3a" />
+        <Flat size={[1.1, 0.06]} at={[0, 1.9, WALL_Z + 0.02]} color="#c8f031" />
+        <Flat size={[0.8, 0.06]} at={[0, 1.76, WALL_Z + 0.02]} color="#f08aa8" />
+        {flags.has("score") && <Flat size={[0.55, 0.22]} at={[0, 2.4, WALL_Z + 0.02]} color="#e8b931" />}
+        <Flat size={[8, 0.05]} at={[0, 1.15, WALL_Z + 0.01]} color="#f08aa8" />
+        <Box size={[2.9, 0.42, 0.8]} at={[0, 0.27, -0.45]} color="#7a3b6a" />
+        <Box size={[2.9, 0.62, 0.2]} at={[0, 0.75, -0.8]} color="#7a3b6a" />
+        {[-1, 1].map((s) => (
+          <Box key={s} size={[0.2, 0.58, 0.8]} at={[1.55 * s, 0.38, -0.45]} color="#5e2c52" />
+        ))}
+        <Box size={[0.015, 0.4, 0.015]} at={[0, 3.0, -0.3]} color={C.ink} />
+        <Gem r={0.17} at={[0, 2.75, -0.3]} color="#c9ced2" />
+      </>
+    ),
+  },
+
+  gym: {
+    label: "헬스장",
+    wall: SET_WALLS.gym,
+    me: { x: -0.7, facing: R, posture: "stand" },
+    partner: { x: 0.7, facing: -R, posture: "stand" },
+    Scenery: () => (
+      <>
+        <Box size={[30, 0.02, 2.4]} at={[0, 0.01, 0]} color="#3a3a3a" />
+        <Flat size={[2.4, 1.7]} at={[0.1, 1.7, WALL_Z + 0.01]} color="#cfe4ec" />
+        {[-0.5, -0.3].map((x) => (
+          <Flat key={x} size={[0.05, 1.5]} at={[x, 1.7, WALL_Z + 0.02]} color="#f2f8fa" />
+        ))}
+        <Flat size={[0.5, 0.7]} at={[2.1, 2.1, WALL_Z + 0.01]} color={C.rust} />
+        <Flat size={[0.34, 0.08]} at={[2.1, 2.2, WALL_Z + 0.02]} color={C.paper} />
+        <Box size={[1.0, 0.06, 0.35]} at={[-1.9, 0.62, -0.8]} color={C.ink} />
+        {[-2.3, -1.5].map((x) => (
+          <Box key={x} size={[0.06, 0.62, 0.3]} at={[x, 0.31, -0.8]} color={C.ink} />
+        ))}
+        {[-2.2, -1.9, -1.6].map((x) => (
+          <Cyl key={x} r={0.06} h={0.24} at={[x, 0.72, -0.8]} color="#4a4a4a" rot={[R, 0, 0]} />
+        ))}
+        <Gem r={0.14} at={[1.95, 0.14, -0.6]} color={C.ink} />
+        <Box size={[0.16, 0.04, 0.04]} at={[1.95, 0.32, -0.6]} color={C.ink} />
+      </>
+    ),
+  },
+
+  room: {
+    label: "아지트",
+    wall: SET_WALLS.room,
+    me: { x: -0.85, facing: 0.45, posture: "stand" },
+    partner: { x: 1.05, z: -0.2, facing: -0.55, posture: "sit" },
+    // 보상으로 받은 물건이 flags로 들어와 방에 놓인다. books-N은 책장에 꽂힌 책 수다
+    Scenery: ({ evening, flags }) => {
+      const books = Number([...flags].find((f) => f.startsWith("books-"))?.slice(6) ?? 0);
+      return (
+        <>
+          <Window x={0.2} y={2.0} w={1.0} h={0.7} evening={evening} />
+          <Box size={[1.3, 0.42, 0.95]} at={[1.15, 0.21, -0.35]} color="#7fa6c2" />
+          <Box size={[1.3, 0.12, 0.95]} at={[1.15, 0.48, -0.35]} color={C.plate} />
+          <Box size={[0.4, 0.12, 0.3]} at={[1.6, 0.6, -0.55]} color="#f6ead6" />
+          <Box size={[0.95, 1.8, 0.35]} at={[-2.05, 0.9, -0.85]} color={C.woodDark} />
+          {[0.35, 0.95, 1.55].map((y) => (
+            <Box key={y} size={[0.85, 0.04, 0.3]} at={[-2.05, y, -0.8]} color={C.wood} />
+          ))}
+          {Array.from({ length: Math.min(books, 24) }, (_, i) => (
+            <Box
+              key={i}
+              size={[0.08, 0.36, 0.22]}
+              at={[-2.4 + (i % 8) * 0.1, 0.55 + Math.floor(i / 8) * 0.6, -0.78]}
+              color={["#d4265f", C.mustard, C.teal, C.navy, "#f08aa8"][i % 5]}
+            />
+          ))}
+          {flags.has("plant") && <Plant x={-1.35} z={-0.7} />}
+          {flags.has("poster") && (
+            <>
+              <Flat size={[0.5, 0.7]} at={[-0.9, 2.1, WALL_Z]} color={C.rust} />
+              <Flat size={[0.3, 0.3]} at={[-0.9, 2.15, WALL_Z + 0.01]} color={C.mustard} />
+            </>
+          )}
+          {flags.has("rug") && <Box size={[1.8, 0.02, 1.0]} at={[-0.2, 0.01, 0.25]} color="#f08aa8" />}
+          {flags.has("trophy") && (
+            <>
+              <Cyl r={[0.1, 0.05]} h={0.16} at={[-2.05, 1.98, -0.8]} color="#e8b931" />
+              <Box size={[0.16, 0.05, 0.12]} at={[-2.05, 1.84, -0.8]} color={C.ink} />
+            </>
+          )}
+          {flags.has("fishbowl") && (
+            <>
+              <Box size={[0.36, 0.5, 0.36]} at={[2.2, 0.25, -0.7]} color={C.woodDark} />
+              <Gem r={0.2} at={[2.2, 0.68, -0.7]} color="#bfe3f2" />
+              <Box size={[0.1, 0.06, 0.03]} at={[2.2, 0.66, -0.52]} color="#f08a24" />
+            </>
+          )}
+        </>
+      );
+    },
+  },
+
   street: {
     label: "거리 · 헤어질 때",
-    wall: { day: "#cfdde3", evening: "#2b3350" },
+    wall: SET_WALLS.street,
     me: { x: -0.7, facing: R, posture: "stand" },
     partner: { x: 0.7, facing: -R, posture: "stand" },
     Scenery: ({ evening }) => (

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
-import { pixel, pixelTitle } from "./fonts";
+import { AccountSync } from "@/features/account/account-sync";
+import "./fonts/galmuri.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,8 +17,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={`${pixel.variable} ${pixelTitle.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+    <html lang="ko" className="h-full antialiased">
+      <body className="min-h-full">
+        {children}
+        <AccountSync />
+      </body>
     </html>
   );
 }

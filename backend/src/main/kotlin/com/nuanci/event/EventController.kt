@@ -15,13 +15,13 @@ import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 data class EventRequest(
-	@field:Pattern(regexp = "scene_viewed|choice_selected|alternative_viewed|scene_completed|share_link_copied")
+	@field:Pattern(regexp = "home_viewed|scene_viewed|choice_selected|alternative_viewed|scene_completed|wrap_viewed|next_clicked|share_link_copied")
 	val type: String,
 	@field:Size(min = 1, max = 100)
-	val sceneId: String,
+	val sceneId: String? = null,
 	@field:Positive
-	val sceneVersion: Int,
-	val attemptId: UUID,
+	val sceneVersion: Int? = null,
+	val attemptId: UUID? = null,
 	val visitorId: UUID,
 	@field:Pattern(regexp = "base|followUp")
 	val step: String? = null,
@@ -40,7 +40,11 @@ class EventController(
 	@PostMapping
 	@ResponseStatus(HttpStatus.ACCEPTED)
 	fun record(@Valid @RequestBody req: EventRequest) {
-		if (!scenes.existsById(req.sceneId)) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown scene")
+		// 홈 방문만 장면 없이 받는다. 나머지는 장면·버전·시도가 모두 있어야 한다
+		if (req.type != "home_viewed") {
+			if (req.sceneId == null || req.sceneVersion == null || req.attemptId == null) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "scene required")
+			if (!scenes.existsById(req.sceneId)) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown scene")
+		}
 		events.save(
 			SceneEvent(req.type, req.sceneId, req.sceneVersion, req.attemptId, req.visitorId, req.step, req.choiceId, req.entry),
 		)

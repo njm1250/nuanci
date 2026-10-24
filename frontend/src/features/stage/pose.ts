@@ -33,7 +33,7 @@ export const REST: Pose = {
 const easeOut = (x: number) => 1 - (1 - Math.min(Math.max(x, 0), 1)) ** 3;
 
 // 반응 동작별로 시간 t(초)에 맞는 목표 자세를 계산한다.
-// faint·flop·spin·shiver는 웃음을 노린 과장된 동작이라 장면에서 가끔만 쓴다
+// faint·flop·spin·shiver·dance·panic은 웃음을 노린 과장된 동작이라 장면에서 가끔만 쓴다
 export function targetPose(motion: Motion, t: number): Pose {
   const p = { ...REST };
   const fade = (d: number) => Math.max(0, 1 - t / d);
@@ -149,6 +149,52 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.rArmX = -2.3 + Math.sin(t * 10) * 0.3;
       p.rArmZ = -0.35;
       p.headZ = 0.08;
+      break;
+    case "bow":
+      // 한국식으로 허리를 숙여 꾸벅 인사하고 천천히 일어난다
+      p.torsoX = 0.85 * Math.sin(Math.PI * Math.min(t / 1.4, 1));
+      p.headX = 0.2 * Math.sin(Math.PI * Math.min(t / 1.4, 1));
+      p.lArmX = 0;
+      p.rArmX = 0;
+      break;
+    case "clap": {
+      // 가슴 앞에서 손뼉을 짝짝 친다
+      const s = Math.abs(Math.sin(t * 12)) * fade(1.6);
+      p.lArmX = -1.35;
+      p.rArmX = -1.35;
+      p.lArmZ = -0.38 + s * 0.3;
+      p.rArmZ = 0.38 - s * 0.3;
+      p.headX = -0.06;
+      break;
+    }
+    case "sob":
+      // 두 손으로 얼굴을 가리고 어깨를 들썩이며 운다
+      p.lArmX = -2.35;
+      p.rArmX = -2.35;
+      p.lArmZ = -0.5;
+      p.rArmZ = 0.5;
+      p.headX = 0.25;
+      p.rootY = Math.abs(Math.sin(t * 16)) * 0.018;
+      break;
+    case "dance":
+      // 몸을 좌우로 흔들며 팔을 번갈아 뻗는 막춤
+      p.rootX = Math.sin(t * 8) * 0.07;
+      p.rootY = Math.abs(Math.sin(t * 8)) * 0.06;
+      p.headZ = Math.sin(t * 8) * 0.18;
+      p.lArmX = -2.4 + Math.sin(t * 8) * 0.7;
+      p.rArmX = -2.4 - Math.sin(t * 8) * 0.7;
+      p.lArmZ = 0.4;
+      p.rArmZ = -0.4;
+      break;
+    case "panic":
+      // 팔을 허우적대며 제자리에서 동동 구르고 두리번거린다
+      p.rootX = Math.sin(t * 22) * 0.04;
+      p.rootY = Math.abs(Math.sin(t * 22)) * 0.04;
+      p.headY = Math.sin(t * 7) * 0.45;
+      p.lArmX = -2.7 + Math.sin(t * 17) * 0.5;
+      p.rArmX = -2.7 + Math.cos(t * 17) * 0.5;
+      p.lArmZ = 0.5;
+      p.rArmZ = -0.5;
       break;
     case "idle":
       break;

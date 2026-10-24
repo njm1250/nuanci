@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Expression, Motion } from "@/features/scene/types";
 import { CAST, HEROES } from "./cast";
@@ -100,6 +100,25 @@ export type StageState = {
   meTurn?: boolean;
 };
 
+// 계속 반복되는 동작. 이 동작 중에는 무대를 계속 그린다
+const LOOPING: ReadonlySet<Motion> = new Set(["shiver", "dance", "panic", "sob", "wave", "facepalm", "patBelly"]);
+// 한 번 하고 멈추는 동작이 끝나고 자세가 제자리를 찾기까지 걸리는 시간
+const SETTLE_MS = 2500;
+
+// 무대가 바뀐 직후와 반복 동작 중에만 매 프레임 그리고, 멈춰 있을 때는 그리기를 쉬어 배터리와 CPU를 아낀다.
+// 크기가 바뀌면 three.js가 알아서 한 번 다시 그린다
+function useFrameloop(spec: StageSpec, state: StageState | undefined, reduced: boolean) {
+  const busyKey = JSON.stringify([spec, state]);
+  const looping = !reduced && (LOOPING.has(state?.partnerMotion ?? "idle") || LOOPING.has(state?.meMotion ?? "idle"));
+  const [settled, setSettled] = useState<string | null>(null);
+  useEffect(() => {
+    if (looping) return;
+    const t = setTimeout(() => setSettled(busyKey), reduced ? 100 : SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [busyKey, looping, reduced]);
+  return settled === busyKey && !looping ? "demand" : "always";
+}
+
 // 세트·시간·등장인물 조합을 픽셀 무대로 그리고, 캐릭터 머리 위에 말풍선과 반응 기호를 붙인다
 export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; state?: StageState; reduced?: boolean }) {
   const set = SETS[spec.set];
@@ -116,6 +135,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
   const wall = set.wall[spec.time];
   const symbol = state?.reaction ? REACTION_SYMBOLS[state.reaction] : null;
   const ink = evening && spec.set === "street" ? "text-paper" : "text-ink";
+  const frameloop = useFrameloop(spec, state, reduced);
 
   const bubble = (who: Who, text: React.ReactNode, key: string) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
@@ -137,6 +157,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: wall }}>
       <Canvas
+        frameloop={frameloop}
         orthographic
         dpr={0.5}
         camera={{ position: [0, 1.6, 10], zoom: 70, near: 0.1, far: 50 }}
@@ -152,7 +173,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
         <set.Scenery evening={evening} flags={flags} />
         <Figure
           placement={set.me}
-          look={CAST[HEROES[spec.hero ?? "boy"]]}
+          look={{ ...CAST[HEROES[spec.hero ?? "boy"]], accessory: spec.accessory }}
           motion={state?.meMotion ?? "idle"}
           motionKey={state?.meKey ?? 0}
           talkKey={state?.talkKey ?? 0}

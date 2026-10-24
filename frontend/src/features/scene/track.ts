@@ -1,5 +1,5 @@
 export type TrackEvent = {
-  type: "scene_viewed" | "choice_selected" | "alternative_viewed" | "scene_completed" | "share_link_copied";
+  type: "scene_viewed" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied";
   sceneId: string;
   sceneVersion: number;
   attemptId: string;
@@ -43,6 +43,18 @@ export function track(event: TrackEvent) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...event, visitorId: visitorId() }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {}
+}
+
+// 홈 방문은 장면과 상관없어서 방문자 id만 보낸다
+export function trackHome() {
+  try {
+    void fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "home_viewed", visitorId: visitorId() }),
       keepalive: true,
     }).catch(() => {});
   } catch {}

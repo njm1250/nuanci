@@ -122,6 +122,25 @@ class SceneApiTest {
 	}
 
 	@Test
+	fun `홈 방문부터 다음 장면까지 단계별 방문자를 센다`() {
+		val attempt = UUID.randomUUID()
+		send(mapOf("type" to "home_viewed", "visitorId" to VISITOR.toString())).andExpect { status { isAccepted() } }
+		send(event("scene_viewed", attempt, entry = "home"))
+		send(event("choice_selected", attempt, step = "base", choiceId = "eat-a-lot"))
+		send(event("scene_completed", attempt))
+		send(event("wrap_viewed", attempt))
+		send(event("next_clicked", attempt))
+		send(mapOf("type" to "wrap_viewed", "visitorId" to VISITOR.toString())).andExpect { status { isBadRequest() } }
+
+		val body = mapper.readTree(mvc.get("/api/admin/metrics") { header("Authorization", "Bearer ${mvc.adminToken()}") }.andReturn().response.contentAsString)
+		val funnel = body.path("funnel")
+		assertEquals(listOf(1, 1, 1, 1, 1, 1), listOf("home", "started", "firstPick", "answered", "wrapped", "next").map { funnel.path(it).asInt() })
+		val scene = body.path("scenes").first { it.path("id").asString() == "eat-a-lot" }
+		assertEquals(1, scene.path("wrapViewed").asInt())
+		assertEquals(1, scene.path("nextClicked").asInt())
+	}
+
+	@Test
 	fun `관리자 기기로 등록한 방문자의 이벤트는 지표에서 뺀다`() {
 		val token = mvc.adminToken()
 		val me = UUID.randomUUID()

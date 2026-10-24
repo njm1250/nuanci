@@ -26,7 +26,7 @@ object SceneCheck {
 	private const val GIVEAWAY_LENGTH = 5
 
 	// 과장된 동작은 가끔 나와야 웃기다
-	private val FUNNY_MOTIONS = setOf("faint", "flop", "spin", "shiver")
+	private val FUNNY_MOTIONS = setOf("faint", "flop", "spin", "shiver", "dance", "panic")
 	private const val MAX_FUNNY = 2
 
 	// 여러 장면에 걸쳐 같은 함정이나 같은 판정 구성이 이 비율을 넘으면 패턴으로 답을 맞히게 된다

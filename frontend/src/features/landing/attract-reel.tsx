@@ -1,26 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAvatar } from "@/features/avatar/avatar";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
-import { PixelStage } from "@/features/stage/pixel-stage";
+import { Stage } from "@/features/stage/stage";
 import type { ReelBeat } from "./reel";
 
 const ASK_MS = 1900;
 const BEAT_MS = 5600;
 
-// 게임 데모 화면처럼 실제 장면의 직역 실수 순간을 자동으로 돌려 보여준다. 동작 줄이기 설정이면 첫 장면에서 멈춘다
+// 게임 데모 화면처럼 실제 장면의 직역 실수 순간을 자동으로 돌려 보여준다. 동작 줄이기 설정이면 첫 장면에서 멈춘다.
+// 자동으로 계속 움직이는 콘텐츠라 사용자가 멈출 수 있게 한다 (WCAG 2.2.2)
 export function AttractReel({ beats }: { beats: ReelBeat[] }) {
   const reduced = useReducedMotion();
   const [step, setStep] = useState({ index: 0, said: false, n: 0 });
+  const [paused, setPaused] = useState(false);
+  const avatar = useAvatar();
 
   useEffect(() => {
-    if (reduced || beats.length === 0) return;
+    if (reduced || paused || beats.length === 0) return;
     const t = setTimeout(
       () => setStep((s) => (s.said ? { index: (s.index + 1) % beats.length, said: false, n: s.n + 1 } : { ...s, said: true, n: s.n + 1 })),
       step.said ? BEAT_MS - ASK_MS : ASK_MS,
     );
     return () => clearTimeout(t);
-  }, [step, reduced, beats.length]);
+  }, [step, reduced, paused, beats.length]);
 
   if (beats.length === 0) return null;
   const said = reduced || step.said;
@@ -28,8 +32,8 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
 
   return (
     <div className="absolute inset-0">
-      <PixelStage
-        spec={beat.stage}
+      <Stage
+        spec={{ ...beat.stage, hero: beat.stage.hero ?? avatar.hero, accessory: avatar.accessory ?? undefined }}
         reduced={reduced}
         state={{
           partnerMotion: said ? beat.motion : beat.partnerIdle,
@@ -52,6 +56,20 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
         <p key={`punch-${step.n}`} className="absolute bottom-2 left-2 animate-[rise_240ms_ease-out_400ms_both] bg-gold px-2 py-1 font-pixel text-[15px] leading-none text-ink">
           → {beat.punch}
         </p>
+      )}
+      {!reduced && (
+        <button
+          type="button"
+          onClick={() => setPaused((v) => !v)}
+          aria-label={paused ? "데모 다시 재생" : "데모 멈추기"}
+          className="absolute right-0 top-0 grid size-11 place-items-center"
+        >
+          <span className="grid size-7 place-items-center bg-ink/70 text-paper">
+            <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
+              <path d={paused ? "M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" : "M1 0h1v5h-1zM3 0h1v5h-1z"} />
+            </svg>
+          </span>
+        </button>
       )}
       {!reduced && beats.length > 1 && (
         <div className="absolute bottom-3 right-3 flex gap-1.5" aria-hidden>

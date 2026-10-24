@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAvatar } from "@/features/avatar/avatar";
 import { bookEntry } from "@/features/collection/pairs";
 import { Mascot } from "@/features/mascot/mascot";
-import { PixelStage } from "@/features/stage/pixel-stage";
+// 장면 화면은 상대 대사가 무대 말풍선에만 있어서 무대를 늦게 불러오지 않는다
+import { PixelStage as Stage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
@@ -39,6 +41,11 @@ const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
   happy: { text: "오~", bad: false },
   delighted: { text: "꺄!", bad: false },
   neutral: { text: "…", bad: false },
+  love: { text: "두근", bad: false },
+  angry: { text: "부들", bad: true },
+  shocked: { text: "헉!", bad: true },
+  sleepy: { text: "쿨…", bad: true },
+  crying: { text: "흑흑", bad: true },
 };
 
 // 고른 말의 판정. 채점처럼 O / △ / X로 보여주고 색만으로 구분하지 않게 기호를 함께 쓴다
@@ -154,7 +161,7 @@ function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {active && <span className="mt-2 block font-pixel text-[15px] text-paper-muted">{choice.tags.join(" · ")}</span>}
+        {active && <span className="mt-2 block text-[14px] leading-relaxed text-paper-muted">{choice.why}</span>}
         {revealed && share !== undefined && (
           <span className={`mt-1.5 block text-[13px] tabular-nums ${active ? "text-paper-muted" : "text-ink-subtle"}`}>첫 답으로 {share}%가 골랐어요</span>
         )}
@@ -171,7 +178,7 @@ function Arrow() {
   );
 }
 
-// 장면을 끝낸 뒤의 완료 화면. 한 줄 정리와 이번에 모은 표현을 그 자리에서 보여주고, 친구에게 문제 내기를 권한다
+// 장면을 끝낸 뒤의 완료 화면. 이번에 모은 표현을 먼저 크게 보여주고, 그다음 친구에게 문제 내기를 권한다
 function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () => void; shareState: "idle" | "copied" | "failed"; onBack: () => void }) {
   const { pairs } = bookEntry(scene);
   return (
@@ -185,29 +192,18 @@ function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () 
       </div>
       <p className="mt-4 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
 
-      <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
-        <div className="min-w-0 flex-1">
-          <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
-          <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
-        </div>
-        <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
-          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
-        </BlockButton>
-      </div>
-
       <div className="blk-frame mt-5">
         <div className="blk bg-cream px-4 py-3 text-ink">
           <p className="font-pixel text-[15px]">
             표현 모음에 담았어요 <span className="text-ink-subtle">+{pairs.length}</span>
           </p>
-          <ul className="mt-2 space-y-3">
+          <ul className="mt-2 space-y-2.5">
             {pairs.map((p) => (
               <li key={p.right}>
-                <p className="text-[13px] text-ink-muted">{p.gist}</p>
-                <p className="mt-0.5 text-[14px] text-ink-subtle">
-                  <s>{p.wrong}</s>
-                </p>
                 <p className="text-[16px] font-semibold leading-snug">{p.right}</p>
+                <p className="text-[13px] text-ink-subtle">
+                  {p.gist} · <s>{p.wrong}</s>
+                </p>
               </li>
             ))}
           </ul>
@@ -216,6 +212,16 @@ function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () 
             <Arrow />
           </Link>
         </div>
+      </div>
+
+      <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
+          <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
+        </div>
+        <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
+          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+        </BlockButton>
       </div>
 
       <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4">
@@ -253,6 +259,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   }, [scene.id, scene.version, attemptId, preview]);
 
   const f = useSceneFlow(scene, send);
+  const avatar = useAvatar();
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
   const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=1`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
@@ -263,12 +270,16 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const [wrapped, setWrapped] = useState(false);
   const { situation, choice, pickedId, seenIds, phase } = f;
   const later = phase !== "base";
+  // 완료 화면에서는 마지막에 고른 말 대신 자연스러운 말을 다시 들려주는 엔딩으로 끝낸다
+  const stageChoice = wrapped ? (scene.followUp.choices.find((c) => c.verdict === "good") ?? choice) : choice;
+  const stageKey = f.reactionKey * 10 + (later ? 1 : 0) + (wrapped ? 5 : 0);
   const stageSituation = later ? scene.followUp : scene.base;
 
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
-    return { ...base, hero: scene.hero, flags: [...(base.flags ?? []), ...(choice?.flags ?? [])] };
-  }, [stageSituation, choice, scene.hero]);
+    // 장면이 주인공 성별을 정하지 않았으면 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
+    return { ...base, hero: scene.hero ?? avatar.hero, accessory: avatar.accessory ?? undefined, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
+  }, [stageSituation, stageChoice, scene.hero, avatar]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -296,12 +307,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 비교를 다 본 뒤에 완료 화면으로 넘어가며 팡파르를 울린다. 처음 한 번만 울린다
   const fanfared = useRef(false);
   const wrapUp = () => {
-    if (!fanfared.current) sfx.clear();
+    if (!fanfared.current) {
+      sfx.clear();
+      send({ type: "wrap_viewed" });
+    }
     fanfared.current = true;
     setWrapped(true);
   };
 
-  const burst = choice ? BURSTS[choice.expression] : null;
+  const burst = stageChoice ? BURSTS[stageChoice.expression] : null;
   const stepPicks = stats?.[later ? "followUp" : "base"];
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
@@ -319,19 +333,19 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         <div ref={stageBox} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
-              <PixelStage
+              <Stage
                 spec={spec}
                 reduced={reduced}
                 state={{
-                  meMotion: choice?.meMotion ?? stageSituation.meIdle?.motion,
-                  meKey: f.reactionKey * 10 + (later ? 1 : 0),
-                  meProp: choice?.meProp ?? stageSituation.meIdle?.prop,
-                  partnerProp: choice?.partnerProp ?? stageSituation.partnerIdle.prop,
-                  partnerMotion: choice?.motion ?? stageSituation.partnerIdle.motion,
-                  partnerKey: f.reactionKey * 10 + (later ? 1 : 0),
-                  talkKey: f.reactionKey,
-                  reaction: choice?.expression ?? null,
-                  meLine: choice?.line,
+                  meMotion: stageChoice?.meMotion ?? stageSituation.meIdle?.motion,
+                  meKey: stageKey,
+                  meProp: stageChoice?.meProp ?? stageSituation.meIdle?.prop,
+                  partnerProp: stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
+                  partnerMotion: stageChoice?.motion ?? stageSituation.partnerIdle.motion,
+                  partnerKey: stageKey,
+                  talkKey: stageKey,
+                  reaction: stageChoice?.expression ?? null,
+                  meLine: stageChoice?.line,
                   partnerLine: stageSituation.partnerLine,
                   meTurn: phase !== "transition" && !choice,
                 }}
@@ -344,7 +358,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-[wipe_520ms_ease-in-out_both] bg-ink" />}
               {burst && !reduced && phase !== "transition" && (
                 <span
-                  key={`burst-${f.reactionKey}`}
+                  key={`burst-${stageKey}`}
                   aria-hidden
                   className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_ease-out_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
@@ -405,7 +419,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             </div>
           ) : (
             <div key={`result-${phase}`}>
-              <p className="font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
+              {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
+              <p className="text-[15px] font-medium leading-snug text-paper">&ldquo;{situation.partnerLine}&rdquo;</p>
+              <p className="mt-1 font-pixel text-[15px] leading-[1.6] text-paper-muted">{situation.intent}</p>
+              <p className="mt-4 font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_240ms_ease-out_both]" style={{ animationDelay: `${i * 70}ms` }}>
@@ -417,6 +434,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                           )}
                           <span className="relative block">
                             <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} />
+                            <span className="block pl-9">
+                              {detailOpen && <span className="mt-2 block animate-[fade-in_150ms] text-[14px] leading-relaxed text-paper-muted">{c.detail}</span>}
+                              <button
+                                type="button"
+                                onClick={() => setDetailOpen((v) => !v)}
+                                aria-expanded={detailOpen}
+                                className="-mx-1 -mb-2 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4"
+                              >
+                                <Caret open={detailOpen} />
+                                {detailOpen ? "접기" : "더 자세히"}
+                              </button>
+                            </span>
                           </span>
                         </div>
                       </Panel>
@@ -428,20 +457,6 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   </li>
                 ))}
               </ul>
-              <div key={choice.id} className="mt-8 animate-[fade-in_200ms]">
-                <p className="font-pixel text-[15px] text-paper">왜 그렇게 들릴까?</p>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-paper-muted">{choice.why}</p>
-                {detailOpen && <p className="mt-2 animate-[fade-in_150ms] text-[14px] leading-relaxed text-paper-muted">{choice.detail}</p>}
-                <button
-                  type="button"
-                  onClick={() => setDetailOpen((v) => !v)}
-                  aria-expanded={detailOpen}
-                  className="-mx-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4"
-                >
-                  <Caret open={detailOpen} />
-                  {detailOpen ? "접기" : "더 자세히"}
-                </button>
-              </div>
               {f.done && preview && (
                 <div className="blk mt-6 bg-night-deep px-4 py-3">
                   <p className="font-pixel text-[15px] text-paper-subtle">한 줄 정리</p>
@@ -466,7 +481,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </BlockButton>
             ) : f.done ? (
               next ? (
-                <BlockLink href={`/scenes/${next.number}`} entry="next" gold>
+                <BlockLink href={`/scenes/${next.number}`} entry="next" gold onClick={() => send({ type: "next_clicked" })}>
                   다음 장면
                 </BlockLink>
               ) : (
