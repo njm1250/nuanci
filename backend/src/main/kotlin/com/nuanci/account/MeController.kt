@@ -1,6 +1,8 @@
 package com.nuanci.account
 
 import jakarta.servlet.http.HttpServletResponse
+import com.nuanci.reward.RewardCatalog
+import com.nuanci.reward.RewardStore
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -27,7 +29,7 @@ data class ClearedRequest(val sceneId: String = "")
 // 로그인한 사용자의 정보와 끝낸 장면. 로그인하면 이 기기의 기록을 합쳐 계정에 남긴다
 @RestController
 @RequestMapping("/api/me")
-class MeController(private val accounts: AccountStore) {
+class MeController(private val accounts: AccountStore, private val rewards: RewardStore) {
 	@GetMapping
 	fun me(@CookieValue(SESSION_COOKIE, required = false) token: String?): MeResponse {
 		val account = require(token)
@@ -43,14 +45,16 @@ class MeController(private val accounts: AccountStore) {
 		return response(account)
 	}
 
-	// 아지트에서 꾸민 모습과 치워 둔 물건을 저장한다. 어떤 아이템을 얻었는지는 아직 FE가 판단해서, 여기서는 값 형식만 본다
+	// 아지트에서 꾸민 모습과 치워 둔 물건을 저장한다. 쓰는 아이템은 계정이 가진 것이어야 한다
 	@PutMapping("/avatar")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	fun avatar(@CookieValue(SESSION_COOKIE, required = false) token: String?, @RequestBody req: Avatar) {
 		val account = require(token)
-		val valid = req.hero in HEROES && (req.accessory == null || ITEM_ID.matches(req.accessory)) &&
-			req.hidden.size <= MAX_HIDDEN && req.hidden.all(ITEM_ID::matches)
+		val valid = req.hero in HEROES && req.hidden.size <= MAX_HIDDEN && req.hidden.all(ITEM_ID::matches)
 		if (!valid) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+		if (req.accessory != null && (RewardCatalog.find(req.accessory)?.kind != "wear" || !rewards.owns(account.id, req.accessory))) {
+			throw ResponseStatusException(HttpStatus.FORBIDDEN)
+		}
 		accounts.saveAvatar(account.id, req.hero, req.accessory, req.hidden.distinct())
 	}
 
@@ -63,7 +67,9 @@ class MeController(private val accounts: AccountStore) {
 	@DeleteMapping
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	fun delete(@CookieValue(SESSION_COOKIE, required = false) token: String?, response: HttpServletResponse) {
-		accounts.delete(require(token).id)
+		val account = require(token)
+		rewards.deleteOwner(account.id)
+		accounts.delete(account.id)
 		response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(SESSION_COOKIE, "").path("/").maxAge(0).build().toString())
 	}
 

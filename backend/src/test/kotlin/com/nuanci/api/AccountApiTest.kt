@@ -90,14 +90,25 @@ class AccountApiTest {
 	fun `꾸민 모습을 계정에 저장하고 잘못된 값은 막는다`() {
 		val session = login()
 		mvc.get("/api/me") { cookie(session) }.andExpect { jsonPath("$.avatar") { doesNotExist() } }
+		// 첫 장면을 끝내면 모자를 얻는다. 얻지 않은 왕관은 쓸 수 없다
+		mvc.post("/api/rewards/clear") {
+			cookie(session)
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"sceneId":"pudding"}"""
+		}.andExpect { status { isOk() } }
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON
-			content = """{"hero":"girl","accessory":"crown","hidden":["plant"]}"""
+			content = """{"hero":"girl","accessory":"crown","hidden":[]}"""
+		}.andExpect { status { isForbidden() } }
+		mvc.put("/api/me/avatar") {
+			cookie(session)
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"hero":"girl","accessory":"cap","hidden":["plant"]}"""
 		}.andExpect { status { isNoContent() } }
 		mvc.get("/api/me") { cookie(session) }.andExpect {
 			jsonPath("$.avatar.hero") { value("girl") }
-			jsonPath("$.avatar.accessory") { value("crown") }
+			jsonPath("$.avatar.accessory") { value("cap") }
 			jsonPath("$.avatar.hidden[0]") { value("plant") }
 		}
 		mvc.put("/api/me/avatar") {
