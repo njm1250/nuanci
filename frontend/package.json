@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@fontsource/pangolin": "5.3.0",
     "@react-three/fiber": "9.8.2",
     "galmuri": "2.40.3",
     "next": "16.4.2",
@@ -19,6 +18,7 @@
     "three": "0.186.1"
   },
   "devDependencies": {
+    "@fontsource/pangolin": "5.3.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
