@@ -260,7 +260,7 @@ function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; 
       aria-pressed={usable ? on : undefined}
       className={`blk relative flex aspect-square w-full flex-col items-center justify-center gap-1 px-1 ${on ? "bg-gold text-ink" : usable ? "bg-cream text-ink" : "bg-slate-block text-paper-subtle"} ${selected ? "outline outline-[3px] outline-offset-2 outline-paper" : ""}`}
     >
-      <RewardIcon id={usable ? item.id : "locked"} color={item.owned?.color} size={28} className={usable ? "" : "opacity-40 [filter:invert(1)]"} />
+      <RewardIcon id={usable ? item.id : "locked"} color={item.owned?.color} size={28} className={usable ? "" : "opacity-40 [filter:invert(1)] light:[filter:none]"} />
       <span aria-hidden className="w-full truncate text-center text-[10px] leading-tight">
         {usable ? item.name : "???"}
       </span>

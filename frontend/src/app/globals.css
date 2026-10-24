@@ -8,6 +8,8 @@
  */
 /* 다시 온 방문자. layout의 인라인 스크립트가 그리기 전에 html에 data-returning을 붙인다 */
 @custom-variant returning (&:where([data-returning], [data-returning] *));
+/* 밝은 화면에서만 다르게 보여야 할 때 쓴다 */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 @theme {
   --color-ink: #141317;
@@ -17,6 +19,8 @@
   --color-paper-muted: #cbc8bf;
   --color-paper-subtle: #a5a29b;
   --color-cream: #ffffff;
+  /* 기본 카드 바탕. 밝은 화면에서도 글자색(paper)과 따로 바꾸려고 나눠 둔다 */
+  --color-card: #f6f4ee;
   --color-gold: #c8f031;
   --color-rust: #d4265f;
   /* 어두운 배경 위 오류 글자 */
@@ -37,6 +41,38 @@
   --breakpoint-md: 48rem;
   --breakpoint-lg: 80rem;
   --breakpoint-xl: 90rem;
+}
+
+/*
+ * 밝은 화면. 기본은 어두운 화면이고, 내 정보 설정에서 고르면 html에 data-theme="light"가 붙는다.
+ * 페이지 바탕(night·slate-block)은 밝게, 그 위 글자(paper)는 어둡게 바꾼다. 카드(card·cream)와 진한 칸(ink)은 그대로 둔다
+ */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-night: #f1ede4;
+  --color-night-deep: #e4dfd3;
+  --color-slate-block: #d8d2c4;
+  --color-paper: #141317;
+  --color-paper-muted: #47454c;
+  --color-paper-subtle: #5d5b62;
+  --color-card: #fffdf8;
+  --color-rust-light: #c01f55;
+}
+/* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
+:root[data-theme="light"] .bg-ink {
+  --color-paper: #f6f4ee;
+  --color-paper-muted: #cbc8bf;
+  --color-paper-subtle: #a5a29b;
+}
+/* 형광 연두 글자는 밝은 바탕에서 안 읽혀서 진한 올리브로 바꾼다. 진한 칸 안에서는 원래 색 그대로 */
+:root[data-theme="light"] .text-gold {
+  color: #4d6e00;
+}
+:root[data-theme="light"] :is(.bg-ink .text-gold, .bg-ink.text-gold) {
+  color: var(--color-gold);
+}
+:root[data-theme="light"] :focus-visible {
+  outline-color: var(--color-ink);
 }
 
 body {

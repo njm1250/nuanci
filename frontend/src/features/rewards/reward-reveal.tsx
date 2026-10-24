@@ -169,7 +169,7 @@ export function RewardCard({
                 <span
                   key={i}
                   aria-hidden
-                  className="pointer-events-none absolute left-1/2 top-1/2 size-1.5 bg-paper"
+                  className="pointer-events-none absolute left-1/2 top-1/2 size-1.5 bg-cream"
                   style={{ "--dx": `${dx}px`, "--dy": `${dy}px`, animation: `sparkle 700ms ease-out ${delay + POP_AFTER + 220 + i * 35}ms both` } as React.CSSProperties}
                 />
               ))}

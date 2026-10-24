@@ -43,7 +43,7 @@ function NoticeDialog({ dialog, notice }: { dialog: React.RefObject<HTMLDialogEl
       className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[400px] overflow-visible bg-transparent p-0 text-ink backdrop:bg-night-deep/80"
     >
       <div className="blk-frame">
-        <div className="blk bg-paper p-5">
+        <div className="blk bg-card p-5">
           <p className="font-pixel text-[15px] text-ink-subtle">nuanci</p>
           <h2 id="site-notice-title" className="mt-2 font-pixel-title text-[24px] leading-[1.25]">
             {notices[notice].title}

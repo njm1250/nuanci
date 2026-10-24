@@ -24,11 +24,11 @@ import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 
 function Num({ n, dark = false }: { n: number; dark?: boolean }) {
-  return <span className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] ${dark ? "bg-paper text-ink" : "bg-ink text-paper"}`}>{n}</span>;
+  return <span className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] ${dark ? "bg-card text-ink" : "bg-ink text-paper"}`}>{n}</span>;
 }
 
 function MineBadge({ dark }: { dark: boolean }) {
-  return <span className={`shrink-0 px-1.5 py-1 font-pixel-title text-[12px] leading-none ${dark ? "bg-paper text-ink" : "bg-ink text-paper"}`}>내 선택</span>;
+  return <span className={`shrink-0 px-1.5 py-1 font-pixel-title text-[12px] leading-none ${dark ? "bg-card text-ink" : "bg-ink text-paper"}`}>내 선택</span>;
 }
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
