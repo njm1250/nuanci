@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useAvatar } from "@/features/avatar/avatar";
 import { bookEntry } from "@/features/collection/pairs";
 import { Mascot } from "@/features/mascot/mascot";
+import { useHeroLook } from "@/features/rewards/hero-look";
+import { RewardReveal } from "@/features/rewards/reward-reveal";
+import { usePendingRewards, useRewards, type RewardItem } from "@/features/rewards/rewards";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 무대를 늦게 불러오지 않는다
 import { PixelStage as Stage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
@@ -179,7 +181,23 @@ function Arrow() {
 }
 
 // 장면을 끝낸 뒤의 완료 화면. 이번에 모은 표현을 먼저 크게 보여주고, 그다음 친구에게 문제 내기를 권한다
-function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () => void; shareState: "idle" | "copied" | "failed"; onBack: () => void }) {
+function WrapUp({
+  scene,
+  share,
+  shareState,
+  onBack,
+  granted,
+  reduced,
+  onRewardShown,
+}: {
+  scene: Scene;
+  share: () => void;
+  shareState: "idle" | "copied" | "failed";
+  onBack: () => void;
+  granted: RewardItem[];
+  reduced: boolean;
+  onRewardShown: (ids: string[]) => void;
+}) {
   const { pairs } = bookEntry(scene);
   return (
     <div className="animate-[rise_240ms_ease-out]">
@@ -190,6 +208,12 @@ function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () 
           <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{scene.title}</p>
         </div>
       </div>
+      {/* 새로 얻은 물건이 있으면 완료 제목 바로 아래에서 보여주고, 그 자리에서 쓰게 한다 */}
+      {granted.length > 0 && (
+        <div className="mt-5">
+          <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} />
+        </div>
+      )}
       <p className="mt-4 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
 
       <div className="blk-frame mt-5">
@@ -259,10 +283,12 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   }, [scene.id, scene.version, attemptId, preview]);
 
   const f = useSceneFlow(scene, send);
-  const avatar = useAvatar();
+  const look = useHeroLook();
+  const rewards = useRewards();
+  const granted = usePendingRewards(scene.id);
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
-  const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=1`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
+  const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
     send({ type: "share_link_copied" }),
   );
   const [showMeaning, setShowMeaning] = useState(false);
@@ -275,11 +301,13 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const stageKey = f.reactionKey * 10 + (later ? 1 : 0) + (wrapped ? 5 : 0);
   const stageSituation = later ? scene.followUp : scene.base;
 
+  // 쓰고 있는 아이템 목록은 렌더마다 새로 만들어져서, 내용이 바뀔 때만 무대를 다시 계산하도록 문자열로 비교한다
+  const wearKey = JSON.stringify(look.wear);
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
     // 주인공은 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
-    return { ...base, hero: avatar.hero, accessory: avatar.accessory ?? undefined, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
-  }, [stageSituation, stageChoice, avatar]);
+    return { ...base, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
+  }, [stageSituation, stageChoice, look.hero, wearKey]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -315,6 +343,16 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     setWrapped(true);
   };
 
+  // 새 아이템을 쓴 채로 완료 화면에 오면 주인공이 손뼉을 치며 바로 써 본다
+  const celebrate = wrapped && granted.some((i) => i.kind === "wear" && look.isWorn(i.id));
+  // 새로 얻은 물건을 계속 쓰거나 둔 채로 다음 장면에 가는지 지표로 남긴다
+  const keptNew = granted.filter((i) => (i.kind === "wear" ? look.isWorn(i.id) : look.placed.includes(i.id)));
+  const wearingNew = keptNew.some((i) => i.kind === "wear");
+  const goNext = () => {
+    send({ type: "next_clicked" });
+    keptNew.forEach((i) => send({ type: "reward_equipped", choiceId: i.id }));
+  };
+
   const burst = stageChoice ? BURSTS[stageChoice.expression] : null;
   const stepPicks = stats?.[later ? "followUp" : "base"];
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
@@ -337,7 +375,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 spec={spec}
                 reduced={reduced}
                 state={{
-                  meMotion: stageChoice?.meMotion ?? stageSituation.meIdle?.motion,
+                  meMotion: celebrate ? "clap" : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
                   meKey: stageKey,
                   meProp: stageChoice?.meProp ?? stageSituation.meIdle?.prop,
                   partnerProp: stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
@@ -382,7 +420,16 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </div>
             </Panel>
           ) : wrapped ? (
-            <WrapUp key="wrap" scene={scene} share={share} shareState={shareState} onBack={() => setWrapped(false)} />
+            <WrapUp
+              key="wrap"
+              scene={scene}
+              share={share}
+              shareState={shareState}
+              onBack={() => setWrapped(false)}
+              granted={granted}
+              reduced={reduced}
+              onRewardShown={(ids) => ids.forEach((id) => send({ type: "reward_shown", choiceId: id }))}
+            />
           ) : !choice ? (
             <div key={`ask-${phase}`}>
               <p className="font-pixel text-[15px] leading-[1.6] text-paper-muted">{situation.context}</p>
@@ -481,8 +528,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </BlockButton>
             ) : f.done ? (
               next ? (
-                <BlockLink href={`/scenes/${next.number}`} entry="next" gold onClick={() => send({ type: "next_clicked" })}>
-                  다음 장면
+                <BlockLink href={`/scenes/${next.number}`} entry="next" gold onClick={goNext}>
+                  {wearingNew ? "쓰고 다음 장면" : "다음 장면"}
                 </BlockLink>
               ) : (
                 <BlockLink href="/" gold>

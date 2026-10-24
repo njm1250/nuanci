@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { contactHref, useNotice } from "@/features/landing/site-footer";
-import { earnedRewards } from "@/features/rewards/rewards";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { toggleSound, useSoundEnabled } from "@/features/scene/sfx";
@@ -46,9 +45,7 @@ function Stat({ href, label, value }: { href: string; label: string; value: stri
 // 맨 위 프로필. 비로그인이면 로그인하면 얻는 것을 구체적으로 보여주고 구글 로그인으로 보낸다
 function Profile() {
   const account = useAccount();
-  const cleared = useCleared();
   const notice = useSyncExternalStore(noop, () => new URLSearchParams(location.search).get("login"), () => null);
-  const waiting = earnedRewards(cleared).length;
 
   if (account.status === "loading") {
     return (
@@ -89,10 +86,7 @@ function Profile() {
           </li>
           <li className="flex gap-2">
             <span className="text-ink">·</span>
-            <span>
-              얻은 아이템으로 주인공과 아지트를 꾸며요
-              {waiting > 0 && <span className="ml-1 font-semibold text-ink">· {waiting}개 얻음</span>}
-            </span>
+            <span>꾸민 주인공과 모은 물건이 계정에 남아요</span>
           </li>
         </ul>
         <GoogleButton next="/me" enabled={account.google} />

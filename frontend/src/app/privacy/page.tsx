@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Contact, LegalPage } from "@/features/legal/legal-page";
 
-export const metadata: Metadata = { title: "개인정보처리방침 · nuanci" };
+export const metadata: Metadata = { title: "개인정보처리방침 · nuanci", alternates: { canonical: "/privacy" } };
 
 export default function PrivacyPage() {
   const email = process.env.CONTACT_EMAIL;

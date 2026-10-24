@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 data class EventRequest(
-	@field:Pattern(regexp = "home_viewed|scene_viewed|choice_selected|alternative_viewed|scene_completed|wrap_viewed|next_clicked|share_link_copied")
+	@field:Pattern(regexp = "home_viewed|scene_viewed|choice_selected|alternative_viewed|scene_completed|wrap_viewed|next_clicked|share_link_copied|reward_shown|reward_equipped")
 	val type: String,
 	@field:Size(min = 1, max = 100)
 	val sceneId: String? = null,
