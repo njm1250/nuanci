@@ -28,7 +28,7 @@ export function SiteFooter({ contactEmail }: { contactEmail?: string }) {
     dialog.current?.showModal();
   }
 
-  const linkClass = "inline-flex min-h-11 items-center rounded-sm px-2 text-[13px] transition-colors hover:text-gold";
+  const linkClass = "inline-flex min-h-11 items-center px-2 text-[13px] transition-colors hover:text-gold";
 
   return (
     <footer className="mx-4 mt-auto border-t border-slate-block pb-6 pt-3 md:mx-0 md:mt-6 md:flex md:items-center md:justify-between md:gap-4 md:pb-0 md:pt-4">
@@ -62,15 +62,21 @@ export function SiteFooter({ contactEmail }: { contactEmail?: string }) {
         onClick={(event) => {
           if (event.target === event.currentTarget) dialog.current?.close();
         }}
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[400px] overflow-y-auto border-2 border-slate-block bg-night p-0 text-paper shadow-2xl backdrop:bg-night-deep/80"
+        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[400px] overflow-visible bg-transparent p-0 text-ink backdrop:bg-night-deep/80"
       >
-        <div className="p-6">
-          <p className="font-pixel text-[15px] text-gold">nuanci</p>
-          <h2 id="site-notice-title" className="mt-4 text-[20px] font-semibold tracking-tight">{notices[notice].title}</h2>
-          <p id="site-notice-description" className="mt-3 text-[14px] leading-7 text-paper-muted">{notices[notice].description}</p>
-          <button type="button" onClick={() => dialog.current?.close()} className="mt-6 flex min-h-11 w-full items-center justify-center border border-slate-block bg-slate-block px-4 text-[14px] font-semibold transition-colors hover:bg-paper hover:text-ink">
-            닫기
-          </button>
+        <div className="blk-frame">
+          <div className="blk bg-paper p-5">
+            <p className="font-pixel text-[15px] text-ink-subtle">nuanci</p>
+            <h2 id="site-notice-title" className="mt-2 font-pixel-title text-[24px] leading-[1.25]">
+              {notices[notice].title}
+            </h2>
+            <p id="site-notice-description" className="mt-3 text-[14px] leading-relaxed text-ink-muted">
+              {notices[notice].description}
+            </p>
+            <button type="button" onClick={() => dialog.current?.close()} className="blk-btn mt-5 block w-full">
+              <span className="blk block bg-cream px-3 py-3 text-center font-pixel text-[15px] text-ink">닫기</span>
+            </button>
+          </div>
         </div>
       </dialog>
     </footer>
