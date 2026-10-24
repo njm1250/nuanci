@@ -11,7 +11,7 @@ import java.time.Instant
 data class SaveResult(val id: String, val version: Int, val created: Boolean, val changed: Boolean, val warnings: List<String>)
 
 // 장면 JSON을 검사해 DB에 저장한다. 내용이 바뀐 경우에만 새 버전을 쌓아서 예전 이벤트가 당시 버전을 가리키게 한다.
-// 공개 상태는 DB 컬럼이 원본이라 저장하는 JSON에서는 뺀다
+// 공개 상태와 목록 순서는 관리자 화면에서 바꾸는 DB 컬럼이 원본이라 저장하는 JSON에서는 빼고, JSON 값은 새 장면을 만들 때만 쓴다
 @Service
 class SceneStore(
 	private val mapper: JsonMapper,
@@ -23,7 +23,7 @@ class SceneStore(
 		validate(node)
 		val id = node.path("id").asString()
 		val existing = scenes.findById(id).orElse(null)
-		val stored = (node.deepCopy() as ObjectNode).also { it.remove("status") }
+		val stored = (node.deepCopy() as ObjectNode).also { it.remove(listOf("status", "order")) }
 		val json = mapper.writeValueAsString(stored)
 		val hash = sha256(json)
 		val latest = existing?.let { latest(it) }
@@ -33,10 +33,9 @@ class SceneStore(
 		if (dryRun) return result
 
 		val now = Instant.now()
-		val scene = existing ?: Scene(id, 0, "", node.path("status").asString(SceneStatus.DRAFT), 0, version, now)
+		val scene = existing ?: Scene(id, 0, "", node.path("status").asString(SceneStatus.DRAFT), node.path("order").asInt(0).takeIf { it > 0 } ?: nextOrder(), version, now)
 		scene.number = node.path("number").asInt()
 		scene.title = node.path("title").asString()
-		scene.sortOrder = node.path("order").asInt()
 		scene.currentVersion = version
 		scene.updatedAt = now
 		scenes.saveAndFlush(scene)
@@ -52,7 +51,16 @@ class SceneStore(
 		scene.updatedAt = Instant.now()
 	}
 
-	fun content(scene: Scene): ObjectNode = read(latest(scene)).put("status", scene.status)
+	// 장면 전체의 목록 순서를 주어진 id 순서대로 다시 매긴다. 빠지거나 겹친 장면이 있으면 거부한다
+	@Transactional
+	fun reorder(ids: List<String>) {
+		val all = scenes.findAll().associateBy { it.id }
+		require(ids.size == ids.toSet().size) { "같은 장면이 두 번 들어 있어요" }
+		require(ids.toSet() == all.keys) { "모든 장면의 순서를 한 번에 보내야 해요" }
+		ids.forEachIndexed { i, id -> all.getValue(id).sortOrder = i + 1 }
+	}
+
+	fun content(scene: Scene): ObjectNode = read(latest(scene)).put("status", scene.status).put("order", scene.sortOrder)
 
 	fun read(version: SceneVersion): ObjectNode = upgrade(mapper.readTree(version.content) as ObjectNode).put("version", version.version)
 
@@ -100,6 +108,8 @@ class SceneStore(
 		}
 		return content
 	}
+
+	private fun nextOrder() = (scenes.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1
 
 	private fun sha256(text: String): String =
 		MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }

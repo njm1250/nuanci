@@ -148,4 +148,27 @@ class AdminApiTest {
 			jsonPath("$.warnings") { isEmpty() }
 		}
 	}
+
+	@Test
+	fun `관리자가 바꾼 순서는 JSON을 다시 올려도 유지된다`() {
+		val token = mvc.adminToken()
+		val ids = scenes.findAll().sortedBy { it.sortOrder }.map { it.id }
+		val reordered = listOf("file-request") + ids.filter { it != "file-request" }
+		mvc.put("/api/admin/scene-order") {
+			header("Authorization", "Bearer $token")
+			contentType = MediaType.APPLICATION_JSON
+			content = mapper.writeValueAsString(mapOf("ids" to reordered))
+		}.andExpect { status { isNoContent() } }
+		mvc.get("/api/scenes").andExpect { jsonPath("$[0].id") { value("file-request") } }
+
+		putScene("file-request", Files.readString(CONTENT_DIR.resolve("file-request.json")).replace("\"order\": 15", "\"order\": 99"), token).andExpect { status { isOk() } }
+		mvc.get("/api/scenes").andExpect { jsonPath("$[0].id") { value("file-request") } }
+		mvc.get("/api/admin/scenes/file-request") { header("Authorization", "Bearer $token") }.andExpect { jsonPath("$.order") { value(1) } }
+
+		mvc.put("/api/admin/scene-order") {
+			header("Authorization", "Bearer $token")
+			contentType = MediaType.APPLICATION_JSON
+			content = mapper.writeValueAsString(mapOf("ids" to reordered.drop(1)))
+		}.andExpect { status { isBadRequest() } }
+	}
 }

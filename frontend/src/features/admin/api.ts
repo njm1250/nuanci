@@ -9,6 +9,7 @@ export type AdminScene = {
   number: number;
   title: string;
   status: "draft" | "published" | "hidden";
+  order: number;
   version: number;
   updatedAt: string;
   warnings: string[];
