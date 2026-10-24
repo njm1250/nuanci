@@ -6,6 +6,15 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*"],
   // 개발 모드 배지가 화면 하단 버튼을 가려서 끈다
   devIndicators: false,
+  // 예전 주소와 www로 들어오면 대표 주소로 보낸다. 이미 공유된 링크도 그대로 열린다
+  async redirects() {
+    return ["nuanci.vercel.app", "www.nuanci.app"].map((host) => ({
+      source: "/:path*",
+      has: [{ type: "host" as const, value: host }],
+      destination: "https://nuanci.app/:path*",
+      permanent: true,
+    }));
+  },
   // /api 요청을 BE로 프록시해서 브라우저 입장에서는 같은 출처로 보이게 한다 (CORS 불필요)
   async rewrites() {
     return [

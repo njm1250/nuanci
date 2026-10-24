@@ -36,14 +36,16 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # API 도메인으로 HTTPS 인증서를 자동으로 받아 BE로 넘긴다
+  # API 도메인으로 HTTPS 인증서를 자동으로 받아 BE로 넘긴다 (설정은 Caddyfile)
   caddy:
     image: caddy:2
-    command: caddy reverse-proxy --from ${API_DOMAIN:?API_DOMAIN이 필요해요} --to backend:8080
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?API_DOMAIN이 필요해요}
     ports:
       - "80:80"
       - "443:443"
     volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
     depends_on:
       - backend
