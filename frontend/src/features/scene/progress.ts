@@ -53,3 +53,12 @@ export function nextUncleared<T extends { id: string }>(order: T[], cleared: str
   const rest = [...order.slice(start), ...order.slice(0, start)];
   return rest.find((s) => s.id !== after && !cleared.includes(s.id)) ?? null;
 }
+
+// 장면을 끝낸 뒤 갈 곳. 안 해 본 장면이 있으면 그쪽으로, 모두 해 봤다면(다시 하기 중) 순서대로 다음 장면으로 간다.
+// 마지막 장면까지 다시 해 봤으면 null
+export function nextScene<T extends { id: string }>(order: T[], cleared: string[], current: string) {
+  const uncleared = nextUncleared(order, cleared, current);
+  if (uncleared) return uncleared;
+  const i = order.findIndex((s) => s.id === current);
+  return i >= 0 && i < order.length - 1 ? order[i + 1] : null;
+}

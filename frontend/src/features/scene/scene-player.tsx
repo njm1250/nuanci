@@ -12,7 +12,7 @@ import { shuffleChoices } from "./choice-order";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import type { Choice, ChoiceKind, Expression, Scene } from "./types";
-import { markCleared, nextUncleared, useCleared } from "./progress";
+import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
 import { useCopyLink, useReducedMotion, useSceneFlow } from "./use-scene-flow";
 
@@ -118,7 +118,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     track({ ...e, sceneId: scene.id, sceneVersion: scene.version, attemptId });
   };
   const cleared = useCleared();
-  const next = nextUncleared(order, cleared, scene.id);
+  const next = nextScene(order, cleared, scene.id);
   const viewedSent = useRef(false);
   useEffect(() => {
     if (preview || viewedSent.current) return;
@@ -155,17 +155,19 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     f.pick(c.id);
   };
 
-  // 반응이 어이없을수록 무대를 세게 흔든다. 아주 짧게 멈췄다 흔들어 맞은 느낌을 낸다
+  // 흔들림은 드물게 나오는 과장된 동작(장면당 1~2번)에만 써서 놀람을 살린다.
+  // 어이없는 반응은 효과음 글자와 소리만, 좋은 반응은 무대가 살짝 통통 튀게 한다
   const stage = useRef<HTMLDivElement>(null);
   const gag = choice ? GAG_MOTIONS.includes(choice.motion) : false;
   const burst = choice ? BURSTS[choice.expression] : null;
   useEffect(() => {
     if (!choice || reduced || !stage.current) return;
-    const strong = gag || choice.expression === "dizzy";
-    const keyframes = !BURSTS[choice.expression].bad
-      ? [{ scale: 1 }, { scale: 1.025 }, { scale: 1 }]
-      : (strong ? [0, -9, 8, -6, 5, -3, 0] : [0, -5, 5, -3, 2, 0]).map((x, i) => ({ translate: `${x}px ${i % 2 ? 2 : -1}px` }));
-    stage.current.animate(keyframes, { duration: strong ? 420 : 300, delay: 70, easing: "ease-out" });
+    if (gag) {
+      const keyframes = [0, -6, 5, -4, 3, -1, 0].map((x, i) => ({ translate: `${x}px ${i % 2 ? 1 : -1}px` }));
+      stage.current.animate(keyframes, { duration: 320, delay: 70, easing: "ease-out" });
+    } else if (!BURSTS[choice.expression].bad) {
+      stage.current.animate([{ scale: 1 }, { scale: 1.02 }, { scale: 1 }], { duration: 220, delay: 70, easing: "ease-out" });
+    }
   }, [f.reactionKey, choice, gag, reduced]);
 
   return (

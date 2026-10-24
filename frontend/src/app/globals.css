@@ -132,9 +132,10 @@ body {
   }
 }
 
+/* 과장된 동작에만 쓰는 옅은 번쩍임. 넓은 면적이 확 밝아지지 않게 30%로 둔다 */
 @keyframes flash {
   from {
-    opacity: 0.85;
+    opacity: 0.3;
   }
   to {
     opacity: 0;
