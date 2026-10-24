@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { contactHref, useNotice } from "@/features/landing/site-footer";
-import { earnedRewards, REWARDS } from "@/features/rewards/rewards";
+import { earnedRewards } from "@/features/rewards/rewards";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { toggleSound, useSoundEnabled } from "@/features/scene/sfx";
@@ -48,7 +48,7 @@ function Profile() {
   const account = useAccount();
   const cleared = useCleared();
   const notice = useSyncExternalStore(noop, () => new URLSearchParams(location.search).get("login"), () => null);
-  const waiting = earnedRewards(cleared, false).length;
+  const waiting = earnedRewards(cleared).length;
 
   if (account.status === "loading") {
     return (
@@ -61,7 +61,7 @@ function Profile() {
     return (
       <Panel>
         <div className="p-4">
-          {notice === "1" && <p className="mb-3 text-[13px] text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합치고 가입 선물을 아지트에 놓았어요.</p>}
+          {notice === "1" && <p className="mb-3 text-[13px] text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합쳤어요.</p>}
           <div className="flex items-center gap-3">
             {account.me.picture ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -90,12 +90,9 @@ function Profile() {
           <li className="flex gap-2">
             <span className="text-ink">·</span>
             <span>
-              받은 물건이 아지트에 놓여요
-              {waiting > 0 && <span className="ml-1 font-semibold text-ink">지금 {waiting}개가 기다리는 중</span>}
+              장면에서 얻은 아이템으로 주인공을 꾸미고 아지트에 둘 수 있어요
+              {waiting > 0 && <span className="ml-1 font-semibold text-ink">지금 {waiting}개를 얻었어요</span>}
             </span>
-          </li>
-          <li className="flex gap-2">
-            <span className="text-ink">·</span>가입 선물로 고양이 쿠션을 드려요
           </li>
         </ul>
         <GoogleButton next="/me" enabled={account.google} />
@@ -111,12 +108,11 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
   const cleared = useCleared();
   const sound = useSoundEnabled();
   const member = account.status === "member";
-  const placed = member ? earnedRewards(cleared, true).length : 0;
   const { open, element } = useNotice();
   const [busy, setBusy] = useState(false);
 
   const remove = async () => {
-    if (!window.confirm("계정을 지우면 계정에 저장한 기록과 아지트가 모두 사라져요. 이 기기에 남은 기록은 그대로예요. 지울까요?")) return;
+    if (!window.confirm("계정을 지우면 계정에 저장한 기록과 꾸민 모습이 모두 사라져요. 이 기기에 남은 기록은 그대로예요. 지울까요?")) return;
     setBusy(true);
     await deleteAccount();
     setBusy(false);
@@ -127,12 +123,21 @@ export function MePanel({ total, contactEmail }: { total: number; contactEmail?:
       <Profile />
 
       <Panel>
-        <div className="grid grid-cols-3 divide-x-2 divide-ink/10">
+        <div className="grid grid-cols-2 divide-x-2 divide-ink/10">
           <Stat href="/scenes" label="해 본 장면" value={`${cleared.length}/${total}`} />
           <Stat href="/expressions" label="표현 모음" value={`${cleared.length * PAIRS_PER_SCENE}`} />
-          <Stat href="/me/room" label="아지트 물건" value={`${placed}/${REWARDS.length}`} />
         </div>
       </Panel>
+
+      <Link href="/me/room" className="blk-btn block">
+        <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
+          <span>
+            <span className="block font-pixel text-[15px]">아지트</span>
+            <span className="block text-[13px] text-paper-subtle">주인공을 꾸미고 얻은 물건을 둬요</span>
+          </span>
+          <Arrow />
+        </span>
+      </Link>
 
       <Section title="설정">
         <div className={rowClass}>

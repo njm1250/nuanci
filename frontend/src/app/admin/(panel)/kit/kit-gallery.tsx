@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Panel } from "@/features/scene/block-ui";
 import type { Expression, Motion } from "@/features/scene/types";
-import { EXPRESSIONS, GAG_MOTIONS, MOTIONS, PARTNER_IDS, PROP_IDS, SET_IDS } from "@/features/stage/catalog";
+import { ACCESSORY_IDS, EXPRESSIONS, GAG_MOTIONS, MOTIONS, PARTNER_IDS, PROP_IDS, SET_IDS } from "@/features/stage/catalog";
 import { Stage } from "@/features/stage/stage";
-import type { CastId, Hero, PropId, SetId, Time } from "@/features/stage/types";
+import type { AccessoryId, CastId, Hero, PropId, SetId, Time } from "@/features/stage/types";
 
 function Pick<T extends string>({ label, value, options, onChange, mark }: { label: string; value: T | ""; options: readonly T[]; onChange: (v: T | "") => void; mark?: readonly string[] }) {
   return (
@@ -28,6 +28,7 @@ export function KitGallery() {
   const [set, setSet] = useState<SetId>("dining");
   const [time, setTime] = useState<Time>("day");
   const [hero, setHero] = useState<Hero>("boy");
+  const [accessory, setAccessory] = useState<AccessoryId | "">("");
   const [partner, setPartner] = useState<CastId>("sam");
   const [motion, setMotion] = useState<Motion | "">("idle");
   const [expression, setExpression] = useState<Expression | "">("");
@@ -52,7 +53,7 @@ export function KitGallery() {
       <Panel>
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           <Stage
-            spec={{ set, time, partner, hero }}
+            spec={{ set, time, partner, hero, accessory: accessory || undefined }}
             state={{
               partnerMotion: motion || "idle",
               partnerKey: key,
@@ -71,6 +72,7 @@ export function KitGallery() {
         <Pick label="무대 set" value={set} options={SET_IDS} onChange={(v) => v && setSet(v)} />
         <Pick label="시간 time" value={time} options={["day", "evening"] as const} onChange={(v) => v && setTime(v)} />
         <Pick label="주인공 hero" value={hero} options={["boy", "girl"] as const} onChange={(v) => v && setHero(v)} />
+        <Pick label="주인공 아이템" value={accessory} options={ACCESSORY_IDS} onChange={setAccessory} />
         <Pick label="상대 partner" value={partner} options={PARTNER_IDS} onChange={(v) => v && setPartner(v)} />
         <Pick label="상대 동작 motion" value={motion} options={MOTIONS} mark={GAG_MOTIONS} onChange={(v) => (setMotion(v), replay())} />
         <Pick label="표정 expression" value={expression} options={EXPRESSIONS} onChange={(v) => (setExpression(v), replay())} />

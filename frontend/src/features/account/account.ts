@@ -3,8 +3,9 @@
 import { useSyncExternalStore } from "react";
 import { currentCleared, mergeCleared, onCleared } from "@/features/scene/progress";
 import { visitorId } from "@/features/scene/track";
+import { adoptAvatar, type Avatar } from "@/features/avatar/avatar";
 
-export type Me = { name: string | null; email: string | null; picture: string | null; cleared: string[] };
+export type Me = { name: string | null; email: string | null; picture: string | null; cleared: string[]; avatar: Avatar | null };
 
 export type AccountState = { status: "loading" | "guest" | "member"; me: Me | null; google: boolean };
 
@@ -38,6 +39,7 @@ export async function loadAccount() {
   ]);
   if (!me) return set({ status: "guest", me: null, google: providers.google });
   mergeCleared(me.cleared);
+  adoptAvatar(me.avatar);
   const synced = await fetch("/api/me/sync", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -6,7 +6,7 @@ import * as THREE from "three";
 import type { Motion } from "@/features/scene/types";
 import { targetPose } from "./pose";
 import { C } from "./palette";
-import { Box, Gem, Mat } from "./primitives";
+import { Box, Cyl, Gem, Mat } from "./primitives";
 import { HeldProp } from "./props";
 import type { Look, Placement, PropId } from "./types";
 
@@ -176,6 +176,38 @@ export function Figure({
               </mesh>
             ))}
             {look.glasses && <Box size={[0.44, 0.03, 0.03]} at={[0, 0.06, 0.25]} color={C.ink} />}
+            {look.accessory === "cap" && (
+              <>
+                <Gem r={0.31} at={[0, 0.14, -0.02]} color={C.rust} scale={[1.08, 0.62, 1.08]} />
+                <Box size={[0.36, 0.04, 0.26]} at={[0, 0.12, 0.3]} color={C.rust} />
+              </>
+            )}
+            {look.accessory === "glasses" && (
+              <>
+                {[-1, 1].map((s) => (
+                  <Box key={s} size={[0.16, 0.13, 0.03]} at={[0.14 * s, 0.03, 0.27]} color="#e8b931" />
+                ))}
+                {[-1, 1].map((s) => (
+                  <Box key={`l${s}`} size={[0.1, 0.07, 0.035]} at={[0.14 * s, 0.03, 0.275]} color="#bfe3f2" />
+                ))}
+              </>
+            )}
+            {look.accessory === "headphones" && (
+              <>
+                <Box size={[0.66, 0.06, 0.1]} at={[0, 0.34, -0.02]} color={C.ink} />
+                {[-1, 1].map((s) => (
+                  <Box key={s} size={[0.1, 0.2, 0.18]} at={[0.31 * s, 0.02, 0]} color={C.teal} />
+                ))}
+              </>
+            )}
+            {look.accessory === "crown" && (
+              <>
+                <Cyl r={0.2} h={0.1} at={[0, 0.34, 0]} color="#e8b931" sides={8} />
+                {[-1, 0, 1].map((s) => (
+                  <Box key={s} size={[0.06, 0.1, 0.06]} at={[0.12 * s, 0.43, 0.12]} color="#e8b931" />
+                ))}
+              </>
+            )}
           </group>
         </group>
       </group>

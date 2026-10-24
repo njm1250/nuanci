@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAvatar } from "@/features/avatar/avatar";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
 import { Stage } from "@/features/stage/stage";
 import type { ReelBeat } from "./reel";
@@ -14,6 +15,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
   const reduced = useReducedMotion();
   const [step, setStep] = useState({ index: 0, said: false, n: 0 });
   const [paused, setPaused] = useState(false);
+  const avatar = useAvatar();
 
   useEffect(() => {
     if (reduced || paused || beats.length === 0) return;
@@ -31,7 +33,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
   return (
     <div className="absolute inset-0">
       <Stage
-        spec={beat.stage}
+        spec={{ ...beat.stage, hero: beat.stage.hero ?? avatar.hero, accessory: avatar.accessory ?? undefined }}
         reduced={reduced}
         state={{
           partnerMotion: said ? beat.motion : beat.partnerIdle,

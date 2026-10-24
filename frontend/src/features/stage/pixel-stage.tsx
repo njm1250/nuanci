@@ -173,7 +173,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
         <set.Scenery evening={evening} flags={flags} />
         <Figure
           placement={set.me}
-          look={CAST[HEROES[spec.hero ?? "boy"]]}
+          look={{ ...CAST[HEROES[spec.hero ?? "boy"]], accessory: spec.accessory }}
           motion={state?.meMotion ?? "idle"}
           motionKey={state?.meKey ?? 0}
           talkKey={state?.talkKey ?? 0}

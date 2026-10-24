@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAvatar } from "@/features/avatar/avatar";
 import { bookEntry } from "@/features/collection/pairs";
 import { Mascot } from "@/features/mascot/mascot";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 무대를 늦게 불러오지 않는다
@@ -258,6 +259,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   }, [scene.id, scene.version, attemptId, preview]);
 
   const f = useSceneFlow(scene, send);
+  const avatar = useAvatar();
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
   const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=1`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
@@ -275,8 +277,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
 
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
-    return { ...base, hero: scene.hero, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
-  }, [stageSituation, stageChoice, scene.hero]);
+    // 장면이 주인공 성별을 정하지 않았으면 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
+    return { ...base, hero: scene.hero ?? avatar.hero, accessory: avatar.accessory ?? undefined, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
+  }, [stageSituation, stageChoice, scene.hero, avatar]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {

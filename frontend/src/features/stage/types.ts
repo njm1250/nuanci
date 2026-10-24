@@ -3,12 +3,16 @@ export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag" | "mic" | 
 export type Time = "day" | "evening";
 export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong";
 
-// 주인공. 장면마다 남자(boy)나 여자(girl)를 고를 수 있고 기본은 남자다
+// 주인공. 장면이 정하지 않으면 사용자가 아지트에서 고른 쪽으로 나온다
 export type Hero = "boy" | "girl";
+
+// 주인공이 쓰는 꾸미기 아이템. 장면 내용에는 영향이 없고 겉모습만 바꾼다
+export type AccessoryId = "cap" | "glasses" | "headphones" | "crown";
 
 export type StageSpec = {
   set: SetId;
   hero?: Hero;
+  accessory?: AccessoryId;
   time: Time;
   partner: CastId;
   flags?: string[];
@@ -28,6 +32,7 @@ export type Look = {
   glasses?: boolean;
   apron?: string;
   tie?: string;
+  accessory?: AccessoryId;
   // 동물 캐릭터: 털색이 피부를 대신하고, 귀·꼬리·볼터치가 붙고, 머리가 커서 더 귀엽게 보인다
   animal?: { kind: "cat" | "bear" | "dog"; fur: string; inner: string };
 };

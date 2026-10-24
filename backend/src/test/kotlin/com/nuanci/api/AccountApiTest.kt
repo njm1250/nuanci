@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import java.util.UUID
@@ -83,6 +84,26 @@ class AccountApiTest {
 
 		// 다시 로그인해도 같은 계정이다
 		mvc.get("/api/me") { cookie(login()) }.andExpect { jsonPath("$.cleared.length()") { value(3) } }
+	}
+
+	@Test
+	fun `꾸민 모습을 계정에 저장하고 잘못된 값은 막는다`() {
+		val session = login()
+		mvc.get("/api/me") { cookie(session) }.andExpect { jsonPath("$.avatar") { doesNotExist() } }
+		mvc.put("/api/me/avatar") {
+			cookie(session)
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"hero":"girl","accessory":"crown"}"""
+		}.andExpect { status { isNoContent() } }
+		mvc.get("/api/me") { cookie(session) }.andExpect {
+			jsonPath("$.avatar.hero") { value("girl") }
+			jsonPath("$.avatar.accessory") { value("crown") }
+		}
+		mvc.put("/api/me/avatar") {
+			cookie(session)
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"hero":"cat","accessory":null}"""
+		}.andExpect { status { isBadRequest() } }
 	}
 
 	@Test
