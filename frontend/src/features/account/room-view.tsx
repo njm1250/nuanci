@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { setAvatar } from "@/features/avatar/avatar";
-import { putOn, takeOff, useHeroLook } from "@/features/rewards/hero-look";
+import { place, putOn, takeOff, useHeroLook } from "@/features/rewards/hero-look";
 import { RewardCard } from "@/features/rewards/reward-reveal";
 import { RewardIcon } from "@/features/rewards/reward-icon";
 import {
@@ -88,7 +88,7 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
 
   const setOn = (r: RewardItem, on: boolean) => {
     if (r.kind === "wear") return setAvatar(on ? putOn(avatar, r, items) : takeOff(avatar, r), member);
-    setAvatar({ ...avatar, hidden: on ? avatar.hidden.filter((id) => id !== r.id) : [...avatar.hidden, r.id] }, member);
+    setAvatar(place(avatar, look.placed, r.id, on), member);
   };
 
   // 안 쓰던 아이템은 누르면 바로 쓰고, 쓰고 있는 아이템은 처음 누르면 골라서 색을 바꿀 수 있게 하고 한 번 더 누르면 벗는다

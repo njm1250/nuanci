@@ -3,16 +3,18 @@
 import { useSyncExternalStore } from "react";
 import type { AccessoryId, Hero } from "@/features/stage/types";
 
-// wear는 쓰고 있는 아이템(머리·얼굴·목에 하나씩), hidden은 얻었지만 아지트에서 치워 둔 물건 id다. 얻은 물건은 기본으로 놓여 있다
-export type Avatar = { hero: Hero; wear: AccessoryId[]; hidden: string[] };
+// wear는 쓰고 있는 아이템(머리·얼굴·목에 하나씩), placed는 아지트에 둔 물건 id다. 얻어도 사용자가 쓰거나 두기 전에는 그대로 둔다.
+// placed가 없고 hidden이 있으면 얻은 물건이 모두 놓이던 때의 기록이라, 얻은 물건 중 hidden에 없는 것을 둔 것으로 본다
+export type Avatar = { hero: Hero; wear: AccessoryId[]; placed?: string[]; hidden?: string[] };
 
 const KEY = "nuanci.avatar";
-const DEFAULT: Avatar = { hero: "boy", wear: [], hidden: [] };
+const DEFAULT: Avatar = { hero: "boy", wear: [], placed: [] };
 
 // 아이템을 하나만 쓰던 때 저장한 accessory를 wear 목록으로 바꾼다
 function normalize(raw: Partial<Avatar> & { accessory?: AccessoryId | null }): Avatar {
   const { accessory, ...rest } = raw;
-  return { ...DEFAULT, ...rest, wear: rest.wear?.length ? rest.wear : accessory ? [accessory] : [] };
+  const legacy = rest.placed === undefined && rest.hidden !== undefined;
+  return { ...DEFAULT, ...rest, placed: legacy ? undefined : (rest.placed ?? []), wear: rest.wear?.length ? rest.wear : accessory ? [accessory] : [] };
 }
 const listeners = new Set<() => void>();
 let lastRaw: string | null = null;
@@ -50,7 +52,9 @@ export function currentAvatar() {
   return snapshot();
 }
 
-export function setAvatar(next: Avatar, saveToAccount: boolean) {
+export function setAvatar(value: Avatar, saveToAccount: boolean) {
+  const { hidden, ...next } = value.placed === undefined ? value : { ...value, hidden: undefined };
+  void hidden;
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
   } catch {}

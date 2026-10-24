@@ -343,11 +343,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     setWrapped(true);
   };
 
-  // 새 아이템을 쓴 채로 완료 화면에 오면 주인공이 손뼉을 치며 바로 써 본다
+  // 새 아이템을 써 보면 주인공이 손뼉을 친다
   const celebrate = wrapped && granted.some((i) => i.kind === "wear" && look.isWorn(i.id));
   // 새로 얻은 물건을 계속 쓰거나 둔 채로 다음 장면에 가는지 지표로 남긴다
   const keptNew = granted.filter((i) => (i.kind === "wear" ? look.isWorn(i.id) : look.placed.includes(i.id)));
-  const wearingNew = keptNew.some((i) => i.kind === "wear");
   const goNext = () => {
     send({ type: "next_clicked" });
     keptNew.forEach((i) => send({ type: "reward_equipped", choiceId: i.id }));
@@ -529,7 +528,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             ) : f.done ? (
               next ? (
                 <BlockLink href={`/scenes/${next.number}`} entry="next" gold onClick={goNext}>
-                  {wearingNew ? "쓰고 다음 장면" : "다음 장면"}
+                  다음 장면
                 </BlockLink>
               ) : (
                 <BlockLink href="/" gold>

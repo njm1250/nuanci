@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAccount } from "@/features/account/account";
-import { currentAvatar, setAvatar, useAvatar } from "@/features/avatar/avatar";
+import { setAvatar, useAvatar } from "@/features/avatar/avatar";
 import { sfx } from "@/features/scene/sfx";
-import { putOn, takeOff } from "./hero-look";
+import { place, putOn, takeOff, useHeroLook } from "./hero-look";
 import { RewardIcon } from "./reward-icon";
 import { COLOR_HEX, COLOR_LABELS, isUnopened, markRewardsSeen, ownedReason, setRewardColor, useRewards, type RewardItem } from "./rewards";
 
@@ -31,12 +31,10 @@ function Check() {
   );
 }
 
-// 완료 화면에 뜨는 새 물건 카드들. 얻자마자 쓰고(방 물건은 바로 놓이고) 색을 고르면 무대 위 주인공에 바로 보인다.
+// 완료 화면에 뜨는 새 물건 카드들. 처음에는 쓰지도 두지도 않은 상태로 보여주고, 쓰기·방에 두기를 누르면 무대에 바로 보인다.
 // 깜짝 상자는 직접 열어야 보이고, 열지 않고 넘어가도 아지트에 닫힌 채로 남는다
 export function RewardReveal({ items, sceneTitle, reduced, onShown }: { items: RewardItem[]; sceneTitle: string; reduced: boolean; onShown: (ids: string[]) => void }) {
-  const account = useAccount();
   const rewards = useRewards();
-  const member = account.status === "member";
   const shown = useRef(false);
 
   useEffect(() => {
@@ -45,16 +43,9 @@ export function RewardReveal({ items, sceneTitle, reduced, onShown }: { items: R
     onShown(items.map((i) => i.id));
     const ready = items.filter((i) => !isUnopened(i));
     markRewardsSeen(ready.map((i) => i.id));
-    // 쓰는 아이템은 얻는 즉시 쓴다. 같은 자리에 쓰던 것은 벗는다
-    let next = currentAvatar();
-    for (const item of ready) {
-      if (item.kind === "wear") next = putOn(next, item, rewards.items);
-      else next = { ...next, hidden: next.hidden.filter((id) => id !== item.id) };
-    }
-    setAvatar(next, member);
     // 팡파르가 끝날 즈음 카드가 들어오고, 아이콘이 튀어나오는 순간에 반짝 소리를 맞춘다
     if (ready.length > 0) sfx.reward((ENTER_DELAY + POP_AFTER) / 1000);
-  }, [items, rewards, member, onShown]);
+  }, [items, rewards, onShown]);
 
   return (
     <div className="space-y-4">
@@ -94,7 +85,8 @@ export function RewardCard({
   const [shaking, setShaking] = useState(false);
   const owned = item.owned!;
   const all = rewards?.items ?? [];
-  const on = item.kind === "wear" ? (avatar.wear as string[]).includes(item.id) : !avatar.hidden.includes(item.id);
+  const look = useHeroLook();
+  const on = item.kind === "wear" ? look.isWorn(item.id) : look.placed.includes(item.id);
 
   const open = () => {
     const reveal = () => {
@@ -104,7 +96,6 @@ export function RewardCard({
       setOpened(true);
       onOpened?.(item.id);
       markRewardsSeen([item.id]);
-      setAvatar({ ...currentAvatar(), hidden: currentAvatar().hidden.filter((id) => id !== item.id) }, member);
     };
     if (reduced) return reveal();
     setShaking(true);
@@ -113,14 +104,10 @@ export function RewardCard({
 
   const toggle = () => {
     if (item.kind === "wear") return setAvatar(on ? takeOff(avatar, item) : putOn(avatar, item, all), member);
-    setAvatar({ ...avatar, hidden: on ? [...avatar.hidden, item.id] : avatar.hidden.filter((id) => id !== item.id) }, member);
+    setAvatar(place(avatar, look.placed, item.id, !on), member);
   };
 
-  // 색을 고르면 그 아이템을 쓰고 있지 않았어도 바로 쓴다
-  const pickColor = (color: (typeof item.colors)[number]) => {
-    setRewardColor(item.id, color);
-    if (!on) setAvatar(putOn(avatar, item, all), member);
-  };
+  const pickColor = (color: (typeof item.colors)[number]) => setRewardColor(item.id, color);
 
   const enter = reduced ? undefined : { animation: `rise 260ms ease-out ${delay}ms both` };
 
