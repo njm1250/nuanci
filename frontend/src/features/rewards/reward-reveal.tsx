@@ -9,6 +9,10 @@ import { putOn, takeOff } from "./hero-look";
 import { RewardIcon } from "./reward-icon";
 import { COLOR_HEX, COLOR_LABELS, isUnopened, markRewardsSeen, ownedReason, setRewardColor, useRewards, type RewardItem } from "./rewards";
 
+// 완료 화면의 팡파르(0.75초부터 약 0.4초) 뒤에 카드가 들어오도록 늦춘다. 아이콘은 카드가 자리 잡은 뒤 튀어나온다
+const ENTER_DELAY = 950;
+const POP_AFTER = 180;
+
 const SPARKS = [
   [-44, -30],
   [40, -36],
@@ -48,20 +52,24 @@ export function RewardReveal({ items, sceneTitle, reduced, onShown }: { items: R
       else next = { ...next, hidden: next.hidden.filter((id) => id !== item.id) };
     }
     setAvatar(next, member);
-    if (ready.length > 0) sfx.reward(1.5);
+    // 팡파르가 끝날 즈음 카드가 들어오고, 아이콘이 튀어나오는 순간에 반짝 소리를 맞춘다
+    if (ready.length > 0) sfx.reward((ENTER_DELAY + POP_AFTER) / 1000);
   }, [items, rewards, member, onShown]);
 
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} />
+        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} delay={ENTER_DELAY} />
       ))}
     </div>
   );
 }
 
 // 새 물건 카드 하나. 열지 않은 상자면 상자부터 보여주고, 열면 안에 든 물건을 바로 쓰거나 둔다
-export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sceneTitle?: string; reduced: boolean }) {
+export function RewardCard({ item, sceneTitle, reduced, delay: enterDelay = 0 }: { item: RewardItem; sceneTitle?: string; reduced: boolean; delay?: number }) {
+  // 상자를 연 순간에는 기다리지 않고 바로 튀어나온다
+  const [opened, setOpened] = useState(false);
+  const delay = opened ? 0 : enterDelay;
   const avatar = useAvatar();
   const rewards = useRewards();
   const account = useAccount();
@@ -76,6 +84,7 @@ export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sc
       sfx.boxOpen();
       sfx.reward(0.05);
       setShaking(false);
+      setOpened(true);
       markRewardsSeen([item.id]);
       setAvatar({ ...currentAvatar(), hidden: currentAvatar().hidden.filter((id) => id !== item.id) }, member);
     };
@@ -95,12 +104,14 @@ export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sc
     if (!on) setAvatar(putOn(avatar, item, all), member);
   };
 
+  const enter = reduced ? undefined : { animation: `rise 260ms ease-out ${delay}ms both` };
+
   if (isUnopened(item)) {
     return (
-      <div className="blk-frame animate-[rise_240ms_ease-out]">
-        <div className="blk flex items-center gap-4 bg-gold px-4 py-4 text-ink">
-          <div className={`grid size-20 shrink-0 place-items-center bg-cream ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
-            <RewardIcon id="box" size={56} />
+      <div className="blk-frame" style={enter}>
+        <div className="blk flex items-center gap-3 bg-gold px-3 py-3 text-ink">
+          <div className={`grid size-16 shrink-0 place-items-center bg-cream ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
+            <RewardIcon id="box" size={44} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-pixel text-[15px]">깜짝 상자</p>
@@ -115,19 +126,20 @@ export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sc
   }
 
   return (
-    <div className="blk-frame animate-[rise_240ms_ease-out]">
-      <div className="blk relative overflow-hidden bg-gold px-4 py-4 text-ink">
-        <div className="relative flex items-center gap-4">
-          <div className="relative grid size-20 shrink-0 place-items-center">
+    <div className="blk-frame" style={enter}>
+      <div className="blk relative overflow-hidden bg-gold px-3 py-3 text-ink">
+        <div className="relative flex items-center gap-3">
+          <div className="relative grid size-16 shrink-0 place-items-center">
             {!reduced && (
               <span
                 aria-hidden
-                className="absolute -inset-6 animate-[rays_9s_linear_infinite] opacity-40 [background:repeating-conic-gradient(#fff8_0deg_12deg,transparent_12deg_30deg)] [mask-image:radial-gradient(closest-side,#000_40%,transparent)]"
+                className="absolute -inset-5 [background:repeating-conic-gradient(#fff9_0deg_12deg,transparent_12deg_30deg)] [mask-image:radial-gradient(closest-side,#000_40%,transparent)]"
+                style={{ animation: `rays 1400ms ease-out ${delay + POP_AFTER}ms both` }}
               />
             )}
-            <div className="relative grid size-20 place-items-center bg-cream">
-              <span className={reduced ? "" : "animate-[reward-pop_620ms_ease-out_300ms_both]"}>
-                <RewardIcon id={item.id} color={owned.color} size={56} />
+            <div className="relative grid size-16 place-items-center bg-cream">
+              <span style={reduced ? undefined : { animation: `reward-pop 560ms ease-out ${delay + POP_AFTER}ms both` }}>
+                <RewardIcon id={item.id} color={owned.color} size={44} />
               </span>
             </div>
             {!reduced &&
@@ -135,19 +147,19 @@ export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sc
                 <span
                   key={i}
                   aria-hidden
-                  className="pointer-events-none absolute left-1/2 top-1/2 size-2 animate-[sparkle_800ms_ease-out_both] bg-paper"
-                  style={{ "--dx": `${dx}px`, "--dy": `${dy}px`, animationDelay: `${450 + i * 40}ms` } as React.CSSProperties}
+                  className="pointer-events-none absolute left-1/2 top-1/2 size-1.5 bg-paper"
+                  style={{ "--dx": `${dx}px`, "--dy": `${dy}px`, animation: `sparkle 700ms ease-out ${delay + POP_AFTER + 220 + i * 35}ms both` } as React.CSSProperties}
                 />
               ))}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-pixel text-[15px] text-ink-muted">새 물건</p>
-            <p className="font-pixel-title text-[24px] leading-[1.2]">{item.name}</p>
-            <p className="mt-0.5 text-[13px] text-ink-muted">{ownedReason(owned, sceneTitle)}</p>
+            <p className="font-pixel text-[13px] text-ink-muted">새 물건</p>
+            <p className="truncate font-pixel-title text-[20px] leading-[1.25]">{item.name}</p>
+            <p className="truncate text-[12px] text-ink-muted">{ownedReason(owned, sceneTitle)}</p>
           </div>
         </div>
 
-        <div className="relative mt-4 flex flex-wrap items-center gap-2">
+        <div className="relative mt-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={toggle}
@@ -158,7 +170,7 @@ export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sc
             {on && <Check />}
           </button>
           {item.colors.length > 0 && (
-            <div role="radiogroup" aria-label="색" className="flex gap-2">
+            <div role="radiogroup" aria-label="색" className="flex">
               {item.colors.map((c) => (
                 <button
                   key={c}
@@ -169,7 +181,7 @@ export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sc
                   onClick={() => pickColor(c)}
                   className={`grid size-11 place-items-center border-[3px] ${owned.color === c ? "border-ink" : "border-transparent"}`}
                 >
-                  <span className="grid size-7 place-items-center text-paper" style={{ background: COLOR_HEX[c] }}>
+                  <span className="grid size-6 place-items-center text-paper" style={{ background: COLOR_HEX[c] }}>
                     {owned.color === c && <Check />}
                   </span>
                 </button>

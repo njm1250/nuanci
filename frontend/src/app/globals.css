@@ -228,10 +228,18 @@ body {
   }
 }
 
-/* 새 물건 뒤에서 천천히 도는 빛줄기 */
+/* 새 물건 뒤로 한 번 번졌다 사라지는 빛줄기. 계속 움직이지 않게 한 번만 돈다 */
 @keyframes rays {
-  to {
-    transform: rotate(360deg);
+  0% {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.6);
+  }
+  30% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(90deg) scale(1.1);
   }
 }
 
