@@ -127,20 +127,11 @@ export function setRewardColor(id: string, color: RewardColor) {
 
 // 아직 안 본 물건을 모두 본 것으로 남긴다. 아지트를 떠날 때 부른다
 export function markAllRewardsSeen() {
-  justOpened.clear();
   markRewardsSeen((state?.items ?? []).filter((i) => i.owned && !i.owned.seen && !isUnopened(i)).map((i) => i.id));
-}
-
-// 이번에 아지트에서 연 상자. 연 뒤에도 그 자리에 카드를 남겨 무엇이 나왔는지 보여준다
-const justOpened = new Set<string>();
-
-export function openedHere(item: RewardItem) {
-  return justOpened.has(item.id);
 }
 
 export function markRewardsSeen(ids: string[]) {
   if (ids.length === 0 || !state) return;
-  for (const id of ids) if (state.items.some((i) => i.id === id && isUnopened(i))) justOpened.add(id);
   set({ ...state, items: state.items.map((i) => (ids.includes(i.id) && i.owned ? { ...i, owned: { ...i.owned, seen: true } } : i)) });
   void post("/seen", { ids });
 }

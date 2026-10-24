@@ -28,6 +28,7 @@ class RewardApiTest {
 	@Autowired lateinit var mvc: MockMvc
 	@Autowired lateinit var store: SceneStore
 	@Autowired lateinit var mapper: JsonMapper
+	@Autowired lateinit var rewards: com.nuanci.reward.RewardStore
 
 	@BeforeEach
 	fun seed() = store.loadFixtures(mapper)
@@ -75,6 +76,16 @@ class RewardApiTest {
 			jsonPath("$.items[?(@.lock == null && @.owned.reason == 'box')]") { isNotEmpty() }
 			jsonPath("$.next.name") { value("헤드폰") }
 		}
+	}
+
+	@Test
+	fun `동시에 동기화해도 깜짝 상자를 더 주지 않는다`() {
+		val visitor = UUID.randomUUID()
+		val all = listOf("did-you-eat", "eat-a-lot", "file-request", "first-upload", "get-home-safe", "my-treat", "pudding", "touch-grass")
+		val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+		(1..4).map { pool.submit { rewards.evaluate(visitor, all, "sync") } }.forEach { it.get() }
+		pool.shutdown()
+		kotlin.test.assertEquals(1, rewards.grants(visitor).count { it.reason == "box" })
 	}
 
 	@Test

@@ -66,7 +66,24 @@ export function RewardReveal({ items, sceneTitle, reduced, onShown }: { items: R
 }
 
 // 새 물건 카드 하나. 열지 않은 상자면 상자부터 보여주고, 열면 안에 든 물건을 바로 쓰거나 둔다
-export function RewardCard({ item, sceneTitle, reduced, delay: enterDelay = 0 }: { item: RewardItem; sceneTitle?: string; reduced: boolean; delay?: number }) {
+// stacked면 상자가 여러 개 쌓인 모양으로 그린다. onClose가 있으면 연 뒤 카드를 닫을 수 있다
+export function RewardCard({
+  item,
+  sceneTitle,
+  reduced,
+  delay: enterDelay = 0,
+  stacked = false,
+  onOpened,
+  onClose,
+}: {
+  item: RewardItem;
+  sceneTitle?: string;
+  reduced: boolean;
+  delay?: number;
+  stacked?: boolean;
+  onOpened?: (id: string) => void;
+  onClose?: () => void;
+}) {
   // 상자를 연 순간에는 기다리지 않고 바로 튀어나온다
   const [opened, setOpened] = useState(false);
   const delay = opened ? 0 : enterDelay;
@@ -85,6 +102,7 @@ export function RewardCard({ item, sceneTitle, reduced, delay: enterDelay = 0 }:
       sfx.reward(0.05);
       setShaking(false);
       setOpened(true);
+      onOpened?.(item.id);
       markRewardsSeen([item.id]);
       setAvatar({ ...currentAvatar(), hidden: currentAvatar().hidden.filter((id) => id !== item.id) }, member);
     };
@@ -110,8 +128,12 @@ export function RewardCard({ item, sceneTitle, reduced, delay: enterDelay = 0 }:
     return (
       <div className="blk-frame" style={enter}>
         <div className="blk flex items-center gap-3 bg-gold px-3 py-3 text-ink">
-          <div className={`grid size-16 shrink-0 place-items-center bg-cream ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
-            <RewardIcon id="box" size={44} />
+          <div className="relative size-16 shrink-0">
+            {/* 남은 상자가 더 있으면 뒤에 한 장 더 겹쳐 그려서 쌓여 있는 것을 보여준다 */}
+            {stacked && <span aria-hidden className="absolute -right-1.5 -top-1.5 size-16 bg-cream/60" />}
+            <div className={`relative grid size-16 place-items-center bg-cream ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
+              <RewardIcon id="box" size={44} />
+            </div>
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-pixel text-[15px]">깜짝 상자</p>
@@ -152,11 +174,18 @@ export function RewardCard({ item, sceneTitle, reduced, delay: enterDelay = 0 }:
                 />
               ))}
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 self-start">
             <p className="font-pixel text-[13px] text-ink-muted">새 물건</p>
             <p className="truncate font-pixel-title text-[20px] leading-[1.25]">{item.name}</p>
             <p className="truncate text-[12px] text-ink-muted">{ownedReason(owned, sceneTitle)}</p>
           </div>
+          {onClose && (
+            <button type="button" onClick={onClose} aria-label="닫기" className="-mr-1 -mt-1 grid size-11 shrink-0 place-items-center self-start text-ink">
+              <svg width="14" height="14" viewBox="0 0 7 7" shapeRendering="crispEdges" aria-hidden className="fill-current">
+                <path d="M0 0h2v1h1v1h1V1h1V0h2v2H6v1H5v1h1v1h1v2H5V6H4V5H3v1H2v1H0V5h1V4h1V3H1V2H0z" />
+              </svg>
+            </button>
+          )}
         </div>
 
         <div className="relative mt-3 flex flex-wrap items-center gap-2">

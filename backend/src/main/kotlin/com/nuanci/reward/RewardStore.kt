@@ -41,6 +41,8 @@ class RewardStore(private val jdbc: JdbcClient) {
 	// 끝낸 장면 수와 목록으로 받을 수 있는 보상을 모두 준다. 이번에 새로 준 것만 돌려준다
 	@Transactional
 	fun evaluate(owner: UUID, cleared: List<String>, source: String): List<Grant> {
+		// 같은 주인의 요청이 동시에 오면(페이지 첫 동기화와 장면 완료가 겹칠 때 등) 상자 개수를 둘 다 0으로 보고 더 줄 수 있어서, 주인별로 차례로 판단한다
+		jdbc.sql("select pg_advisory_xact_lock(hashtext(:owner))").param("owner", owner.toString()).query { _, _ -> 0 }.list()
 		val owned = grants(owner)
 		val ids = owned.map { it.rewardId }.toMutableSet()
 		val granted = mutableListOf<Grant>()
