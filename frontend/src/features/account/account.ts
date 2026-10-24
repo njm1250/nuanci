@@ -5,6 +5,7 @@ import { currentCleared, mergeCleared } from "@/features/scene/progress";
 import { visitorId } from "@/features/scene/track";
 import { adoptAvatar, currentAvatar, setAvatar, type Avatar } from "@/features/avatar/avatar";
 import { syncRewards } from "@/features/rewards/rewards";
+import { syncStreak } from "@/features/streak/streak";
 
 export type Me = { name: string | null; email: string | null; picture: string | null; cleared: string[]; avatar: Avatar | null };
 
@@ -65,14 +66,14 @@ export function loginUrl(next: string) {
 export async function logout() {
   await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
   set({ ...state, status: "guest", me: null });
-  await syncRewards();
+  await Promise.all([syncRewards(), syncStreak()]);
 }
 
 export async function deleteAccount() {
   const res = await fetch("/api/me", { method: "DELETE" }).catch(() => null);
   if (res?.ok) {
     set({ ...state, status: "guest", me: null });
-    await syncRewards();
+    await Promise.all([syncRewards(), syncStreak()]);
   }
   return Boolean(res?.ok);
 }

@@ -5,7 +5,8 @@ import type { AccessoryId, Hero } from "@/features/stage/types";
 
 // wear는 쓰고 있는 아이템(머리·얼굴·목에 하나씩), placed는 아지트에 둔 물건 id다. 얻어도 사용자가 쓰거나 두기 전에는 그대로 둔다.
 // placed가 없고 hidden이 있으면 얻은 물건이 모두 놓이던 때의 기록이라, 얻은 물건 중 hidden에 없는 것을 둔 것으로 본다
-export type Avatar = { hero: Hero; wear: AccessoryId[]; placed?: string[]; hidden?: string[] };
+// badge는 이름 옆에 다는 연속 기록 뱃지(며칠짜리), 0이면 달지 않는다
+export type Avatar = { hero: Hero; wear: AccessoryId[]; placed?: string[]; hidden?: string[]; badge?: number };
 
 const KEY = "nuanci.avatar";
 const DEFAULT: Avatar = { hero: "boy", wear: [], placed: [] };

@@ -3,6 +3,7 @@ package com.nuanci.account
 import jakarta.servlet.http.HttpServletResponse
 import com.nuanci.reward.RewardCatalog
 import com.nuanci.reward.RewardStore
+import com.nuanci.streak.StreakStore
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -20,7 +21,8 @@ import java.util.UUID
 
 // placed는 아지트에 둔 물건이다. 예전 화면은 placed 없이 보내므로, 그때는 저장된 값을 그대로 둔다.
 // accessory는 아이템을 하나만 쓰던 예전 화면이 보내는 값이다. wear가 비어 있으면 이것을 쓴다
-data class Avatar(val hero: String = "boy", val wear: List<String> = emptyList(), val placed: List<String>? = null, val accessory: String? = null)
+// badge는 이름 옆에 다는 연속 기록 뱃지(며칠짜리). 0이면 떼고, 없으면 저장된 값을 그대로 둔다
+data class Avatar(val hero: String = "boy", val wear: List<String> = emptyList(), val placed: List<String>? = null, val badge: Int? = null, val accessory: String? = null)
 
 data class MeResponse(val name: String?, val email: String?, val picture: String?, val cleared: List<String>, val avatar: Avatar?)
 
@@ -31,7 +33,7 @@ data class ClearedRequest(val sceneId: String = "")
 // 로그인한 사용자의 정보와 끝낸 장면. 로그인하면 이 기기의 기록을 합쳐 계정에 남긴다
 @RestController
 @RequestMapping("/api/me")
-class MeController(private val accounts: AccountStore, private val rewards: RewardStore) {
+class MeController(private val accounts: AccountStore, private val rewards: RewardStore, private val streaks: StreakStore) {
 	@GetMapping
 	fun me(@CookieValue(SESSION_COOKIE, required = false) token: String?): MeResponse {
 		val account = require(token)
@@ -60,7 +62,12 @@ class MeController(private val accounts: AccountStore, private val rewards: Rewa
 		if (defs.map { it.slot }.distinct().size != defs.size) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "one item per slot")
 		if (placed.any { RewardCatalog.find(it)?.kind != "room" }) throw ResponseStatusException(HttpStatus.FORBIDDEN)
 		if (!(wear + placed).all { rewards.owns(account.id, it) }) throw ResponseStatusException(HttpStatus.FORBIDDEN)
-		accounts.saveAvatar(account.id, req.hero, wear, placed)
+		val badge = when (req.badge) {
+			null -> account.badge
+			0 -> null
+			else -> req.badge.takeIf { it in StreakStore.BADGES && it <= streaks.streak(account.id).best } ?: throw ResponseStatusException(HttpStatus.FORBIDDEN)
+		}
+		accounts.saveAvatar(account.id, req.hero, wear, placed, badge)
 	}
 
 	@PostMapping("/cleared")
@@ -74,6 +81,7 @@ class MeController(private val accounts: AccountStore, private val rewards: Rewa
 	fun delete(@CookieValue(SESSION_COOKIE, required = false) token: String?, response: HttpServletResponse) {
 		val account = require(token)
 		rewards.deleteOwner(account.id)
+		streaks.deleteOwner(account.id)
 		accounts.delete(account.id)
 		response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(SESSION_COOKIE, "").path("/").maxAge(0).build().toString())
 	}
@@ -81,7 +89,7 @@ class MeController(private val accounts: AccountStore, private val rewards: Rewa
 	private fun require(token: String?) = accounts.account(token) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 
 	private fun response(account: Account) =
-		MeResponse(account.name, account.email, account.picture, accounts.cleared(account.id), account.hero?.let { Avatar(it, account.wear, account.roomPlaced) })
+		MeResponse(account.name, account.email, account.picture, accounts.cleared(account.id), account.hero?.let { Avatar(it, account.wear, account.roomPlaced, account.badge) })
 
 	companion object {
 		private val HEROES = setOf("boy", "girl")

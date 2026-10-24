@@ -33,7 +33,19 @@ function Check() {
 
 // 완료 화면에 뜨는 새 물건 카드들. 처음에는 쓰지도 두지도 않은 상태로 보여주고, 쓰기·방에 두기를 누르면 무대에 바로 보인다.
 // 깜짝 상자는 직접 열어야 보이고, 열지 않고 넘어가도 아지트에 닫힌 채로 남는다
-export function RewardReveal({ items, sceneTitle, reduced, onShown }: { items: RewardItem[]; sceneTitle: string; reduced: boolean; onShown: (ids: string[]) => void }) {
+export function RewardReveal({
+  items,
+  sceneTitle,
+  reduced,
+  onShown,
+  after = 0,
+}: {
+  items: RewardItem[];
+  sceneTitle: string;
+  reduced: boolean;
+  onShown: (ids: string[]) => void;
+  after?: number;
+}) {
   const rewards = useRewards();
   const shown = useRef(false);
 
@@ -44,13 +56,13 @@ export function RewardReveal({ items, sceneTitle, reduced, onShown }: { items: R
     const ready = items.filter((i) => !isUnopened(i));
     markRewardsSeen(ready.map((i) => i.id));
     // 팡파르가 끝날 즈음 카드가 들어오고, 아이콘이 튀어나오는 순간에 반짝 소리를 맞춘다
-    if (ready.length > 0) sfx.reward((ENTER_DELAY + POP_AFTER) / 1000);
-  }, [items, rewards, onShown]);
+    if (ready.length > 0) sfx.reward((ENTER_DELAY + after + POP_AFTER) / 1000);
+  }, [items, rewards, onShown, after]);
 
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} delay={ENTER_DELAY} />
+        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} delay={ENTER_DELAY + after} />
       ))}
     </div>
   );
