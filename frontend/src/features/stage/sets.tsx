@@ -305,6 +305,58 @@ export const SETS: Record<SetId, SetDef> = {
     ),
   },
 
+  room: {
+    label: "내 방",
+    wall: SET_WALLS.room,
+    me: { x: -0.85, facing: 0.45, posture: "stand" },
+    partner: { x: 1.05, z: -0.2, facing: -0.55, posture: "sit" },
+    // 보상으로 받은 물건이 flags로 들어와 방에 놓인다. books-N은 책장에 꽂힌 책 수다
+    Scenery: ({ evening, flags }) => {
+      const books = Number([...flags].find((f) => f.startsWith("books-"))?.slice(6) ?? 0);
+      return (
+        <>
+          <Window x={0.2} y={2.0} w={1.0} h={0.7} evening={evening} />
+          <Box size={[1.3, 0.42, 0.95]} at={[1.15, 0.21, -0.35]} color="#7fa6c2" />
+          <Box size={[1.3, 0.12, 0.95]} at={[1.15, 0.48, -0.35]} color={C.plate} />
+          <Box size={[0.4, 0.12, 0.3]} at={[1.6, 0.6, -0.55]} color="#f6ead6" />
+          <Box size={[0.95, 1.8, 0.35]} at={[-2.05, 0.9, -0.85]} color={C.woodDark} />
+          {[0.35, 0.95, 1.55].map((y) => (
+            <Box key={y} size={[0.85, 0.04, 0.3]} at={[-2.05, y, -0.8]} color={C.wood} />
+          ))}
+          {Array.from({ length: Math.min(books, 24) }, (_, i) => (
+            <Box
+              key={i}
+              size={[0.08, 0.36, 0.22]}
+              at={[-2.4 + (i % 8) * 0.1, 0.55 + Math.floor(i / 8) * 0.6, -0.78]}
+              color={["#d4265f", C.mustard, C.teal, C.navy, "#f08aa8"][i % 5]}
+            />
+          ))}
+          {flags.has("plant") && <Plant x={-1.35} z={-0.7} />}
+          {flags.has("poster") && (
+            <>
+              <Flat size={[0.5, 0.7]} at={[-0.9, 2.1, WALL_Z]} color={C.rust} />
+              <Flat size={[0.3, 0.3]} at={[-0.9, 2.15, WALL_Z + 0.01]} color={C.mustard} />
+            </>
+          )}
+          {flags.has("rug") && <Box size={[1.8, 0.02, 1.0]} at={[-0.2, 0.01, 0.25]} color="#f08aa8" />}
+          {flags.has("trophy") && (
+            <>
+              <Cyl r={[0.1, 0.05]} h={0.16} at={[-2.05, 1.98, -0.8]} color="#e8b931" />
+              <Box size={[0.16, 0.05, 0.12]} at={[-2.05, 1.84, -0.8]} color={C.ink} />
+            </>
+          )}
+          {flags.has("fishbowl") && (
+            <>
+              <Box size={[0.36, 0.5, 0.36]} at={[2.2, 0.25, -0.7]} color={C.woodDark} />
+              <Gem r={0.2} at={[2.2, 0.68, -0.7]} color="#bfe3f2" />
+              <Box size={[0.1, 0.06, 0.03]} at={[2.2, 0.66, -0.52]} color="#f08a24" />
+            </>
+          )}
+        </>
+      );
+    },
+  },
+
   street: {
     label: "거리 · 헤어질 때",
     wall: SET_WALLS.street,

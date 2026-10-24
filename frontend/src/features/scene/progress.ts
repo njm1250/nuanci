@@ -39,6 +39,14 @@ export function useCleared() {
   return useSyncExternalStore(subscribe, snapshot, () => EMPTY);
 }
 
+const clearedHooks = new Set<(id: string) => void>();
+
+// 장면을 끝낼 때마다 불린다. 로그인했으면 계정에도 남기는 데 쓴다
+export function onCleared(hook: (id: string) => void) {
+  clearedHooks.add(hook);
+  return () => clearedHooks.delete(hook);
+}
+
 export function markCleared(id: string) {
   const cleared = snapshot();
   if (cleared.includes(id)) return;
@@ -46,6 +54,22 @@ export function markCleared(id: string) {
     localStorage.setItem(KEY, JSON.stringify([...cleared, id]));
   } catch {}
   listeners.forEach((l) => l());
+  clearedHooks.forEach((h) => h(id));
+}
+
+// 계정에 저장된 기록과 이 기기 기록을 합친다. 지우지는 않는다
+export function mergeCleared(ids: string[]) {
+  const cleared = snapshot();
+  const merged = [...cleared, ...ids.filter((id) => !cleared.includes(id))];
+  if (merged.length === cleared.length) return;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(merged));
+  } catch {}
+  listeners.forEach((l) => l());
+}
+
+export function currentCleared() {
+  return snapshot();
 }
 
 // 추천 순서에서 아직 안 해 본 첫 장면. 다 해 봤으면 null

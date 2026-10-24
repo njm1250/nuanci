@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Panel } from "@/features/scene/block-ui";
 import { getScene, getScenes } from "@/features/scene/api";
 import type { Scene } from "@/features/scene/types";
@@ -16,6 +17,11 @@ export default async function Home() {
       <main className="flex min-h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:min-h-0 md:self-start md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_auto_1fr_auto_auto] md:content-start md:gap-x-10 md:px-8 md:pb-10">
         <header className="order-1 flex h-12 shrink-0 items-center px-4 md:order-none md:col-span-2 md:h-16 md:px-0">
           <p className="font-pixel text-[15px] text-gold">nuanci</p>
+          <Link href="/me" aria-label="내 정보" className="-mr-2 ml-auto grid size-11 place-items-center text-paper-muted hover:text-paper">
+            <svg width="20" height="20" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="currentColor" aria-hidden>
+              <path d="M3 1h4v1h1v3H7v1H3V5H2V2h1zM1 7h8v1h1v2H0V8h1z" />
+            </svg>
+          </Link>
         </header>
 
         {beats.length > 0 && (
