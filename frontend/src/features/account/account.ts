@@ -1,9 +1,10 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { currentCleared, mergeCleared, onCleared } from "@/features/scene/progress";
+import { currentCleared, mergeCleared } from "@/features/scene/progress";
 import { visitorId } from "@/features/scene/track";
-import { adoptAvatar, type Avatar } from "@/features/avatar/avatar";
+import { adoptAvatar, currentAvatar, setAvatar, type Avatar } from "@/features/avatar/avatar";
+import { syncRewards } from "@/features/rewards/rewards";
 
 export type Me = { name: string | null; email: string | null; picture: string | null; cleared: string[]; avatar: Avatar | null };
 
@@ -52,11 +53,10 @@ export async function loadAccount() {
   set({ status: "member", me: synced, google: providers.google });
 }
 
-// 로그인한 상태에서 장면을 끝내면 계정에도 바로 남긴다
-onCleared((sceneId) => {
-  if (state.status !== "member") return;
-  void fetch("/api/me/cleared", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sceneId }) }).catch(() => {});
-});
+// 처음 로그인한 계정에는 저장된 모습이 없어서, 이 기기에서 꾸민 모습을 계정에 올린다. 보상을 계정으로 옮긴 뒤에 불러야 쓰는 아이템 확인을 통과한다
+export function saveAvatarIfNew() {
+  if (state.status === "member" && !state.me?.avatar) setAvatar(currentAvatar(), true);
+}
 
 export function loginUrl(next: string) {
   return `/api/auth/google?next=${encodeURIComponent(next)}`;
@@ -65,10 +65,14 @@ export function loginUrl(next: string) {
 export async function logout() {
   await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
   set({ ...state, status: "guest", me: null });
+  await syncRewards();
 }
 
 export async function deleteAccount() {
   const res = await fetch("/api/me", { method: "DELETE" }).catch(() => null);
-  if (res?.ok) set({ ...state, status: "guest", me: null });
+  if (res?.ok) {
+    set({ ...state, status: "guest", me: null });
+    await syncRewards();
+  }
   return Boolean(res?.ok);
 }

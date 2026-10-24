@@ -1,116 +1,228 @@
 "use client";
 
-import { setAvatar, useAvatar } from "@/features/avatar/avatar";
-import { earnedRewards, nextGoalParts, nextReward, REWARDS, ruleHint, type Reward } from "@/features/rewards/rewards";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { setAvatar } from "@/features/avatar/avatar";
+import { useHeroLook } from "@/features/rewards/hero-look";
+import { RewardIcon } from "@/features/rewards/reward-icon";
+import { COLOR_HEX, COLOR_LABELS, lockHint, markAllRewardsSeen, nextGoalParts, ownedReason, setRewardColor, useRewards, type RewardItem } from "@/features/rewards/rewards";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { Stage } from "@/features/stage/stage";
-import type { Hero } from "@/features/stage/types";
+import type { AccessoryId, Hero } from "@/features/stage/types";
 import { useAccount } from "./account";
 import { GoogleButton } from "./google-button";
 
+const noop = () => () => {};
 const HERO_LABELS: Record<Hero, string> = { boy: "남자", girl: "여자" };
 
-// 아지트: 장면 속 주인공을 꾸미고, 얻은 물건을 방에 두는 곳. 아직 못 얻은 아이템은 무엇인지 감춰서 얻는 재미를 남긴다.
-// 쓰고 두는 건 로그인한 뒤에만 된다
-export function RoomView() {
+const TABS = [
+  { id: "wear", label: "옷장" },
+  { id: "room", label: "방 꾸미기" },
+  { id: "log", label: "수집 기록" },
+] as const;
+type Tab = (typeof TABS)[number]["id"];
+
+function Check() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 7 7" shapeRendering="crispEdges" aria-hidden className="shrink-0 fill-current">
+      <path d="M6 1h1v1h-1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h1v1h1v1h1v-1h1v-1h1z" />
+    </svg>
+  );
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
+// 아지트: 옷장에서 주인공을 꾸미고, 얻은 물건을 방에 두고, 무엇을 언제 얻었는지 돌아보는 곳.
+// 아직 못 얻은 아이템은 무엇인지 감추고 조건만 짧게 보여준다
+export function RoomView({ titles }: { titles: Record<string, string> }) {
   const cleared = useCleared();
   const account = useAccount();
-  const avatar = useAvatar();
+  const rewards = useRewards();
+  const look = useHeroLook();
+  const { avatar } = look;
   const member = account.status === "member";
-  const earned = earnedRewards(cleared);
-  const owns = (r: Reward) => earned.some((e) => e.id === r.id);
-  const next = nextReward(cleared);
-  const placed = member ? earned.filter((r) => r.kind === "room" && !avatar.hidden.includes(r.id)).map((r) => r.id) : [];
-  const isOn = (r: Reward) => (r.kind === "wear" ? avatar.accessory === r.accessory : placed.includes(r.id));
+  // 완료 화면에서 방 물건을 보러 오면 방 꾸미기 탭부터 연다
+  const linked = useSyncExternalStore(noop, () => new URLSearchParams(location.search).get("tab"), () => null);
+  const [picked, setTab] = useState<Tab | null>(null);
+  const tab: Tab = picked ?? (linked === "room" || linked === "log" ? linked : "wear");
+
+  // 새 표시는 이 화면에 있는 동안 남기고, 떠날 때 본 것으로 남긴다
+  useEffect(() => () => markAllRewardsSeen(), []);
+
+  const items = rewards?.items ?? [];
+  const isOn = (r: RewardItem) => (r.kind === "wear" ? look.accessory === r.id : look.placed.includes(r.id));
 
   // 쓴 아이템은 다시 누르면 벗고, 놓인 물건은 다시 누르면 치운다
-  const toggle = (r: Reward) => {
-    if (r.kind === "wear") return setAvatar({ ...avatar, accessory: isOn(r) ? null : r.accessory }, true);
+  const toggle = (r: RewardItem) => {
+    if (r.kind === "wear") return setAvatar({ ...avatar, accessory: isOn(r) ? null : (r.id as AccessoryId) }, member);
     const hidden = isOn(r) ? [...avatar.hidden, r.id] : avatar.hidden.filter((id) => id !== r.id);
-    setAvatar({ ...avatar, hidden }, true);
+    setAvatar({ ...avatar, hidden }, member);
   };
 
-  // 켜고 끄는 상태는 색과 체크로만 보여주고, 아직 못 쓰는 아이템에만 짧은 조건을 붙인다
-  const hint = (r: Reward) => (owns(r) ? (member ? null : "로그인 필요") : ruleHint(r.rule, cleared));
+  const worn = items.find((i) => i.kind === "wear" && i.owned && i.id === look.accessory);
+  const log = items.filter((i) => i.owned).sort((a, b) => b.owned!.grantedAt.localeCompare(a.owned!.grantedAt));
 
   return (
     <div className="md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10">
       <div className="md:sticky md:top-6">
-      <Panel>
-        <div className="relative aspect-[4/3] w-full overflow-hidden">
-          <Stage
-            spec={{ set: "room", time: "day", partner: "mochi", hero: avatar.hero, accessory: avatar.accessory ?? undefined, flags: [`books-${cleared.length}`, ...placed] }}
-            state={{ partnerMotion: "idle", partnerKey: 0, talkKey: 0, reaction: null, meLine: "여기가 내 아지트야!" }}
-          />
-        </div>
-      </Panel>
-      <p className="mt-3 text-[13px] text-paper-muted">꾸민 모습은 장면에도 그대로 나와요.</p>
-      {next && (
-        <p className="mt-2 inline-block bg-gold px-2 py-1 font-pixel text-[15px] leading-none text-ink">
-          {nextGoalParts(next)[0]}
-          <span className="mx-0.5 bg-ink px-1 text-gold">{nextGoalParts(next)[1]}</span>
-          {nextGoalParts(next)[2]}
-        </p>
-      )}
-
-      </div>
-
-      <div>
-      <h2 className="mt-6 font-pixel text-[15px] text-paper md:mt-0">주인공</h2>
-      <div className="mt-2 grid grid-cols-2 gap-3">
-        {(["boy", "girl"] as const).map((hero) => (
-          <button
-            key={hero}
-            type="button"
-            onClick={() => setAvatar({ ...avatar, hero }, member)}
-            aria-pressed={avatar.hero === hero}
-            className={`blk min-h-12 font-pixel text-[15px] ${avatar.hero === hero ? "bg-cream text-ink" : "bg-slate-block text-paper-muted"}`}
-          >
-            {HERO_LABELS[hero]}
-          </button>
-        ))}
-      </div>
-
-      <h2 className="mt-6 font-pixel text-[15px] text-paper">꾸미기</h2>
-      <ul className="mt-2 grid grid-cols-2 gap-3">
-        {REWARDS.map((r) => {
-          const usable = owns(r) && member;
-          const active = usable && isOn(r);
-          return (
-            <li key={r.id}>
-              <button
-                type="button"
-                onClick={() => toggle(r)}
-                disabled={!usable}
-                aria-pressed={usable ? active : undefined}
-                className={`blk flex min-h-14 w-full items-center justify-between gap-2 px-3 py-2 text-left ${active ? "bg-gold text-ink" : usable ? "bg-cream text-ink" : "bg-slate-block text-paper"}`}
-              >
-                <span className="min-w-0">
-                  <span className="block font-pixel text-[15px]">{owns(r) ? r.name : "???"}</span>
-                  {hint(r) && <span className="block text-[12px] text-paper-subtle">{hint(r)}</span>}
-                </span>
-                {active && (
-                  <svg width="14" height="14" viewBox="0 0 7 7" shapeRendering="crispEdges" aria-hidden className="shrink-0 fill-ink">
-                    <path d="M6 1h1v1h-1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h1v1h1v1h1v-1h1v-1h1z" />
-                  </svg>
-                )}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-
-      {!member && account.status !== "loading" && (
-        <Panel className="mt-6">
-          <div className="p-4">
-            <p className="font-pixel text-[15px]">로그인하고 꾸미기</p>
-            <p className="mt-1 text-[14px] leading-relaxed text-ink-muted">얻은 아이템을 쓰고 방에 둘 수 있어요. 꾸민 모습은 다른 기기에서도 그대로예요.</p>
-            <GoogleButton next="/me/room" enabled={account.google} />
+        <Panel>
+          <div className="relative aspect-[4/3] w-full overflow-hidden">
+            <Stage
+              spec={{
+                set: "room",
+                time: "day",
+                partner: "mochi",
+                hero: look.hero,
+                accessory: look.accessory,
+                accessoryColor: look.accessoryColor,
+                flags: [`books-${cleared.length}`, ...look.placed],
+              }}
+              state={{ partnerMotion: "idle", partnerKey: 0, talkKey: 0, reaction: null, meLine: "여기가 내 아지트야!" }}
+            />
           </div>
         </Panel>
-      )}
+        {rewards?.next && (
+          <p className="mt-3 inline-block bg-gold px-2 py-1 font-pixel text-[15px] leading-none text-ink">
+            {nextGoalParts(rewards.next)[0]}
+            <span className="mx-0.5 bg-ink px-1 text-gold">{nextGoalParts(rewards.next)[1]}</span>
+            {nextGoalParts(rewards.next)[2]}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-6 md:mt-0">
+        <div role="tablist" aria-label="아지트" className="grid grid-cols-3 gap-2">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              id={`tab-${t.id}`}
+              aria-selected={tab === t.id}
+              aria-controls={`panel-${t.id}`}
+              onClick={() => setTab(t.id)}
+              className={`blk min-h-11 font-pixel text-[15px] ${tab === t.id ? "bg-cream text-ink" : "bg-slate-block text-paper-muted"}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="mt-5">
+          {tab === "wear" && (
+            <>
+              <h2 className="font-pixel text-[15px] text-paper">주인공</h2>
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {(["boy", "girl"] as const).map((hero) => (
+                  <button
+                    key={hero}
+                    type="button"
+                    onClick={() => setAvatar({ ...avatar, hero }, member)}
+                    aria-pressed={avatar.hero === hero}
+                    className={`blk min-h-12 font-pixel text-[15px] ${avatar.hero === hero ? "bg-cream text-ink" : "bg-slate-block text-paper-muted"}`}
+                  >
+                    {HERO_LABELS[hero]}
+                  </button>
+                ))}
+              </div>
+              <h2 className="mt-6 font-pixel text-[15px] text-paper">쓰는 아이템</h2>
+              <ItemGrid items={items.filter((i) => i.kind === "wear")} isOn={isOn} toggle={toggle}  />
+              {worn && worn.colors.length > 0 && (
+                <div className="mt-4 flex items-center gap-3">
+                  <span className="font-pixel text-[15px] text-paper-muted">{worn.name} 색</span>
+                  <div role="radiogroup" aria-label={`${worn.name} 색`} className="flex gap-2">
+                    {worn.colors.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        role="radio"
+                        aria-checked={worn.owned!.color === c}
+                        aria-label={COLOR_LABELS[c]}
+                        onClick={() => setRewardColor(worn.id, c)}
+                        className={`grid size-11 place-items-center border-[3px] ${worn.owned!.color === c ? "border-paper" : "border-transparent"}`}
+                      >
+                        <span className="grid size-7 place-items-center text-paper" style={{ background: COLOR_HEX[c] }}>
+                          {worn.owned!.color === c && <Check />}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {tab === "room" && <ItemGrid items={items.filter((i) => i.kind === "room")} isOn={isOn} toggle={toggle}  />}
+
+          {tab === "log" &&
+            (log.length === 0 ? (
+              <p className="text-[14px] leading-relaxed text-paper-muted">장면을 끝내면 얻은 물건이 여기에 하나씩 쌓여요.</p>
+            ) : (
+              <ul className="space-y-2">
+                {log.map((r) => (
+                  <li key={r.id} className="blk flex items-center gap-3 bg-slate-block px-3 py-2 text-paper">
+                    <span className="grid size-12 shrink-0 place-items-center bg-night-deep">
+                      <RewardIcon id={r.id} color={r.owned!.color} size={36} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-pixel text-[15px]">{r.name}</span>
+                      <span className="block text-[13px] text-paper-subtle">{ownedReason(r.owned!, r.owned!.sceneId ? titles[r.owned!.sceneId] : undefined)}</span>
+                    </span>
+                    <span className="shrink-0 text-[12px] text-paper-subtle">{formatDate(r.owned!.grantedAt)}</span>
+                  </li>
+                ))}
+              </ul>
+            ))}
+        </div>
+
+        {!member && account.status !== "loading" && (
+          <Panel className="mt-6">
+            <div className="p-4">
+              <p className="font-pixel text-[15px]">로그인하고 계정에 남기기</p>
+              <p className="mt-1 text-[14px] leading-relaxed text-ink-muted">꾸민 모습과 모은 물건이 다른 기기에서도 그대로예요.</p>
+              <GoogleButton next="/me/room" enabled={account.google} />
+            </div>
+          </Panel>
+        )}
       </div>
     </div>
+  );
+}
+
+// 켜고 끄는 상태는 색과 체크로만 보여주고, 아직 못 얻은 아이템에만 짧은 조건을 붙인다
+function ItemGrid({ items, isOn, toggle }: { items: RewardItem[]; isOn: (r: RewardItem) => boolean; toggle: (r: RewardItem) => void }) {
+  return (
+    <ul className="mt-2 grid grid-cols-2 gap-3">
+      {[...items.filter((i) => i.owned), ...items.filter((i) => !i.owned)].map((r) => {
+        const owned = Boolean(r.owned);
+        const active = owned && isOn(r);
+        return (
+          <li key={r.id}>
+            <button
+              type="button"
+              onClick={() => toggle(r)}
+              disabled={!owned}
+              aria-pressed={owned ? active : undefined}
+              className={`blk flex min-h-16 w-full items-center gap-2 px-2 py-2 text-left ${active ? "bg-gold text-ink" : owned ? "bg-cream text-ink" : "bg-slate-block text-paper"}`}
+            >
+              <span className={`grid size-11 shrink-0 place-items-center ${owned ? "bg-paper/60" : "bg-night-deep"}`}>
+                <RewardIcon id={owned ? r.id : "locked"} color={r.owned?.color} size={32} className={owned ? "" : "opacity-40 [filter:invert(1)]"} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5 font-pixel text-[15px]">
+                  {r.name ?? "???"}
+                  {r.owned && !r.owned.seen && <span className="bg-rust px-1 font-pixel-title text-[11px] leading-[1.4] text-paper">NEW</span>}
+                </span>
+                {r.lock && <span className="block text-[12px] text-paper-subtle">{lockHint(r.lock)}</span>}
+              </span>
+              {active && <Check />}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

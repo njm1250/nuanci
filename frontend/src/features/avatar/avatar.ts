@@ -40,6 +40,10 @@ export function useAvatar() {
   );
 }
 
+export function currentAvatar() {
+  return snapshot();
+}
+
 export function setAvatar(next: Avatar, saveToAccount: boolean) {
   try {
     localStorage.setItem(KEY, JSON.stringify(next));

@@ -13,6 +13,8 @@ export type StageSpec = {
   set: SetId;
   hero?: Hero;
   accessory?: AccessoryId;
+  // 아이템을 얻을 때 고른 색. 없으면 아이템 기본색
+  accessoryColor?: string;
   time: Time;
   partner: CastId;
   flags?: string[];
@@ -33,6 +35,7 @@ export type Look = {
   apron?: string;
   tie?: string;
   accessory?: AccessoryId;
+  accessoryColor?: string;
   // 동물 캐릭터: 털색이 피부를 대신하고, 귀·꼬리·볼터치가 붙고, 머리가 커서 더 귀엽게 보인다
   animal?: { kind: "cat" | "bear" | "dog"; fur: string; inner: string };
 };

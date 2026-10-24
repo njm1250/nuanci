@@ -135,6 +135,12 @@ export const sfx = {
     low(311, 0.17, 0.3);
   },
   whoosh: whooshNoise,
+  // 새 물건을 얻을 때 반짝이며 올라가는 네 음. 팡파르 뒤에 이어지도록 at으로 늦출 수 있다
+  reward: (at = 0) => {
+    [1568, 2093, 2637, 3136].forEach((f, i) => bell(f, at + i * 0.07, i === 3 ? 0.7 : 0.25, 0.08));
+  },
+  // 깜짝 상자가 열리는 소리: 낮게 툭 한 번
+  boxOpen: () => low(220, 0, 0.12, 0.16),
   // 장면을 끝내면 정답 여부와 상관없이 판정음 뒤에 팡파르가 울린다. 매번 같은 소리에 무뎌지지 않게 멜로디는 무작위로 고른다
   clear: () => {
     const melody = FANFARES[Math.floor(Math.random() * FANFARES.length)];

@@ -178,14 +178,14 @@ export function Figure({
             {look.glasses && <Box size={[0.44, 0.03, 0.03]} at={[0, 0.06, 0.25]} color={C.ink} />}
             {look.accessory === "cap" && (
               <>
-                <Gem r={0.31} at={[0, 0.14, -0.02]} color={C.rust} scale={[1.08, 0.62, 1.08]} />
-                <Box size={[0.36, 0.04, 0.26]} at={[0, 0.12, 0.3]} color={C.rust} />
+                <Gem r={0.31} at={[0, 0.14, -0.02]} color={look.accessoryColor ?? C.rust} scale={[1.08, 0.62, 1.08]} />
+                <Box size={[0.36, 0.04, 0.26]} at={[0, 0.12, 0.3]} color={look.accessoryColor ?? C.rust} />
               </>
             )}
             {look.accessory === "glasses" && (
               <>
                 {[-1, 1].map((s) => (
-                  <Box key={s} size={[0.16, 0.13, 0.03]} at={[0.14 * s, 0.03, 0.27]} color="#e8b931" />
+                  <Box key={s} size={[0.16, 0.13, 0.03]} at={[0.14 * s, 0.03, 0.27]} color={look.accessoryColor ?? "#e8b931"} />
                 ))}
                 {[-1, 1].map((s) => (
                   <Box key={`l${s}`} size={[0.1, 0.07, 0.035]} at={[0.14 * s, 0.03, 0.275]} color="#bfe3f2" />
@@ -196,7 +196,7 @@ export function Figure({
               <>
                 <Box size={[0.66, 0.06, 0.1]} at={[0, 0.34, -0.02]} color={C.ink} />
                 {[-1, 1].map((s) => (
-                  <Box key={s} size={[0.1, 0.2, 0.18]} at={[0.31 * s, 0.02, 0]} color={C.teal} />
+                  <Box key={s} size={[0.1, 0.2, 0.18]} at={[0.31 * s, 0.02, 0]} color={look.accessoryColor ?? C.teal} />
                 ))}
               </>
             )}

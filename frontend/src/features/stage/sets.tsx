@@ -352,6 +352,48 @@ export const SETS: Record<SetId, SetDef> = {
               <Box size={[0.1, 0.06, 0.03]} at={[2.2, 0.66, -0.52]} color="#f08a24" />
             </>
           )}
+          {flags.has("pudding") && (
+            <>
+              <Cyl r={[0.09, 0.07]} h={0.12} at={[-2.35, 1.87, -0.8]} color="#f2d34a" />
+              <Cyl r={0.075} h={0.03} at={[-2.35, 1.945, -0.8]} color="#7a4a22" />
+            </>
+          )}
+          {flags.has("cake") && (
+            <>
+              <Cyl r={0.14} h={0.16} at={[-1.75, 1.89, -0.8]} color={C.plate} sides={8} />
+              <Cyl r={0.145} h={0.04} at={[-1.75, 1.9, -0.8]} color="#f08aa8" sides={8} />
+              <Box size={[0.03, 0.08, 0.03]} at={[-1.75, 2.01, -0.8]} color="#d4265f" />
+            </>
+          )}
+          {flags.has("mic") && (
+            <>
+              <Cyl r={[0.03, 0.022]} h={0.22} at={[1.62, 0.6, 0.02]} color={C.ink} rot={[0, 0, R]} />
+              <Gem r={0.06} at={[1.49, 0.6, 0.02]} color={C.metal} />
+            </>
+          )}
+          {flags.has("frame") && (
+            <>
+              <Flat size={[0.5, 0.4]} at={[1.35, 2.15, WALL_Z]} color={C.woodDark} />
+              <Flat size={[0.4, 0.3]} at={[1.35, 2.15, WALL_Z + 0.01]} color="#bfe3f2" />
+              <Flat size={[0.06, 0.12]} at={[1.27, 2.1, WALL_Z + 0.02]} color={C.rust} />
+              <Flat size={[0.06, 0.12]} at={[1.43, 2.1, WALL_Z + 0.02]} color="#f08a24" />
+            </>
+          )}
+          {flags.has("lamp") && (
+            <>
+              <Box size={[0.04, 1.1, 0.04]} at={[0.1, 0.55, -0.9]} color={C.ink} />
+              <Box size={[0.24, 0.03, 0.24]} at={[0.1, 0.015, -0.9]} color={C.ink} />
+              <Cyl r={[0.12, 0.18]} h={0.2} at={[0.1, 1.18, -0.9]} color={evening ? C.lampOn : C.lampOff} />
+            </>
+          )}
+          {flags.has("clock") && (
+            <>
+              <Cyl r={0.17} h={0.04} at={[2.2, 2.35, WALL_Z + 0.02]} color={C.ink} sides={10} rot={[R, 0, 0]} />
+              <Cyl r={0.14} h={0.04} at={[2.2, 2.35, WALL_Z + 0.03]} color={C.paper} sides={10} rot={[R, 0, 0]} />
+              <Box size={[0.02, 0.09, 0.01]} at={[2.2, 2.39, WALL_Z + 0.06]} color={C.ink} />
+              <Box size={[0.07, 0.02, 0.01]} at={[2.23, 2.35, WALL_Z + 0.06]} color={C.ink} />
+            </>
+          )}
         </>
       );
     },

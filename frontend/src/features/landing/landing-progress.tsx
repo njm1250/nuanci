@@ -6,7 +6,7 @@ import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
-import { nextGoalParts, nextReward } from "@/features/rewards/rewards";
+import { nextGoalParts, useRewards } from "@/features/rewards/rewards";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
@@ -116,10 +116,13 @@ function FeaturedScene({ scene, fresh }: { scene: ShelfScene; fresh: boolean }) 
 }
 
 // 다음 꾸미기 아이템까지 남은 장면 수. 진행도를 다음에 할 이유로 이어 주고 아지트로 보낸다
-function NextGoal({ cleared }: { cleared: string[] }) {
-  const next = nextReward(cleared);
+function NextGoal() {
+  const rewards = useRewards();
+  const next = rewards?.next;
   if (!next) return null;
   const [before, em, after] = nextGoalParts(next);
+  // 아지트에서 아직 안 본 물건이 있으면 점으로 알린다
+  const unseen = rewards.items.some((i) => i.owned && !i.owned.seen);
   return (
     <Link href="/me/room" className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block">
       <Mascot scale={2} className="shrink-0" />
@@ -129,6 +132,7 @@ function NextGoal({ cleared }: { cleared: string[] }) {
         {after}
       </span>
       <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
+        {unseen && <span aria-label="새 물건" className="size-2 bg-gold" />}
         아지트
         <Arrow />
       </span>
@@ -151,7 +155,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
         </p>
       </div>
       <Progress scenes={scenes} cleared={cleared} />
-      <NextGoal cleared={cleared} />
+      <NextGoal />
       {upNext.length > 0 ? (
         <>
           <FeaturedScene scene={upNext[0]} fresh={fresh.includes(upNext[0].id)} />

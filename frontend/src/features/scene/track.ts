@@ -1,5 +1,5 @@
 export type TrackEvent = {
-  type: "scene_viewed" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied";
+  type: "scene_viewed" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied" | "reward_shown" | "reward_equipped";
   sceneId: string;
   sceneVersion: number;
   attemptId: string;
@@ -12,6 +12,8 @@ const VISITOR_KEY = "nuanci.visitor";
 const ENTRY_KEY = "nuanci.entry";
 const PLAYED_KEY = "nuanci.played";
 export const SHARE_PARAM = "s";
+// 공유 링크로 연 장면이면 링크 주인의 공유 코드를 남겨 둔다. 그 장면을 끝낼 때 보상 서버에 함께 보낸다
+export const VIA_KEY = "nuanci.via";
 let fallbackVisitor: string | null = null;
 
 // 같은 와이파이의 http 주소에서도 동작하도록 crypto.randomUUID 대신 직접 만든다
@@ -84,7 +86,12 @@ export function markEntry(entry: "home" | "next") {
 // 장면을 연 경로를 한 번만 읽는다. 공유 링크 표시는 읽은 뒤 주소창에서 지운다
 export function takeEntry(): TrackEvent["entry"] {
   const url = new URL(location.href);
-  if (url.searchParams.has(SHARE_PARAM)) {
+  const code = url.searchParams.get(SHARE_PARAM);
+  try {
+    if (code && code !== "1") sessionStorage.setItem(VIA_KEY, code.slice(0, 12));
+    else sessionStorage.removeItem(VIA_KEY);
+  } catch {}
+  if (code !== null) {
     url.searchParams.delete(SHARE_PARAM);
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     return "share";
