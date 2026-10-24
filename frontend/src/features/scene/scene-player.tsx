@@ -39,6 +39,11 @@ const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
   happy: { text: "오~", bad: false },
   delighted: { text: "꺄!", bad: false },
   neutral: { text: "…", bad: false },
+  love: { text: "두근", bad: false },
+  angry: { text: "부들", bad: true },
+  shocked: { text: "헉!", bad: true },
+  sleepy: { text: "쿨…", bad: true },
+  crying: { text: "흑흑", bad: true },
 };
 
 // 고른 말의 판정. 채점처럼 O / △ / X로 보여주고 색만으로 구분하지 않게 기호를 함께 쓴다

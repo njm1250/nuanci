@@ -111,10 +111,12 @@ export function Figure({
             <Mat color={look.shirt} />
           </mesh>
           {look.apron && <Box size={[0.36, 0.5, 0.04]} at={[0, 0.22, 0.3]} color={look.apron} />}
+          {look.tie && <Box size={[0.08, 0.42, 0.03]} at={[0, 0.38, 0.29]} color={look.tie} rot={[-0.15, 0, 0]} />}
           {arm(1, lArm)}
           {arm(-1, rArm)}
           {animal?.kind === "cat" && <Box size={[0.07, 0.07, 0.42]} at={[0, 0.12, -0.42]} color={animal.fur} rot={[-0.7, 0, 0]} />}
           {animal?.kind === "bear" && <Gem r={0.08} at={[0, 0.1, -0.33]} color={animal.fur} />}
+          {animal?.kind === "dog" && <Box size={[0.06, 0.22, 0.06]} at={[0, 0.2, -0.34]} color={animal.inner} rot={[-0.5, 0, 0]} />}
           <group ref={head} position={[0, animal ? 1.02 : 0.98, 0]} scale={animal ? HEAD_SCALE : 1}>
             <Gem r={0.29} at={[0, 0, 0]} color={skin} />
             {animal?.kind === "cat" &&
@@ -136,6 +138,15 @@ export function Figure({
                   <Gem key={s} r={0.11} at={[0.22 * s, 0.24, -0.02]} color={animal.fur} />
                 ))}
                 <Gem r={0.11} at={[0, -0.08, 0.22]} color={animal.inner} scale={[1, 0.7, 0.6]} />
+              </>
+            )}
+            {animal?.kind === "dog" && (
+              <>
+                {[-1, 1].map((s) => (
+                  <Box key={s} size={[0.1, 0.26, 0.08]} at={[0.29 * s, 0.02, -0.02]} color={animal.inner} rot={[0, 0, 0.25 * s]} />
+                ))}
+                <Gem r={0.11} at={[0, -0.08, 0.22]} color="#f6ead6" scale={[1, 0.7, 0.6]} />
+                <Box size={[0.07, 0.05, 0.04]} at={[0, -0.04, 0.3]} color={C.ink} />
               </>
             )}
             {animal &&

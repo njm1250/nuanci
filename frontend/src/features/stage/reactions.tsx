@@ -39,6 +39,26 @@ export const REACTION_SYMBOLS: Partial<Record<Expression, React.ReactNode>> = {
     </svg>
   ),
   neutral: <span className="text-[24px] font-bold leading-none tracking-widest">…</span>,
+  // 반함: 픽셀 하트
+  love: (
+    <svg width="24" height="21" viewBox="0 0 8 7" shapeRendering="crispEdges" aria-hidden>
+      <path d="M1 0h2v1h2V0h2v1h1v3H7v1H6v1H5v1H3V6H2V5H1V4H0V1h1z" fill="#d4265f" />
+    </svg>
+  ),
+  // 화남: 만화식 핏대
+  angry: (
+    <svg width="24" height="24" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden>
+      <path d="M1 0h2v2H2v1H0V1h1zM5 0h2v1h1v2H6V2H5zM0 5h2v1h1v2H1V7H0zM6 5h2v2H7v1H5V6h1z" fill="#d4265f" />
+    </svg>
+  ),
+  shocked: <span className="text-[30px] font-bold leading-none">!!</span>,
+  sleepy: <span className="text-[22px] font-bold italic leading-none">Zz</span>,
+  // 울음: 파란 눈물 두 방울
+  crying: (
+    <svg width="26" height="20" viewBox="0 0 13 10" shapeRendering="crispEdges" aria-hidden>
+      <path d="M2 0h1v2h1v2h1v3H4v1H1V7H0V4h1V2h1zM10 2h1v2h1v2h1v3h-1v1H9V9H8V6h1V4h1z" fill="#7fb4d8" />
+    </svg>
+  ),
   // 기절: 머리 위로 영혼이 스르륵 빠져나간다
   dizzy: <Soul />,
 };
