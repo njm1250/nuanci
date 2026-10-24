@@ -1,19 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
-import { nextUncleared, useCleared } from "@/features/scene/progress";
+import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed } from "@/features/scene/track";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
 const noop = () => () => {};
 
-function useVisitor() {
+function useVisitor(scenes: ShelfScene[] = []) {
   const played = useSyncExternalStore(noop, hasPlayed, () => false);
   const cleared = useCleared();
-  return { returning: played || cleared.length > 0, cleared };
+  const since = useSince();
+  const returning = played || cleared.length > 0;
+  useEffect(() => rememberSince(scenes), [scenes]);
+  return { returning, cleared, fresh: newSceneIds(scenes, cleared, since) };
+}
+
+function NewChip() {
+  return <span className="shrink-0 bg-gold px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">NEW</span>;
+}
+
+function NewCount({ n, className = "" }: { n: number; className?: string }) {
+  if (n === 0) return null;
+  return <span className={`inline-block bg-gold px-1.5 py-1 align-middle font-pixel-title text-[12px] leading-none text-ink ${className}`}>새 장면 {n}개</span>;
 }
 
 function Check() {
@@ -26,7 +38,7 @@ function Check() {
 
 // 첫 방문이면 첫 장면으로, 다시 오면 아직 안 해 본 다음 장면으로 보내는 시작 버튼
 export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
-  const { returning, cleared } = useVisitor();
+  const { returning, cleared } = useVisitor(scenes);
   const next = nextUncleared(scenes, cleared);
   const target = next ?? scenes[0];
   if (!target) return null;
@@ -43,7 +55,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
 }
 
 // 안 해 본 장면은 제목을 "???"로 가리고 관계·장소만 단서로 보여준다
-function SceneCard({ scene, done, next = false }: { scene: ShelfScene; done: boolean; next?: boolean }) {
+function SceneCard({ scene, done, next = false, fresh = false }: { scene: ShelfScene; done: boolean; next?: boolean; fresh?: boolean }) {
   return (
     <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn block h-full" style={next ? ({ "--edge": "var(--color-night-deep)" } as React.CSSProperties) : undefined}>
       <span className={`blk flex h-full items-center gap-3 px-3 py-3 ${next ? "bg-slate-block text-paper" : "bg-cream text-ink"}`}>
@@ -60,6 +72,7 @@ function SceneCard({ scene, done, next = false }: { scene: ShelfScene; done: boo
             {scene.relation} · {scene.place}
           </span>
         </span>
+        {fresh && <NewChip />}
       </span>
     </EntryLink>
   );
@@ -77,14 +90,17 @@ function Progress({ scenes, cleared }: { scenes: ShelfScene[]; cleared: string[]
 
 // 다시 온 방문자에게 진행도와 다음에 볼 장면 몇 개만 보여준다. 장면이 늘어도 메인이 길어지지 않게 전체 목록은 따로 둔다
 export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?: number }) {
-  const { returning, cleared } = useVisitor();
+  const { returning, cleared, fresh } = useVisitor(scenes);
   if (!returning) return null;
   const done = scenes.filter((s) => cleared.includes(s.id)).length;
   const upNext = scenes.filter((s) => !cleared.includes(s.id)).slice(0, limit);
   return (
     <section className="animate-[fade-in_200ms] px-4 pb-6 pt-10 md:px-0">
       <div className="flex items-baseline justify-between">
-        <h2 className="font-pixel text-[15px]">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</h2>
+        <h2 className="font-pixel text-[15px]">
+          {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
+          <NewCount n={fresh.length} className="ml-2" />
+        </h2>
         <p className="font-pixel text-[15px] text-paper-subtle">
           <span className="text-gold">{done}</span> / {scenes.length}
         </p>
@@ -94,7 +110,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
       <ul className="mt-4 grid gap-3 md:grid-cols-3">
         {upNext.map((s, i) => (
           <li key={s.id}>
-            <SceneCard scene={s} done={false} next={i === 0} />
+            <SceneCard scene={s} done={false} next={i === 0} fresh={fresh.includes(s.id)} />
           </li>
         ))}
       </ul>
@@ -115,7 +131,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
 
 // 전체 장면 목록. 깬 장면에는 체크가 붙고, 잠금 없이 아무 장면이나 고를 수 있다
 export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
-  const cleared = useCleared();
+  const { cleared, fresh } = useVisitor(scenes);
   const done = scenes.filter((s) => cleared.includes(s.id)).length;
   return (
     <>
@@ -126,10 +142,11 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
         </p>
       </div>
       <Progress scenes={scenes} cleared={cleared} />
+      {fresh.length > 0 && <NewCount n={fresh.length} className="mt-3" />}
       <ul className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {scenes.map((s) => (
           <li key={s.id}>
-            <SceneCard scene={s} done={cleared.includes(s.id)} />
+            <SceneCard scene={s} done={cleared.includes(s.id)} fresh={fresh.includes(s.id)} />
           </li>
         ))}
       </ul>
