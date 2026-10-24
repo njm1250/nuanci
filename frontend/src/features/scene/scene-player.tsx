@@ -302,7 +302,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 비교를 다 본 뒤에 완료 화면으로 넘어가며 팡파르를 울린다. 처음 한 번만 울린다
   const fanfared = useRef(false);
   const wrapUp = () => {
-    if (!fanfared.current) sfx.clear();
+    if (!fanfared.current) {
+      sfx.clear();
+      send({ type: "wrap_viewed" });
+    }
     fanfared.current = true;
     setWrapped(true);
   };
@@ -472,7 +475,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </BlockButton>
             ) : f.done ? (
               next ? (
-                <BlockLink href={`/scenes/${next.number}`} entry="next" gold>
+                <BlockLink href={`/scenes/${next.number}`} entry="next" gold onClick={() => send({ type: "next_clicked" })}>
                   다음 장면
                 </BlockLink>
               ) : (

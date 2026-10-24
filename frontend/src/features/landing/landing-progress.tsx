@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useSyncExternalStore } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
-import { hasPlayed } from "@/features/scene/track";
+import { hasPlayed, trackHome } from "@/features/scene/track";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
@@ -40,6 +40,7 @@ function Check() {
 export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const { returning, cleared } = useVisitor(scenes);
   const next = nextUncleared(scenes, cleared);
+  useEffect(trackHome, []);
   const target = next ?? scenes[0];
   if (!target) return null;
   const label = !returning ? "바로 시작하기" : next ? "이어서 하기" : "처음부터 다시 하기";

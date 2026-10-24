@@ -17,13 +17,17 @@ type SceneMetrics = {
   baseChosen: number;
   followUpChosen: number;
   completed: number;
+  wrapViewed: number;
+  nextClicked: number;
   alternativesViewed: number;
   shared: number;
   fromNext: number;
   choices: ChoiceCount[];
 };
 
-type Metrics = { visitors: number; attempts: number; events: number; internalVisitors: number; internalEvents: number; scenes: SceneMetrics[] };
+type Funnel = { home: number; started: number; firstPick: number; answered: number; wrapped: number; next: number };
+
+type Metrics = { funnel: Funnel; visitors: number; attempts: number; events: number; internalVisitors: number; internalEvents: number; scenes: SceneMetrics[] };
 
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
@@ -98,6 +102,48 @@ function ChoiceBars({ label, choices, counts }: { label: string; choices: Choice
   );
 }
 
+const FUNNEL_STEPS: [keyof Funnel, string][] = [
+  ["home", "홈 방문"],
+  ["started", "장면 시작"],
+  ["firstPick", "첫 선택"],
+  ["answered", "답변 완료"],
+  ["wrapped", "정리 화면"],
+  ["next", "다음 장면"],
+];
+
+// 방문자가 어느 단계에서 빠지는지 본다. 막대는 홈 방문자를 100%로 둔다
+function FunnelCard({ funnel }: { funnel: Funnel }) {
+  const top = Math.max(funnel.home, funnel.started, 1);
+  return (
+    <Panel className="mt-6">
+      <div className="p-4">
+        <p className="font-pixel text-[15px]">단계별 방문자</p>
+        <ul className="mt-3 space-y-2">
+          {FUNNEL_STEPS.map(([key, label], i) => {
+            const n = funnel[key];
+            const prev = i > 0 ? funnel[FUNNEL_STEPS[i - 1][0]] : null;
+            return (
+              <li key={key}>
+                <div className="flex justify-between gap-3 text-[14px]">
+                  <span className="font-medium">{label}</span>
+                  <span className="shrink-0 text-[13px] font-medium tabular-nums">
+                    {n}
+                    {prev !== null && ` · 앞 단계의 ${pct(n, prev)}%`}
+                  </span>
+                </div>
+                <div className="mt-1 h-2 bg-ink/10">
+                  <div className="h-full bg-gold" style={{ width: `${pct(n, top)}%` }} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="mt-3 text-[12px] leading-relaxed text-ink-subtle">홈 방문은 이번 업데이트부터 셌어요. 공유 링크로 장면에 바로 들어오면 홈을 거치지 않아요.</p>
+      </div>
+    </Panel>
+  );
+}
+
 async function SceneCard({ m }: { m: SceneMetrics }) {
   const scene = await getAdminScene(m.id);
   const base = scene ? firstPicks(scene.base.choices, m.choices.filter((c) => c.step === "base")) : null;
@@ -113,10 +159,10 @@ async function SceneCard({ m }: { m: SceneMetrics }) {
         <div className="mt-4 grid grid-cols-3 gap-3">
           <Stat label="노출" value={m.viewed} />
           <Stat label="첫 선택" value={m.baseChosen} sub={`노출의 ${pct(m.baseChosen, m.viewed)}%`} />
-          <Stat label="완료" value={m.completed} sub={`첫 선택의 ${pct(m.completed, m.baseChosen)}%`} />
+          <Stat label="답변 완료" value={m.completed} sub={`첫 선택의 ${pct(m.completed, m.baseChosen)}%`} />
         </div>
         <p className="mt-4 text-[13px] text-ink-muted">
-          다음 장면으로 들어옴 {m.fromNext} · 다른 표현 탐색 {m.alternativesViewed} · 공유 링크 복사 {m.shared}
+          정리 화면 {m.wrapViewed} · 다음 장면 누름 {m.nextClicked} · 다음 장면으로 들어옴 {m.fromNext} · 다른 표현 탐색 {m.alternativesViewed} · 공유 {m.shared}
         </p>
         {scene && (
           <>
@@ -133,6 +179,7 @@ async function MetricsBody() {
   const metrics = await loadMetrics();
   return (
     <>
+      <FunnelCard funnel={metrics.funnel} />
       <Panel className="mt-6">
         <div className="grid grid-cols-3 gap-3 p-4">
           <Stat label="방문자" value={metrics.visitors} />

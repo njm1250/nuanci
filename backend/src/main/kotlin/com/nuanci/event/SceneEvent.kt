@@ -15,11 +15,11 @@ import java.util.UUID
 class SceneEvent(
 	val type: String,
 	@Column(name = "scene_id")
-	val sceneId: String,
+	val sceneId: String?,
 	@Column(name = "scene_version")
-	val sceneVersion: Int,
+	val sceneVersion: Int?,
 	@Column(name = "attempt_id")
-	val attemptId: UUID,
+	val attemptId: UUID?,
 	@Column(name = "visitor_id")
 	val visitorId: UUID,
 	val step: String?,

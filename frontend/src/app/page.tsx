@@ -4,6 +4,7 @@ import type { Scene } from "@/features/scene/types";
 import { AttractReel } from "@/features/landing/attract-reel";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
 import { reelBeats } from "@/features/landing/reel";
+import { SiteFooter } from "@/features/landing/site-footer";
 
 export default async function Home() {
   const summaries = await getScenes();
@@ -36,13 +37,14 @@ export default async function Home() {
           <p className="mt-3 font-pixel text-[15px] leading-[1.6] text-paper-muted">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
         </section>
 
-        <div className="flex-1 md:col-span-2 md:row-start-4">
+        <div className="flex flex-1 flex-col pt-6 md:col-span-2 md:row-start-4 md:pt-0">
           <SceneShelf scenes={shelf} />
+          <SiteFooter contactEmail={process.env.CONTACT_EMAIL} />
         </div>
 
-        <footer className="sticky bottom-0 border-t-[3px] border-night-deep bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:static md:col-start-2 md:row-start-3 md:self-start md:border-0 md:px-0 md:pb-0 md:pt-8">
+        <div className="sticky bottom-0 border-t-[3px] border-night-deep bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:static md:col-start-2 md:row-start-3 md:self-start md:border-0 md:px-0 md:pb-0 md:pt-8">
           <LandingCta scenes={shelf} />
-        </footer>
+        </div>
       </main>
     </div>
   );

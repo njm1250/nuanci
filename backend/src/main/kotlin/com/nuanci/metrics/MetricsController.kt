@@ -24,13 +24,19 @@ data class SceneMetrics(
 	val baseChosen: Int,
 	val followUpChosen: Int,
 	val completed: Int,
+	val wrapViewed: Int,
+	val nextClicked: Int,
 	val alternativesViewed: Int,
 	val shared: Int,
 	val fromNext: Int,
 	val choices: List<ChoiceCount>,
 )
 
+// 방문자 기준 단계별 인원. 홈 방문 → 장면 시작 → 첫 선택 → 답변 완료 → 정리 화면 → 다음 장면
+data class Funnel(val home: Int, val started: Int, val firstPick: Int, val answered: Int, val wrapped: Int, val next: Int)
+
 data class MetricsResponse(
+	val funnel: Funnel,
 	val visitors: Int,
 	val attempts: Int,
 	val events: Int,
@@ -72,6 +78,8 @@ class MetricsController(
 				   count(distinct e.attempt_id) filter (where e.type = 'choice_selected' and e.step = 'base') as base_chosen,
 				   count(distinct e.attempt_id) filter (where e.type = 'choice_selected' and e.step = 'followUp') as follow_up_chosen,
 				   count(distinct e.attempt_id) filter (where e.type = 'scene_completed') as completed,
+				   count(distinct e.attempt_id) filter (where e.type = 'wrap_viewed') as wrap_viewed,
+				   count(distinct e.attempt_id) filter (where e.type = 'next_clicked') as next_clicked,
 				   count(*) filter (where e.type = 'alternative_viewed') as alternatives_viewed,
 				   count(*) filter (where e.type = 'share_link_copied') as shared,
 				   count(distinct e.attempt_id) filter (where e.type = 'scene_viewed' and e.entry = 'next') as from_next
@@ -92,6 +100,8 @@ class MetricsController(
 				baseChosen = rs.getInt("base_chosen"),
 				followUpChosen = rs.getInt("follow_up_chosen"),
 				completed = rs.getInt("completed"),
+				wrapViewed = rs.getInt("wrap_viewed"),
+				nextClicked = rs.getInt("next_clicked"),
 				alternativesViewed = rs.getInt("alternatives_viewed"),
 				shared = rs.getInt("shared"),
 				fromNext = rs.getInt("from_next"),
@@ -102,10 +112,21 @@ class MetricsController(
 		val totals = jdbc.sql("select count(distinct visitor_id) as v, count(distinct attempt_id) as a, count(*) as e from scene_event e where $EXTERNAL")
 			.query { rs, _ -> Triple(rs.getInt("v"), rs.getInt("a"), rs.getInt("e")) }
 			.single()
+		val funnel = jdbc.sql(
+			"""
+			select count(distinct visitor_id) filter (where type = 'home_viewed') as home,
+				   count(distinct visitor_id) filter (where type = 'scene_viewed') as started,
+				   count(distinct visitor_id) filter (where type = 'choice_selected' and step = 'base') as first_pick,
+				   count(distinct visitor_id) filter (where type = 'scene_completed') as answered,
+				   count(distinct visitor_id) filter (where type = 'wrap_viewed') as wrapped,
+				   count(distinct visitor_id) filter (where type = 'next_clicked') as next
+			from scene_event e where $EXTERNAL
+			""",
+		).query { rs, _ -> Funnel(rs.getInt("home"), rs.getInt("started"), rs.getInt("first_pick"), rs.getInt("answered"), rs.getInt("wrapped"), rs.getInt("next")) }.single()
 		val internalVisitors = jdbc.sql("select count(*) from internal_visitor").query(Int::class.java).single()
 		val internalEvents = jdbc.sql("select count(*) from scene_event e where not $EXTERNAL").query(Int::class.java).single()
 
-		return MetricsResponse(totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes)
+		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes)
 	}
 
 	@PostMapping("/internal-visitors")
