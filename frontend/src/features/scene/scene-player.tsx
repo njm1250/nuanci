@@ -177,7 +177,7 @@ function Arrow() {
   );
 }
 
-// 장면을 끝낸 뒤의 완료 화면. 한 줄 정리와 이번에 모은 표현을 그 자리에서 보여주고, 친구에게 문제 내기를 권한다
+// 장면을 끝낸 뒤의 완료 화면. 이번에 모은 표현을 먼저 크게 보여주고, 그다음 친구에게 문제 내기를 권한다
 function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () => void; shareState: "idle" | "copied" | "failed"; onBack: () => void }) {
   const { pairs } = bookEntry(scene);
   return (
@@ -191,29 +191,18 @@ function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () 
       </div>
       <p className="mt-4 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
 
-      <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
-        <div className="min-w-0 flex-1">
-          <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
-          <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
-        </div>
-        <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
-          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
-        </BlockButton>
-      </div>
-
       <div className="blk-frame mt-5">
         <div className="blk bg-cream px-4 py-3 text-ink">
           <p className="font-pixel text-[15px]">
             표현 모음에 담았어요 <span className="text-ink-subtle">+{pairs.length}</span>
           </p>
-          <ul className="mt-2 space-y-3">
+          <ul className="mt-2 space-y-2.5">
             {pairs.map((p) => (
               <li key={p.right}>
-                <p className="text-[13px] text-ink-muted">{p.gist}</p>
-                <p className="mt-0.5 text-[14px] text-ink-subtle">
-                  <s>{p.wrong}</s>
-                </p>
                 <p className="text-[16px] font-semibold leading-snug">{p.right}</p>
+                <p className="text-[13px] text-ink-subtle">
+                  {p.gist} · <s>{p.wrong}</s>
+                </p>
               </li>
             ))}
           </ul>
@@ -222,6 +211,16 @@ function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () 
             <Arrow />
           </Link>
         </div>
+      </div>
+
+      <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
+          <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
+        </div>
+        <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
+          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+        </BlockButton>
       </div>
 
       <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4">
@@ -269,12 +268,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const [wrapped, setWrapped] = useState(false);
   const { situation, choice, pickedId, seenIds, phase } = f;
   const later = phase !== "base";
+  // 완료 화면에서는 마지막에 고른 말 대신 자연스러운 말을 다시 들려주는 엔딩으로 끝낸다
+  const stageChoice = wrapped ? (scene.followUp.choices.find((c) => c.verdict === "good") ?? choice) : choice;
+  const stageKey = f.reactionKey * 10 + (later ? 1 : 0) + (wrapped ? 5 : 0);
   const stageSituation = later ? scene.followUp : scene.base;
 
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
-    return { ...base, hero: scene.hero, flags: [...(base.flags ?? []), ...(choice?.flags ?? [])] };
-  }, [stageSituation, choice, scene.hero]);
+    return { ...base, hero: scene.hero, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
+  }, [stageSituation, stageChoice, scene.hero]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -310,7 +312,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     setWrapped(true);
   };
 
-  const burst = choice ? BURSTS[choice.expression] : null;
+  const burst = stageChoice ? BURSTS[stageChoice.expression] : null;
   const stepPicks = stats?.[later ? "followUp" : "base"];
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
@@ -332,15 +334,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 spec={spec}
                 reduced={reduced}
                 state={{
-                  meMotion: choice?.meMotion ?? stageSituation.meIdle?.motion,
-                  meKey: f.reactionKey * 10 + (later ? 1 : 0),
-                  meProp: choice?.meProp ?? stageSituation.meIdle?.prop,
-                  partnerProp: choice?.partnerProp ?? stageSituation.partnerIdle.prop,
-                  partnerMotion: choice?.motion ?? stageSituation.partnerIdle.motion,
-                  partnerKey: f.reactionKey * 10 + (later ? 1 : 0),
-                  talkKey: f.reactionKey,
-                  reaction: choice?.expression ?? null,
-                  meLine: choice?.line,
+                  meMotion: stageChoice?.meMotion ?? stageSituation.meIdle?.motion,
+                  meKey: stageKey,
+                  meProp: stageChoice?.meProp ?? stageSituation.meIdle?.prop,
+                  partnerProp: stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
+                  partnerMotion: stageChoice?.motion ?? stageSituation.partnerIdle.motion,
+                  partnerKey: stageKey,
+                  talkKey: stageKey,
+                  reaction: stageChoice?.expression ?? null,
+                  meLine: stageChoice?.line,
                   partnerLine: stageSituation.partnerLine,
                   meTurn: phase !== "transition" && !choice,
                 }}
@@ -353,7 +355,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-[wipe_520ms_ease-in-out_both] bg-ink" />}
               {burst && !reduced && phase !== "transition" && (
                 <span
-                  key={`burst-${f.reactionKey}`}
+                  key={`burst-${stageKey}`}
                   aria-hidden
                   className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_ease-out_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
