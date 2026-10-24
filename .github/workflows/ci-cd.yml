@@ -1,4 +1,5 @@
-# 모든 푸시와 PR에서 BE 테스트·FE 검사를 돌리고, main에 푸시되면 BE → FE 순서로 배포한다
+# 바뀐 쪽만 검사하고, main에 푸시되면 바뀐 쪽만 BE → FE 순서로 배포한다.
+# FE만 바꾼 배포는 BE 테스트와 BE 이미지 빌드를 건너뛰어 빨라진다
 name: CI/CD
 
 on:
@@ -12,12 +13,36 @@ concurrency:
 
 env:
   NUANCI_SERVER: ubuntu@13.124.12.101
-  API_URL: https://13-124-12-101.sslip.io
+  API_URL: https://api.nuanci.app
   LIGHTSAIL_INSTANCE: nuanci-backend
   AWS_REGION: ap-northeast-2
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'content/scenes/**'
+              - 'compose.prod.yaml'
+              - 'Caddyfile'
+              - 'scripts/deploy-backend.sh'
+              - '.github/workflows/**'
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/**'
+
   backend-test:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,6 +58,8 @@ jobs:
       - run: ./gradlew test
 
   frontend-check:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,9 +77,10 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm run lint
 
+  # 건너뛴 검사는 통과로 보고, 실패한 검사가 있으면 배포하지 않는다
   deploy-backend:
-    needs: [backend-test, frontend-check]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, backend-test, frontend-check]
+    if: ${{ !cancelled() && !failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -91,7 +119,8 @@ jobs:
 
   # FE 빌드가 BE에서 장면 목록을 받아 오므로 BE 배포가 끝난 뒤에 한다
   deploy-frontend:
-    needs: deploy-backend
+    needs: [changes, frontend-check, deploy-backend]
+    if: ${{ !cancelled() && !failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

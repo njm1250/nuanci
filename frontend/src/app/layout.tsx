@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import { AccountSync } from "@/features/account/account-sync";
 import { NavTracker } from "@/features/collection/back-button";
@@ -29,7 +30,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         {children}
         <AccountSync />
-        <NavTracker />
+        <Suspense fallback={null}>
+          <NavTracker />
+        </Suspense>
         <ErrorReporter />
       </body>
     </html>

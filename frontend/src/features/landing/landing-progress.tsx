@@ -6,7 +6,7 @@ import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
-import { nextGoalText, nextReward } from "@/features/rewards/rewards";
+import { nextGoalParts, nextReward } from "@/features/rewards/rewards";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
@@ -119,10 +119,15 @@ function FeaturedScene({ scene, fresh }: { scene: ShelfScene; fresh: boolean }) 
 function NextGoal({ cleared }: { cleared: string[] }) {
   const next = nextReward(cleared);
   if (!next) return null;
+  const [before, em, after] = nextGoalParts(next);
   return (
     <Link href="/me/room" className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block">
       <Mascot scale={2} className="shrink-0" />
-      <span className="min-w-0 flex-1 text-[13px] text-paper-muted">{nextGoalText(next)}</span>
+      <span className="min-w-0 flex-1 text-[13px] text-paper-muted">
+        {before}
+        <span className="mx-0.5 bg-gold px-1 font-semibold text-ink">{em}</span>
+        {after}
+      </span>
       <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
         아지트
         <Arrow />
