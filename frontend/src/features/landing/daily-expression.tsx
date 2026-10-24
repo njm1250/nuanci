@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Mark } from "@/features/collection/expression-book";
-import { bookEntry, type ExpressionPair } from "@/features/collection/pairs";
+import { bookEntry, spoken, type ExpressionPair } from "@/features/collection/pairs";
 import { useCleared } from "@/features/scene/progress";
 import type { Scene } from "@/features/scene/types";
 import { useKstDay } from "@/features/streak/kst-day";
@@ -42,8 +42,10 @@ export function DailyExpression({ scenes }: { scenes: { id: string; title: strin
       <h2 className="font-pixel text-[15px] text-paper-subtle">오늘의 복습</h2>
       <div className="blk-frame mt-2">
         <div className="blk bg-cream px-4 py-3 text-ink">
-          <p className="text-[12px] text-ink-subtle">{pick.title}</p>
-          <p className="mt-1 text-[16px] font-semibold leading-snug">{pair.gist}</p>
+          <p className="text-[12px] text-ink-subtle">
+            {pick.title} · {pair.who}
+          </p>
+          <p className="mt-1 text-[16px] font-semibold leading-snug">{spoken(pair.intent)}</p>
           <p className="mt-2 flex items-center gap-2 text-[14px] text-ink-subtle">
             <Mark good={false} />
             <s className="min-w-0">{pair.wrong}</s>

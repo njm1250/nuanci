@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { bookEntry } from "@/features/collection/pairs";
+import { bookEntry, spoken } from "@/features/collection/pairs";
 import { Mascot } from "@/features/mascot/mascot";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { RewardReveal } from "@/features/rewards/reward-reveal";
@@ -16,6 +16,7 @@ import { PixelStage as Stage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
+import { ImagineBubble } from "./imagine-bubble";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression, type Scene, type Verdict } from "./types";
@@ -187,7 +188,7 @@ function Arrow() {
 const STREAK_DELAY = 1600;
 const AFTER_STREAK = 750;
 
-// 장면을 끝낸 뒤의 완료 화면. 이번에 모은 표현을 먼저 크게 보여주고, 그다음 친구에게 문제 내기를 권한다
+// 장면을 끝낸 뒤의 완료 화면. 이 장면의 발견(한 줄 정리와 모은 표현)을 가운데 두고, 연속 기록·새 물건은 작게 덧붙인 뒤 친구에게 문제 내기를 권한다
 function WrapUp({
   scene,
   share,
@@ -224,40 +225,34 @@ function WrapUp({
           <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{scene.title}</p>
         </div>
       </div>
-      {streak && (
-        <div className="mt-5">
-          <StreakMomentCard current={streak.current} newBadge={streak.newBadge} reduced={reduced} delay={STREAK_DELAY} />
-        </div>
-      )}
-      {/* 새로 얻은 물건이 있으면 완료 제목 바로 아래에서 보여주고, 쓰기·방에 두기는 직접 누른다 */}
-      {granted.length > 0 && (
-        <div className={streak ? "mt-3" : "mt-5"}>
-          <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={streak ? AFTER_STREAK : 0} />
-        </div>
-      )}
-      <p className="mt-4 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
-
+      {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-5">
-        <div className="blk bg-cream px-4 py-3 text-ink">
-          <p className="font-pixel text-[15px]">
-            표현 모음에 담았어요 <span className="text-ink-subtle">+{pairs.length}</span>
-          </p>
-          <ul className="mt-2 space-y-2.5">
+        <div className="blk bg-cream px-4 py-4 text-ink">
+          <p className="text-[15px] font-semibold leading-relaxed">{scene.discovery}</p>
+          <ul className="mt-3 space-y-2.5 border-t-2 border-ink/10 pt-3">
             {pairs.map((p) => (
               <li key={p.right}>
                 <p className="text-[16px] font-semibold leading-snug">{p.right}</p>
                 <p className="text-[13px] text-ink-subtle">
-                  {p.gist} · <s>{p.wrong}</s>
+                  {spoken(p.intent)} · <s>{p.wrong}</s>
                 </p>
               </li>
             ))}
           </ul>
-          <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-ink-muted underline underline-offset-4">
-            전체 모음 보기
+          <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[13px] text-ink-muted underline underline-offset-4">
+            표현 모음에 담았어요
             <Arrow />
           </Link>
         </div>
       </div>
+
+      {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
+      {(streak || granted.length > 0) && (
+        <div className="mt-4 space-y-2">
+          {streak && <StreakMomentCard current={streak.current} newBadge={streak.newBadge} reduced={reduced} delay={STREAK_DELAY} />}
+          {granted.length > 0 && <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={streak ? AFTER_STREAK : 0} />}
+        </div>
+      )}
 
       <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
         <div className="min-w-0 flex-1">
@@ -427,7 +422,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   {burst.text}
                 </span>
               )}
-
+              {stageChoice?.imagine && !wrapped && phase !== "transition" && (
+                <ImagineBubble key={`imagine-${stageKey}`} icon={stageChoice.imagine.icon} caption={stageChoice.imagine.caption} reduced={reduced} />
+              )}
             </div>
           </Panel>
         </div>

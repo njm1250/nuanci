@@ -53,22 +53,22 @@ export function StreakBadge({ days }: { days: number }) {
   );
 }
 
-// 완료 화면에서 오늘 처음 이어졌을 때 보여주는 한 줄. 불꽃이 튀어나오고 날 수가 올라간다
+// 완료 화면에서 오늘 처음 이어졌을 때 덧붙이는 한 줄. 그 장면의 발견을 가리지 않게 작게 보여주고, 불꽃만 살짝 튀어나온다
 export function StreakMomentCard({ current, newBadge, reduced, delay }: { current: number; newBadge: number | null; reduced: boolean; delay: number }) {
   return (
-    <div className="blk flex items-center gap-3 bg-night-deep px-3 py-3" style={reduced ? undefined : { animation: `rise 260ms ease-out ${delay}ms both` }}>
-      <span className="grid size-12 shrink-0 place-items-center" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 120}ms both` }}>
-        <Flame size={40} />
+    <div className="flex min-h-11 items-center gap-2.5" style={reduced ? undefined : { animation: `rise 260ms ease-out ${delay}ms both` }}>
+      <span className="grid size-7 shrink-0 place-items-center" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 120}ms both` }}>
+        <Flame size={24} />
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="font-pixel-title text-[20px] leading-[1.25] text-paper">{current === 1 ? "연속 첫날" : `${current}일 연속`}</p>
-        <p className="text-[12px] text-paper-subtle">내일도 하면 {current + 1}일</p>
-      </div>
+      <p className="min-w-0 flex-1 font-pixel text-[15px] text-paper">
+        {current === 1 ? "연속 첫날" : `${current}일 연속`}
+        <span className="ml-2 font-sans text-[13px] text-paper-subtle">내일도 하면 {current + 1}일</span>
+      </p>
       {newBadge && (
-        <div className="flex shrink-0 flex-col items-center gap-1" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 380}ms both` }}>
-          <Medal days={newBadge} size={36} />
-          <span className="font-pixel text-[12px] leading-none text-gold">새 뱃지</span>
-        </div>
+        <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[13px] text-gold" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 380}ms both` }}>
+          <Medal days={newBadge} size={22} />
+          새 뱃지
+        </span>
       )}
     </div>
   );

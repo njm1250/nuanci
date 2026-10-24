@@ -69,6 +69,8 @@ export type Choice = {
   meProp?: PropId;
   partnerProp?: PropId;
   flags?: string[];
+  // 상대가 이 말을 듣고 머릿속에 떠올린 엉뚱한 그림. 고른 직후 생각 말풍선으로 잠깐 보여준다
+  imagine?: { icon: string; caption: string };
 };
 
 export type Situation = {

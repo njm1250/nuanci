@@ -16,6 +16,7 @@ const INK: Record<string, string> = {
   s: "#e6bf98",
   u: "#f2d34a",
   t: "#2f7f7a",
+  e: "#e3d3b0",
 };
 
 const ICONS: Record<string, string[]> = {
@@ -52,6 +53,12 @@ const ICONS: Record<string, string[]> = {
   guitar: ["........kk..", ".......kk...", "......nk....", ".....nn.....", "..oooo......", ".oookoo.....", ".ookkko.....", ".oookoo.....", "..ooo......."],
   lights: ["", "", "kk........kk", "y.kk....kk.b", "y...kkkk...b", "...r.yy.p...", "...r.yy.p..."],
   beanbag: ["", "", "", "...oooooo...", "..oooooooo..", ".oooooooooo.", "oooooooooooo", "oooooooooooo", ".oooooooooo."],
+  // 생각 말풍선(상대가 오해해서 떠올린 그림)에 쓰는 그림
+  "imagine-food": ["....nnnn....", "...wwwwww...", "...nnnnnn...", "..wwwwwwww..", "..nnnnnnnn..", ".wwwwwwwwww.", ".nnnnnnnnnn.", "nnnnnnnnnnnn"],
+  "imagine-stomachs": [".pppp..pppp.", "pppppppppppp", "pppprppprppp", "pppppppppppp", ".pppp..pppp.", "..pp....pp..", "...p....p..."],
+  "imagine-net": ["......kkkk..", ".....k....k.", ".....k.bb.k.", ".....k....k.", "......kkkk..", ".....k......", "....k.......", "...k........", "..k.........", ".k.........."],
+  "imagine-bone": ["..ee....ee..", ".eeee..eeee.", ".eeeeeeeeee.", "..eeeeeeee..", "..eeeeeeee..", ".eeeeeeeeee.", ".eeee..eeee.", "..ee....ee.."],
+  "imagine-empty-cup": ["..........k.", ".........k..", "........k...", "..mmmmmkmm..", "..m...k..m..", "..m..k...m..", "...mk...m...", "...mmmmmm..."],
   box: ["", ".nnnnnnnnnn.", ".nddddddddn.", ".nnnnnnnnnn.", ".nnnwwwnnnn.", ".nnnnnwnnnn.", ".nnnnwnnnnn.", ".nnnnnnnnnn.", ".nnnnwnnnnn.", ".nnnnnnnnnn."],
   locked: ["", "", "....kkkk....", "...k....k...", "...k....k...", "..kkkkkkkk..", "..kkkwwkkk..", "..kkkwwkkk..", "..kkkkkkkk.."],
 };

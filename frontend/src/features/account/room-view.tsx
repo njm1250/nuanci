@@ -18,7 +18,7 @@ import {
   useRewards,
   type RewardItem,
 } from "@/features/rewards/rewards";
-import { Panel } from "@/features/scene/block-ui";
+import { EntryLink, Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
 import { Stage } from "@/features/stage/stage";
@@ -63,7 +63,18 @@ function formatDate(iso: string) {
 // 아지트: 옷장에서 주인공을 꾸미고, 얻은 물건을 방에 두고, 무엇을 언제 얻었는지 돌아보는 곳.
 // 아이템이 늘어도 화면이 길어지지 않게 작은 아이콘 칸으로 보여주고, 고른 아이템 하나만 아래 칸에서 자세히 보여준다.
 // 모바일에서는 무대를 위에 고정해서 아이템을 바꾸는 동안 주인공과 방이 계속 보인다
-export function RoomView({ titles }: { titles: Record<string, string> }) {
+export type SceneMemory = { number: number; title: string; right: string };
+
+// 물건을 얻은 장면. 장면 기념품은 그 장면이고, 장면 수 보상은 그 수만큼째 끝낸 장면이다. 상자·묶음처럼 장면 하나로 정할 수 없으면 없다
+function memoryScene(item: RewardItem, cleared: string[]) {
+  const owned = item.owned;
+  if (!owned) return null;
+  if (owned.sceneId) return owned.sceneId;
+  if (owned.reason === "milestone" && owned.count) return cleared[owned.count - 1] ?? null;
+  return null;
+}
+
+export function RoomView({ memories }: { memories: Record<string, SceneMemory> }) {
   const cleared = useCleared();
   const account = useAccount();
   const rewards = useRewards();
@@ -83,6 +94,11 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
 
   const items = rewards?.items ?? [];
   const reduced = useReducedMotion();
+  const memoryOf = (r: RewardItem) => {
+    const id = memoryScene(r, cleared);
+    return id ? (memories[id] ?? null) : null;
+  };
+  const titleOf = (r: RewardItem) => (r.owned?.sceneId ? memories[r.owned.sceneId]?.title : undefined);
   const isOn = (r: RewardItem) => (r.kind === "wear" ? look.isWorn(r.id) : look.placed.includes(r.id));
   const selected = items.find((i) => i.id === selectedId && i.kind === (tab === "wear" ? "wear" : "room")) ?? null;
 
@@ -192,7 +208,7 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
 
           {tab !== "log" && (
             <>
-              {selected && <Detail item={selected} on={isOn(selected)} setOn={(on) => setOn(selected, on)} titles={titles} />}
+              {selected && <Detail item={selected} on={isOn(selected)} setOn={(on) => setOn(selected, on)} title={titleOf(selected)} memory={memoryOf(selected)} />}
               <ul className="grid grid-cols-5 gap-2">
                 {[...items.filter((i) => i.kind === tab && isUsable(i)), ...(showLocked ? locked : locked.slice(0, preview))].map((r) => (
                   <li key={r.id}>
@@ -225,7 +241,8 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-pixel text-[15px] text-paper">{r.name}</span>
-                      <span className="block truncate text-[12px] text-paper-subtle">{ownedReason(r.owned!, r.owned!.sceneId ? titles[r.owned!.sceneId] : undefined)}</span>
+                      <span className="block truncate text-[12px] text-paper-subtle">{ownedReason(r.owned!, titleOf(r))}</span>
+                      {memoryOf(r) && <span className="mt-0.5 block truncate text-[13px] text-paper-muted">“{memoryOf(r)!.right}”</span>}
                     </span>
                     <span className="shrink-0 text-[12px] text-paper-subtle">{formatDate(r.owned!.grantedAt)}</span>
                   </li>
@@ -274,15 +291,27 @@ function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; 
   );
 }
 
-// 고른 아이템의 이름과 얻은 까닭(못 얻었으면 조건), 쓰기·두기 토글과 색. 아이템을 고를 때만 나온다
-function Detail({ item, on, setOn, titles }: { item: RewardItem; on: boolean; setOn: (on: boolean) => void; titles: Record<string, string> }) {
+// 고른 아이템의 이름과 얻은 까닭(못 얻었으면 조건), 쓰기·두기 토글과 색, 그리고 얻은 장면에서 배운 말. 아이템을 고를 때만 나온다
+function Detail({
+  item,
+  on,
+  setOn,
+  title,
+  memory,
+}: {
+  item: RewardItem;
+  on: boolean;
+  setOn: (on: boolean) => void;
+  title?: string;
+  memory: SceneMemory | null;
+}) {
   const usable = isUsable(item);
   return (
     <div className="blk mb-3 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 bg-night-deep px-3 py-2">
       <div className="min-w-0 flex-1">
         <p className="truncate font-pixel text-[15px] text-paper">{usable ? item.name : "???"}</p>
         <p className="truncate text-[12px] text-paper-subtle">
-          {usable ? ownedReason(item.owned!, item.owned!.sceneId ? titles[item.owned!.sceneId] : undefined) : item.lock ? lockHint(item.lock) : "깜짝 상자"}
+          {usable ? ownedReason(item.owned!, title) : item.lock ? lockHint(item.lock) : "깜짝 상자"}
         </p>
       </div>
       {usable && item.colors.length > 0 && (
@@ -294,10 +323,7 @@ function Detail({ item, on, setOn, titles }: { item: RewardItem; on: boolean; se
               role="radio"
               aria-checked={item.owned!.color === c}
               aria-label={COLOR_LABELS[c]}
-              onClick={() => {
-                setRewardColor(item.id, c);
-                if (!on) setOn(true);
-              }}
+              onClick={() => setRewardColor(item.id, c)}
               className={`grid size-11 place-items-center border-[3px] ${item.owned!.color === c ? "border-paper" : "border-transparent"}`}
             >
               <span className="grid size-6 place-items-center text-paper" style={{ background: COLOR_HEX[c] }}>
@@ -317,6 +343,17 @@ function Detail({ item, on, setOn, titles }: { item: RewardItem; on: boolean; se
           {item.kind === "wear" ? "쓰기" : "두기"}
           {on && <Check size={12} />}
         </button>
+      )}
+      {usable && memory && (
+        <div className="flex basis-full items-center gap-3 border-t-2 border-night pt-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12px] text-paper-subtle">「{memory.title}」에서 배운 말</p>
+            <p className="truncate text-[14px] font-semibold text-paper">{memory.right}</p>
+          </div>
+          <EntryLink href={`/scenes/${memory.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-[13px] text-paper-muted underline underline-offset-4">
+            다시 하기
+          </EntryLink>
+        </div>
       )}
     </div>
   );

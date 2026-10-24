@@ -294,6 +294,29 @@ body {
   }
 }
 
+/* 상대의 생각 말풍선: 뿅 하고 부풀었다가 잠깐 머문 뒤 사라진다 */
+@keyframes imagine {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  20% {
+    transform: scale(1);
+  }
+  85% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
 /* 깜짝 상자를 열기 직전 들썩인다 */
 @keyframes box-shake {
   0%,
