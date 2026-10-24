@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { bookEntry } from "@/features/collection/pairs";
+import { BackButton } from "@/features/collection/back-button";
 import { ExpressionBook } from "@/features/collection/expression-book";
 import { getScene, getScenes } from "@/features/scene/api";
 import type { Scene } from "@/features/scene/types";
@@ -17,6 +18,7 @@ export default async function ExpressionsPage() {
           <Link href="/" className="-ml-2 flex h-11 items-center px-2 font-pixel text-[15px] text-gold">
             nuanci
           </Link>
+          <BackButton />
         </header>
         <h1 className="font-pixel-title text-[24px]">표현 모음</h1>
         <div className="mt-3">

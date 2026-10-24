@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { bookEntry } from "@/features/collection/pairs";
 import { Mascot } from "@/features/mascot/mascot";
 import { PixelStage } from "@/features/stage/pixel-stage";
 import type { StageSpec } from "@/features/stage/types";
@@ -162,6 +163,68 @@ function ResultBody({
   );
 }
 
+function Arrow() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
+      <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
+    </svg>
+  );
+}
+
+// 장면을 끝낸 뒤의 완료 화면. 한 줄 정리와 이번에 모은 표현을 그 자리에서 보여주고, 친구에게 문제 내기를 권한다
+function WrapUp({ scene, share, shareState, onBack }: { scene: Scene; share: () => void; shareState: "idle" | "copied" | "failed"; onBack: () => void }) {
+  const { pairs } = bookEntry(scene);
+  return (
+    <div className="animate-[rise_240ms_ease-out]">
+      <div className="flex items-end gap-3">
+        <Mascot scale={3} className="shrink-0" />
+        <div className="pb-1">
+          <p className="font-pixel text-[15px] text-gold">장면 완료!</p>
+          <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{scene.title}</p>
+        </div>
+      </div>
+      <p className="mt-4 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
+
+      <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
+          <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
+        </div>
+        <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
+          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+        </BlockButton>
+      </div>
+
+      <div className="blk-frame mt-5">
+        <div className="blk bg-cream px-4 py-3 text-ink">
+          <p className="font-pixel text-[15px]">
+            표현 모음에 담았어요 <span className="text-ink-subtle">+{pairs.length}</span>
+          </p>
+          <ul className="mt-2 space-y-3">
+            {pairs.map((p) => (
+              <li key={p.right}>
+                <p className="text-[13px] text-ink-muted">{p.gist}</p>
+                <p className="mt-0.5 text-[14px] text-ink-subtle">
+                  <s>{p.wrong}</s>
+                </p>
+                <p className="text-[16px] font-semibold leading-snug">{p.right}</p>
+              </li>
+            ))}
+          </ul>
+          <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-ink-muted underline underline-offset-4">
+            전체 모음 보기
+            <Arrow />
+          </Link>
+        </div>
+      </div>
+
+      <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4">
+        다른 말 다시 보기
+      </button>
+    </div>
+  );
+}
+
 type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; preview?: boolean };
 
 // Next.js는 떠난 페이지를 숨겨 두기만 해서 상태가 남는다. 링크로 새로 들어오면 처음부터, 뒤로 가기로 돌아오면 하던 곳부터 보여준다
@@ -197,6 +260,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   );
   const [showMeaning, setShowMeaning] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [wrapped, setWrapped] = useState(false);
   const { situation, choice, pickedId, seenIds, phase } = f;
   const later = phase !== "base";
   const stageSituation = later ? scene.followUp : scene.base;
@@ -209,7 +273,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
-  }, [phase]);
+  }, [phase, wrapped]);
 
   // X일 때만 무대 칸을 짧게 흔든다. 화면 전체가 아니라 무대만 흔들어서 틀렸다는 신호로만 쓴다
   const stageBox = useRef<HTMLDivElement>(null);
@@ -221,13 +285,20 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     );
   };
 
-  // 고른 말에 맞춰 소리를 내고, 마지막 선택이면 장면을 끝낸 팡파르를 붙인다
+  // 고른 말에 맞춰 소리를 낸다
   const play = (c: Choice) => {
     if (c.id === choice?.id) return;
     sfx[c.verdict]();
     if (c.verdict === "bad") shake();
-    if (phase === "followUp" && !pickedId) sfx.clear();
     f.pick(c.id);
+  };
+
+  // 비교를 다 본 뒤에 완료 화면으로 넘어가며 팡파르를 울린다. 처음 한 번만 울린다
+  const fanfared = useRef(false);
+  const wrapUp = () => {
+    if (!fanfared.current) sfx.clear();
+    fanfared.current = true;
+    setWrapped(true);
   };
 
   const burst = choice ? BURSTS[choice.expression] : null;
@@ -296,6 +367,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 </p>
               </div>
             </Panel>
+          ) : wrapped ? (
+            <WrapUp key="wrap" scene={scene} share={share} shareState={shareState} onBack={() => setWrapped(false)} />
           ) : !choice ? (
             <div key={`ask-${phase}`}>
               <p className="font-pixel text-[15px] leading-[1.6] text-paper-muted">{situation.context}</p>
@@ -332,32 +405,6 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             </div>
           ) : (
             <div key={`result-${phase}`}>
-              {f.done && (
-                <div className="blk mb-8 animate-[rise_240ms_ease-out] bg-night-deep px-4 py-3">
-                  <p className="font-pixel text-[15px] text-paper-subtle">한 줄 정리</p>
-                  <p className="mt-0.5 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
-                  {!preview && (
-                    <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-gold">
-                      표현 모음에 담았어요
-                      <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
-                        <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
-                      </svg>
-                    </Link>
-                  )}
-                </div>
-              )}
-              {f.done && !preview && (
-                <div className="blk mb-8 flex animate-[rise_240ms_ease-out_120ms_both] items-center gap-3 bg-slate-block py-3 pl-3 pr-4">
-                  <Mascot scale={3} className="shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
-                    <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
-                  </div>
-                  <BlockButton gold onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
-                    {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
-                  </BlockButton>
-                </div>
-              )}
               <p className="font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
@@ -395,6 +442,12 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   {detailOpen ? "접기" : "더 자세히"}
                 </button>
               </div>
+              {f.done && preview && (
+                <div className="blk mt-6 bg-night-deep px-4 py-3">
+                  <p className="font-pixel text-[15px] text-paper-subtle">한 줄 정리</p>
+                  <p className="mt-0.5 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -407,6 +460,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </BlockButton>
             ) : f.done && preview ? (
               <BlockLink href={`/admin/scenes/${scene.id}`}>편집 화면으로</BlockLink>
+            ) : f.done && !wrapped ? (
+              <BlockButton gold onClick={wrapUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+                다 봤어요
+              </BlockButton>
             ) : f.done ? (
               next ? (
                 <BlockLink href={`/scenes/${next.number}`} entry="next" gold>
