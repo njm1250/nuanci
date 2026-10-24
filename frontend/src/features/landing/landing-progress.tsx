@@ -6,7 +6,7 @@ import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
-import { nextGoalParts, useRewards } from "@/features/rewards/rewards";
+import { isUnopened, nextGoalParts, useRewards } from "@/features/rewards/rewards";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
@@ -123,6 +123,7 @@ function NextGoal() {
   const [before, em, after] = nextGoalParts(next);
   // 아지트에서 아직 안 본 물건이 있으면 점으로 알린다
   const unseen = rewards.items.some((i) => i.owned && !i.owned.seen);
+  const box = rewards.items.some(isUnopened);
   return (
     <Link href="/me/room" className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block">
       <Mascot scale={2} className="shrink-0" />
@@ -132,7 +133,11 @@ function NextGoal() {
         {after}
       </span>
       <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
-        {unseen && <span aria-label="새 물건" className="size-2 bg-gold" />}
+        {box ? (
+          <span className="bg-gold px-1 font-pixel-title text-[11px] leading-[1.4] text-ink">새 상자</span>
+        ) : (
+          unseen && <span aria-label="새 물건" className="size-2 bg-gold" />
+        )}
         아지트
         <Arrow />
       </span>

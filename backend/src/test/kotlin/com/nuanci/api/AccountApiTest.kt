@@ -104,13 +104,25 @@ class AccountApiTest {
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON
-			content = """{"hero":"girl","accessory":"cap","hidden":["plant"]}"""
+			content = """{"hero":"girl","wear":["cap"],"hidden":["plant"]}"""
 		}.andExpect { status { isNoContent() } }
 		mvc.get("/api/me") { cookie(session) }.andExpect {
 			jsonPath("$.avatar.hero") { value("girl") }
-			jsonPath("$.avatar.accessory") { value("cap") }
+			jsonPath("$.avatar.wear[0]") { value("cap") }
 			jsonPath("$.avatar.hidden[0]") { value("plant") }
 		}
+		// 머리와 얼굴에는 하나씩 함께 쓸 수 있다
+		mvc.post("/api/rewards/sync") {
+			cookie(session)
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"cleared":["pudding","my-treat","touch-grass","eat-a-lot","first-upload"]}"""
+		}.andExpect { status { isOk() } }
+		mvc.put("/api/me/avatar") {
+			cookie(session)
+			contentType = MediaType.APPLICATION_JSON
+			content = """{"hero":"boy","wear":["cap","glasses"],"hidden":[]}"""
+		}.andExpect { status { isNoContent() } }
+		mvc.get("/api/me") { cookie(session) }.andExpect { jsonPath("$.avatar.wear.length()") { value(2) } }
 		mvc.put("/api/me/avatar") {
 			cookie(session)
 			contentType = MediaType.APPLICATION_JSON

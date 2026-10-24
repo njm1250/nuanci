@@ -6,8 +6,9 @@ import * as THREE from "three";
 import type { Motion } from "@/features/scene/types";
 import { targetPose } from "./pose";
 import { C } from "./palette";
-import { Box, Cyl, Gem, Mat } from "./primitives";
+import { Box, Gem, Mat } from "./primitives";
 import { HeldProp } from "./props";
+import { HeadWear, NeckWear } from "./wear";
 import type { Look, Placement, PropId } from "./types";
 
 export const HIP = { sit: 0.6, stand: 0.86 };
@@ -112,6 +113,7 @@ export function Figure({
           </mesh>
           {look.apron && <Box size={[0.36, 0.5, 0.04]} at={[0, 0.22, 0.3]} color={look.apron} />}
           {look.tie && <Box size={[0.08, 0.42, 0.03]} at={[0, 0.38, 0.29]} color={look.tie} rot={[-0.15, 0, 0]} />}
+          {look.wear && <NeckWear wear={look.wear} />}
           {arm(1, lArm)}
           {arm(-1, rArm)}
           {animal?.kind === "cat" && <Box size={[0.07, 0.07, 0.42]} at={[0, 0.12, -0.42]} color={animal.fur} rot={[-0.7, 0, 0]} />}
@@ -176,38 +178,7 @@ export function Figure({
               </mesh>
             ))}
             {look.glasses && <Box size={[0.44, 0.03, 0.03]} at={[0, 0.06, 0.25]} color={C.ink} />}
-            {look.accessory === "cap" && (
-              <>
-                <Gem r={0.31} at={[0, 0.14, -0.02]} color={look.accessoryColor ?? C.rust} scale={[1.08, 0.62, 1.08]} />
-                <Box size={[0.36, 0.04, 0.26]} at={[0, 0.12, 0.3]} color={look.accessoryColor ?? C.rust} />
-              </>
-            )}
-            {look.accessory === "glasses" && (
-              <>
-                {[-1, 1].map((s) => (
-                  <Box key={s} size={[0.16, 0.13, 0.03]} at={[0.14 * s, 0.03, 0.27]} color={look.accessoryColor ?? "#e8b931"} />
-                ))}
-                {[-1, 1].map((s) => (
-                  <Box key={`l${s}`} size={[0.1, 0.07, 0.035]} at={[0.14 * s, 0.03, 0.275]} color="#bfe3f2" />
-                ))}
-              </>
-            )}
-            {look.accessory === "headphones" && (
-              <>
-                <Box size={[0.66, 0.06, 0.1]} at={[0, 0.34, -0.02]} color={C.ink} />
-                {[-1, 1].map((s) => (
-                  <Box key={s} size={[0.1, 0.2, 0.18]} at={[0.31 * s, 0.02, 0]} color={look.accessoryColor ?? C.teal} />
-                ))}
-              </>
-            )}
-            {look.accessory === "crown" && (
-              <>
-                <Cyl r={0.2} h={0.1} at={[0, 0.34, 0]} color="#e8b931" sides={8} />
-                {[-1, 0, 1].map((s) => (
-                  <Box key={s} size={[0.06, 0.1, 0.06]} at={[0.12 * s, 0.43, 0.12]} color="#e8b931" />
-                ))}
-              </>
-            )}
+            {look.wear && <HeadWear wear={look.wear} />}
           </group>
         </group>
       </group>

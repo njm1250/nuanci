@@ -2,13 +2,28 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { setAvatar } from "@/features/avatar/avatar";
-import { useHeroLook } from "@/features/rewards/hero-look";
+import { putOn, takeOff, useHeroLook } from "@/features/rewards/hero-look";
+import { RewardCard } from "@/features/rewards/reward-reveal";
 import { RewardIcon } from "@/features/rewards/reward-icon";
-import { COLOR_HEX, COLOR_LABELS, lockHint, markAllRewardsSeen, nextGoalParts, ownedReason, setRewardColor, useRewards, type RewardItem } from "@/features/rewards/rewards";
+import {
+  COLOR_HEX,
+  COLOR_LABELS,
+  isUnopened,
+  isUsable,
+  lockHint,
+  markAllRewardsSeen,
+  nextGoalParts,
+  openedHere,
+  ownedReason,
+  setRewardColor,
+  useRewards,
+  type RewardItem,
+} from "@/features/rewards/rewards";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { Stage } from "@/features/stage/stage";
-import type { AccessoryId, Hero } from "@/features/stage/types";
+import type { Hero } from "@/features/stage/types";
+import { useReducedMotion } from "@/features/scene/use-scene-flow";
 import { useAccount } from "./account";
 import { GoogleButton } from "./google-button";
 
@@ -53,17 +68,20 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
   useEffect(() => () => markAllRewardsSeen(), []);
 
   const items = rewards?.items ?? [];
-  const isOn = (r: RewardItem) => (r.kind === "wear" ? look.accessory === r.id : look.placed.includes(r.id));
+  const reduced = useReducedMotion();
+  const isOn = (r: RewardItem) => (r.kind === "wear" ? look.isWorn(r.id) : look.placed.includes(r.id));
 
-  // 쓴 아이템은 다시 누르면 벗고, 놓인 물건은 다시 누르면 치운다
+  // 쓴 아이템은 다시 누르면 벗고, 놓인 물건은 다시 누르면 치운다. 같은 자리에 쓰던 아이템은 바꿔 쓴다
   const toggle = (r: RewardItem) => {
-    if (r.kind === "wear") return setAvatar({ ...avatar, accessory: isOn(r) ? null : (r.id as AccessoryId) }, member);
+    if (r.kind === "wear") return setAvatar(isOn(r) ? takeOff(avatar, r) : putOn(avatar, r, items), member);
     const hidden = isOn(r) ? [...avatar.hidden, r.id] : avatar.hidden.filter((id) => id !== r.id);
     setAvatar({ ...avatar, hidden }, member);
   };
 
-  const worn = items.find((i) => i.kind === "wear" && i.owned && i.id === look.accessory);
-  const log = items.filter((i) => i.owned).sort((a, b) => b.owned!.grantedAt.localeCompare(a.owned!.grantedAt));
+  const worn = items.filter((i) => i.kind === "wear" && isUsable(i) && look.isWorn(i.id) && i.colors.length > 0);
+  const log = items.filter(isUsable).sort((a, b) => b.owned!.grantedAt.localeCompare(a.owned!.grantedAt));
+  // 장면 완료 화면에서 열지 않고 넘어간 상자는 여기서 연다
+  const boxes = items.filter((i) => isUnopened(i) || openedHere(i));
 
   return (
     <div className="md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10">
@@ -76,8 +94,7 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
                 time: "day",
                 partner: "mochi",
                 hero: look.hero,
-                accessory: look.accessory,
-                accessoryColor: look.accessoryColor,
+                wear: look.wear,
                 flags: [`books-${cleared.length}`, ...look.placed],
               }}
               state={{ partnerMotion: "idle", partnerKey: 0, talkKey: 0, reaction: null, meLine: "여기가 내 아지트야!" }}
@@ -94,6 +111,13 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
       </div>
 
       <div className="mt-6 md:mt-0">
+        {boxes.length > 0 && (
+          <div className="mb-6 space-y-4">
+            {boxes.map((b) => (
+              <RewardCard key={b.id} item={b} reduced={reduced} />
+            ))}
+          </div>
+        )}
         <div role="tablist" aria-label="아지트" className="grid grid-cols-3 gap-2">
           {TABS.map((t) => (
             <button
@@ -130,28 +154,28 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
               </div>
               <h2 className="mt-6 font-pixel text-[15px] text-paper">쓰는 아이템</h2>
               <ItemGrid items={items.filter((i) => i.kind === "wear")} isOn={isOn} toggle={toggle}  />
-              {worn && worn.colors.length > 0 && (
-                <div className="mt-4 flex items-center gap-3">
-                  <span className="font-pixel text-[15px] text-paper-muted">{worn.name} 색</span>
-                  <div role="radiogroup" aria-label={`${worn.name} 색`} className="flex gap-2">
-                    {worn.colors.map((c) => (
+              {worn.map((w) => (
+                <div key={w.id} className="mt-4 flex items-center gap-3">
+                  <span className="min-w-0 flex-1 truncate font-pixel text-[15px] text-paper-muted">{w.name} 색</span>
+                  <div role="radiogroup" aria-label={`${w.name} 색`} className="flex gap-2">
+                    {w.colors.map((c) => (
                       <button
                         key={c}
                         type="button"
                         role="radio"
-                        aria-checked={worn.owned!.color === c}
+                        aria-checked={w.owned!.color === c}
                         aria-label={COLOR_LABELS[c]}
-                        onClick={() => setRewardColor(worn.id, c)}
-                        className={`grid size-11 place-items-center border-[3px] ${worn.owned!.color === c ? "border-paper" : "border-transparent"}`}
+                        onClick={() => setRewardColor(w.id, c)}
+                        className={`grid size-11 place-items-center border-[3px] ${w.owned!.color === c ? "border-paper" : "border-transparent"}`}
                       >
                         <span className="grid size-7 place-items-center text-paper" style={{ background: COLOR_HEX[c] }}>
-                          {worn.owned!.color === c && <Check />}
+                          {w.owned!.color === c && <Check />}
                         </span>
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
+              ))}
             </>
           )}
 
@@ -196,8 +220,8 @@ export function RoomView({ titles }: { titles: Record<string, string> }) {
 function ItemGrid({ items, isOn, toggle }: { items: RewardItem[]; isOn: (r: RewardItem) => boolean; toggle: (r: RewardItem) => void }) {
   return (
     <ul className="mt-2 grid grid-cols-2 gap-3">
-      {[...items.filter((i) => i.owned), ...items.filter((i) => !i.owned)].map((r) => {
-        const owned = Boolean(r.owned);
+      {[...items.filter(isUsable), ...items.filter((i) => !isUsable(i))].map((r) => {
+        const owned = isUsable(r);
         const active = owned && isOn(r);
         return (
           <li key={r.id}>
@@ -213,10 +237,10 @@ function ItemGrid({ items, isOn, toggle }: { items: RewardItem[]; isOn: (r: Rewa
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5 font-pixel text-[15px]">
-                  {r.name ?? "???"}
-                  {r.owned && !r.owned.seen && <span className="bg-rust px-1 font-pixel-title text-[11px] leading-[1.4] text-paper">NEW</span>}
+                  {owned ? r.name : "???"}
+                  {owned && !r.owned!.seen && <span className="bg-rust px-1 font-pixel-title text-[11px] leading-[1.4] text-paper">NEW</span>}
                 </span>
-                {r.lock && <span className="block text-[12px] text-paper-subtle">{lockHint(r.lock)}</span>}
+                {!owned && <span className="block text-[12px] text-paper-subtle">{r.lock ? lockHint(r.lock) : "깜짝 상자"}</span>}
               </span>
               {active && <Check />}
             </button>

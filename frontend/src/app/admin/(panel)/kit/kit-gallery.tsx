@@ -53,7 +53,7 @@ export function KitGallery() {
       <Panel>
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           <Stage
-            spec={{ set, time, partner, hero, accessory: accessory || undefined }}
+            spec={{ set, time, partner, hero, wear: accessory ? [{ id: accessory }] : undefined }}
             state={{
               partnerMotion: motion || "idle",
               partnerKey: key,

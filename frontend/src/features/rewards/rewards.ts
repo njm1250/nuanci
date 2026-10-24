@@ -6,22 +6,42 @@ import { VIA_KEY, visitorId } from "@/features/scene/track";
 
 // 보상 목록과 얻은 기록은 서버가 정한다. 로그인했으면 계정, 아니면 이 기기의 방문자 id가 주인이다.
 // 화면이 바로 그려지도록 마지막으로 받은 상태를 이 기기에 남겨 둔다
-export type RewardColor = "red" | "blue" | "yellow";
+export type RewardColor = "red" | "blue" | "yellow" | "pink" | "black" | "green";
 
-export type Owned = { color: RewardColor | null; reason: "milestone" | "scene" | "box" | "share"; sceneId: string | null; count: number | null; seen: boolean; grantedAt: string };
+// 깜짝 상자에서 나온 물건은 seen이 false인 동안 아직 열지 않은 상자다
+export type Owned = {
+  color: RewardColor | null;
+  reason: "milestone" | "scene" | "bundle" | "box" | "share";
+  sceneId: string | null;
+  count: number | null;
+  group: string | null;
+  seen: boolean;
+  grantedAt: string;
+};
 
-export type Lock = { type: "milestone"; remaining: number } | { type: "scene" | "share" | "box" };
+export type Lock = { type: "milestone"; remaining: number } | { type: "bundle"; remaining: number; group: string } | { type: "scene" | "share" | "box" };
 
-// wear는 주인공이 쓰는 아이템(장면에도 그대로 나온다), room은 아지트에 놓이는 물건이다. id는 무대의 accessory·flags로 그대로 쓴다.
-// 아직 못 얻은 아이템은 이름이 비어 있다
-export type RewardItem = { id: string; kind: "wear" | "room"; name: string | null; colors: RewardColor[]; owned: Owned | null; lock: Lock | null };
+// wear는 주인공이 쓰는 아이템(장면에도 그대로 나온다), room은 아지트에 놓이는 물건이다. id는 무대의 wear·flags로 그대로 쓴다.
+// 쓰는 아이템은 slot(머리·얼굴·목)마다 하나씩 함께 쓴다. 아직 못 얻은 아이템은 이름이 비어 있다
+export type WearSlot = "head" | "face" | "neck";
+export type RewardItem = { id: string; kind: "wear" | "room"; slot: WearSlot | null; name: string | null; colors: RewardColor[]; owned: Owned | null; lock: Lock | null };
 
 export type NextGoal = { type: "item"; name: string; remaining: number } | { type: "box"; name: null; remaining: number };
 
 export type RewardState = { items: RewardItem[]; next: NextGoal | null; shareCode: string | null };
 
-export const COLOR_LABELS: Record<RewardColor, string> = { red: "빨강", blue: "파랑", yellow: "노랑" };
-export const COLOR_HEX: Record<RewardColor, string> = { red: "#b4452f", blue: "#3f73c9", yellow: "#e8b931" };
+export const COLOR_LABELS: Record<RewardColor, string> = { red: "빨강", blue: "파랑", yellow: "노랑", pink: "분홍", black: "검정", green: "초록" };
+export const COLOR_HEX: Record<RewardColor, string> = { red: "#b4452f", blue: "#3f73c9", yellow: "#e8b931", pink: "#f08aa8", black: "#2a2a28", green: "#4f9a5a" };
+
+// 열지 않은 깜짝 상자. 열기 전에는 무엇인지 보여주지 않고 방에도 놓지 않는다
+export function isUnopened(item: RewardItem) {
+  return item.owned?.reason === "box" && !item.owned.seen;
+}
+
+// 얻었고 상자도 열어서 쓰거나 둘 수 있는 아이템
+export function isUsable(item: RewardItem) {
+  return Boolean(item.owned) && !isUnopened(item);
+}
 
 const KEY = "nuanci.rewards";
 const listeners = new Set<() => void>();
@@ -107,17 +127,26 @@ export function setRewardColor(id: string, color: RewardColor) {
 
 // 아직 안 본 물건을 모두 본 것으로 남긴다. 아지트를 떠날 때 부른다
 export function markAllRewardsSeen() {
-  markRewardsSeen((state?.items ?? []).filter((i) => i.owned && !i.owned.seen).map((i) => i.id));
+  justOpened.clear();
+  markRewardsSeen((state?.items ?? []).filter((i) => i.owned && !i.owned.seen && !isUnopened(i)).map((i) => i.id));
+}
+
+// 이번에 아지트에서 연 상자. 연 뒤에도 그 자리에 카드를 남겨 무엇이 나왔는지 보여준다
+const justOpened = new Set<string>();
+
+export function openedHere(item: RewardItem) {
+  return justOpened.has(item.id);
 }
 
 export function markRewardsSeen(ids: string[]) {
   if (ids.length === 0 || !state) return;
+  for (const id of ids) if (state.items.some((i) => i.id === id && isUnopened(i))) justOpened.add(id);
   set({ ...state, items: state.items.map((i) => (ids.includes(i.id) && i.owned ? { ...i, owned: { ...i.owned, seen: true } } : i)) });
   void post("/seen", { ids });
 }
 
 export function ownedItem(rewards: RewardState | null, id: string | null | undefined) {
-  return id ? (rewards?.items.find((i) => i.id === id && i.owned) ?? null) : null;
+  return id ? (rewards?.items.find((i) => i.id === id && isUsable(i)) ?? null) : null;
 }
 
 // 다음 목표 문구를 [앞, 강조, 뒤]로 나눈다. 남은 양을 따로 떼어 강조할수록 목표가 가깝게 느껴진다
@@ -133,6 +162,8 @@ export function lockHint(lock: Lock) {
       return `장면 ${lock.remaining}개 더`;
     case "scene":
       return "어떤 장면에서";
+    case "bundle":
+      return `${lock.group} 장면 ${lock.remaining}개 더`;
     case "share":
       return "친구와 함께";
     case "box":
@@ -147,6 +178,8 @@ export function ownedReason(owned: Owned, sceneTitle?: string) {
       return owned.count === 1 ? "첫 장면 기념" : `장면 ${owned.count}개 기념`;
     case "scene":
       return sceneTitle ? `「${sceneTitle}」 기념품` : "장면 기념품";
+    case "bundle":
+      return `${owned.group} 장면을 모두 해 본 기념`;
     case "box":
       return "깜짝 상자에서";
     case "share":

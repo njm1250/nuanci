@@ -7,14 +7,26 @@ export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "
 export type Hero = "boy" | "girl";
 
 // 주인공이 쓰는 꾸미기 아이템. 장면 내용에는 영향이 없고 겉모습만 바꾼다
-export type AccessoryId = "cap" | "glasses" | "headphones" | "crown";
+export type AccessoryId =
+  | "cap"
+  | "glasses"
+  | "headphones"
+  | "crown"
+  | "beanie"
+  | "cat-ears"
+  | "flower"
+  | "sunglasses"
+  | "scarf"
+  | "bowtie"
+  | "badge";
+
+// 쓰고 있는 아이템과 얻을 때 고른 색. 색이 없으면 아이템 기본색
+export type Worn = { id: AccessoryId; color?: string };
 
 export type StageSpec = {
   set: SetId;
   hero?: Hero;
-  accessory?: AccessoryId;
-  // 아이템을 얻을 때 고른 색. 없으면 아이템 기본색
-  accessoryColor?: string;
+  wear?: Worn[];
   time: Time;
   partner: CastId;
   flags?: string[];
@@ -34,8 +46,7 @@ export type Look = {
   glasses?: boolean;
   apron?: string;
   tie?: string;
-  accessory?: AccessoryId;
-  accessoryColor?: string;
+  wear?: Worn[];
   // 동물 캐릭터: 털색이 피부를 대신하고, 귀·꼬리·볼터치가 붙고, 머리가 커서 더 귀엽게 보인다
   animal?: { kind: "cat" | "bear" | "dog"; fur: string; inner: string };
 };

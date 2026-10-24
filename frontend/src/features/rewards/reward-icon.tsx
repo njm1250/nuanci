@@ -15,6 +15,7 @@ const INK: Record<string, string> = {
   d: "#7a3c21",
   s: "#e6bf98",
   u: "#f2d34a",
+  t: "#2f7f7a",
 };
 
 const ICONS: Record<string, string[]> = {
@@ -33,6 +34,24 @@ const ICONS: Record<string, string[]> = {
   lamp: ["...yyyyyy...", "..yyyyyyyy..", ".yyyyyyyyyy.", ".....kk.....", ".....kk.....", ".....kk.....", ".....kk.....", ".....kk.....", ".....kk.....", "...kkkkkk..."],
   trophy: ["..yyyyyyyy..", "yyyyyyyyyyyy", "y.yyyyyyyy.y", ".yyyyyyyyyy.", "...yyyyyy...", ".....yy.....", ".....yy.....", "...kkkkkk...", "...kkkkkk..."],
   clock: ["....kkkk....", "..kkwwwwkk..", ".kwwwkwwwwk.", ".kwwwkwwwwk.", "kwwwwkwwwwwk", "kwwwwkkkkwwk", "kwwwwwwwwwwk", ".kwwwwwwwwk.", ".kwwwwwwwwk.", "..kkwwwwkk..", "....kkkk...."],
+  beanie: [".....ww.....", "....cccc....", "...cccccc...", "..cccccccc..", "..cccccccc..", ".cccccccccc.", ".wwwwwwwwww.", ".wwwwwwwwww."],
+  "cat-ears": ["", ".c........c.", ".cc......cc.", ".cpc....cpc.", ".cppc..cppc.", ".cccccccccc.", "cc........cc"],
+  flower: ["....cccc....", "...cccccc...", "..cccyyccc..", "..ccyyyycc..", "..ccyyyycc..", "..cccyyccc..", "...cccccc...", "....cccc....", ".....gg.....", ".....gg....."],
+  sunglasses: ["", "", "", "", "kkkkkkkkkkkk", ".kwkk..kwkk.", ".kkkk..kkkk.", "..kk....kk.."],
+  scarf: ["", "..cccccccc..", ".cccccccccc.", ".cwcwcwcwcc.", ".cccccccccc.", "......ccc...", "......ccc...", "......cwc...", "......ccc..."],
+  bowtie: ["", "", "cc........cc", "cccc.kk.cccc", "ccccckkccccc", "cccc.kk.cccc", "cc........cc"],
+  badge: ["..t......t..", "...t....t...", "....t..t....", ".....tt.....", "...wwwwww...", "...tttttt...", "...wwwwww...", "...wkkkkw...", "...wwwwww..."],
+  gamepad: ["", "", "..kkkkkkkk..", ".kkkkkkkkkk.", "kkwkkkkkrkkk", "kwwwkkkrkrkk", "kkwkkkkkrkkk", "kkkk....kkkk", ".kk......kk."],
+  dumbbell: ["", "", "", "kk........kk", "kkk......kkk", "kkkmmmmmmkkk", "kkk......kkk", "kk........kk"],
+  ramen: ["", "..wwwwwwww..", ".rrrrrrrrrr.", "..rrrrrrrr..", "..rwwwwwwr..", "..rwyywwwr..", "..rrrrrrrr..", "...rrrrrr...", "...rrrrrr..."],
+  camera: ["", "", "...kkk......", ".kkkkkkkkkk.", ".kmmmmmmmmk.", ".kmmkkkkmmk.", ".kmkbbbbkmk.", ".kmkbbbbkmk.", ".kmmkkkkmmk.", ".kkkkkkkkkk."],
+  vase: ["..p..r..p...", ".ppp.rrppp..", "..p..r..p...", "..g..g..g...", "...g.g.g....", "....ggg.....", "...bbbbb....", "..bbbbbbb...", "..bbbbbbb...", "...bbbbb...."],
+  mirror: ["....dddd....", "...dbbbbd...", "..dbbwbbbd..", "..dbwbbbbd..", "..dbbbbbbd..", "..dbbbbbbd..", "..dbbbbbbd..", "...dbbbbd...", "....dddd....", "....dddd....", "...dddddd..."],
+  coffee: ["...m..m.....", "....m..m....", "..ttttttt...", "..tnnnnnttt.", "..ttttttt.t.", "..ttttttttt.", "..ttttttt...", "...ttttt....", ".ttttttttt.."],
+  mirrorball: [".....kk.....", ".....kk.....", "....mmmm....", "...mwmmwm...", "..mmmwmmmm..", "..mwmmmmwm..", "..mmmmwmmm..", "...mwmmmm...", "....mmmm...."],
+  guitar: ["........kk..", ".......kk...", "......nk....", ".....nn.....", "..oooo......", ".oookoo.....", ".ookkko.....", ".oookoo.....", "..ooo......."],
+  lights: ["", "", "kk........kk", "y.kk....kk.b", "y...kkkk...b", "...r.yy.p...", "...r.yy.p..."],
+  beanbag: ["", "", "", "...oooooo...", "..oooooooo..", ".oooooooooo.", "oooooooooooo", "oooooooooooo", ".oooooooooo."],
   box: ["", ".nnnnnnnnnn.", ".nddddddddn.", ".nnnnnnnnnn.", ".nnnwwwnnnn.", ".nnnnnwnnnn.", ".nnnnwnnnnn.", ".nnnnnnnnnn.", ".nnnnwnnnnn.", ".nnnnnnnnnn."],
   locked: ["", "", "....kkkk....", "...k....k...", "...k....k...", "..kkkkkkkk..", "..kkkwwkkk..", "..kkkwwkkk..", "..kkkkkkkk.."],
 };

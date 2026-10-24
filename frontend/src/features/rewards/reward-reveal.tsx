@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { useAccount } from "@/features/account/account";
 import { currentAvatar, setAvatar, useAvatar } from "@/features/avatar/avatar";
 import { sfx } from "@/features/scene/sfx";
-import type { AccessoryId } from "@/features/stage/types";
+import { putOn, takeOff } from "./hero-look";
 import { RewardIcon } from "./reward-icon";
-import { COLOR_HEX, COLOR_LABELS, markRewardsSeen, ownedReason, setRewardColor, type RewardItem } from "./rewards";
+import { COLOR_HEX, COLOR_LABELS, isUnopened, markRewardsSeen, ownedReason, setRewardColor, useRewards, type RewardItem } from "./rewards";
 
 const SPARKS = [
   [-44, -30],
@@ -27,66 +27,75 @@ function Check() {
   );
 }
 
-// 완료 화면 맨 위에 뜨는 새 물건 카드. 얻자마자 쓰고(방 물건은 바로 놓이고) 색을 고르면 무대 위 주인공에 바로 보인다.
-// 깜짝 상자에서 나온 물건은 상자를 직접 열어야 보인다
+// 완료 화면에 뜨는 새 물건 카드들. 얻자마자 쓰고(방 물건은 바로 놓이고) 색을 고르면 무대 위 주인공에 바로 보인다.
+// 깜짝 상자는 직접 열어야 보이고, 열지 않고 넘어가도 아지트에 닫힌 채로 남는다
 export function RewardReveal({ items, sceneTitle, reduced, onShown }: { items: RewardItem[]; sceneTitle: string; reduced: boolean; onShown: (ids: string[]) => void }) {
   const account = useAccount();
+  const rewards = useRewards();
   const member = account.status === "member";
   const shown = useRef(false);
 
   useEffect(() => {
-    if (shown.current || items.length === 0) return;
+    if (shown.current || items.length === 0 || !rewards) return;
     shown.current = true;
     onShown(items.map((i) => i.id));
-    markRewardsSeen(items.map((i) => i.id));
-    // 쓰는 아이템은 얻는 즉시 쓴다. 여러 개면 마지막 것을 쓴다
-    const wear = items.filter((i) => i.kind === "wear").at(-1);
-    const now = currentAvatar();
-    const hidden = now.hidden.filter((id) => !items.some((i) => i.id === id));
-    setAvatar({ ...now, accessory: (wear?.id as AccessoryId | undefined) ?? now.accessory, hidden }, member);
-    if (items.some((i) => i.owned?.reason !== "box")) sfx.reward(1.5);
-  }, [items, member, onShown]);
+    const ready = items.filter((i) => !isUnopened(i));
+    markRewardsSeen(ready.map((i) => i.id));
+    // 쓰는 아이템은 얻는 즉시 쓴다. 같은 자리에 쓰던 것은 벗는다
+    let next = currentAvatar();
+    for (const item of ready) {
+      if (item.kind === "wear") next = putOn(next, item, rewards.items);
+      else next = { ...next, hidden: next.hidden.filter((id) => id !== item.id) };
+    }
+    setAvatar(next, member);
+    if (ready.length > 0) sfx.reward(1.5);
+  }, [items, rewards, member, onShown]);
 
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} member={member} />
+        <RewardCard key={item.id} item={item} sceneTitle={sceneTitle} reduced={reduced} />
       ))}
     </div>
   );
 }
 
-function RewardCard({ item, sceneTitle, reduced, member }: { item: RewardItem; sceneTitle: string; reduced: boolean; member: boolean }) {
+// 새 물건 카드 하나. 열지 않은 상자면 상자부터 보여주고, 열면 안에 든 물건을 바로 쓰거나 둔다
+export function RewardCard({ item, sceneTitle, reduced }: { item: RewardItem; sceneTitle?: string; reduced: boolean }) {
   const avatar = useAvatar();
-  const fromBox = item.owned?.reason === "box";
-  const [opened, setOpened] = useState(!fromBox);
+  const rewards = useRewards();
+  const account = useAccount();
+  const member = account.status === "member";
   const [shaking, setShaking] = useState(false);
   const owned = item.owned!;
-  const on = item.kind === "wear" ? avatar.accessory === item.id : !avatar.hidden.includes(item.id);
+  const all = rewards?.items ?? [];
+  const on = item.kind === "wear" ? (avatar.wear as string[]).includes(item.id) : !avatar.hidden.includes(item.id);
 
   const open = () => {
-    if (reduced) return setOpened(true);
-    setShaking(true);
-    window.setTimeout(() => {
+    const reveal = () => {
       sfx.boxOpen();
       sfx.reward(0.05);
       setShaking(false);
-      setOpened(true);
-    }, 520);
+      markRewardsSeen([item.id]);
+      setAvatar({ ...currentAvatar(), hidden: currentAvatar().hidden.filter((id) => id !== item.id) }, member);
+    };
+    if (reduced) return reveal();
+    setShaking(true);
+    window.setTimeout(reveal, 520);
   };
 
   const toggle = () => {
-    if (item.kind === "wear") return setAvatar({ ...avatar, accessory: on ? null : (item.id as AccessoryId) }, member);
+    if (item.kind === "wear") return setAvatar(on ? takeOff(avatar, item) : putOn(avatar, item, all), member);
     setAvatar({ ...avatar, hidden: on ? [...avatar.hidden, item.id] : avatar.hidden.filter((id) => id !== item.id) }, member);
   };
 
   // 색을 고르면 그 아이템을 쓰고 있지 않았어도 바로 쓴다
   const pickColor = (color: (typeof item.colors)[number]) => {
     setRewardColor(item.id, color);
-    if (!on) setAvatar({ ...avatar, accessory: item.id as AccessoryId }, member);
+    if (!on) setAvatar(putOn(avatar, item, all), member);
   };
 
-  if (!opened) {
+  if (isUnopened(item)) {
     return (
       <div className="blk-frame animate-[rise_240ms_ease-out]">
         <div className="blk flex items-center gap-4 bg-gold px-4 py-4 text-ink">
@@ -167,7 +176,7 @@ function RewardCard({ item, sceneTitle, reduced, member }: { item: RewardItem; s
               ))}
             </div>
           )}
-          {item.kind === "room" && (
+          {item.kind === "room" && sceneTitle !== undefined && (
             <Link href="/me/room?tab=room" className="ml-auto flex min-h-11 items-center px-1 font-pixel text-[15px] text-ink-muted underline underline-offset-4">
               아지트
             </Link>

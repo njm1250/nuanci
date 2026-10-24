@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
-data class Avatar(val hero: String = "boy", val accessory: String? = null, val hidden: List<String> = emptyList())
+// accessory는 아이템을 하나만 쓰던 예전 화면이 보내는 값이다. wear가 비어 있으면 이것을 쓴다
+data class Avatar(val hero: String = "boy", val wear: List<String> = emptyList(), val hidden: List<String> = emptyList(), val accessory: String? = null)
 
 data class MeResponse(val name: String?, val email: String?, val picture: String?, val cleared: List<String>, val avatar: Avatar?)
 
@@ -50,12 +51,13 @@ class MeController(private val accounts: AccountStore, private val rewards: Rewa
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	fun avatar(@CookieValue(SESSION_COOKIE, required = false) token: String?, @RequestBody req: Avatar) {
 		val account = require(token)
-		val valid = req.hero in HEROES && req.hidden.size <= MAX_HIDDEN && req.hidden.all(ITEM_ID::matches)
+		val wear = req.wear.ifEmpty { listOfNotNull(req.accessory) }.distinct()
+		val valid = req.hero in HEROES && req.hidden.size <= MAX_HIDDEN && req.hidden.all(ITEM_ID::matches) && wear.size <= MAX_WEAR
 		if (!valid) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-		if (req.accessory != null && (RewardCatalog.find(req.accessory)?.kind != "wear" || !rewards.owns(account.id, req.accessory))) {
-			throw ResponseStatusException(HttpStatus.FORBIDDEN)
-		}
-		accounts.saveAvatar(account.id, req.hero, req.accessory, req.hidden.distinct())
+		val defs = wear.map { RewardCatalog.find(it)?.takeIf { def -> def.kind == "wear" } ?: throw ResponseStatusException(HttpStatus.FORBIDDEN) }
+		if (defs.map { it.slot }.distinct().size != defs.size) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "one item per slot")
+		if (!wear.all { rewards.owns(account.id, it) }) throw ResponseStatusException(HttpStatus.FORBIDDEN)
+		accounts.saveAvatar(account.id, req.hero, wear, req.hidden.distinct())
 	}
 
 	@PostMapping("/cleared")
@@ -76,11 +78,12 @@ class MeController(private val accounts: AccountStore, private val rewards: Rewa
 	private fun require(token: String?) = accounts.account(token) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 
 	private fun response(account: Account) =
-		MeResponse(account.name, account.email, account.picture, accounts.cleared(account.id), account.hero?.let { Avatar(it, account.accessory, account.roomHidden) })
+		MeResponse(account.name, account.email, account.picture, accounts.cleared(account.id), account.hero?.let { Avatar(it, account.wear, account.roomHidden) })
 
 	companion object {
 		private val HEROES = setOf("boy", "girl")
 		private val ITEM_ID = Regex("^[a-z][a-z-]{0,39}$")
-		private const val MAX_HIDDEN = 20
+		private const val MAX_HIDDEN = 40
+		private const val MAX_WEAR = 3
 	}
 }

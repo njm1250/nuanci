@@ -301,11 +301,13 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const stageKey = f.reactionKey * 10 + (later ? 1 : 0) + (wrapped ? 5 : 0);
   const stageSituation = later ? scene.followUp : scene.base;
 
+  // 쓰고 있는 아이템 목록은 렌더마다 새로 만들어져서, 내용이 바뀔 때만 무대를 다시 계산하도록 문자열로 비교한다
+  const wearKey = JSON.stringify(look.wear);
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
     // 주인공은 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
-    return { ...base, hero: look.hero, accessory: look.accessory, accessoryColor: look.accessoryColor, flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
-  }, [stageSituation, stageChoice, look.hero, look.accessory, look.accessoryColor]);
+    return { ...base, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
+  }, [stageSituation, stageChoice, look.hero, wearKey]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -342,7 +344,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   };
 
   // 새로 얻은 물건을 계속 쓰거나 둔 채로 다음 장면에 가는지 지표로 남긴다
-  const keptNew = granted.filter((i) => (i.kind === "wear" ? look.accessory === i.id : look.placed.includes(i.id)));
+  const keptNew = granted.filter((i) => (i.kind === "wear" ? look.isWorn(i.id) : look.placed.includes(i.id)));
   const wearingNew = keptNew.some((i) => i.kind === "wear");
   const goNext = () => {
     send({ type: "next_clicked" });

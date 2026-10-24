@@ -55,6 +55,7 @@ class RewardStore(private val jdbc: JdbcClient) {
 			when (val rule = def.rule) {
 				is Rule.Milestone -> if (cleared.size >= rule.count) give(def, "milestone")
 				is Rule.Scene -> if (rule.sceneId in cleared) give(def, "scene", rule.sceneId)
+				is Rule.Bundle -> if (cleared.containsAll(rule.sceneIds)) give(def, "bundle")
 				else -> {}
 			}
 		}

@@ -3,11 +3,17 @@
 import { useSyncExternalStore } from "react";
 import type { AccessoryId, Hero } from "@/features/stage/types";
 
-// hidden은 얻었지만 아지트에서 치워 둔 물건 id다. 얻은 물건은 기본으로 놓여 있다
-export type Avatar = { hero: Hero; accessory: AccessoryId | null; hidden: string[] };
+// wear는 쓰고 있는 아이템(머리·얼굴·목에 하나씩), hidden은 얻었지만 아지트에서 치워 둔 물건 id다. 얻은 물건은 기본으로 놓여 있다
+export type Avatar = { hero: Hero; wear: AccessoryId[]; hidden: string[] };
 
 const KEY = "nuanci.avatar";
-const DEFAULT: Avatar = { hero: "boy", accessory: null, hidden: [] };
+const DEFAULT: Avatar = { hero: "boy", wear: [], hidden: [] };
+
+// 아이템을 하나만 쓰던 때 저장한 accessory를 wear 목록으로 바꾼다
+function normalize(raw: Partial<Avatar> & { accessory?: AccessoryId | null }): Avatar {
+  const { accessory, ...rest } = raw;
+  return { ...DEFAULT, ...rest, wear: rest.wear?.length ? rest.wear : accessory ? [accessory] : [] };
+}
 const listeners = new Set<() => void>();
 let lastRaw: string | null = null;
 let lastValue: Avatar = DEFAULT;
@@ -20,7 +26,7 @@ function snapshot(): Avatar {
   if (raw !== lastRaw) {
     lastRaw = raw;
     try {
-      lastValue = raw ? { ...DEFAULT, ...JSON.parse(raw) } : DEFAULT;
+      lastValue = raw ? normalize(JSON.parse(raw)) : DEFAULT;
     } catch {
       lastValue = DEFAULT;
     }
@@ -55,10 +61,10 @@ export function setAvatar(next: Avatar, saveToAccount: boolean) {
 }
 
 // 계정에 저장된 모습을 이 기기에 받아 온다
-export function adoptAvatar(saved: Avatar | null) {
+export function adoptAvatar(saved: (Partial<Avatar> & { accessory?: AccessoryId | null }) | null) {
   if (!saved) return;
   try {
-    localStorage.setItem(KEY, JSON.stringify({ ...DEFAULT, ...saved }));
+    localStorage.setItem(KEY, JSON.stringify(normalize(saved)));
   } catch {}
   listeners.forEach((l) => l());
 }

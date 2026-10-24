@@ -23,12 +23,13 @@ data class RewardColorRequest(val visitorId: UUID? = null, val color: String = "
 
 data class RewardSeenRequest(val visitorId: UUID? = null, val ids: List<String> = emptyList())
 
-data class OwnedView(val color: String?, val reason: String, val sceneId: String?, val count: Int?, val seen: Boolean, val grantedAt: Instant)
+// 깜짝 상자에서 나온 물건은 seen이 false인 동안 아직 열지 않은 상자로 보여준다
+data class OwnedView(val color: String?, val reason: String, val sceneId: String?, val count: Int?, val group: String?, val seen: Boolean, val grantedAt: Instant)
 
 // 아직 못 얻은 아이템은 이름 없이 조건 종류만 알려 준다. 장면 기념품은 어느 장면인지도 감춘다
-data class LockView(val type: String, val remaining: Int? = null)
+data class LockView(val type: String, val remaining: Int? = null, val group: String? = null)
 
-data class ItemView(val id: String, val kind: String, val name: String?, val colors: List<String>, val owned: OwnedView?, val lock: LockView?)
+data class ItemView(val id: String, val kind: String, val slot: String?, val name: String?, val colors: List<String>, val owned: OwnedView?, val lock: LockView?)
 
 data class NextView(val type: String, val name: String?, val remaining: Int)
 
@@ -92,22 +93,24 @@ class RewardController(private val rewards: RewardStore, private val accounts: A
 
 	private fun view(owner: Owner, granted: List<String> = emptyList()): RewardsResponse {
 		val grants = rewards.grants(owner.id).associateBy { it.rewardId }
-		val count = rewards.cleared(owner.id, owner.member).size
+		val cleared = rewards.cleared(owner.id, owner.member)
+		val count = cleared.size
 		val items = RewardCatalog.ITEMS.map { def ->
 			val grant = grants[def.id]
 			val rule = def.rule
 			ItemView(
-				def.id, def.kind, grant?.let { def.name }, def.colors,
-				grant?.let { OwnedView(it.color, it.reason, it.sceneId, (rule as? Rule.Milestone)?.count, it.seen, it.grantedAt) },
-				if (grant != null) null else lock(rule, count),
+				def.id, def.kind, def.slot, grant?.let { def.name }, def.colors,
+				grant?.let { OwnedView(it.color, it.reason, it.sceneId, (rule as? Rule.Milestone)?.count, (rule as? Rule.Bundle)?.group, it.seen, it.grantedAt) },
+				if (grant != null) null else lock(rule, cleared),
 			)
 		}
 		return RewardsResponse(items, next(grants.keys, count), rewards.shareCode(owner.id), granted)
 	}
 
-	private fun lock(rule: Rule, count: Int) = when (rule) {
-		is Rule.Milestone -> LockView("milestone", (rule.count - count).coerceAtLeast(1))
+	private fun lock(rule: Rule, cleared: List<String>) = when (rule) {
+		is Rule.Milestone -> LockView("milestone", (rule.count - cleared.size).coerceAtLeast(1))
 		is Rule.Scene -> LockView("scene")
+		is Rule.Bundle -> LockView("bundle", rule.sceneIds.count { it !in cleared }.coerceAtLeast(1), rule.group)
 		Rule.Share -> LockView("share")
 		Rule.Box -> LockView("box")
 	}

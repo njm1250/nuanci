@@ -386,6 +386,83 @@ export const SETS: Record<SetId, SetDef> = {
               <Cyl r={[0.12, 0.18]} h={0.2} at={[0.1, 1.18, -0.9]} color={evening ? C.lampOn : C.lampOff} />
             </>
           )}
+          {flags.has("gamepad") && (
+            <>
+              <Box size={[0.24, 0.05, 0.12]} at={[-0.1, 0.035, 0.55]} color={C.ink} rot={[0, 0.3, 0]} />
+              <Box size={[0.04, 0.02, 0.04]} at={[-0.04, 0.07, 0.53]} color="#d4265f" rot={[0, 0.3, 0]} />
+            </>
+          )}
+          {flags.has("dumbbell") && (
+            <>
+              <Cyl r={0.025} h={0.36} at={[-1.6, 0.06, 0.35]} color={C.metal} rot={[0, 0, R]} />
+              {[-1, 1].map((sd) => (
+                <Cyl key={sd} r={0.07} h={0.08} at={[-1.6 + 0.15 * sd, 0.07, 0.35]} color={C.ink} rot={[0, 0, R]} sides={8} />
+              ))}
+            </>
+          )}
+          {(flags.has("ramen") || flags.has("camera") || flags.has("coffee")) && <Box size={[0.9, 0.04, 0.2]} at={[1.35, 1.62, WALL_Z + 0.12]} color={C.wood} />}
+          {flags.has("ramen") && (
+            <>
+              <Cyl r={[0.07, 0.055]} h={0.13} at={[1.05, 1.705, WALL_Z + 0.12]} color="#d4265f" sides={8} />
+              <Cyl r={0.072} h={0.02} at={[1.05, 1.78, WALL_Z + 0.12]} color={C.plate} sides={8} />
+            </>
+          )}
+          {flags.has("camera") && (
+            <>
+              <Box size={[0.2, 0.12, 0.08]} at={[1.35, 1.7, WALL_Z + 0.12]} color={C.ink} />
+              <Cyl r={0.04} h={0.04} at={[1.35, 1.7, WALL_Z + 0.18]} color={C.metal} rot={[R, 0, 0]} sides={8} />
+            </>
+          )}
+          {flags.has("coffee") && (
+            <>
+              <Cyl r={0.05} h={0.1} at={[1.65, 1.69, WALL_Z + 0.12]} color={C.teal} sides={8} />
+              <Box size={[0.03, 0.05, 0.02]} at={[1.71, 1.69, WALL_Z + 0.12]} color={C.teal} />
+            </>
+          )}
+          {flags.has("vase") && (
+            <>
+              <Box size={[0.32, 0.03, 0.14]} at={[-0.1, 1.64, WALL_Z + 0.07]} color={C.wood} />
+              <Cyl r={[0.05, 0.065]} h={0.14} at={[-0.1, 1.725, WALL_Z + 0.08]} color="#bfe3f2" sides={8} />
+              {[
+                [-0.16, "#f08aa8"],
+                [-0.1, "#d4265f"],
+                [-0.04, "#f08aa8"],
+              ].map(([x, color]) => (
+                <Gem key={String(x)} r={0.045} at={[x as number, 1.86, WALL_Z + 0.08]} color={color as string} />
+              ))}
+            </>
+          )}
+          {flags.has("mirror") && (
+            <>
+              <Flat size={[0.32, 0.55]} at={[2.2, 1.55, WALL_Z + 0.01]} color={C.woodDark} />
+              <Flat size={[0.24, 0.47]} at={[2.2, 1.55, WALL_Z + 0.02]} color="#d8eef6" />
+              <Flat size={[0.04, 0.2]} at={[2.14, 1.62, WALL_Z + 0.03]} color="#ffffff" />
+            </>
+          )}
+          {flags.has("mirrorball") && (
+            <>
+              <Box size={[0.015, 0.4, 0.015]} at={[0.3, 3.0, -0.4]} color={C.ink} />
+              <Gem r={0.14} at={[0.3, 2.72, -0.4]} color="#c9d3d8" />
+              <Box size={[0.05, 0.05, 0.01]} at={[0.26, 2.75, -0.27]} color="#ffffff" />
+            </>
+          )}
+          {flags.has("guitar") && (
+            <group position={[-0.42, 0, -1.0]} rotation={[0, 0, -0.12]}>
+              <Gem r={0.2} at={[0, 0.28, 0]} color="#f08a24" scale={[1, 1.2, 0.4]} />
+              <Gem r={0.06} at={[0, 0.3, 0.07]} color={C.ink} scale={[1, 1, 0.4]} />
+              <Box size={[0.06, 0.6, 0.04]} at={[0, 0.78, 0]} color={C.woodDark} />
+              <Box size={[0.1, 0.12, 0.05]} at={[0, 1.12, 0]} color={C.ink} />
+            </group>
+          )}
+          {flags.has("lights") && (
+            <>
+              <Flat size={[5.0, 0.015]} at={[0, 2.82, WALL_Z + 0.02]} color={C.ink} />
+              {Array.from({ length: 13 }, (_, i) => (
+                <Gem key={i} r={0.04} at={[-2.4 + i * 0.4, 2.76, WALL_Z + 0.04]} color={["#ffd27a", "#f08aa8", "#8fd3f4", "#a6e38f"][i % 4]} />
+              ))}
+            </>
+          )}
+          {flags.has("beanbag") && <Gem r={0.3} at={[1.95, 0.17, 0.4]} color="#f08a24" scale={[1.1, 0.6, 1]} />}
           {flags.has("clock") && (
             <>
               <Cyl r={0.17} h={0.04} at={[2.2, 2.35, WALL_Z + 0.02]} color={C.ink} sides={10} rot={[R, 0, 0]} />
