@@ -267,8 +267,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
 
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
-    return { ...base, flags: [...(base.flags ?? []), ...(choice?.flags ?? [])] };
-  }, [stageSituation, choice]);
+    return { ...base, hero: scene.hero, flags: [...(base.flags ?? []), ...(choice?.flags ?? [])] };
+  }, [stageSituation, choice, scene.hero]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {

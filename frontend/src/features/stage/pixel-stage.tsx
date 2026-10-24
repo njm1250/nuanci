@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Expression, Motion } from "@/features/scene/types";
-import { CAST } from "./cast";
+import { CAST, HEROES } from "./cast";
 import { Figure, headTop } from "./figure";
 import { C } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
@@ -152,7 +152,7 @@ export function PixelStage({ spec, state, reduced = false }: { spec: StageSpec; 
         <set.Scenery evening={evening} flags={flags} />
         <Figure
           placement={set.me}
-          look={CAST.me}
+          look={CAST[HEROES[spec.hero ?? "boy"]]}
           motion={state?.meMotion ?? "idle"}
           motionKey={state?.meKey ?? 0}
           talkKey={state?.talkKey ?? 0}

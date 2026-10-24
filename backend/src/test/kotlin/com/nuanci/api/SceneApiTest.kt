@@ -56,7 +56,7 @@ class SceneApiTest {
 		mvc.get("/api/scenes").andExpect {
 			status { isOk() }
 			jsonPath("$.length()") { value(8) }
-			jsonPath("$[0].id") { value("pudding") }
+			jsonPath("$[0].id") { value("my-treat") }
 		}
 		mvc.get("/api/scenes/file-request").andExpect {
 			status { isOk() }
