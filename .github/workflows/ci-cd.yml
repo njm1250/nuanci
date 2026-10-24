@@ -28,6 +28,8 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # 기본 브랜치가 develop이라, 푸시는 기본 브랜치가 아니라 직전 커밋과 비교해야 바뀐 쪽을 알 수 있다
+          base: ${{ github.event_name == 'push' && github.event.before || '' }}
           filters: |
             backend:
               - 'backend/**'
