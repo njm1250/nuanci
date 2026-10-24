@@ -6,7 +6,7 @@ import { ExpressionBook } from "@/features/collection/expression-book";
 import { getScene, getScenes } from "@/features/scene/api";
 import type { Scene } from "@/features/scene/types";
 
-export const metadata: Metadata = { title: "표현 모음 · nuanci" };
+export const metadata: Metadata = { title: "표현 모음 · nuanci", robots: { index: false, follow: true } };
 
 export default async function ExpressionsPage() {
   const summaries = await getScenes();

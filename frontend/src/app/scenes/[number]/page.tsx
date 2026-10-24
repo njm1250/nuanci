@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps<"/scenes/[number]">
   const scene = await getSceneByNumber((await params).number);
   if (!scene) return { title: "nuanci" };
   const description = `너라면 영어로 뭐라고 할래? ${scene.base.intent}`;
-  return { title: `${scene.title} · nuanci`, description, openGraph: { title: `${scene.title} · nuanci`, description } };
+  return { title: `${scene.title} · nuanci`, description, alternates: { canonical: `/scenes/${scene.number}` }, openGraph: { url: `/scenes/${scene.number}`, title: `${scene.title} · nuanci`, description } };
 }
 
 async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">["params"] }) {

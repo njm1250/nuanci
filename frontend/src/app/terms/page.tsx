@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Contact, LegalPage } from "@/features/legal/legal-page";
 
-export const metadata: Metadata = { title: "이용약관 · nuanci" };
+export const metadata: Metadata = { title: "이용약관 · nuanci", alternates: { canonical: "/terms" } };
 
 export default function TermsPage() {
   const email = process.env.CONTACT_EMAIL;

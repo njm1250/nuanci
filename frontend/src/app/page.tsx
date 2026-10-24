@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/features/site/metadata";
 import { Panel } from "@/features/scene/block-ui";
 import { getScene, getScenes } from "@/features/scene/api";
 import type { Scene } from "@/features/scene/types";
@@ -7,6 +9,18 @@ import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
 import { reelBeats } from "@/features/landing/reel";
 import { SiteFooter } from "@/features/landing/site-footer";
 
+export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
+
+const website = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: "nuanci",
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  inLanguage: "ko",
+};
+
 export default async function Home() {
   const summaries = await getScenes();
   const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
@@ -14,6 +28,7 @@ export default async function Home() {
   const shelf = scenes.map(({ id, number, title, relation, place }) => ({ id, number, title, relation, place }));
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep md:bg-night">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
       <main className="flex min-h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:min-h-0 md:self-start md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_auto_1fr_auto_auto] md:content-start md:gap-x-10 md:px-8 md:pb-10">
         <header className="order-1 flex h-12 shrink-0 items-center px-4 md:order-none md:col-span-2 md:h-16 md:px-0">
           <p className="font-pixel text-[15px] text-gold">nuanci</p>
