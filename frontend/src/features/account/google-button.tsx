@@ -1,7 +1,56 @@
+"use client";
+
+import { useState, useSyncExternalStore } from "react";
 import { loginUrl } from "./account";
+import { useAvatar } from "@/features/avatar/avatar";
+import { useCleared } from "@/features/scene/progress";
+import { detectInApp, externalUrl, withCarry, type InApp } from "./in-app";
+
+const noop = () => () => {};
+let cachedUa = "";
+let cachedApp: InApp | null = null;
+function inAppSnapshot() {
+  if (navigator.userAgent !== cachedUa) {
+    cachedUa = navigator.userAgent;
+    cachedApp = detectInApp(cachedUa);
+  }
+  return cachedApp;
+}
+
+// 앱 안의 브라우저에서는 구글 로그인이 막히므로 바깥 브라우저로 여는 방법을 대신 보여준다
+function OpenOutside({ app }: { app: InApp }) {
+  const [copied, setCopied] = useState(false);
+  const cleared = useCleared();
+  const avatar = useAvatar();
+  const target = withCarry(location.href, { cleared, avatar });
+  const href = externalUrl(app, target);
+  return (
+    <div className="mt-4 bg-ink/5 p-3">
+      <p className="text-[13px] leading-relaxed text-ink-muted">{app.name} 안에서는 구글 로그인이 막혀 있어요. 브라우저에서 열어 로그인해 주세요.</p>
+      {href ? (
+        <a href={href} className="blk-btn blk-btn-gold mt-3 block">
+          <span className="blk block bg-gold px-3 py-3 text-center font-pixel text-[15px] text-ink">브라우저에서 열기</span>
+        </a>
+      ) : (
+        <>
+          <p className="mt-2 text-[13px] font-semibold text-ink">오른쪽 위 ··· 버튼 → &lsquo;외부 브라우저로 열기&rsquo;</p>
+          <button
+            type="button"
+            onClick={() => void navigator.clipboard.writeText(target).then(() => setCopied(true), () => {})}
+            className="blk-btn mt-3 block w-full"
+          >
+            <span className="blk block bg-cream px-3 py-3 text-center font-pixel text-[15px] text-ink">{copied ? "복사됨" : "링크 복사"}</span>
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
 
 // 구글 브랜딩 가이드의 밝은 버튼: 흰 바탕, 1px 회색 테두리, 원래 색 그대로의 G 로고. 로고 색과 비율은 바꾸지 않는다
 export function GoogleButton({ next, enabled }: { next: string; enabled: boolean }) {
+  const inApp = useSyncExternalStore(noop, inAppSnapshot, () => null);
+  if (enabled && inApp) return <OpenOutside app={inApp} />;
   if (!enabled) {
     return <p className="mt-4 bg-ink/5 px-3 py-3 text-center font-pixel text-[15px] text-ink-subtle">로그인 준비 중이에요</p>;
   }
