@@ -265,9 +265,10 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   );
 }
 
-// 아이템 한 칸. 켠 상태는 금색 바탕과 체크로, 처음 보는 물건은 점으로, 못 얻은 아이템은 물음표로만 보여준다
+// 아이템 한 칸. 켠 상태는 금색 바탕과 체크로, 처음 보는 물건은 점으로, 못 얻은 아이템은 그림자와 얻는 조건으로 보여준다
 function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; selected: boolean; onPress: () => void }) {
   const usable = isUsable(item);
+  const box = isUnopened(item);
   const label = usable ? item.name! : `잠긴 아이템, ${item.lock ? lockHint(item.lock) : "깜짝 상자"}`;
   return (
     <button
@@ -277,9 +278,15 @@ function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; 
       aria-pressed={usable ? on : undefined}
       className={`blk relative flex aspect-square w-full flex-col items-center justify-center gap-1 px-1 ${on ? "bg-gold text-ink" : usable ? "bg-cream text-ink" : "bg-slate-block text-paper-subtle"} ${selected ? "outline outline-[3px] outline-offset-2 outline-paper" : ""}`}
     >
-      <RewardIcon id={usable ? item.id : "locked"} color={item.owned?.color} size={28} className={usable ? "" : "opacity-40 [filter:invert(1)] light:[filter:none]"} />
+      {/* 못 얻은 물건은 그림자만 보여주고 얻는 조건을 적는다. 열지 않은 상자는 무엇이 들었는지 감춘다 */}
+      <RewardIcon
+        id={usable ? item.id : box ? "box" : item.id}
+        color={item.owned?.color}
+        size={28}
+        className={usable || box ? "" : "opacity-30 [filter:brightness(0)_invert(1)] light:[filter:brightness(0)]"}
+      />
       <span aria-hidden className="w-full truncate text-center text-[10px] leading-tight">
-        {usable ? item.name : "???"}
+        {usable ? item.name : box ? "상자" : item.lock ? lockHint(item.lock) : "???"}
       </span>
       {on && (
         <span aria-hidden className="absolute right-1 top-1">

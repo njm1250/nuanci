@@ -53,7 +53,7 @@ export function DailyExpression({ scenes }: { scenes: { id: string; title: strin
           <div className="mt-1.5 flex items-center gap-2">
             <Mark good />
             {shown ? (
-              <p className="animate-[fade-in_200ms] text-[16px] font-semibold leading-snug">{pair.right}</p>
+              <p className="animate-[fade-in_200ms] font-line text-[20px] leading-snug">{pair.right}</p>
             ) : (
               <button type="button" onClick={() => setShownFor(pick.id)} className="min-h-9 flex-1 border-2 border-dashed border-ink/30 px-2 text-left font-pixel text-[13px] text-ink-subtle">
                 눌러서 보기

@@ -5,6 +5,8 @@
  * 어두운 배경(night·ink): paper > paper-muted > paper-subtle
  * 밝은 배경(paper·cream): ink > ink-muted > ink-subtle
  * 픽셀 폰트는 원래 크기 배수로만 쓴다: font-pixel 15px, font-pixel-title 12px·24px
+ * 픽셀 폰트는 제목·버튼·짧은 라벨처럼 한 줄짜리 '게임 목소리'에만 쓰고, 두 줄 넘게 읽는 글은 Pretendard 16px로 쓴다
+ * 영어 대사(선택지·말풍선·모은 표현)는 손글씨 글꼴 font-line으로 써서 사람이 한 말처럼 보이게 한다
  */
 /* 다시 온 방문자. layout의 인라인 스크립트가 그리기 전에 html에 data-returning을 붙인다 */
 @custom-variant returning (&:where([data-returning], [data-returning] *));
@@ -22,6 +24,9 @@
   /* 기본 카드 바탕. 밝은 화면에서도 글자색(paper)과 따로 바꾸려고 나눠 둔다 */
   --color-card: #f6f4ee;
   --color-gold: #c8f031;
+  /* 주요 버튼. 밤 화면에서는 형광 연두, 종이 화면에서는 먹색 버튼에 연두 형광펜 밑단을 쓴다 */
+  --color-cta: #c8f031;
+  --color-cta-text: #141317;
   --color-rust: #d4265f;
   /* 어두운 배경 위 오류 글자 */
   --color-rust-light: #ff7aa8;
@@ -36,6 +41,7 @@
   /* 픽셀 글꼴은 흔한 글자(core)를 먼저 쓰고, 없는 글자만 Rest 파일에서 받는다 (fonts/galmuri.css) */
   --font-pixel: "Galmuri14", "Galmuri14 Rest", monospace;
   --font-pixel-title: "Galmuri11 Bold", "Galmuri11 Bold Rest", "Galmuri14", "Galmuri14 Rest", monospace;
+  --font-line: Pangolin, "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* SEED 반응형 기준점에 맞춘다 */
   --breakpoint-sm: 30rem;
   --breakpoint-md: 48rem;
@@ -44,7 +50,7 @@
 }
 
 /*
- * 밝은 화면. 기본은 어두운 화면이고, 내 정보 설정에서 고르면 html에 data-theme="light"가 붙는다.
+ * 밝은 화면(종이). 기본 화면이라 layout의 인라인 스크립트가 html에 data-theme="light"를 붙이고, 내 정보에서 밤 화면을 고르면 뗀다.
  * 페이지 바탕(night·slate-block)은 밝게, 그 위 글자(paper)는 어둡게 바꾼다. 카드(card·cream)와 진한 칸(ink)은 그대로 둔다
  */
 :root[data-theme="light"] {
@@ -57,6 +63,8 @@
   --color-paper-subtle: #5d5b62;
   --color-card: #fffdf8;
   --color-rust-light: #c01f55;
+  --color-cta: #141317;
+  --color-cta-text: #f6f4ee;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 :root[data-theme="light"] .bg-ink {
@@ -117,8 +125,27 @@ body {
     filter: drop-shadow(0 2px 0 var(--edge)) var(--frame);
   }
 }
-.blk-btn-gold {
+/* 형광 연두 면 버튼(관리자 화면 등) */
+.blk-btn-gold,
+.blk-btn-primary {
   --edge: #7e9a12;
+}
+/* 종이 화면의 먹색 버튼은 밑단을 형광펜처럼 연두로 칠한다 */
+:root[data-theme="light"] .blk-btn-primary {
+  --edge: var(--color-gold);
+}
+
+/* 형광펜. 연두는 넓은 면 대신 글자 밑에 긋는 데만 쓴다. 밤 화면에서는 글자 뒤를 다 칠하고 글자를 먹색으로 바꾼다 */
+.hl {
+  padding: 0 0.15em;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+:root[data-theme="light"] .hl {
+  background: linear-gradient(transparent 45%, var(--color-gold) 45%, var(--color-gold) 92%, transparent 92%);
+  color: inherit;
 }
 
 :focus-visible {

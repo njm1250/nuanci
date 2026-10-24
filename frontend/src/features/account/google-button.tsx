@@ -28,8 +28,8 @@ function OpenOutside({ app }: { app: InApp }) {
     <div className="mt-4 bg-ink/5 p-3">
       <p className="text-[13px] leading-relaxed text-ink-muted">{app.name} 안에서는 구글 로그인이 막혀 있어요. 브라우저에서 열어 로그인해 주세요.</p>
       {href ? (
-        <a href={href} className="blk-btn blk-btn-gold mt-3 block">
-          <span className="blk block bg-gold px-3 py-3 text-center font-pixel text-[15px] text-ink">브라우저에서 열기</span>
+        <a href={href} className="blk-btn blk-btn-primary mt-3 block">
+          <span className="blk block bg-cta px-3 py-3 text-center font-pixel text-[15px] text-cta-text">브라우저에서 열기</span>
         </a>
       ) : (
         <>

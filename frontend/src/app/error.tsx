@@ -14,8 +14,8 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
       <div className="w-full max-w-[400px] text-center">
         <p className="font-pixel-title text-[24px]">앗, 문제가 생겼어요</p>
         <p className="mt-2 text-[14px] text-paper-muted">잠시 뒤 다시 시도해 주세요. 오류는 자동으로 전달됐어요.</p>
-        <button type="button" onClick={reset} className="blk-btn blk-btn-gold mt-6 block w-full">
-          <span className="blk block bg-gold px-3 py-3 font-pixel text-[15px] text-ink">다시 시도</span>
+        <button type="button" onClick={reset} className="blk-btn blk-btn-primary mt-6 block w-full">
+          <span className="blk block bg-cta px-3 py-3 font-pixel text-[15px] text-cta-text">다시 시도</span>
         </button>
         <Link href="/" className="mt-3 inline-flex min-h-11 items-center font-pixel text-[15px] text-paper-muted underline underline-offset-4">
           홈으로

@@ -91,7 +91,7 @@ export function SiteFooter({ contactEmail }: { contactEmail?: string }) {
         )}
       </nav>
       <p className="mt-1 text-center text-[12px] leading-5 tracking-normal text-paper-subtle md:mt-0 md:shrink-0">
-        © 2026 nuanci. All rights reserved.
+        © 2026 nuanci · 이상한 영어를 발견하면 제보해 주세요
       </p>
 
       {element}
