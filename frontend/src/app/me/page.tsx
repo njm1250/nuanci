@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MePanel } from "@/features/account/me-panel";
 import { BackButton } from "@/features/collection/back-button";
-import { SiteFooter } from "@/features/landing/site-footer";
 import { getScenes } from "@/features/scene/api";
 
 export const metadata: Metadata = { title: "내 정보 · nuanci" };
@@ -19,10 +18,7 @@ export default async function MePage() {
           <BackButton />
         </header>
         <h1 className="mb-4 font-pixel-title text-[24px]">내 정보</h1>
-        <MePanel total={total} />
-        <div className="mt-10">
-          <SiteFooter contactEmail={process.env.CONTACT_EMAIL} />
-        </div>
+        <MePanel total={total} contactEmail={process.env.CONTACT_EMAIL} />
       </main>
     </div>
   );

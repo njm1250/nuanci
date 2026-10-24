@@ -306,7 +306,7 @@ export const SETS: Record<SetId, SetDef> = {
   },
 
   room: {
-    label: "내 방",
+    label: "아지트",
     wall: SET_WALLS.room,
     me: { x: -0.85, facing: 0.45, posture: "stand" },
     partner: { x: 1.05, z: -0.2, facing: -0.55, posture: "sit" },
@@ -339,6 +339,14 @@ export const SETS: Record<SetId, SetDef> = {
             </>
           )}
           {flags.has("rug") && <Box size={[1.8, 0.02, 1.0]} at={[-0.2, 0.01, 0.25]} color="#f08aa8" />}
+          {flags.has("cushion") && (
+            <>
+              <Box size={[0.5, 0.16, 0.42]} at={[0.15, 0.08, 0.35]} color="#f0a24a" />
+              {[-1, 1].map((s) => (
+                <Box key={s} size={[0.08, 0.08, 0.06]} at={[0.15 + 0.16 * s, 0.2, 0.2]} color="#f0a24a" />
+              ))}
+            </>
+          )}
           {flags.has("trophy") && (
             <>
               <Cyl r={[0.1, 0.05]} h={0.16} at={[-2.05, 1.98, -0.8]} color="#e8b931" />

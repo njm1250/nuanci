@@ -3,7 +3,7 @@ import Link from "next/link";
 import { RoomView } from "@/features/account/room-view";
 import { BackButton } from "@/features/collection/back-button";
 
-export const metadata: Metadata = { title: "내 픽셀 방 · nuanci" };
+export const metadata: Metadata = { title: "아지트 · nuanci" };
 
 export default function RoomPage() {
   return (
@@ -15,7 +15,7 @@ export default function RoomPage() {
           </Link>
           <BackButton />
         </header>
-        <h1 className="mb-4 font-pixel-title text-[24px]">내 픽셀 방</h1>
+        <h1 className="mb-4 font-pixel-title text-[24px]">아지트</h1>
         <RoomView />
       </main>
     </div>
