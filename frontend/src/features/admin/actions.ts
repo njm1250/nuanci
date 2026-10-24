@@ -93,3 +93,15 @@ export async function markInternalVisitor(visitorId: string) {
     body: JSON.stringify({ visitorId }),
   });
 }
+
+// 장면 전체 순서를 저장하고 공개 화면 캐시를 바로 비운다
+export async function reorderScenes(ids: string[]): Promise<{ error?: string }> {
+  const res = await adminFetch("/api/admin/scene-order", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) return { error: (await res.json().catch(() => ({}))).message ?? `저장하지 못했어요 (${res.status})` };
+  updateTag(SCENES_TAG);
+  return {};
+}

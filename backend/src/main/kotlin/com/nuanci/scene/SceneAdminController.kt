@@ -24,12 +24,15 @@ data class AdminScene(
 	val number: Int,
 	val title: String,
 	val status: String,
+	val order: Int,
 	val version: Int,
 	val updatedAt: Instant,
 	val warnings: List<String>,
 )
 
 data class StatusRequest(val status: String = "")
+
+data class OrderRequest(val ids: List<String> = emptyList())
 
 data class ErrorResponse(val message: String)
 
@@ -45,7 +48,7 @@ class SceneAdminController(
 	fun list(@RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?): List<AdminScene> {
 		sessions.require(auth)
 		return scenes.findAll().sortedWith(compareBy({ STATUS_ORDER.indexOf(it.status) }, { it.sortOrder })).map {
-			AdminScene(it.id, it.number, it.title, it.status, it.currentVersion, it.updatedAt, SceneCheck.warnings(store.content(it)))
+			AdminScene(it.id, it.number, it.title, it.status, it.sortOrder, it.currentVersion, it.updatedAt, SceneCheck.warnings(store.content(it)))
 		}
 	}
 
@@ -88,4 +91,23 @@ class SceneAdminController(
 	companion object {
 		private val STATUS_ORDER = listOf(SceneStatus.DRAFT, SceneStatus.PUBLISHED, SceneStatus.HIDDEN)
 	}
+}
+
+// 장면 목록 순서를 한 번에 바꾼다. 장면 id와 겹치지 않게 별도 주소를 쓴다
+@RestController
+@RequestMapping("/api/admin/scene-order")
+class SceneOrderController(
+	private val store: SceneStore,
+	private val sessions: AdminSessions,
+) {
+	@PutMapping
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	fun reorder(@RequestBody req: OrderRequest, @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?) {
+		sessions.require(auth)
+		store.reorder(req.ids)
+	}
+
+	@ExceptionHandler(IllegalArgumentException::class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	fun invalid(e: IllegalArgumentException) = ErrorResponse(e.message ?: "순서를 바꾸지 못했어요")
 }

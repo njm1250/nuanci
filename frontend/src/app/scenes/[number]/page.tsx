@@ -11,7 +11,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/scenes/[number]">): Promise<Metadata> {
   const scene = await getSceneByNumber((await params).number);
   if (!scene) return { title: "nuanci" };
-  const description = `"${scene.base.partnerLine}" 너라면 영어로 뭐라고 할래?`;
+  const description = `너라면 영어로 뭐라고 할래? ${scene.base.intent}`;
   return { title: `${scene.title} · nuanci`, description, openGraph: { title: `${scene.title} · nuanci`, description } };
 }
 

@@ -255,7 +255,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const f = useSceneFlow(scene, send);
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
-  const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=1`, `"${scene.title}" 이 상황, 영어로 뭐라고 할래? 3개 중에 골라 봐`, () =>
+  const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=1`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
     send({ type: "share_link_copied" }),
   );
   const [showMeaning, setShowMeaning] = useState(false);

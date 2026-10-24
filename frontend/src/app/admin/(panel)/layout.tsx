@@ -5,6 +5,7 @@ import { MarkDevice } from "@/features/admin/mark-device";
 const NAV = [
   { href: "/admin", label: "장면" },
   { href: "/admin/scenes/new", label: "새 장면" },
+  { href: "/admin/order", label: "순서" },
   { href: "/admin/kit", label: "에셋" },
   { href: "/admin/metrics", label: "지표" },
 ];
