@@ -42,9 +42,9 @@ export function nextReward(cleared: string[]) {
   return next ? { reward: next, remaining: (next.rule as { count: number }).count - cleared.length } : null;
 }
 
-// 다음 목표 문구. 남은 게 적을 때는 남은 양을 강조할수록 더 하고 싶어진다
-export function nextGoalText(next: { reward: Reward; remaining: number }) {
-  return next.remaining === 1 ? `한 장면만 더 하면 ${next.reward.name}` : `${next.remaining}장면 더 하면 ${next.reward.name}`;
+// 다음 목표 문구를 [앞, 강조, 뒤]로 나눈다. 남은 양을 따로 떼어 강조할수록 목표가 가깝게 느껴진다
+export function nextGoalParts(next: { reward: Reward; remaining: number }): [string, string, string] {
+  return next.remaining === 1 ? ["", "한 장면", `만 더 하면 ${next.reward.name}`] : ["장면 ", `${next.remaining}개`, ` 더 하면 ${next.reward.name}`];
 }
 
 // 아직 못 얻은 아이템의 조건. 장면 보상은 안 해 본 장면의 제목이 드러나지 않게 돌려 말한다
