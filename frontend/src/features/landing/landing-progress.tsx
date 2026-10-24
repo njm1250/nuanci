@@ -6,7 +6,7 @@ import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
-import { nextReward } from "@/features/rewards/rewards";
+import { nextGoalText, nextReward } from "@/features/rewards/rewards";
 
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string };
 
@@ -59,7 +59,11 @@ function SceneCard({ scene, done, fresh = false }: { scene: ShelfScene; done: bo
   return (
     <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn block h-full">
       <span className="blk flex h-full items-center gap-3 bg-cream px-3 py-3 text-ink">
-        <span className={`grid size-6 shrink-0 place-items-center ${done ? "bg-gold" : "border-2 border-ink/30"}`}>{done && <Check />}</span>
+        {done && (
+          <span aria-label="해 본 장면" className="grid size-6 shrink-0 place-items-center bg-gold">
+            <Check />
+          </span>
+        )}
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[16px] font-semibold leading-snug">
             {scene.title}
@@ -118,9 +122,7 @@ function NextGoal({ cleared }: { cleared: string[] }) {
   return (
     <Link href="/me/room" className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block">
       <Mascot scale={2} className="shrink-0" />
-      <span className="min-w-0 flex-1 text-[13px] text-paper-muted">
-        장면 <span className="font-semibold text-gold">{next.remaining}개</span> 더 해 보면 {next.reward.name}
-      </span>
+      <span className="min-w-0 flex-1 text-[13px] text-paper-muted">{nextGoalText(next)}</span>
       <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
         아지트
         <Arrow />
@@ -150,7 +152,7 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
           <FeaturedScene scene={upNext[0]} fresh={fresh.includes(upNext[0].id)} />
           {upNext.length > 1 && (
             <>
-              <p className="mt-5 font-pixel text-[15px] text-paper-subtle">그다음</p>
+              <p className="mt-5 font-pixel text-[15px] text-paper-subtle">다른 장면</p>
               <ul className="mt-2 grid gap-3 md:grid-cols-2">
                 {upNext.slice(1).map((s) => (
                   <li key={s.id}>

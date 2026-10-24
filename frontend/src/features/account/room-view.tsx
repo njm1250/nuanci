@@ -1,7 +1,7 @@
 "use client";
 
 import { setAvatar, useAvatar } from "@/features/avatar/avatar";
-import { earnedRewards, nextReward, REWARDS, ruleHint, type Reward } from "@/features/rewards/rewards";
+import { earnedRewards, nextGoalText, nextReward, REWARDS, ruleHint, type Reward } from "@/features/rewards/rewards";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { Stage } from "@/features/stage/stage";
@@ -48,7 +48,7 @@ export function RoomView() {
       <p className="mt-3 text-[13px] text-paper-muted">꾸민 모습은 장면에도 그대로 나와요.</p>
       {next && (
         <p className="mt-2 inline-block bg-gold px-2 py-1 font-pixel text-[15px] leading-none text-ink">
-          장면 {next.remaining}개 더 해 보면 {next.reward.name}
+          {nextGoalText(next)}
         </p>
       )}
 
