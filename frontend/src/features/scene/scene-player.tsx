@@ -182,8 +182,10 @@ function Arrow() {
   );
 }
 
-// 완료 화면의 팡파르(0.75초부터 약 0.4초)가 끝날 즈음 연속 기록 줄이 들어온다
-const STREAK_DELAY = 900;
+// 완료 화면의 팡파르(0.75초부터 1.6초쯤까지)가 끝난 뒤 연속 기록 줄이 들어오고, 새 물건 카드는 그다음에 들어온다.
+// 축하 소리가 겹치지 않게 하나씩 차례로 울린다
+const STREAK_DELAY = 1600;
+const AFTER_STREAK = 750;
 
 // 장면을 끝낸 뒤의 완료 화면. 이번에 모은 표현을 먼저 크게 보여주고, 그다음 친구에게 문제 내기를 권한다
 function WrapUp({
@@ -230,7 +232,7 @@ function WrapUp({
       {/* 새로 얻은 물건이 있으면 완료 제목 바로 아래에서 보여주고, 쓰기·방에 두기는 직접 누른다 */}
       {granted.length > 0 && (
         <div className={streak ? "mt-3" : "mt-5"}>
-          <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={streak ? 600 : 0} />
+          <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={streak ? AFTER_STREAK : 0} />
         </div>
       )}
       <p className="mt-4 text-[14px] leading-relaxed text-paper">{scene.discovery}</p>

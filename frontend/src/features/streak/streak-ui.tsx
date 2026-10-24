@@ -11,21 +11,43 @@ export function Flame({ lit = true, size = 16 }: { lit?: boolean; size?: number 
 }
 
 // 뱃지 색. 오래 이을수록 더 눈에 띄는 색이 된다
-const TIERS: Record<number, string> = { 3: "#b4452f", 7: "#8c9296", 10: "#e8b931", 30: "#2f7f7a", 50: "#f08aa8", 100: "#3f73c9", 365: "#c8f02a" };
+const TIERS: Record<number, { face: string; ribbon: string }> = {
+  3: { face: "#c9774a", ribbon: "#b4452f" },
+  7: { face: "#b9c0c4", ribbon: "#3f73c9" },
+  10: { face: "#e8b931", ribbon: "#b4452f" },
+  30: { face: "#4fb0a6", ribbon: "#2d4a73" },
+  50: { face: "#f08aa8", ribbon: "#7a3c21" },
+  100: { face: "#8fb3f0", ribbon: "#1b1b1a" },
+  365: { face: "#c8f02a", ribbon: "#1b1b1a" },
+};
+
+// 연속 기록 메달. 리본 아래 팔각 메달에 불꽃이 들어간다. locked면 아직 못 얻은 다음 목표라 회색이다
+export function Medal({ days, size = 32, locked = false }: { days: number; size?: number; locked?: boolean }) {
+  const tier = TIERS[days] ?? TIERS[10];
+  const face = locked ? "#cfccc4" : tier.face;
+  const ribbon = locked ? "#a9a59b" : tier.ribbon;
+  const rim = locked ? "#8f8b82" : "#1b1b1a";
+  const [o, y] = locked ? ["#a9a59b", "#e2dfd7"] : ["#f08a24", "#ffd27a"];
+  const r = (x: number, yy: number, w: number, h: number, fill: string) => <rect key={`${x}-${yy}-${w}-${fill}`} x={x} y={yy} width={w} height={h} fill={fill} />;
+  return (
+    <svg width={size} height={size} viewBox="0 0 12 12" shapeRendering="crispEdges" aria-hidden className="shrink-0">
+      {[r(2, 0, 3, 1, ribbon), r(3, 1, 3, 1, ribbon), r(4, 2, 2, 1, ribbon), r(7, 0, 3, 1, ribbon), r(6, 1, 3, 1, ribbon), r(6, 2, 2, 1, ribbon)]}
+      {[r(3, 3, 6, 1, rim), r(2, 4, 8, 1, rim), r(1, 5, 10, 4, rim), r(2, 9, 8, 1, rim), r(3, 10, 6, 1, rim)]}
+      {[r(3, 4, 6, 1, face), r(2, 5, 8, 4, face), r(3, 9, 6, 1, face)]}
+      {[r(6, 5, 1, 1, o), r(5, 6, 2, 1, o), r(4, 7, 4, 2, o), r(5, 7, 2, 2, y)]}
+    </svg>
+  );
+}
 
 export function badgeLabel(days: number) {
   return `${days}일 연속`;
 }
 
-// 이름 옆에 다는 연속 기록 뱃지
-export function StreakBadge({ days, dim = false }: { days: number; dim?: boolean }) {
-  const color = TIERS[days] ?? "#e8b931";
+// 이름 옆에 다는 연속 기록 뱃지. 작은 메달과 날 수만 보여준다
+export function StreakBadge({ days }: { days: number }) {
   return (
-    <span
-      className={`inline-flex shrink-0 items-center gap-1 border-2 px-1.5 py-0.5 font-pixel text-[12px] leading-none ${dim ? "border-ink/25 text-ink-subtle" : "text-ink"}`}
-      style={dim ? undefined : { background: color, borderColor: "#1b1b1a" }}
-    >
-      <Flame lit={!dim} size={10} />
+    <span className="inline-flex shrink-0 items-center gap-1 font-pixel text-[13px] leading-none text-ink" aria-label={badgeLabel(days)}>
+      <Medal days={days} size={16} />
       {days}일
     </span>
   );
@@ -43,11 +65,9 @@ export function StreakMomentCard({ current, newBadge, reduced, delay }: { curren
         <p className="text-[12px] text-paper-subtle">내일도 하면 {current + 1}일</p>
       </div>
       {newBadge && (
-        <div className="shrink-0 text-right">
-          <p className="font-pixel text-[12px] text-gold">새 뱃지</p>
-          <div className="mt-1">
-            <StreakBadge days={newBadge} />
-          </div>
+        <div className="flex shrink-0 flex-col items-center gap-1" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 380}ms both` }}>
+          <Medal days={newBadge} size={36} />
+          <span className="font-pixel text-[12px] leading-none text-gold">새 뱃지</span>
         </div>
       )}
     </div>

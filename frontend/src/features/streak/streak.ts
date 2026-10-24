@@ -4,7 +4,8 @@ import { useSyncExternalStore } from "react";
 import { visitorId } from "@/features/scene/track";
 
 // 연속 기록. 하루(한국 시간)에 장면을 하나라도 끝내면 이어진다. 서버가 세고, 화면이 바로 그려지도록 마지막 값을 이 기기에 남긴다
-export type StreakState = { current: number; best: number; today: boolean; badges: number[]; nextBadge: number | null };
+// week는 오늘을 포함한 최근 7일에 했는지(오래된 날부터)
+export type StreakState = { current: number; best: number; today: boolean; week: boolean[]; badges: number[]; nextBadge: number | null };
 
 // 장면을 끝내고 오늘 처음 이어졌을 때 완료 화면에서 보여줄 순간
 export type StreakMoment = { sceneId: string; current: number; newBadge: number | null };

@@ -20,11 +20,16 @@ class StreakStore(private val jdbc: JdbcClient) {
 		jdbc.sql("insert into activity_day (owner_id, day) values (:owner, :day) on conflict do nothing")
 			.param("owner", owner).param("day", today()).update() > 0
 
-	fun streak(owner: UUID): Streak {
-		val days = jdbc.sql("select day from activity_day where owner_id = :owner order by day desc")
-			.param("owner", owner).query(LocalDate::class.java).list()
-		return compute(days.filterNotNull().toSet(), today())
+	fun streak(owner: UUID): Streak = compute(days(owner), today())
+
+	// 오늘을 포함한 최근 7일에 장면을 했는지. 오래된 날부터 오늘 순서다
+	fun week(owner: UUID): List<Boolean> {
+		val days = days(owner)
+		return (6 downTo 0).map { today().minusDays(it.toLong()) in days }
 	}
+
+	private fun days(owner: UUID): Set<LocalDate> =
+		jdbc.sql("select day from activity_day where owner_id = :owner").param("owner", owner).query(LocalDate::class.java).list().filterNotNull().toSet()
 
 	@Transactional
 	fun mergeVisitor(visitor: UUID, user: UUID) {

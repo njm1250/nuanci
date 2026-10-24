@@ -9,8 +9,9 @@ import { place, putOn, takeOff, useHeroLook } from "./hero-look";
 import { RewardIcon } from "./reward-icon";
 import { COLOR_HEX, COLOR_LABELS, isUnopened, markRewardsSeen, ownedReason, setRewardColor, useRewards, type RewardItem } from "./rewards";
 
-// 완료 화면의 팡파르(0.75초부터 약 0.4초) 뒤에 카드가 들어오도록 늦춘다. 아이콘은 카드가 자리 잡은 뒤 튀어나온다
-const ENTER_DELAY = 950;
+// 완료 화면의 팡파르(0.75초부터 1.6초쯤까지)가 끝난 뒤에 카드가 들어온다. 축하 소리가 겹치지 않고 하나씩 들리게 한다.
+// 아이콘은 카드가 자리 잡은 뒤 튀어나온다
+const ENTER_DELAY = 1600;
 const POP_AFTER = 180;
 
 const SPARKS = [

@@ -27,6 +27,8 @@ class StreakApiTest {
 			jsonPath("$.today") { value(true) }
 			jsonPath("$.extended") { value(true) }
 			jsonPath("$.nextBadge") { value(3) }
+			jsonPath("$.week.length()") { value(7) }
+			jsonPath("$.week[6]") { value(true) }
 		}
 		mvc.post("/api/streak/play") { contentType = MediaType.APPLICATION_JSON; content = body }.andExpect {
 			jsonPath("$.current") { value(1) }
