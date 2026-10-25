@@ -22,6 +22,7 @@ import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, Subtitle, type EndingStep } 
 import { ImagineBubble } from "./imagine-bubble";
 import { ReactionFace } from "./reaction-face";
 import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
+import { toggleTranslation, useTranslationOn } from "./translation";
 import { TRAP_LABELS, type Beat, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
@@ -73,6 +74,16 @@ function VerdictStamp({ choice, pop = false }: { choice: Choice; pop?: boolean }
     >
       {v.stamp}
     </span>
+  );
+}
+
+// 번역 켜기/끄기. 켜져 있으면 '가'가 그대로, 꺼져 있으면 줄이 그어진다
+function TranslationToggle() {
+  const on = useTranslationOn();
+  return (
+    <button type="button" onClick={toggleTranslation} aria-pressed={on} aria-label={on ? "번역 끄기" : "번역 켜기"} className="grid size-11 shrink-0 place-items-center text-paper-muted hover:text-paper">
+      <span className={`font-pixel text-[17px] leading-none ${on ? "" : "line-through opacity-60"}`}>가</span>
+    </button>
   );
 }
 
@@ -330,7 +341,8 @@ function BeatDots({ total, at }: { total: number; at: number }) {
 }
 
 // 빌드업·이음 대사가 흐르는 동안 무대 아래에 쌓이는 대화 기록. 질문이 나오면 사라지고 지금의 질문 화면으로 돌아간다
-function BeatLog({ beats, partnerName }: { beats: Beat[]; partnerName: string }) {
+// 영어를 먼저 읽도록 번역은 영어 줄 아래에 작게, 조금 늦게 띄운다. 상황 묘사("……")는 번역이 아니라서 번역을 꺼도 보인다
+function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName: string; translate: boolean }) {
   const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
   return (
     <div>
@@ -338,10 +350,14 @@ function BeatLog({ beats, partnerName }: { beats: Beat[]; partnerName: string })
         {beats.map((b, i) => (
           <div key={i} className="col-span-2 grid animate-[rise_200ms_ease-out_both] grid-cols-subgrid items-baseline">
             <span className={tag}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</span>
-            <p className="min-w-0">
-              <span className="block font-line text-[19px] leading-snug text-paper">{b.line}</span>
-              <span className="block text-[13px] text-paper-subtle">{b.meaning}</span>
-            </p>
+            {b.line === "……" ? (
+              <p className="min-w-0 text-[15px] leading-snug text-paper-muted">{b.meaning}</p>
+            ) : (
+              <p className="min-w-0">
+                <span className="block font-line text-[19px] leading-snug text-paper">{b.line}</span>
+                {translate && <span className="block animate-[fade-in_300ms_500ms_both] text-[13px] text-paper-subtle">{b.meaning}</span>}
+              </p>
+            )}
           </div>
         ))}
       </div>
@@ -388,6 +404,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const streakMoment = useStreakMoment(scene.id);
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
+  const translate = useTranslationOn();
   const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
     send({ type: "share_link_copied" }),
   );
@@ -546,6 +563,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <span className={`border-2 px-1.5 py-1 text-[13px] leading-none ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
             )}
+            <TranslationToggle />
             <SoundToggle />
           </div>
         </header>
@@ -591,10 +609,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 }}
               />
               {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} />}
-              {beat && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} />}
               {beat && <BeatDots total={lead.length} at={leadIdx} />}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
-              {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} />}
+              {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} />}
               {later && !endingOn && !beat && (
                 <p className="absolute bottom-2 left-2 animate-[fade-in_300ms] bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
                   {timeCue ?? (
@@ -655,7 +672,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           ) : leading ? (
             <div key={`lead-${phase}`}>
               <p className="mb-3 text-[14px] leading-normal text-paper-muted">{situation.context}</p>
-              <BeatLog beats={lead.slice(0, leadIdx + 1)} partnerName={scene.partnerName} />
+              <BeatLog beats={lead.slice(0, leadIdx + 1)} partnerName={scene.partnerName} translate={translate} />
             </div>
           ) : !choice ? (
             // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.
