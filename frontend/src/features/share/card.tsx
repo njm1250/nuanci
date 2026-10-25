@@ -7,14 +7,14 @@ import { LOGO_SIZE, logoDataUrl } from "@/features/site/logo";
 
 export const CARD_SIZE = { width: 1200, height: 630 };
 
-// 종이 화면과 같은 색
-const INK = "#141317";
-const PAPER = "#f1ede4";
-const RULE = "#e4dfd3";
-const CARD = "#fffdf8";
-const SUBTLE = "#55535a";
-const LIME = "#c8f031";
-const BAD = "#ff6b6b";
+// 종이 화면과 같은 색. 테스트 결과 카드도 같은 색과 블록을 쓴다
+export const INK = "#141317";
+export const PAPER = "#f1ede4";
+export const RULE = "#e4dfd3";
+export const CARD = "#fffdf8";
+export const SUBTLE = "#55535a";
+export const LIME = "#c8f031";
+export const BAD = "#ff6b6b";
 
 // 테두리 굵기이자 계단 모서리·말꼬리의 한 칸
 const CELL = 6;
@@ -35,12 +35,12 @@ async function fonts() {
 }
 
 // 글이 길수록 글자를 줄여서 정해진 줄 수 안에 들어가게 한다
-function fit(text: string, steps: [number, number][]) {
+export function fit(text: string, steps: [number, number][]) {
   return (steps.find(([max]) => text.length <= max) ?? steps[steps.length - 1])[1];
 }
 
 // 화면의 계단 모서리 블록. 테두리 바깥 모서리 한 칸을 바탕색으로 지우고 안쪽에 먹색 한 칸을 더 찍는다
-function Block({ children, bg = CARD, style }: { children: ReactNode; bg?: string; style?: CSSProperties }) {
+export function Block({ children, bg = CARD, style }: { children: ReactNode; bg?: string; style?: CSSProperties }) {
   const dot = (color: string, pos: CSSProperties) => <div style={{ position: "absolute", width: CELL, height: CELL, background: color, ...pos }} />;
   const out = -CELL;
   return (
@@ -59,7 +59,7 @@ function Block({ children, bg = CARD, style }: { children: ReactNode; bg?: strin
 }
 
 // 말풍선 꼬리. 블록 아래 테두리 줄부터 계단으로 내려간다
-function Tail({ bg = CARD, flip = false }: { bg?: string; flip?: boolean }) {
+export function Tail({ bg = CARD, flip = false }: { bg?: string; flip?: boolean }) {
   const rows = ["kwwwk", "kwwk.", "kwk..", "kk..."].map((r) => (flip ? [...r].reverse().join("") : r));
   const rects = rows.flatMap((row, y) => [...row].map((ch, x) => (ch === "." ? "" : `<rect x="${x}" y="${y}" width="1" height="1" fill="${ch === "k" ? INK : bg}"/>`))).join("");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5 4" shape-rendering="crispEdges">${rects}</svg>`;
@@ -70,7 +70,7 @@ function Tail({ bg = CARD, flip = false }: { bg?: string; flip?: boolean }) {
 }
 
 // 화면의 .hl처럼 글자 아래쪽 절반만 형광펜으로 칠한다. 글자 줄은 그대로 두고 칠만 양옆으로 조금 삐져나온다
-function Marker({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+export function Marker({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
     <div style={{ display: "flex", position: "relative", ...style }}>
       <div style={{ position: "absolute", left: -10, right: -10, top: "45%", bottom: "8%", background: LIME }} />
@@ -79,7 +79,7 @@ function Marker({ children, style }: { children: ReactNode; style?: CSSPropertie
   );
 }
 
-function Lockup() {
+export function Lockup() {
   return (
     <div style={{ display: "flex", alignItems: "center" }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,7 +90,7 @@ function Lockup() {
 }
 
 // 화면의 주 버튼처럼 먹색 바탕에 라임 밑단
-function Cta({ children }: { children: ReactNode }) {
+export function Cta({ children }: { children: ReactNode }) {
   return (
     <div style={{ display: "flex", alignSelf: "flex-start", background: INK, color: LIME, fontSize: 34, padding: "18px 30px", boxShadow: `0 ${CELL + 2}px 0 ${LIME}, 0 ${CELL + 2}px 0 ${CELL}px ${INK}` }}>{children}</div>
   );
@@ -101,7 +101,7 @@ function Mochi({ scale, style }: { scale: number; style?: CSSProperties }) {
   return <img src={mochi} width={MOCHI_SIZE.w * scale} height={MOCHI_SIZE.h * scale} alt="" style={style} />;
 }
 
-async function render(children: ReactNode) {
+export async function render(children: ReactNode, size: { width: number; height: number } = CARD_SIZE, padding = "52px 64px 60px") {
   return new ImageResponse(
     (
       <div
@@ -110,7 +110,7 @@ async function render(children: ReactNode) {
           height: "100%",
           display: "flex",
           position: "relative",
-          padding: "52px 64px 60px",
+          padding,
           background: PAPER,
           // 모눈종이 줄
           backgroundImage: `linear-gradient(${RULE} 2px, transparent 2px), linear-gradient(90deg, ${RULE} 2px, transparent 2px)`,
@@ -122,7 +122,7 @@ async function render(children: ReactNode) {
         {children}
       </div>
     ),
-    { ...CARD_SIZE, fonts: await fonts() },
+    { ...size, fonts: await fonts() },
   );
 }
 
