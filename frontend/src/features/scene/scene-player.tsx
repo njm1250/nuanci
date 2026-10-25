@@ -316,22 +316,21 @@ function WrapUp({
 }
 
 // 대사 한 줄을 보여주는 시간. 짧은 줄은 빨리, 자막까지 긴 줄은 천천히 넘기고, 누르면 바로 넘어간다
-const beatMs = (b: Beat) => Math.min(2400, Math.max(1200, 900 + Math.max(b.line.length, b.meaning.length) * 28));
+const beatMs = (b: Beat) => Math.min(2200, Math.max(1100, 800 + Math.max(b.line.length, b.meaning.length) * 26));
 
-// 대사가 몇 줄 남았는지 보여주는 점. 첫 줄에는 눌러서 넘길 수 있다는 표시를 붙인다
-function BeatDots({ total, at, hint }: { total: number; at: number; hint: boolean }) {
+// 대사가 몇 줄 남았는지 보여주는 점
+function BeatDots({ total, at }: { total: number; at: number }) {
   return (
     <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5">
       {Array.from({ length: total }, (_, i) => (
         <span key={i} className={`size-1.5 ${i <= at ? "bg-ink" : "bg-ink/25"}`} />
       ))}
-      {hint && <span className="ml-1 animate-[fade-in_300ms] bg-ink px-1.5 py-1 font-pixel text-[12px] leading-none text-paper">탭해서 넘기기</span>}
     </div>
   );
 }
 
 // 빌드업·이음 대사가 흐르는 동안 무대 아래에 쌓이는 대화 기록. 질문이 나오면 사라지고 지금의 질문 화면으로 돌아간다
-function BeatLog({ beats, partnerName, onSkip }: { beats: Beat[]; partnerName: string; onSkip: () => void }) {
+function BeatLog({ beats, partnerName }: { beats: Beat[]; partnerName: string }) {
   const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
   return (
     <div>
@@ -346,10 +345,6 @@ function BeatLog({ beats, partnerName, onSkip }: { beats: Beat[]; partnerName: s
           </div>
         ))}
       </div>
-      <button type="button" onClick={onSkip} className="-mx-1 mt-3 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
-        건너뛰기
-        <Arrow />
-      </button>
     </div>
   );
 }
@@ -415,7 +410,6 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
   const beat = leading ? lead[leadIdx] : null;
   const nextBeat = () => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
-  const skipLead = () => setLeadAt((a) => ({ ...a, [step]: lead.length }));
   useEffect(() => {
     if (!beat) return;
     const t = window.setTimeout(() => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 })), beatMs(beat));
@@ -589,7 +583,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               />
               {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} />}
               {beat && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} />}
-              {beat && <BeatDots total={lead.length} at={leadIdx} hint={step === "base" && leadIdx === 0} />}
+              {beat && <BeatDots total={lead.length} at={leadIdx} />}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
               {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} />}
               {later && !endingOn && !beat && (
@@ -652,7 +646,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           ) : leading ? (
             <div key={`lead-${phase}`}>
               <p className="mb-3 text-[14px] leading-normal text-paper-muted">{situation.context}</p>
-              <BeatLog beats={lead.slice(0, leadIdx + 1)} partnerName={scene.partnerName} onSkip={skipLead} />
+              <BeatLog beats={lead.slice(0, leadIdx + 1)} partnerName={scene.partnerName} />
             </div>
           ) : !choice ? (
             // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.
@@ -728,9 +722,14 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           )}
         </section>
 
-        {(choice || (phase === "transition" && !timeCue)) && (
+        {(choice || leading || (phase === "transition" && !timeCue)) && (
           <footer className="shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
-            {phase === "transition" ? (
+            {leading ? (
+              // 대사는 저절로 흐르지만, 기다리지 않게 같은 자리의 메인 버튼으로 한 줄씩 넘긴다
+              <BlockButton primary onClick={nextBeat} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+                다음
+              </BlockButton>
+            ) : phase === "transition" ? (
               <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 이번엔 뭐라고 할까?
               </BlockButton>
