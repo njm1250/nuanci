@@ -64,6 +64,18 @@ function Chair({ x, back }: { x: number; back: 1 | -1 }) {
   );
 }
 
+// 사람이 앉는 의자. 앉은 사람과 같은 방향으로 돌려서 등받이가 몸 뒤에 오게 한다
+function Seat({ x, facing, seat, back, head }: { x: number; facing: number; seat: string; back: string; head?: string }) {
+  return (
+    <group position={[x, 0, 0]} rotation={[0, facing, 0]}>
+      <Box size={[0.55, 0.1, 0.5]} at={[0, 0.48, 0]} color={seat} />
+      <Box size={[0.55, 0.95, 0.12]} at={[0, 0.95, -0.28]} color={back} />
+      {head && <Box size={[0.4, 0.18, 0.13]} at={[0, 1.34, -0.27]} color={head} />}
+      <Box size={[0.06, 0.45, 0.06]} at={[0, 0.22, 0]} color={C.ink} />
+    </group>
+  );
+}
+
 export const SETS: Record<SetId, SetDef> = {
   dining: {
     label: "집 · 식탁",
@@ -513,6 +525,103 @@ export const SETS: Record<SetId, SetDef> = {
         </>
       );
     },
+  },
+
+  plane: {
+    label: "비행기 안",
+    wall: SET_WALLS.plane,
+    me: { x: -0.9, facing: 0.5, posture: "sit" },
+    partner: { x: 0.85, facing: -0.55, posture: "stand" },
+    // 창가 좌석에 내가 앉고, 통로에 승무원이나 다른 승객이 선다
+    Scenery: ({ evening }) => (
+      <>
+        {[-2.1, -1.3, -0.5, 0.3, 1.1, 1.9].map((x) => (
+          <group key={x}>
+            <Flat size={[0.34, 0.44]} at={[x, 1.55, WALL_Z]} color="#8c9296" />
+            <Flat size={[0.26, 0.36]} at={[x, 1.55, WALL_Z + 0.01]} color={evening ? C.night : "#bfe3f2"} />
+          </group>
+        ))}
+        <Box size={[5.6, 0.42, 0.6]} at={[0, 2.62, -0.85]} color="#efece5" />
+        <Box size={[5.6, 0.05, 0.62]} at={[0, 2.38, -0.85]} color="#b9b4a9" />
+        <Glow size={[0.22, 0.08, 0.02]} at={[0.0, 2.3, -0.54]} on />
+        <Seat x={-1.65} facing={0.5} seat={C.navy} back={C.navy} head={C.plate} />
+        <Seat x={-0.9} facing={0.5} seat={C.navy} back={C.navy} head={C.plate} />
+        <Box size={[0.5, 0.85, 0.62]} at={[1.8, 0.43, -0.25]} color="#c3c9cc" />
+        <Box size={[0.54, 0.05, 0.66]} at={[1.8, 0.88, -0.25]} color={C.metal} />
+        {[-0.12, 0.12].map((dz) => (
+          <Cyl key={dz} r={0.05} h={0.1} at={[1.72, 0.96, -0.25 + dz]} color={C.plate} />
+        ))}
+      </>
+    ),
+  },
+
+  subway: {
+    label: "지하철 안",
+    wall: SET_WALLS.subway,
+    me: { x: -0.8, facing: 0.5, posture: "sit" },
+    partner: { x: 0.85, facing: -0.5, posture: "stand" },
+    // 긴 의자에 내가 앉고, 손잡이를 잡고 선 사람이 앞에 있다. 창밖은 늘 어두운 터널이다
+    Scenery: () => (
+      <>
+        {[-1.7, 0, 1.7].map((x) => (
+          <group key={x}>
+            <Flat size={[1.3, 0.62]} at={[x, 1.72, WALL_Z]} color="#2b3350" />
+            <Flat size={[0.9, 0.03]} at={[x - 0.1, 1.78, WALL_Z + 0.01]} color="#7e88a8" />
+            <Flat size={[0.5, 0.03]} at={[x + 0.2, 1.62, WALL_Z + 0.01]} color="#7e88a8" />
+          </group>
+        ))}
+        <Flat size={[5.2, 0.16]} at={[0, 2.3, WALL_Z + 0.01]} color={C.paper} />
+        {[-2.0, -1.0, 0.0, 1.0, 2.0].map((x, i) => (
+          <Gem key={x} r={0.035} at={[x, 2.3, WALL_Z + 0.03]} color={["#2f9e44", "#3f73c9", "#f08a24", "#2f9e44", "#d4265f"][i]} />
+        ))}
+        <Box size={[2.3, 0.1, 0.5]} at={[-1.15, 0.48, 0]} color="#5b8fb0" />
+        <Box size={[2.3, 0.6, 0.1]} at={[-1.15, 0.85, -0.28]} color="#4a7a99" />
+        <Box size={[5.4, 0.03, 0.03]} at={[0, 2.62, -0.25]} color={C.metal} />
+        {[-1.6, -0.6, 0.4, 1.4].map((x) => (
+          <group key={x}>
+            <Box size={[0.02, 0.22, 0.02]} at={[x, 2.5, -0.25]} color={C.plate} />
+            <Cyl r={0.06} h={0.02} at={[x, 2.36, -0.25]} color={C.plate} rot={[R, 0, 0]} />
+          </group>
+        ))}
+        <Cyl r={0.03} h={2.6} at={[0.25, 1.3, -0.3]} color={C.metal} />
+        <Cyl r={0.03} h={2.6} at={[2.0, 1.3, -0.3]} color={C.metal} />
+      </>
+    ),
+  },
+
+  classroom: {
+    label: "교실",
+    wall: SET_WALLS.classroom,
+    me: { x: -0.8, facing: 0.5, posture: "sit" },
+    partner: { x: 0.9, facing: -0.55, posture: "stand" },
+    // 책상에 내가 앉아 있고, 선생님이나 친구가 옆에 선다. 칠판 위에는 시계, 책상 위에는 시험지가 있다
+    Scenery: ({ evening }) => (
+      <>
+        <Flat size={[2.8, 1.2]} at={[0.4, 1.75, WALL_Z]} color={C.woodDark} />
+        <Flat size={[2.6, 1.02]} at={[0.4, 1.75, WALL_Z + 0.01]} color="#2f5d4a" />
+        {[
+          [0.0, 2.0, 1.1],
+          [0.2, 1.8, 0.7],
+          [-0.05, 1.6, 0.9],
+        ].map(([x, y, w]) => (
+          <Flat key={y} size={[w, 0.03]} at={[x, y, WALL_Z + 0.02]} color="#e8eee9" />
+        ))}
+        <Box size={[2.6, 0.05, 0.08]} at={[0.4, 1.2, -1.08]} color={C.woodDark} />
+        <Cyl r={0.17} h={0.04} at={[-1.6, 2.45, WALL_Z + 0.02]} color={C.ink} sides={10} rot={[R, 0, 0]} />
+        <Cyl r={0.14} h={0.04} at={[-1.6, 2.45, WALL_Z + 0.03]} color={C.paper} sides={10} rot={[R, 0, 0]} />
+        <Window x={-2.3} y={1.8} w={0.7} h={0.9} evening={evening} />
+        <Seat x={-0.8} facing={0.5} seat={C.wood} back={C.wood} />
+        <Box size={[0.72, 0.05, 0.46]} at={[-0.45, 0.76, 0.42]} color={C.wood} rot={[0, 0.5, 0]} />
+        {[
+          [-0.72, 0.3],
+          [-0.18, 0.62],
+        ].map(([x, z]) => (
+          <Box key={x} size={[0.05, 0.74, 0.05]} at={[x, 0.37, z]} color={C.metal} />
+        ))}
+        <Box size={[0.3, 0.012, 0.22]} at={[-0.45, 0.79, 0.42]} color={C.plate} rot={[0, 0.5, 0]} />
+      </>
+    ),
+    decor: [{ id: "mochi", x: 2.35 }],
   },
 
   street: {

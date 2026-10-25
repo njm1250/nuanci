@@ -13,4 +13,7 @@ export const SET_WALLS: Record<SetId, { day: string; evening: string }> = {
   gym: { day: "#d7dadc", evening: "#8f969b" },
   room: { day: "#e9d8c7", evening: "#8f7b6c" },
   street: { day: "#cfdde3", evening: "#2b3350" },
+  plane: { day: "#e7e3da", evening: "#a39e94" },
+  subway: { day: "#d9dee0", evening: "#b5bcc0" },
+  classroom: { day: "#e6dfcc", evening: "#a8a08c" },
 };
