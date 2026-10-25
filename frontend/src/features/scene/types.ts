@@ -86,6 +86,8 @@ export type Situation = {
   choices: Choice[];
   stage?: StageSpec;
   lead?: Beat[];
+  // 이 상황에서 배우는 구어 표현이 실제로 쓰인 곳. 드라마 대사(예: "Friends S03E05")나 사전에서 직접 확인한 것만 적는다
+  sources?: { phrase: string; from: string }[];
 };
 
 // 장면을 다 본 뒤 무대에서 저절로 재생되는 마지막 한 컷. 상대나 Mochi가 상황을 한 단계 더 키우는 한마디를 던진다

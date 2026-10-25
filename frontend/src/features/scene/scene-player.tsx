@@ -425,6 +425,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const skipLead = () => setLeadAt((a) => ({ ...a, [step]: lead.length }));
   useEffect(() => {
     if (!beat) return;
+    sfx.blip(beat.line === "……" ? "narration" : beat.who);
     const t = window.setTimeout(() => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 })), beatMs(beat));
     return () => clearTimeout(t);
   }, [beat, step]);
@@ -728,6 +729,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   </li>
                 ))}
               </ul>
+              {/* 표현 출처는 선택지 카드마다가 아니라 이 상황에 한 번, 목록 아래에 작게 둔다 */}
+              {situation.sources && situation.sources.length > 0 && (
+                <p className="mt-3 text-[11px] leading-relaxed text-paper-subtle">출처 · {situation.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
+              )}
               {f.done && preview && (
                 <div className="blk mt-6 bg-night-deep px-4 py-3">
                   <p className="font-pixel text-[15px] text-paper-subtle">한 줄 정리</p>

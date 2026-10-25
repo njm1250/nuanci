@@ -128,6 +128,29 @@ function whooshNoise() {
   src.start(t);
 }
 
+// 대사 한 줄이 뜰 때 나는 짧고 작은 "띡". 고역을 깎은 삼각파라 거슬리지 않고, 말하는 사람마다 높이가 조금 달라 누가 말하는지 귀로도 구분된다.
+// 같은 소리가 반복돼도 기계적으로 들리지 않게 높이를 살짝씩 흔든다
+const BLIP_PITCH = { partner: 620, me: 500, mochi: 860, narration: 400 } as const;
+function blip(kind: keyof typeof BLIP_PITCH) {
+  const c = audio();
+  if (!c || !master) return;
+  const t = c.currentTime;
+  const osc = c.createOscillator();
+  const filter = c.createBiquadFilter();
+  const gain = c.createGain();
+  osc.type = "triangle";
+  osc.frequency.value = BLIP_PITCH[kind] * (0.97 + Math.random() * 0.06);
+  filter.type = "lowpass";
+  filter.frequency.value = 1800;
+  const vol = kind === "narration" ? 0.025 : 0.04;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+  osc.connect(filter).connect(gain).connect(master);
+  osc.start(t);
+  osc.stop(t + 0.09);
+}
+
 const FANFARES = [
   [1047, 1319, 1568, 2093],
   [784, 1047, 1319, 1568, 2093],
@@ -149,6 +172,7 @@ export const sfx = {
     low(311, 0.17, 0.3);
   },
   whoosh: whooshNoise,
+  blip,
   // 새 물건을 얻을 때 반짝이며 올라가는 네 음. 팡파르 뒤에 이어지도록 at으로 늦출 수 있다
   reward: (at = 0) => {
     [1568, 2093, 2637, 3136].forEach((f, i) => bell(f, at + i * 0.07, i === 3 ? 0.7 : 0.25, 0.08));

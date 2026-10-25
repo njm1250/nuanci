@@ -23,29 +23,43 @@ function Arrow() {
   );
 }
 
-// 표현 한 쌍. 영어 가리기를 켜면 자연스러운 말을 가려 두고, 눌러야 보여준다. 스스로 떠올려 본 뒤 확인하면 더 오래 기억한다
+// 표현 한 쌍. 하고 싶던 말 → 자연스러운 말(다른 자연스러운 말은 '또는'으로) → 틀리기 쉬운 말 순서로, 배울 표현을 가장 크게 둔다.
+// 영어 가리기를 켜면 자연스러운 말을 가려 두고 눌러야 보여준다. 스스로 떠올려 본 뒤 확인하면 더 오래 기억한다. 출처는 맨 아래 한 줄로 작게 둔다
 function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boolean; onReveal: () => void }) {
   return (
     <li className="py-3">
       <p className="text-[12px] text-ink-subtle">
         {pair.who} · {pair.when}
       </p>
-      <p className="mt-0.5 text-[13px] text-ink-muted">{pair.intent}</p>
-      <p className="mt-1.5 flex items-center gap-2 text-[14px] text-ink-subtle">
-        <Mark good={false} />
-        <s className="min-w-0">{pair.wrong}</s>
-        {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
-      </p>
-      <div className="mt-1.5 flex items-center gap-2">
-        <Mark good />
+      <p className="mt-0.5 text-[14px] text-ink">{pair.intent}</p>
+      <div className="mt-2 flex items-start gap-2">
+        <span className="mt-1">
+          <Mark good />
+        </span>
         {hidden ? (
           <button type="button" onClick={onReveal} className="min-h-9 flex-1 border-2 border-dashed border-ink/30 px-2 text-left font-pixel text-[13px] text-ink-subtle">
             눌러서 보기
           </button>
         ) : (
-          <p className="font-line text-[20px] leading-snug">{pair.right}</p>
+          <div className="min-w-0">
+            <p className="font-line text-[20px] leading-snug">{pair.right}</p>
+            {pair.alts.map((a) => (
+              <p key={a} className="font-line text-[16px] leading-snug text-ink-muted">
+                <span className="font-sans text-[12px] text-ink-subtle">또는 </span>
+                {a}
+              </p>
+            ))}
+          </div>
         )}
       </div>
+      <p className="mt-1.5 flex items-center gap-2 text-[13px] text-ink-subtle">
+        <Mark good={false} />
+        <s className="min-w-0">{pair.wrong}</s>
+        {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
+      </p>
+      {!hidden && pair.sources && pair.sources.length > 0 && (
+        <p className="mt-2 text-[11px] leading-relaxed text-ink-subtle">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
+      )}
     </li>
   );
 }
