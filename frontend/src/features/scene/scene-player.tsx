@@ -24,7 +24,7 @@ import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
-import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
+import { useReducedMotion, useSceneFlow, useShare, type Phase } from "./use-scene-flow";
 
 preloadStage();
 
@@ -87,13 +87,29 @@ function SoundToggle() {
   );
 }
 
-// 상대 말풍선 아래 계단 꼬리. 말풍선 테두리(3px)와 같은 칸 크기로 그린다
-function PartnerTail() {
+// 상대가 한 말과 내 속마음을 묶은 대화창. 처음엔 크게, 고를 때와 결과에서는 두 줄로 접어서 무엇에 답하는지 계속 보이게 둔다
+function Dialogue({ name, line, intent, compact = false, className = "" }: { name: string; line: string; intent: string; compact?: boolean; className?: string }) {
+  const tag = "shrink-0 bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
+  if (compact)
+    return (
+      <Panel dark className={className}>
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1.5 px-3 py-2.5">
+          <span className={tag}>{name}</span>
+          <p className="font-line text-[18px] leading-snug text-paper">{line}</p>
+          <span className={`${tag} justify-self-start`}>나</span>
+          <p className="font-pixel text-[15px] leading-snug text-paper">{intent}</p>
+        </div>
+      </Panel>
+    );
   return (
-    <svg width="15" height="12" viewBox="0 0 5 4" shapeRendering="crispEdges" aria-hidden className="-mt-[3px] ml-5 block">
-      <path className="fill-ink" d="M0 0h1v4H0zM1 3h1v1H1zM2 2h1v1H2zM3 1h1v1H3zM4 0h1v1H4z" />
-      <path className="fill-card" d="M1 0h3v1H1zM1 1h2v1H1zM1 2h1v1H1z" />
-    </svg>
+    <Panel dark className={className}>
+      <div className="px-4 py-3.5">
+        <span className={`inline-block ${tag}`}>{name}</span>
+        <p className="mt-2 font-line text-[22px] leading-snug text-paper">{line}</p>
+        <p className="mt-3 border-t-[3px] border-dotted border-paper-subtle/50 pt-3 font-pixel text-[13px] text-paper-subtle">내 속마음</p>
+        <p className="mt-1 font-pixel-title text-[22px] leading-[1.3] text-paper">{intent}</p>
+      </div>
+    </Panel>
   );
 }
 
@@ -354,6 +370,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const [showMeaning, setShowMeaning] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [wrapped, setWrapped] = useState(false);
+  // '대답 고르기'를 누른 단계. 만약에 상황으로 넘어가면 새 질문이라 다시 대화창부터 보여준다
+  const [answering, setAnswering] = useState<Phase | null>(null);
   const { situation, choice, pickedId, seenIds, phase } = f;
   const later = phase !== "base";
   // 완료 화면에서는 마지막에 고른 말 대신 자연스러운 말을 다시 들려주는 엔딩으로 끝낸다
@@ -393,6 +411,12 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
   }, [phase, wrapped]);
+
+  // 누른 버튼이 사라지므로 키보드·화면 읽기 사용자가 이어서 고를 수 있게 선택지 쪽으로 초점을 옮긴다
+  const choicesRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (answering) choicesRef.current?.focus({ preventScroll: true });
+  }, [answering]);
 
   // X일 때만 무대 칸을 짧게 흔든다. 화면 전체가 아니라 무대만 흔들어서 틀렸다는 신호로만 쓴다
   const stageBox = useRef<HTMLDivElement>(null);
@@ -516,22 +540,21 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               streak={streakMoment}
             />
           ) : !choice ? (
-            // 상대가 한 말 → 내 속마음 → 고를 말 순서로 한 박자씩 늦게 띄워서, 선택지보다 질문을 먼저 읽게 한다
-            <div key={`ask-${phase}`}>
-              <p className="text-[15px] leading-relaxed text-paper-muted">{situation.context}</p>
-              {/* 무대 말풍선은 작고 무대가 늦게 뜰 수도 있어서, 상대가 한 말을 여기 글로 한 번 더 크게 보여준다 */}
-              <div className="mt-3 animate-[rise_220ms_ease-out_both]">
-                <p className="font-pixel text-[15px] text-paper-subtle">{scene.partnerName}</p>
-                <div className="blk-frame mt-1.5 inline-block max-w-full">
-                  <p className="blk bg-card px-3.5 py-2 font-line text-[22px] leading-snug text-ink">{situation.partnerLine}</p>
-                </div>
-                <PartnerTail />
+            // 처음에는 상대가 한 말과 내 속마음만 대화창으로 크게 보여주고, '대답 고르기'를 누르면 대화창을 두 줄로 접고 선택지를 띄운다.
+            // 질문을 먼저 읽게 하면서도, 고를 때는 작은 폰에서도 스크롤 없이 질문과 선택지가 한 화면에 들어온다
+            answering !== phase ? (
+              <div key={`listen-${phase}`}>
+                <p className="text-[15px] leading-relaxed text-paper-muted">{situation.context}</p>
+                <Dialogue name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-3 animate-[rise_220ms_ease-out_both]" />
+                <BlockButton primary onClick={() => setAnswering(phase)} className="mt-4 w-full animate-[fade-in_200ms_600ms_both]" faceClassName="text-center font-pixel text-[15px]">
+                  대답 고르기 ▶
+                </BlockButton>
               </div>
-              <div className="mt-2 animate-[rise_220ms_ease-out_500ms_both]">
-                <p className="font-pixel text-[15px] text-paper-subtle">내 속마음</p>
-                <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{situation.intent}</p>
-              </div>
-              <div className="mt-4 flex animate-[fade-in_200ms_950ms_both] items-center justify-between">
+            ) : (
+            <div key={`ask-${phase}`} ref={choicesRef} tabIndex={-1} className="outline-none">
+              <p className="mb-3 hidden text-[15px] leading-relaxed text-paper-muted md:block">{situation.context}</p>
+              <Dialogue compact name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} />
+              <div className="mt-2 flex items-center justify-between">
                 <span className="font-pixel text-[15px] text-paper-subtle">{scene.partnerName}에게 뭐라고 말할까?</span>
                 <button
                   type="button"
@@ -546,7 +569,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </div>
               <ul className="mt-2 space-y-3">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-[rise_220ms_ease-out_both]" style={{ animationDelay: `${1000 + i * 80}ms` }}>
+                  <li key={c.id} className="animate-[rise_220ms_ease-out_both]" style={{ animationDelay: `${i * 60}ms` }}>
                     <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} />
                       <span className="min-w-0 flex-1">
@@ -563,11 +586,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 ))}
               </ul>
             </div>
+            )
           ) : (
             <div key={`result-${phase}`}>
               {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
-              <p className="font-line text-[18px] leading-snug text-paper">&ldquo;{situation.partnerLine}&rdquo;</p>
-              <p className="mt-1 text-[15px] leading-relaxed text-paper-muted">{situation.intent}</p>
+              <Dialogue compact name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} />
               <p className="mt-4 font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
