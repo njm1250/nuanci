@@ -1,7 +1,7 @@
 import type { Choice, Scene, Situation, Trap } from "@/features/scene/types";
 
 // intent는 그때 하고 싶던 말, who·when은 누구에게 어떤 상황에서였는지. 같은 영어도 상대와 상황에 따라 달라져서, 표현만 떼어 외우지 않게 함께 남긴다
-export type ExpressionPair = { intent: string; who: string; when: string; wrong: string; trap?: Trap; right: string; source?: string };
+export type ExpressionPair = { intent: string; who: string; when: string; wrong: string; trap?: Trap; right: string; alts: string[]; sources: Situation["sources"] };
 
 export type BookEntry = { id: string; number: number; title: string; relation: string; place: string; pairs: ExpressionPair[] };
 
@@ -10,7 +10,8 @@ function pair(situation: Situation, who: string, when: string): ExpressionPair |
   const right = situation.choices.find((c) => c.verdict === "good");
   const wrong: Choice | undefined = situation.choices.find((c) => c.verdict === "bad") ?? situation.choices.find((c) => c.verdict === "meh");
   if (!right || !wrong) return null;
-  return { intent: situation.intent, who, when, wrong: wrong.line, trap: wrong.trap, right: right.line, source: right.source };
+  const alts = situation.choices.filter((c) => c.verdict === "good" && c !== right).map((c) => c.line);
+  return { intent: situation.intent, who, when, wrong: wrong.line, trap: wrong.trap, right: right.line, alts, sources: situation.sources };
 }
 
 export function bookEntry(scene: Scene): BookEntry {
