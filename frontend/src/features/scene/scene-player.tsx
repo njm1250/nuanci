@@ -369,21 +369,16 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 완료 화면에서 자연스러운 말을 다시 들려준 뒤 엔딩 컷(한 박자 쉬기 → 펀치라인)을 재생한다
   const ending = scene.ending;
   const [endingStep, setEndingStep] = useState<EndingStep>("off");
+  const punch = () => {
+    setEndingStep("punch");
+    sfx.punch();
+  };
   useEffect(() => {
-    if (!wrapped || !ending) return;
-    const beat = window.setTimeout(() => setEndingStep("beat"), reduced ? 0 : BEAT_AT);
-    const punch = window.setTimeout(
-      () => {
-        setEndingStep("punch");
-        sfx.punch();
-      },
-      reduced ? 0 : PUNCH_AT,
-    );
-    return () => {
-      clearTimeout(beat);
-      clearTimeout(punch);
-    };
-  }, [wrapped, ending, reduced]);
+    if (!wrapped || !ending || endingStep === "punch") return;
+    const beat = endingStep === "off";
+    const t = window.setTimeout(beat ? () => setEndingStep("beat") : punch, reduced ? 0 : beat ? BEAT_AT : PUNCH_AT - BEAT_AT);
+    return () => clearTimeout(t);
+  }, [wrapped, ending, endingStep, reduced]);
   const endingOn = wrapped && ending !== undefined && endingStep !== "off";
   const partnerEnds = endingOn && ending.who === "partner";
   const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
@@ -455,7 +450,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const celebrate = wrapped && granted.some((i) => i.kind === "wear" && look.isWorn(i.id));
   // 새로 얻은 물건을 계속 쓰거나 둔 채로 다음 장면에 가는지 지표로 남긴다
   const keptNew = granted.filter((i) => (i.kind === "wear" ? look.isWorn(i.id) : look.placed.includes(i.id)));
-  const goNext = () => {
+  // 펀치라인이 나오기 전에 다음 장면을 누르면 첫 탭은 엔딩을 바로 보여 주고, 다음 탭에 넘어간다
+  const holdForEnding = (e: React.MouseEvent) => {
+    if (!wrapped || !ending || endingStep === "punch") return false;
+    e.preventDefault();
+    punch();
+    return true;
+  };
+  const goNext = (e: React.MouseEvent) => {
+    if (holdForEnding(e)) return;
     send({ type: "next_clicked" });
     keptNew.forEach((i) => send({ type: "reward_equipped", choiceId: i.id }));
   };
@@ -649,7 +652,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   다음 장면
                 </BlockLink>
               ) : (
-                <BlockLink href="/" primary>
+                <BlockLink href="/" primary onClick={holdForEnding}>
                   모두 해 봤어요
                 </BlockLink>
               )

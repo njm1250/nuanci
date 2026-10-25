@@ -4,10 +4,11 @@ import type { Ending } from "./types";
 // 엔딩 컷은 자연스러운 말을 다시 들려준 뒤 한 박자 쉬고("……") 펀치라인을 던진다
 export type EndingStep = "off" | "beat" | "punch";
 
-export const BEAT_AT = 2600;
-export const PUNCH_AT = 3700;
+// 바로 다음 장면으로 넘어가는 사람도 보도록 팡파르가 끝나자마자 이어서 재생한다
+export const BEAT_AT = 1500;
+export const PUNCH_AT = 2400;
 // 펀치라인을 읽을 시간. 새 물건은 그 뒤에 무대에 올라온다
-export const PUNCH_HOLD = 2600;
+export const PUNCH_HOLD = 2200;
 
 // 펀치라인 한국어 자막. 무대 아래쪽에 붙인다
 export function EndingCaption({ ending }: { ending: Ending }) {
