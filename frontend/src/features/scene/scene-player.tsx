@@ -87,6 +87,16 @@ function SoundToggle() {
   );
 }
 
+// 상대 말풍선 아래 계단 꼬리. 말풍선 테두리(3px)와 같은 칸 크기로 그린다
+function PartnerTail() {
+  return (
+    <svg width="15" height="12" viewBox="0 0 5 4" shapeRendering="crispEdges" aria-hidden className="-mt-[3px] ml-5 block">
+      <path className="fill-ink" d="M0 0h1v4H0zM1 3h1v1H1zM2 2h1v1H2zM3 1h1v1H3zM4 0h1v1H4z" />
+      <path className="fill-card" d="M1 0h3v1H1zM1 1h2v1H1zM1 2h1v1H1z" />
+    </svg>
+  );
+}
+
 function Caret({ open }: { open: boolean }) {
   return (
     <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className={`fill-current transition-transform ${open ? "rotate-90" : ""}`}>
@@ -506,11 +516,23 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               streak={streakMoment}
             />
           ) : !choice ? (
+            // 상대가 한 말 → 내 속마음 → 고를 말 순서로 한 박자씩 늦게 띄워서, 선택지보다 질문을 먼저 읽게 한다
             <div key={`ask-${phase}`}>
-              <p className="text-[16px] leading-relaxed text-paper-muted">{situation.context}</p>
-              <p className="mt-1.5 font-pixel-title text-[24px] leading-[1.25] text-paper">{situation.intent}</p>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="font-pixel text-[15px] text-paper-subtle">뭐라고 말할까?</span>
+              <p className="text-[15px] leading-relaxed text-paper-muted">{situation.context}</p>
+              {/* 무대 말풍선은 작고 무대가 늦게 뜰 수도 있어서, 상대가 한 말을 여기 글로 한 번 더 크게 보여준다 */}
+              <div className="mt-3 animate-[rise_220ms_ease-out_both]">
+                <p className="font-pixel text-[15px] text-paper-subtle">{scene.partnerName}</p>
+                <div className="blk-frame mt-1.5 inline-block max-w-full">
+                  <p className="blk bg-card px-3.5 py-2 font-line text-[22px] leading-snug text-ink">{situation.partnerLine}</p>
+                </div>
+                <PartnerTail />
+              </div>
+              <div className="mt-2 animate-[rise_220ms_ease-out_500ms_both]">
+                <p className="font-pixel text-[15px] text-paper-subtle">내 속마음</p>
+                <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{situation.intent}</p>
+              </div>
+              <div className="mt-4 flex animate-[fade-in_200ms_950ms_both] items-center justify-between">
+                <span className="font-pixel text-[15px] text-paper-subtle">{scene.partnerName}에게 뭐라고 말할까?</span>
                 <button
                   type="button"
                   onClick={() => setShowMeaning((v) => !v)}
@@ -524,7 +546,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </div>
               <ul className="mt-2 space-y-3">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id}>
+                  <li key={c.id} className="animate-[rise_220ms_ease-out_both]" style={{ animationDelay: `${1000 + i * 80}ms` }}>
                     <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} />
                       <span className="min-w-0 flex-1">
