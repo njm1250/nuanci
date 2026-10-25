@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AdminHeader, AdminLoading } from "@/features/admin/ui";
 import { getAdminJson } from "@/features/admin/api";
 import { QueryConsole, type QueryTable } from "./query-console";
 
@@ -12,9 +13,15 @@ async function QueryBody() {
 }
 
 export default function QueryPage() {
-  return <>
-    <h1 className="font-pixel-title text-[24px]">SQL 조회</h1>
-    <p className="mt-2 text-[14px] leading-relaxed text-paper-muted">SELECT·WITH 조회 한 문장만 실행해요. 최대 500행·100컬럼, 실행 시간 5초. 긴 값은 셀당 4,000자까지 표시해요. 결과가 크면 일부 행만 표시해요.</p>
-    <Suspense fallback={<p className="mt-6">테이블 불러오는 중…</p>}><QueryBody /></Suspense>
-  </>;
+  return (
+    <>
+      <AdminHeader
+        title="SQL 콘솔"
+        description="스키마를 참고하면서 쿼리를 작성하고, 결과를 넓은 표로 확인합니다. 데이터 수정·삭제는 허용하지 않습니다."
+      />
+      <Suspense fallback={<AdminLoading />}>
+        <QueryBody />
+      </Suspense>
+    </>
+  );
 }

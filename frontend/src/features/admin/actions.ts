@@ -4,12 +4,17 @@ import { revalidatePath, updateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BACKEND, SCENES_TAG } from "@/features/scene/api";
-import { adminFetch } from "./api";
+import { adminFetch, getAdminScene } from "./api";
 import { ADMIN_COOKIE } from "./cookie";
 
 export type SceneResult = { id: string; ok?: string; error?: string; warnings?: string[] };
 
 export type FormState = { error?: string; warnings?: string[]; ok?: string; id?: string; results?: SceneResult[] } | null;
+
+// 지표에서 선택한 장면의 보기만 필요할 때 가져와 전체 목록의 반복 조회를 피한다.
+export async function loadMetricScene(id: string) {
+  return getAdminScene(id);
+}
 
 export async function login(_: FormState, form: FormData): Promise<FormState> {
   const res = await fetch(`${BACKEND}/api/admin/login`, {
