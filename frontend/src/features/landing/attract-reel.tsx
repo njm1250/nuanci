@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
+import { C } from "@/features/stage/palette";
 import { Stage } from "@/features/stage/stage";
+import { SET_WALLS } from "@/features/stage/walls";
 import type { ReelBeat } from "./reel";
+import { useIdle } from "./use-idle";
+
+const noop = () => () => {};
+
+// 다시 온 방문자에게는 데모를 숨긴다(layout의 인라인 스크립트가 html에 data-returning을 붙인다). 숨긴 데모의 무대까지 띄우지 않는다
+function useReturning() {
+  return useSyncExternalStore(noop, () => document.documentElement.hasAttribute("data-returning"), () => false);
+}
 
 const ASK_MS = 1900;
 const BEAT_MS = 5600;
@@ -16,39 +26,48 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
   const [step, setStep] = useState({ index: 0, said: false, n: 0 });
   const [paused, setPaused] = useState(false);
   const look = useHeroLook();
+  const returning = useReturning();
+  // 첫 화면의 글자와 버튼이 먼저 그려지고 반응하도록, 데모 무대(three.js)는 페이지를 다 불러온 뒤 한가할 때 띄운다
+  const idle = useIdle();
 
   useEffect(() => {
-    if (reduced || paused || beats.length === 0) return;
+    if (returning || reduced || paused || beats.length === 0) return;
     const t = setTimeout(
       () => setStep((s) => (s.said ? { index: (s.index + 1) % beats.length, said: false, n: s.n + 1 } : { ...s, said: true, n: s.n + 1 })),
       step.said ? BEAT_MS - ASK_MS : ASK_MS,
     );
     return () => clearTimeout(t);
-  }, [step, reduced, paused, beats.length]);
+  }, [step, returning, reduced, paused, beats.length]);
 
-  if (beats.length === 0) return null;
+  if (beats.length === 0 || returning) return null;
   const said = reduced || step.said;
   const beat = beats[reduced ? 0 : step.index];
 
   return (
     <div className="absolute inset-0">
-      <Stage
-        spec={{ ...beat.stage, hero: look.hero, wear: look.wear }}
-        reduced={reduced}
-        state={{
-          partnerMotion: said ? beat.motion : beat.partnerIdle,
-          partnerKey: step.n,
-          partnerProp: said ? (beat.partnerProp ?? beat.partnerIdleProp) : beat.partnerIdleProp,
-          meMotion: said ? beat.meMotion : undefined,
-          meKey: step.n,
-          meProp: said ? beat.meProp : undefined,
-          talkKey: said ? step.n : 0,
-          reaction: said ? beat.expression : null,
-          meLine: said ? beat.line : undefined,
-          partnerLine: beat.partnerLine,
-          meTurn: !said,
-        }}
-      />
+      {idle ? (
+        <Stage
+          spec={{ ...beat.stage, hero: look.hero, wear: look.wear }}
+          reduced={reduced}
+          state={{
+            partnerMotion: said ? beat.motion : beat.partnerIdle,
+            partnerKey: step.n,
+            partnerProp: said ? (beat.partnerProp ?? beat.partnerIdleProp) : beat.partnerIdleProp,
+            meMotion: said ? beat.meMotion : undefined,
+            meKey: step.n,
+            meProp: said ? beat.meProp : undefined,
+            talkKey: said ? step.n : 0,
+            reaction: said ? beat.expression : null,
+            meLine: said ? beat.line : undefined,
+            partnerLine: beat.partnerLine,
+            meTurn: !said,
+          }}
+        />
+      ) : (
+        <div aria-hidden className="absolute inset-0" style={{ background: SET_WALLS[beat.stage.set][beat.stage.time] }}>
+          <div className="absolute inset-x-0 bottom-0 h-[18%]" style={{ background: C.floor }} />
+        </div>
+      )}
       <p key={`ask-${step.index}`} className="absolute left-2 top-2 animate-[fade-in_200ms] bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
         「{beat.ask}」 영어로?
       </p>

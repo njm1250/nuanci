@@ -70,37 +70,90 @@ function usePixelDpr() {
   return { box, dpr };
 }
 
+// 말풍선 너비를 ResizeObserver로 기억해 둔다. 매 프레임 offsetWidth를 읽으면 그때마다 브라우저가 레이아웃을 다시 계산해서 무대가 무거워진다
+function useBubbleWidths() {
+  const [tracker] = useState(() => {
+    const widths = new WeakMap<Element, number>();
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver((entries) => {
+            for (const e of entries) widths.set(e.target, e.borderBoxSize?.[0]?.inlineSize ?? (e.target as HTMLElement).offsetWidth);
+          });
+    return { widths, observer };
+  });
+  useEffect(() => () => tracker.observer?.disconnect(), [tracker]);
+  return tracker;
+}
+
+// 같은 값을 다시 쓰지 않아서, 무대가 멈춰 있을 때는 말풍선 스타일을 건드리지 않는다
+function setStyle(el: HTMLElement, name: string, value: string | null) {
+  if (value === null) {
+    if (el.style.getPropertyValue(name)) el.style.removeProperty(name);
+  } else if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+}
+
 // 머리 위 3D 좌표를 화면 좌표로 옮기고, 말풍선은 화면 안에 들어오게 밀되 꼬리는 머리를 가리키게 한다.
 // 두 사람 말풍선이 함께 떠 있으면 두 머리 사이 중간에서 나눠 각자 자기 쪽 안에서만 펼쳐지게 한다
-function Anchors({ targets, slots }: { targets: Record<Who, THREE.Vector3>; slots: React.RefObject<Record<Who, Slot>> }) {
+function Anchors({
+  targets,
+  slots,
+  widths,
+  observer,
+}: {
+  targets: Record<Who, THREE.Vector3>;
+  slots: React.RefObject<Record<Who, Slot>>;
+  widths: WeakMap<Element, number>;
+  observer: ResizeObserver | null;
+}) {
   const v = useRef(new THREE.Vector3());
+  // 지금 너비를 재고 있는 말풍선. 말풍선이 바뀌면 예전 것은 그만 잰다
+  const watched = useRef<Record<Who, Element | null>>({ me: null, partner: null });
   useFrame((state) => {
     const { width, height } = state.size;
     const xs = { me: 0, partner: 0 };
     for (const who of ["me", "partner"] as const) {
       const p = v.current.copy(targets[who]).project(state.camera);
       xs[who] = (p.x * 0.5 + 0.5) * width;
-      slots.current[who].wrap?.style.setProperty("transform", `translate(${xs[who]}px, ${(-p.y * 0.5 + 0.5) * height}px)`);
+      const wrap = slots.current[who].wrap;
+      if (wrap) setStyle(wrap, "transform", `translate(${xs[who]}px, ${(-p.y * 0.5 + 0.5) * height}px)`);
     }
     const both = Boolean(slots.current.me.bubble && slots.current.partner.bubble);
     const mid = (xs.me + xs.partner) / 2;
     for (const who of ["me", "partner"] as const) {
       const bubble = slots.current[who].bubble;
+      if (watched.current[who] !== bubble) {
+        if (watched.current[who]) observer?.unobserve(watched.current[who]);
+        if (bubble) observer?.observe(bubble);
+        watched.current[who] = bubble;
+      }
       if (!bubble) continue;
       const [from, to] = !both ? [EDGE, width - EDGE] : who === "me" ? [EDGE, mid - EDGE / 2] : [mid + EDGE / 2, width - EDGE];
-      if (both) bubble.style.setProperty("max-width", `${Math.floor(Math.min(to - from, BUBBLE_MAX))}px`);
-      else bubble.style.removeProperty("max-width");
+      setStyle(bubble, "max-width", both ? `${Math.floor(Math.min(to - from, BUBBLE_MAX))}px` : null);
+      // 처음 뜬 말풍선은 아직 잰 너비가 없어서 한 번만 직접 잰다
+      const w = widths.get(bubble) ?? bubble.offsetWidth;
       const x = xs[who];
-      const left = Math.min(Math.max(-bubble.offsetWidth / 2, from - x), to - x - bubble.offsetWidth);
-      bubble.style.setProperty("left", `${left}px`);
+      setStyle(bubble, "left", `${Math.min(Math.max(-w / 2, from - x), to - x - w)}px`);
     }
   });
   return null;
 }
 
+// 움직이는 동안 초당 30번만 다시 그린다. 가로 200픽셀짜리 픽셀 무대라 60번은 필요 없고, 그만큼 메인 스레드가 쉰다
+const FPS = 30;
+
+function Ticker() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const id = window.setInterval(() => invalidate(), 1000 / FPS);
+    return () => clearInterval(id);
+  }, [invalidate]);
+  return null;
+}
+
 function TypingDots() {
   return (
-    <span className="flex h-[1.4em] items-center gap-1 px-1" aria-label="내 차례">
+    <span role="img" className="flex h-[1.4em] items-center gap-1 px-1" aria-label="내 차례">
       {[0, 1, 2].map((i) => (
         <span key={i} className="size-1.5 animate-[typing_1s_infinite] bg-current" style={{ animationDelay: `${i * 160}ms` }} />
       ))}
@@ -145,9 +198,9 @@ const LOOPING: ReadonlySet<Motion> = new Set(["shiver", "dance", "panic", "sob",
 // 한 번 하고 멈추는 동작이 끝나고 자세가 제자리를 찾기까지 걸리는 시간
 const SETTLE_MS = 2500;
 
-// 무대가 바뀐 직후와 반복 동작 중에만 매 프레임 그리고, 멈춰 있을 때는 그리기를 쉬어 배터리와 CPU를 아낀다.
-// 크기가 바뀌면 three.js가 알아서 한 번 다시 그린다
-function useFrameloop(spec: StageSpec, state: StageState | undefined, reduced: boolean) {
+// 무대가 바뀐 직후와 반복 동작 중에만 계속 그리고, 멈춰 있을 때는 그리기를 쉬어 배터리와 CPU를 아낀다.
+// 크기가 바뀌거나 무대 내용이 바뀌면 three.js가 알아서 한 번 다시 그린다
+function useBusy(spec: StageSpec, state: StageState | undefined, reduced: boolean) {
   // 말풍선 그림(meNote)은 React 요소라 글자로 바꿀 수 없어서 빼고, 대신 meNoteKey로 바뀐 것을 안다
   const busyKey = JSON.stringify([spec, state], (key, value) => (key === "meNote" ? undefined : value));
   const looping = !reduced && (LOOPING.has(state?.partnerMotion ?? "idle") || LOOPING.has(state?.meMotion ?? "idle"));
@@ -157,7 +210,7 @@ function useFrameloop(spec: StageSpec, state: StageState | undefined, reduced: b
     const t = setTimeout(() => setSettled(busyKey), reduced ? 100 : SETTLE_MS);
     return () => clearTimeout(t);
   }, [busyKey, looping, reduced]);
-  return settled === busyKey && !looping ? "demand" : "always";
+  return settled !== busyKey || looping;
 }
 
 // 세트·시간·등장인물 조합을 픽셀 무대로 그리고, 캐릭터 머리 위에 말풍선과 반응 기호를 붙인다
@@ -177,7 +230,9 @@ export function PixelStage({
 }) {
   const set = SETS[spec.set];
   const evening = spec.time === "evening";
-  const flags = useMemo(() => new Set(spec.flags), [spec.flags]);
+  // 장면 화면은 고를 때마다 무대 설정을 새로 만들어서, 내용이 같으면 같은 Set을 쓰도록 글자로 비교한다
+  const flagsKey = (spec.flags ?? []).join(",");
+  const flags = useMemo(() => new Set(flagsKey ? flagsKey.split(",") : []), [flagsKey]);
   // flags에 bare가 있으면 세트 기본 소품을 빼고 장면이 직접 적은 소품만 붙인다(식탁 세트를 식당으로 쓸 때처럼)
   const decor = useMemo(() => [...(flags.has("bare") ? [] : (set.decor ?? [])), ...(spec.decor ?? [])], [set, flags, spec.decor]);
   const targets = useMemo(
@@ -191,8 +246,20 @@ export function PixelStage({
   const wall = set.wall[spec.time];
   const symbol = state?.reaction ? REACTION_SYMBOLS[state.reaction] : null;
   const ink = evening && spec.set === "street" ? "text-paper" : "text-ink";
-  const frameloop = useFrameloop(spec, state, reduced);
+  // 벽·가구·소품은 말을 고를 때마다 바뀌지 않는다. 같은 요소를 다시 쓰면 React가 수백 개의 메시를 다시 맞춰 보지 않고 넘어가서 누른 뒤 반응이 빨라진다
+  const scenery = useMemo(
+    () => (
+      <>
+        <Backdrop wall={wall} />
+        <set.Scenery evening={evening} flags={flags} />
+        <DecorPieces items={decor} />
+      </>
+    ),
+    [set, wall, evening, flags, decor],
+  );
+  const busy = useBusy(spec, state, reduced);
   const { box, dpr } = usePixelDpr();
+  const { widths, observer } = useBubbleWidths();
 
   const bubble = (who: Who, text: React.ReactNode, key: string) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
@@ -214,7 +281,7 @@ export function PixelStage({
   return (
     <div ref={box} className="absolute inset-0 overflow-hidden" style={{ background: wall }}>
       <Canvas
-        frameloop={frameloop}
+        frameloop="demand"
         orthographic
         dpr={dpr}
         camera={{ position: [0, 1.6, 10], zoom: 70, near: 0.1, far: 50 }}
@@ -223,13 +290,12 @@ export function PixelStage({
       >
         <Rig />
         {onSnapshot && <Snapshot key={snapshotKey} onSnapshot={onSnapshot} />}
-        {state && <Anchors targets={targets} slots={slots} />}
+        {busy && <Ticker />}
+        {state && <Anchors targets={targets} slots={slots} widths={widths} observer={observer} />}
         <ambientLight intensity={evening ? 1.7 : 2.1} />
         <directionalLight position={[-3, 4, 6]} intensity={evening ? 0.9 : 1.2} />
 
-        <Backdrop wall={wall} />
-        <set.Scenery evening={evening} flags={flags} />
-        <DecorPieces items={decor} />
+        {scenery}
         <Figure
           placement={set.me}
           look={{ ...CAST[HEROES[spec.hero ?? "boy"]], wear: spec.wear }}

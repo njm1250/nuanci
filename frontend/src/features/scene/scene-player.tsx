@@ -12,18 +12,21 @@ import { RewardReveal } from "@/features/rewards/reward-reveal";
 import { COLOR_HEX, isUnopened, usePendingRewards, useRewards, type RewardItem } from "@/features/rewards/rewards";
 import { playStreak, useStreakMoment, type StreakMoment } from "@/features/streak/streak";
 import { StreakMomentCard } from "@/features/streak/streak-ui";
-// 장면 화면은 상대 대사가 무대 말풍선에만 있어서 무대를 늦게 불러오지 않는다
-import { PixelStage as Stage } from "@/features/stage/pixel-stage";
+// 장면 화면은 상대 대사가 무대 말풍선에만 있어서 three.js를 이 파일을 읽자마자 받기 시작한다.
+// 다만 페이지 묶음에는 넣지 않아서, 받는 동안에도 글자와 선택지는 먼저 그려지고 누를 수 있다
+import { preloadStage, Stage } from "@/features/stage/stage";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
 import { ImagineBubble } from "./imagine-bubble";
 import { ReactionFace } from "./reaction-face";
-import { sfx, toggleSound, useSoundEnabled } from "./sfx";
+import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
+
+preloadStage();
 
 function Num({ n, dark = false }: { n: number; dark?: boolean }) {
   return <span className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] ${dark ? "bg-card text-ink" : "bg-ink text-paper"}`}>{n}</span>;
@@ -325,6 +328,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     markPlayed();
     track({ type: "scene_viewed", sceneId: scene.id, sceneVersion: scene.version, attemptId, entry: takeEntry() });
   }, [scene.id, scene.version, attemptId, preview]);
+
+  useEffect(primeAudio, []);
 
   const f = useSceneFlow(scene, send);
   const look = useHeroLook();

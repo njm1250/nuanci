@@ -120,11 +120,12 @@ function Profile() {
   const account = useAccount();
   const notice = useSyncExternalStore(noop, () => new URLSearchParams(location.search).get("login"), () => null);
 
+  // 로그인 여부를 확인하는 동안에는 대부분인 비로그인 카드 자리를 미리 비워 두어, 확인이 끝나도 아래 칸이 밀려 내려가지 않게 한다
   if (account.status === "loading") {
     return (
-      <Panel>
-        <p className="p-4 font-pixel text-[15px] text-ink-subtle">확인하는 중…</p>
-      </Panel>
+      <div aria-hidden inert className="invisible">
+        <GuestProfile notice={null} google={false} />
+      </div>
     );
   }
   if (account.status === "member" && account.me) {
@@ -137,6 +138,11 @@ function Profile() {
       </Panel>
     );
   }
+  return <GuestProfile notice={notice} google={account.google} />;
+}
+
+// 비로그인 프로필. 로그인하면 얻는 것을 구체적으로 보여주고 구글 로그인으로 보낸다
+function GuestProfile({ notice, google }: { notice: string | null; google: boolean }) {
   return (
     <Panel>
       <div className="p-4">
@@ -151,7 +157,7 @@ function Profile() {
             <span>꾸민 주인공과 모은 물건이 계정에 남아요</span>
           </li>
         </ul>
-        <GoogleButton next="/me" enabled={account.google} />
+        <GoogleButton next="/me" enabled={google} />
         <p className="mt-2 text-center text-[12px] text-ink-subtle">지금까지 한 기록도 함께 옮겨져요</p>
       </div>
     </Panel>
