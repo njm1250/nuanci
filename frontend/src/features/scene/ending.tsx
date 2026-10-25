@@ -1,0 +1,33 @@
+import { Mascot } from "@/features/mascot/mascot";
+import type { Ending } from "./types";
+
+// 엔딩 컷은 자연스러운 말을 다시 들려준 뒤 한 박자 쉬고("……") 펀치라인을 던진다
+export type EndingStep = "off" | "beat" | "punch";
+
+export const BEAT_AT = 2600;
+export const PUNCH_AT = 3700;
+// 펀치라인을 읽을 시간. 새 물건은 그 뒤에 무대에 올라온다
+export const PUNCH_HOLD = 2600;
+
+// 펀치라인 한국어 자막. 무대 아래쪽에 붙인다
+export function EndingCaption({ ending }: { ending: Ending }) {
+  return (
+    <p className="absolute inset-x-2 bottom-2 animate-[fade-in_200ms] text-center">
+      <span className="inline-block bg-ink px-2 py-1 font-pixel text-[14px] leading-snug text-paper">{ending.meaning}</span>
+    </p>
+  );
+}
+
+// Mochi가 무대 오른쪽 아래 구석에서 불쑥 올라와 한마디 던진다
+export function MochiCameo({ step, line }: { step: EndingStep; line: string }) {
+  return (
+    <div className="pointer-events-none absolute bottom-9 right-2 flex animate-[rise_240ms_steps(3,end)_both] flex-col items-end">
+      <div key={step} className="blk-frame-sm relative mb-3 animate-[fade-in_160ms]">
+        <div className="blk w-max max-w-[10rem] bg-white px-2.5 py-1.5 font-line text-[15px] leading-snug text-ink break-keep">{step === "beat" ? "……" : line}</div>
+        <span className="absolute -bottom-[5px] right-4 h-[5px] w-[10px] bg-white" />
+        <span className="absolute -bottom-[9px] right-[19px] h-[4px] w-[4px] bg-white" />
+      </div>
+      <Mascot scale={3} className="mr-1" />
+    </div>
+  );
+}

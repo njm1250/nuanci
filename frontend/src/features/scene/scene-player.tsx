@@ -18,6 +18,7 @@ import { preloadStage, Stage } from "@/features/stage/stage";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
+import { BEAT_AT, EndingCaption, MochiCameo, PUNCH_AT, PUNCH_HOLD, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 import { ReactionFace } from "./reaction-face";
 import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
@@ -236,6 +237,7 @@ function WrapUp({
   reduced,
   onRewardShown,
   streak,
+  rewardAt,
 }: {
   scene: Scene;
   share: () => void;
@@ -245,6 +247,7 @@ function WrapUp({
   reduced: boolean;
   onRewardShown: (ids: string[]) => void;
   streak: StreakMoment | null;
+  rewardAt: number;
 }) {
   const { pairs } = bookEntry(scene);
   // 오늘 처음 이어졌으면 연속 기록을 먼저 보여주고, 새 물건은 그 뒤에 들어온다
@@ -288,7 +291,7 @@ function WrapUp({
       {(streak || granted.length > 0) && (
         <div className="mt-4 space-y-2">
           {streak && <StreakMomentCard current={streak.current} newBadge={streak.newBadge} reduced={reduced} delay={STREAK_DELAY} />}
-          {granted.length > 0 && <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={streak ? AFTER_STREAK : 0} />}
+          {granted.length > 0 && <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={rewardAt - STREAK_DELAY} />}
         </div>
       )}
 
@@ -359,21 +362,43 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const [wrapped, setWrapped] = useState(false);
   const { situation, choice, pickedId, seenIds, phase } = f;
   const later = phase !== "base";
-  // 완료 화면에서는 마지막에 고른 말 대신 자연스러운 말을 다시 들려주는 엔딩으로 끝낸다
+  // 완료 화면에서는 마지막에 고른 말 대신 자연스러운 말을 다시 들려준다
   const stageChoice = wrapped ? (scene.followUp.choices.find((c) => c.verdict === "good") ?? choice) : choice;
-  const stageKey = f.reactionKey * 10 + (later ? 1 : 0) + (wrapped ? 5 : 0);
   const stageSituation = later ? scene.followUp : scene.base;
+
+  // 완료 화면에서 자연스러운 말을 다시 들려준 뒤 엔딩 컷(한 박자 쉬기 → 펀치라인)을 재생한다
+  const ending = scene.ending;
+  const [endingStep, setEndingStep] = useState<EndingStep>("off");
+  useEffect(() => {
+    if (!wrapped || !ending) return;
+    const beat = window.setTimeout(() => setEndingStep("beat"), reduced ? 0 : BEAT_AT);
+    const punch = window.setTimeout(
+      () => {
+        setEndingStep("punch");
+        sfx.punch();
+      },
+      reduced ? 0 : PUNCH_AT,
+    );
+    return () => {
+      clearTimeout(beat);
+      clearTimeout(punch);
+    };
+  }, [wrapped, ending, reduced]);
+  const endingOn = wrapped && ending !== undefined && endingStep !== "off";
+  const partnerEnds = endingOn && ending.who === "partner";
+  const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
 
   // 팡파르(와 연속 기록 줄)가 끝나고 새 물건 카드가 들어올 때 주인공도 무대에서 그 물건을 받는다. 잠깐 보여준 뒤 엔딩으로 돌아간다
   const prize = stagePrize(granted);
   const [prizeStep, setPrizeStep] = useState<"wait" | "on" | "off">("wait");
   const prizeId = prize?.id;
+  // 엔딩 컷이 있으면 펀치라인을 읽고 난 뒤에 새 물건이 들어온다
+  const rewardAt = Math.max(STREAK_DELAY + (streakMoment ? AFTER_STREAK : 0), ending && !reduced ? PUNCH_AT + PUNCH_HOLD : 0);
   useEffect(() => {
     if (!wrapped || !prizeId || prizeStep === "off") return;
-    const wait = prizeStep === "wait" ? STREAK_DELAY + (streakMoment ? AFTER_STREAK : 0) : PRIZE_MS;
-    const t = window.setTimeout(() => setPrizeStep(prizeStep === "wait" ? "on" : "off"), wait);
+    const t = window.setTimeout(() => setPrizeStep(prizeStep === "wait" ? "on" : "off"), prizeStep === "wait" ? rewardAt : PRIZE_MS);
     return () => clearTimeout(t);
-  }, [wrapped, prizeId, prizeStep, streakMoment]);
+  }, [wrapped, prizeId, prizeStep, rewardAt]);
   const prizeOn = wrapped && prize !== null && prizeStep === "on";
   // 새로 받은 쓰는 아이템은 받는 순간 무대에서 미리 써 본다. 같은 자리(머리·얼굴·목)에 쓰던 것은 잠깐 벗는다
   const tryOn = prizeOn && prize.kind === "wear" && !isUnopened(prize) ? prize : null;
@@ -435,7 +460,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     keptNew.forEach((i) => send({ type: "reward_equipped", choiceId: i.id }));
   };
 
-  const burst = stageChoice ? BURSTS[stageChoice.expression] : null;
+  const burst = stageChoice && !endingOn ? BURSTS[stageChoice.expression] : null;
   const stepPicks = stats?.[later ? "followUp" : "base"];
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
@@ -472,16 +497,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   meNote: prizeOn ? <PrizeNote item={prize} /> : undefined,
                   meNoteKey: prize?.id,
                   partnerProp: stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
-                  partnerMotion: stageChoice?.motion ?? stageSituation.partnerIdle.motion,
+                  partnerMotion: endingOn ? (partnerEnds && endingStep === "punch" ? (ending.motion ?? "idle") : "idle") : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
                   partnerKey: stageKey,
                   talkKey: stageKey,
-                  reaction: stageChoice?.expression ?? null,
-                  meLine: stageChoice?.line,
-                  partnerLine: stageSituation.partnerLine,
+                  reaction: endingOn ? null : (stageChoice?.expression ?? null),
+                  meLine: endingOn ? undefined : stageChoice?.line,
+                  partnerLine: endingOn ? (partnerEnds ? (endingStep === "beat" ? "……" : ending.line) : undefined) : stageSituation.partnerLine,
                   meTurn: phase !== "transition" && !choice,
                 }}
               />
-              {later && (
+              {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
+              {endingOn && endingStep === "punch" && <EndingCaption ending={ending} />}
+              {later && !endingOn && (
                 <p className="absolute bottom-2 left-2 animate-[fade-in_300ms] bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
                   <span className="text-gold">만약에</span> {scene.followUp.to}
                 </p>
@@ -520,11 +547,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               scene={scene}
               share={share}
               shareState={shareState}
-              onBack={() => setWrapped(false)}
+              onBack={() => {
+                setWrapped(false);
+                setEndingStep("off");
+              }}
               granted={granted}
               reduced={reduced}
               onRewardShown={(ids) => ids.forEach((id) => send({ type: "reward_shown", choiceId: id }))}
               streak={streakMoment}
+              rewardAt={rewardAt}
             />
           ) : !choice ? (
             // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.

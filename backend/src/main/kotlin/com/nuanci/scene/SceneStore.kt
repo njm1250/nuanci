@@ -87,6 +87,11 @@ class SceneStore(
 				}
 			}
 		}
+		if (node.has("ending")) {
+			val ending = node.path("ending")
+			require(ending.path("who").asString("") in ENDING_SPEAKERS) { "ending.who는 ${ENDING_SPEAKERS} 중 하나여야 해요" }
+			require(ending.path("line").asString("").isNotBlank() && ending.path("meaning").asString("").isNotBlank()) { "ending의 line과 meaning을 채워야 해요" }
+		}
 		if (node.has("status")) require(node.path("status").asString("") in SceneStatus.ALL) { "status는 ${SceneStatus.ALL} 중 하나여야 해요" }
 		val number = node.path("number").asInt(0)
 		require(number > 0) { "number는 1 이상이어야 해요" }
@@ -116,5 +121,6 @@ class SceneStore(
 	companion object {
 		private val ID = Regex("^[a-z0-9]+(-[a-z0-9]+)*$")
 		private val LEGACY_VERDICTS = mapOf("natural" to "good", "context" to "meh", "literal" to "bad")
+		private val ENDING_SPEAKERS = listOf("partner", "mochi")
 	}
 }
