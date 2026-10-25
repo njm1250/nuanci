@@ -52,6 +52,8 @@ data class MetricsResponse(
 	val events: Int,
 	val internalVisitors: Int,
 	val internalEvents: Int,
+	// 내부 방문자 가운데 utm_source=ai로 들어온 AI 확인 방문
+	val aiVisitors: Int,
 	val scenes: List<SceneMetrics>,
 	val activeAccounts: Int,
 	val registeredAccounts: Int,
@@ -181,6 +183,7 @@ class MetricsController(
 		}.list()
 		val internalVisitors = query("select count(*) from internal_visitor").query(Int::class.java).single()
 		val internalEvents = query("select count(*) from scene_event e where not $EXTERNAL").query(Int::class.java).single()
+		val aiVisitors = query("select count(*) from internal_visitor i join visitor_source s on s.visitor_id = i.visitor_id where s.source = '${com.nuanci.event.AI_SOURCE}'").query(Int::class.java).single()
 
 		val activeAccounts = query("select count(distinct e.user_id) from scene_event e where $filter").query(Int::class.java).single()
 		val registeredAccounts = query("""
@@ -211,7 +214,7 @@ class MetricsController(
 			.param("chartEnd", range.end.atZone(java.time.ZoneId.of("Asia/Seoul")).toLocalDate())
 			.param("chartInstant", java.sql.Timestamp.from(range.chartStart))
 			.query { rs, _ -> DailyMetrics(rs.getString("day"), rs.getInt("visitors"), rs.getInt("new_visitors"), rs.getInt("accounts"), rs.getInt("completed")) }.list()
-		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources, daily, period)
+		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, aiVisitors, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources, daily, period)
 	}
 
 	@PostMapping("/internal-visitors")
