@@ -16,4 +16,9 @@ export const SET_WALLS: Record<SetId, { day: string; evening: string }> = {
   plane: { day: "#e7e3da", evening: "#a39e94" },
   subway: { day: "#d9dee0", evening: "#b5bcc0" },
   classroom: { day: "#e6dfcc", evening: "#a8a08c" },
+  clinic: { day: "#d8e6e0", evening: "#9aa9a3" },
+  pharmacy: { day: "#eef1ec", evening: "#a3aaa3" },
+  bunsik: { day: "#f0dcc0", evening: "#a8906f" },
+  salon: { day: "#e9dfe4", evening: "#a3949c" },
+  boutique: { day: "#efe6dc", evening: "#a69a8d" },
 };

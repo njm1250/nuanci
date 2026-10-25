@@ -73,8 +73,9 @@ export type Choice = {
   imagine?: { icon: string; caption: string };
 };
 
-// 질문 전에 저절로 흘러가는 대사 한 줄. 기본 상황에서는 빌드업, 만약에 상황에서는 앞 장면과 잇는 대사다
-export type Beat = { who: "partner" | "me" | "mochi"; line: string; meaning: string };
+// 질문 전에 저절로 흘러가는 대사 한 줄. 기본 상황에서는 빌드업, 만약에 상황에서는 앞 장면과 잇는 대사다.
+// 말하는 사람의 동작·소품을 붙일 수 있고, flags는 그 줄부터 이 상황이 끝날 때까지 무대에 남는다(냉장고가 비어 있음 등)
+export type Beat = { who: "partner" | "me" | "mochi"; line: string; meaning: string; motion?: Motion; prop?: PropId; flags?: string[] };
 
 export type Situation = {
   context: string;

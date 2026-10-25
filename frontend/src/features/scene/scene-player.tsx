@@ -409,6 +409,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const leadIdx = leadAt[step];
   const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
   const beat = leading ? lead[leadIdx] : null;
+  const played = phase === "transition" ? [] : lead.slice(0, leading ? leadIdx + 1 : lead.length);
+  const leadFlags = played.flatMap((b) => b.flags ?? []).join(",");
+  // 소품은 대사가 흐르는 동안 마지막으로 든 것을 계속 들고 있는다
+  const heldMe = leading ? played.findLast((b) => b.who === "me" && b.prop)?.prop : undefined;
+  const heldPartner = leading ? played.findLast((b) => b.who === "partner" && b.prop)?.prop : undefined;
   const nextBeat = () => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
   useEffect(() => {
     if (!beat) return;
@@ -468,8 +473,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
     // 주인공은 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
-    return { ...base, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
-  }, [stageSituation, stageChoice, look.hero, wearKey]);
+    return { ...base, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? []), ...(leadFlags ? leadFlags.split(",") : [])] };
+  }, [stageSituation, stageChoice, look.hero, wearKey, leadFlags]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -552,14 +557,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 spec={spec}
                 reduced={reduced}
                 state={{
-                  meMotion: prizeOn ? "bounce" : celebrate ? "clap" : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
+                  meMotion: prizeOn ? "bounce" : celebrate ? "clap" : beat?.who === "me" && beat.motion ? beat.motion : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
                   meKey: prizeOn ? stageKey + 1000 : stageKey,
                   // 방에 둘 물건과 상자는 선물 상자를 들고 받는다
-                  meProp: prizeOn && !tryOn ? "gift" : (stageChoice?.meProp ?? stageSituation.meIdle?.prop),
+                  meProp: prizeOn && !tryOn ? "gift" : (heldMe ?? stageChoice?.meProp ?? stageSituation.meIdle?.prop),
                   meNote: prizeOn ? <PrizeNote item={prize} /> : undefined,
                   meNoteKey: prize?.id,
-                  partnerProp: stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
-                  partnerMotion: endingOn ? (partnerEnds && endingStep === "punch" ? (ending.motion ?? "idle") : "idle") : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
+                  partnerProp: heldPartner ?? stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
+                  partnerMotion: beat
+                    ? beat.who === "partner" && beat.motion
+                      ? beat.motion
+                      : stageSituation.partnerIdle.motion
+                    : endingOn ? (partnerEnds && endingStep === "punch" ? (ending.motion ?? "idle") : "idle") : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
                   partnerKey: stageKey,
                   talkKey: stageKey,
                   reaction: endingOn ? null : (stageChoice?.expression ?? null),
