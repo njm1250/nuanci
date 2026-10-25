@@ -4,6 +4,7 @@ import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import { AccountSync } from "@/features/account/account-sync";
 import { NavTracker } from "@/features/collection/back-button";
 import { ErrorReporter } from "@/features/monitor/error-reporter";
+import { SourceCapture } from "@/features/site/source-capture";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/features/site/metadata";
 import { THEME_COLORS, THEME_SCRIPT } from "@/features/theme/theme-script";
 import { fontVariables } from "./fonts";
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <NavTracker />
         </Suspense>
         <ErrorReporter />
+        <SourceCapture />
       </body>
     </html>
   );

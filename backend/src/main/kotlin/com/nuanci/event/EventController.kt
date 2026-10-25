@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import org.springframework.http.HttpStatus
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -35,6 +36,14 @@ data class EventRequest(
 	val choiceId: String? = null,
 	@field:Pattern(regexp = "home|next|share|direct")
 	val entry: String? = null,
+	@field:Size(max = 100)
+	val utmSource: String? = null,
+	@field:Size(max = 100)
+	val utmMedium: String? = null,
+	@field:Size(max = 100)
+	val utmCampaign: String? = null,
+	@field:Size(max = 255)
+	val referrer: String? = null,
 )
 
 @RestController
@@ -43,6 +52,7 @@ class EventController(
 	private val events: SceneEventRepository,
 	private val scenes: SceneRepository,
 	private val accounts: AccountStore,
+	private val jdbc: JdbcClient,
 ) {
 	@PostMapping
 	@ResponseStatus(HttpStatus.ACCEPTED)
@@ -57,5 +67,15 @@ class EventController(
 		events.save(
 			SceneEvent(req.type, req.sceneId, req.sceneVersion, req.attemptId, req.visitorId, req.step, req.choiceId, req.entry, userId = account?.id, authState = if (account == null) "guest" else "member"),
 		)
+		// 처음 들어온 경로만 남긴다. 나중에 다른 링크로 다시 와도 덮어쓰지 않는다
+		if (req.utmSource != null || req.referrer != null) {
+			jdbc.sql("insert into visitor_source (visitor_id, source, medium, campaign, referrer) values (:v, :s, :m, :c, :r) on conflict do nothing")
+				.param("v", req.visitorId)
+				.param("s", req.utmSource?.lowercase())
+				.param("m", req.utmMedium?.lowercase())
+				.param("c", req.utmCampaign?.lowercase())
+				.param("r", req.referrer?.lowercase())
+				.update()
+		}
 	}
 }
