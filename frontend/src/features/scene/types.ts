@@ -83,6 +83,14 @@ export type Situation = {
   stage?: StageSpec;
 };
 
+// 장면을 다 본 뒤 무대에서 저절로 재생되는 마지막 한 컷. 상대나 Mochi가 상황을 한 단계 더 키우는 한마디를 던진다
+export type Ending = {
+  who: "partner" | "mochi";
+  line: string;
+  meaning: string;
+  motion?: Motion;
+};
+
 export type Scene = {
   id: string;
   version: number;
@@ -94,6 +102,7 @@ export type Scene = {
   base: Situation;
   followUp: Situation & { prompt: string; from: string; to: string };
   discovery: string;
+  ending?: Ending;
 };
 
 export type SceneSummary = {

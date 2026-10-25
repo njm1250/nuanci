@@ -49,7 +49,7 @@ export function BlockLink({
   primary?: boolean;
   className?: string;
   entry?: "home" | "next";
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }) {
   return (
     <EntryLink href={href} entry={entry} onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`}>
