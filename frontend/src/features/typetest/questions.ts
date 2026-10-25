@@ -4,15 +4,15 @@ import type { Scene } from "@/features/scene/types";
 import { QUESTION_COUNT, type Step, type TestQuestion } from "./model";
 import { TRAP_TYPE, type TypeId } from "./types";
 
-// 테스트에 낼 상황(장면 id와 기본·만약에 상황). 첫 문제는 웃기고 많이 틀리는 푸딩으로 시작한다.
-// 다섯 문제의 틀린 보기 열 개가 유형 여덟 개(대답 방식·콩글리시·말 오배송·직역·K-정·교과서·팀장님·호텔 직원)를 한 번 이상 담도록 골랐다.
-// 10초 안에 읽히게 보기는 짧은 것으로 고른다. 여기 적은 장면이 없거나 공개되지 않았으면, 남은 자리는 아직 안 나온 함정이 많은 상황으로 자동으로 채운다
+// 테스트에 낼 상황(장면 id와 기본·만약에 상황). 테스트용으로 만든 장면이라 틀린 보기도 실제로 자주 고르는 말만 담았다.
+// 다섯 문제의 틀린 보기 열 개가 유형 여덟 개(대답 방식·콩글리시·말 오배송·직역·K-정·교과서·팀장님·호텔 직원)를 한 번 이상 담는다.
+// 여기 적은 장면이 없거나 공개되지 않았으면, 남은 자리는 아직 안 나온 함정이 많은 상황으로 자동으로 채운다
 export const TEST_QUESTIONS: { scene: string; step: Step }[] = [
-  { scene: "pudding", step: "base" },
-  { scene: "first-upload", step: "base" },
-  { scene: "did-you-eat", step: "base" },
-  { scene: "calling-the-server", step: "base" },
-  { scene: "eighth-explanation", step: "base" },
+  { scene: "hibernation-late", step: "base" },
+  { scene: "dog-influencer", step: "base" },
+  { scene: "first-day-intro", step: "base" },
+  { scene: "rush-hour-latte", step: "base" },
+  { scene: "gym-crush", step: "base" },
 ];
 
 function toQuestion(scene: Scene, step: Step): TestQuestion {
