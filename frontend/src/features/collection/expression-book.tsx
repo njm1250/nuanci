@@ -93,6 +93,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
         <h1 className="font-pixel-title text-[24px]">표현 모음</h1>
         {count > 0 && <p className="shrink-0 font-pixel text-[15px] text-paper-subtle">{count}개</p>}
       </div>
+      {count > 0 && <p className="mt-1 text-[12px] text-paper-subtle">구어 표현에는 실제로 쓰인 곳(드라마 대사·사전)을 함께 적어요</p>}
 
       {count === 0 ? (
         <p className="mt-3 text-[14px] text-paper-muted">장면을 해 보면 표현이 여기 모여요.</p>

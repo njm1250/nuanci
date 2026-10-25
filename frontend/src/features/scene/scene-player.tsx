@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { bookEntry, spoken } from "@/features/collection/pairs";
+import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Mascot } from "@/features/mascot/mascot";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { RewardIcon } from "@/features/rewards/reward-icon";
@@ -251,6 +252,7 @@ function WrapUp({
   rewardAt: number;
 }) {
   const { pairs } = bookEntry(scene);
+  const { open: openInquiry, element: inquiry } = useInquiry();
   // 오늘 처음 이어졌으면 연속 기록을 먼저 보여주고, 새 물건은 그 뒤에 들어온다
   const streakShown = useRef(false);
   useEffect(() => {
@@ -312,6 +314,11 @@ function WrapUp({
         </span>
         다른 말 다시 보기
       </button>
+      {/* 판정이나 영어가 이상하면 그 장면에서 바로 알린다. 문의 창이 보던 장면 주소를 함께 보낸다 */}
+      <button type="button" onClick={() => openInquiry("scene")} className="-mx-1 flex min-h-11 items-center px-1 text-[13px] text-paper-subtle underline underline-offset-4 hover:text-paper">
+        이 장면의 영어가 이상해요
+      </button>
+      {inquiry}
     </div>
   );
 }

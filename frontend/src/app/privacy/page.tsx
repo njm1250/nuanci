@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { InquiryButton } from "@/features/inquiry/inquiry-form";
 import { Contact, LegalPage } from "@/features/legal/legal-page";
 
 export const metadata: Metadata = { title: "개인정보처리방침 · nuanci", alternates: { canonical: "/privacy" } };
@@ -130,6 +131,7 @@ export default function PrivacyPage() {
         <p>
           개인정보 관련 문의, 불만, 피해 구제는 nuanci 운영자에게 연락해 주세요: <Contact email={email} />
         </p>
+        <InquiryButton className="mt-3 inline-flex min-h-11 items-center border-2 border-current px-3 font-semibold">화면에서 바로 문의하기 ›</InquiryButton>
         <p className="mt-2">
           이 밖에 개인정보 침해에 대한 신고나 상담은 개인정보침해신고센터(국번 없이 118, privacy.kisa.or.kr), 개인정보분쟁조정위원회(1833-6972, www.kopico.go.kr)에 문의할 수 있어요.
         </p>
