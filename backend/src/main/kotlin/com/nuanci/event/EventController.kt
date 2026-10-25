@@ -19,6 +19,9 @@ import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 // 영어 사고 유형 테스트 이벤트. 장면 없이 받고, 결과 유형은 choiceId에 담는다. 문제에 답할 때만 그 문제의 장면·상황을 같이 보낸다
+// AI가 화면을 확인하러 들어올 때 붙이는 utm_source 값
+const val AI_SOURCE = "ai"
+
 const val TEST_EVENTS = "test_viewed|test_started|test_answered|test_completed|test_shared|test_result_viewed"
 
 data class EventRequest(
@@ -76,6 +79,10 @@ class EventController(
 				.param("c", req.utmCampaign?.lowercase())
 				.param("r", req.referrer?.lowercase())
 				.update()
+		}
+		// utm_source=ai로 들어온 방문은 AI가 화면을 확인한 것이라 내부 방문자로 돌려 이용 지표에서 뺀다
+		if (req.utmSource?.lowercase() == AI_SOURCE) {
+			jdbc.sql("insert into internal_visitor (visitor_id) values (:v) on conflict do nothing").param("v", req.visitorId).update()
 		}
 	}
 }

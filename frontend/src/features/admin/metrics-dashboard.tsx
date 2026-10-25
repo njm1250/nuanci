@@ -675,7 +675,7 @@ export function MetricsDashboard({
             중복 포함될 수 있습니다.
           </p>
           <p className="adm-muted" style={{ marginTop: 8 }}>
-            전체 기간 내부 브라우저 {m.internalVisitors}개 · 내부 이벤트{" "}
+            전체 기간 내부 브라우저 {m.internalVisitors}개(그중 AI 확인 {m.aiVisitors}개) · 내부 이벤트{" "}
             {number(m.internalEvents)}건 제외. 당시 로그인 상태를 모르는 과거
             이벤트 {number(m.unknownEvents)}건은 ‘과거 기록’ 탭에 포함됩니다.
             탈퇴 시 이벤트의 계정 연결은 해제됩니다.

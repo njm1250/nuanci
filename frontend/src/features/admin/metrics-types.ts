@@ -55,6 +55,7 @@ export type Metrics = {
   events: number;
   internalVisitors: number;
   internalEvents: number;
+  aiVisitors: number;
   scenes: SceneMetrics[];
   activeAccounts: number;
   registeredAccounts: number;
