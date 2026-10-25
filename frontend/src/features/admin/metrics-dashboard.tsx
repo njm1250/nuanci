@@ -8,6 +8,7 @@ import type { ChoiceCount, Metrics, SceneMetrics } from "./metrics-types";
 import { AdminEmpty, AdminPanel, AdminStat, number, percent } from "./ui";
 import { TRAP_LABELS, type Choice } from "@/features/scene/types";
 import { TYPES, type TypeId } from "@/features/typetest/types";
+import { ActivityTrend } from "./activity-trend";
 
 const ratio = (a: number, b: number) => (b ? `${percent(a, b)}%` : "—");
 const COLUMNS = [
@@ -255,8 +256,8 @@ function SceneDetail({ row }: { row: SceneMetrics | undefined }) {
               />
             </div>
             <p className="adm-muted" style={{ marginTop: 16 }}>
-              선택 수는 버전 전체 누적이며, 대사·판정은 현재 버전입니다.
-              비율만으로 보기의 언어적 품질을 확정할 수 없습니다.
+              선택 수는 선택 기간의 모든 버전을 합친 값이며, 대사·판정은 현재
+              버전입니다. 비율만으로 보기의 언어적 품질을 확정할 수 없습니다.
             </p>
           </>
         ) : (
@@ -344,10 +345,15 @@ export function MetricsDashboard({
           note="내부 계정 제외 · 탭과 무관"
         />
       </div>
+      {m.daily && (
+        <div style={{ marginBottom: 20 }}>
+          <ActivityTrend days={m.daily} period={m.period ?? "all"} />
+        </div>
+      )}
       <div className="adm-grid adm-grid-2">
         <AdminPanel
           title="장면 이용 단계"
-          description="각 단계에 도달한 고유 브라우저 · 누적"
+          description="각 단계에 도달한 고유 브라우저 · 선택 기간"
         >
           <div className="adm-panel-body">
             {steps.map(([label, n], i) => (
@@ -374,7 +380,7 @@ export function MetricsDashboard({
         </AdminPanel>
         <AdminPanel
           title="영어 사고 유형 테스트"
-          description="고유 브라우저 기준 · 누적"
+          description="고유 브라우저 기준 · 선택 기간"
         >
           {t ? (
             <>
@@ -663,12 +669,13 @@ export function MetricsDashboard({
         </summary>
         <div className="adm-panel-body">
           <p className="adm-muted">
-            전체 지표는 선택한 로그인 상태의 누적 값입니다. 브라우저 저장 ID는
-            사람 수가 아니며, 로그인 계정 수와 합산하지 않습니다. 로그인 전후
-            동일 브라우저는 서로 다른 탭에 중복 포함될 수 있습니다.
+            전체 지표는 선택한 기간과 로그인 상태의 값입니다. 가입 계정 수는
+            전체 누적입니다. 브라우저 저장 ID는 사람 수가 아니며, 로그인 계정
+            수와 합산하지 않습니다. 로그인 전후 동일 브라우저는 서로 다른 탭에
+            중복 포함될 수 있습니다.
           </p>
           <p className="adm-muted" style={{ marginTop: 8 }}>
-            내부 브라우저 {m.internalVisitors}개 · 내부 이벤트{" "}
+            전체 기간 내부 브라우저 {m.internalVisitors}개 · 내부 이벤트{" "}
             {number(m.internalEvents)}건 제외. 당시 로그인 상태를 모르는 과거
             이벤트 {number(m.unknownEvents)}건은 ‘과거 기록’ 탭에 포함됩니다.
             탈퇴 시 이벤트의 계정 연결은 해제됩니다.
@@ -676,8 +683,8 @@ export function MetricsDashboard({
           <p className="adm-muted" style={{ marginTop: 8 }}>
             장면 노출·각 선택 단계·완료·정리·다음 클릭·다음으로 유입은 시도 ID
             중복 제거, 다른 표현과 공유는 이벤트 수입니다. 장면별 완료율은 답변
-            완료 / 노출입니다. 표와 CSV는 버전 전체 누적 값이며 버전별 성과
-            비교가 아닙니다.
+            완료 / 노출입니다. 표와 CSV는 선택 기간의 모든 버전을 합친 값이며
+            버전별 성과 비교가 아닙니다.
           </p>
           <p className="adm-muted" style={{ marginTop: 8 }}>
             난이도는 기본 첫 답 O 비율로 10건부터 표시합니다. 70% 이상 쉬움, 40%

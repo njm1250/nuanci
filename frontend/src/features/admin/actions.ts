@@ -99,6 +99,20 @@ export async function markInternalVisitor(visitorId: string) {
   });
 }
 
+export async function setVisitorInternal(visitorId: string, internal: boolean): Promise<{ error?: string }> {
+  const res = await adminFetch(
+    internal ? "/api/admin/metrics/internal-visitors" : `/api/admin/metrics/internal-visitors/${encodeURIComponent(visitorId)}`,
+    internal ? {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId }),
+    } : { method: "DELETE" },
+  );
+  if (!res.ok) return { error: `내부 방문 설정을 바꾸지 못했습니다 (${res.status}).` };
+  revalidatePath("/admin", "layout");
+  return {};
+}
+
 // 장면 전체 순서를 저장하고 공개 화면 캐시를 바로 비운다
 export async function reorderScenes(ids: string[]): Promise<{ error?: string }> {
   const res = await adminFetch("/api/admin/scene-order", {
