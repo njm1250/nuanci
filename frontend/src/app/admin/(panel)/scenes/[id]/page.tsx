@@ -6,6 +6,7 @@ import { setSceneStatus } from "@/features/admin/actions";
 import { getAdminScene, type AdminScene } from "@/features/admin/api";
 import { SceneEditor } from "@/features/admin/scene-editor";
 import { StatusChip } from "@/features/admin/status-chip";
+import { AdminHeader, AdminLoading } from "@/features/admin/ui";
 
 export const metadata: Metadata = { title: "장면 편집 · nuanci" };
 
@@ -15,7 +16,13 @@ const ACTIONS: { status: AdminScene["status"]; label: string }[] = [
   { status: "hidden", label: "숨기기" },
 ];
 
-async function SceneDetail({ params, searchParams }: { params: PageProps<"/admin/scenes/[id]">["params"]; searchParams: PageProps<"/admin/scenes/[id]">["searchParams"] }) {
+async function SceneDetail({
+  params,
+  searchParams,
+}: {
+  params: PageProps<"/admin/scenes/[id]">["params"];
+  searchParams: PageProps<"/admin/scenes/[id]">["searchParams"];
+}) {
   const { id } = await params;
   const { saved } = await searchParams;
   const scene = await getAdminScene(id);
@@ -23,28 +30,58 @@ async function SceneDetail({ params, searchParams }: { params: PageProps<"/admin
   const { status, version, ...content } = scene;
   return (
     <>
-      <div className="flex items-center gap-2">
-        <StatusChip status={status} />
-        <span className="text-[13px] text-paper-subtle">
-          /scenes/{scene.number} · {scene.id} · v{version}
-        </span>
+      <AdminHeader
+        title={scene.title}
+        description={`/scenes/${scene.number} · ${scene.id} · 현재 v${version}`}
+        actions={
+          <Link href="/admin/scenes" className="adm-btn">
+            ← 장면 목록
+          </Link>
+        }
+      />
+      <div
+        className="adm-toolbar"
+        style={{
+          background: "var(--adm-bg-layer-default)",
+          border: "1px solid var(--adm-stroke-neutral-weak)",
+          borderRadius: 7,
+          marginBottom: 20,
+        }}
+      >
+        <div className="adm-toolbar-group">
+          <StatusChip status={status} />
+          <span className="adm-muted">
+            공개 상태는 내용 저장과 별도로 변경됩니다.
+          </span>
+        </div>
+        <div className="adm-actions">
+          <Link
+            href={`/admin/preview/${scene.id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="adm-btn adm-btn-sm"
+          >
+            미리보기 ↗
+          </Link>
+          {ACTIONS.filter((a) => a.status !== status).map((a) => (
+            <form
+              key={a.status}
+              action={setSceneStatus.bind(null, scene.id, a.status)}
+            >
+              <button className="adm-btn adm-btn-sm">{a.label}</button>
+            </form>
+          ))}
+        </div>
       </div>
-      <h1 className="mt-2 font-pixel-title text-[24px]">{scene.title}</h1>
-      {saved && <p className="mt-2 text-[14px] text-gold">저장했어요. 미리보기로 확인해 보세요.</p>}
-      <div className="mt-4 flex flex-wrap gap-3">
-        <Link href={`/admin/preview/${scene.id}`} className="blk-btn blk-btn-gold block">
-          <span className="blk block bg-gold px-4 py-3 font-pixel text-[15px] text-ink">미리보기</span>
-        </Link>
-        {ACTIONS.filter((a) => a.status !== status).map((a) => (
-          <form key={a.status} action={setSceneStatus.bind(null, scene.id, a.status)}>
-            <button className="blk-btn block">
-              <span className="blk block bg-cream px-4 py-3 font-pixel text-[15px] text-ink">{a.label}</span>
-            </button>
-          </form>
-        ))}
-      </div>
-      <h2 className="mt-8 font-pixel text-[15px]">JSON 수정</h2>
-      <p className="mt-1 text-[13px] text-paper-subtle">공개 상태는 위 버튼으로 바꿔요. 내용을 저장하면 새 버전이 되고, 이전 기록은 당시 버전을 그대로 가리켜요.</p>
+      {saved && (
+        <p
+          role="status"
+          className="adm-notice adm-notice-positive"
+          style={{ marginBottom: 20 }}
+        >
+          저장했습니다. 미리보기에서 실제 장면을 확인하세요.
+        </p>
+      )}
       <div className="mt-3">
         <SceneEditor key={version} initial={JSON.stringify(content, null, 2)} />
       </div>
@@ -54,7 +91,7 @@ async function SceneDetail({ params, searchParams }: { params: PageProps<"/admin
 
 export default function AdminScenePage(props: PageProps<"/admin/scenes/[id]">) {
   return (
-    <Suspense fallback={<p className="font-pixel text-[15px] text-paper-subtle">불러오는 중…</p>}>
+    <Suspense fallback={<AdminLoading />}>
       <SceneDetail params={props.params} searchParams={props.searchParams} />
     </Suspense>
   );
