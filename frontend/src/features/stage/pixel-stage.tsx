@@ -16,6 +16,8 @@ import type { PropId, StageSpec } from "./types";
 const PIXELS_WIDE = 200;
 const EDGE = 8;
 const BUBBLE_MAX = 208;
+// 말풍선 아래 꼬리 자리. 말풍선 클래스의 bottom-[9px]와 같다
+const BUBBLE_GAP = 9;
 
 type Who = "me" | "partner";
 type Slot = { wrap: HTMLDivElement | null; bubble: HTMLDivElement | null };
@@ -74,13 +76,17 @@ function usePixelDpr() {
 function useBubbleWidths() {
   const [tracker] = useState(() => {
     const widths = new WeakMap<Element, number>();
+    const heights = new WeakMap<Element, number>();
     const observer =
       typeof ResizeObserver === "undefined"
         ? null
         : new ResizeObserver((entries) => {
-            for (const e of entries) widths.set(e.target, e.borderBoxSize?.[0]?.inlineSize ?? (e.target as HTMLElement).offsetWidth);
+            for (const e of entries) {
+              widths.set(e.target, e.borderBoxSize?.[0]?.inlineSize ?? (e.target as HTMLElement).offsetWidth);
+              heights.set(e.target, e.borderBoxSize?.[0]?.blockSize ?? (e.target as HTMLElement).offsetHeight);
+            }
           });
-    return { widths, observer };
+    return { widths, heights, observer };
   });
   useEffect(() => () => tracker.observer?.disconnect(), [tracker]);
   return tracker;
@@ -99,11 +105,13 @@ function Anchors({
   targets,
   slots,
   widths,
+  heights,
   observer,
 }: {
   targets: Record<Who, THREE.Vector3>;
   slots: React.RefObject<Record<Who, Slot>>;
   widths: WeakMap<Element, number>;
+  heights: WeakMap<Element, number>;
   observer: ResizeObserver | null;
 }) {
   const v = useRef(new THREE.Vector3());
@@ -112,11 +120,13 @@ function Anchors({
   useFrame((state) => {
     const { width, height } = state.size;
     const xs = { me: 0, partner: 0 };
+    const ys = { me: 0, partner: 0 };
     for (const who of ["me", "partner"] as const) {
       const p = v.current.copy(targets[who]).project(state.camera);
       xs[who] = (p.x * 0.5 + 0.5) * width;
+      ys[who] = (-p.y * 0.5 + 0.5) * height;
       const wrap = slots.current[who].wrap;
-      if (wrap) setStyle(wrap, "transform", `translate(${xs[who]}px, ${(-p.y * 0.5 + 0.5) * height}px)`);
+      if (wrap) setStyle(wrap, "transform", `translate(${xs[who]}px, ${ys[who]}px)`);
     }
     const both = Boolean(slots.current.me.bubble && slots.current.partner.bubble);
     const mid = (xs.me + xs.partner) / 2;
@@ -134,6 +144,9 @@ function Anchors({
       const w = widths.get(bubble) ?? bubble.offsetWidth;
       const x = xs[who];
       setStyle(bubble, "left", `${Math.min(Math.max(-w / 2, from - x), to - x - w)}px`);
+      // 키 큰 캐릭터 위로 두 줄짜리 말풍선이 뜨면 무대 위로 잘리지 않게 아래로 내려 머리와 살짝 겹치게 둔다
+      const top = ys[who] - BUBBLE_GAP - (heights.get(bubble) ?? bubble.offsetHeight);
+      setStyle(bubble, "bottom", top < EDGE / 2 ? `${BUBBLE_GAP - (EDGE / 2 - top)}px` : null);
     }
   });
   return null;
@@ -259,7 +272,7 @@ export function PixelStage({
   );
   const busy = useBusy(spec, state, reduced);
   const { box, dpr } = usePixelDpr();
-  const { widths, observer } = useBubbleWidths();
+  const { widths, heights, observer } = useBubbleWidths();
 
   const bubble = (who: Who, text: React.ReactNode, key: string) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
@@ -291,7 +304,7 @@ export function PixelStage({
         <Rig />
         {onSnapshot && <Snapshot key={snapshotKey} onSnapshot={onSnapshot} />}
         {busy && <Ticker />}
-        {state && <Anchors targets={targets} slots={slots} widths={widths} observer={observer} />}
+        {state && <Anchors targets={targets} slots={slots} widths={widths} heights={heights} observer={observer} />}
         <ambientLight intensity={evening ? 1.7 : 2.1} />
         <directionalLight position={[-3, 4, 6]} intensity={evening ? 0.9 : 1.2} />
 
