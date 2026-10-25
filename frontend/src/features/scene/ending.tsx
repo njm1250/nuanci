@@ -1,5 +1,4 @@
 import { Mascot } from "@/features/mascot/mascot";
-import type { Ending } from "./types";
 
 // 엔딩 컷은 자연스러운 말을 다시 들려준 뒤 한 박자 쉬고("……") 펀치라인을 던진다
 export type EndingStep = "off" | "beat" | "punch";
@@ -10,11 +9,11 @@ export const PUNCH_AT = 2400;
 // 펀치라인을 읽을 시간. 새 물건은 그 뒤에 무대에 올라온다
 export const PUNCH_HOLD = 2200;
 
-// 펀치라인 한국어 자막. 무대 아래쪽에 붙인다
-export function EndingCaption({ ending }: { ending: Ending }) {
+// 무대 대사(빌드업·이음·펀치라인)의 한국어 자막. 무대 아래쪽에 붙인다
+export function Subtitle({ text }: { text: string }) {
   return (
     <p className="absolute inset-x-2 bottom-2 animate-[fade-in_200ms] text-center">
-      <span className="inline-block bg-ink px-2 py-1 font-pixel text-[14px] leading-snug text-paper">{ending.meaning}</span>
+      <span className="inline-block bg-ink px-2 py-1 font-pixel text-[14px] leading-snug text-paper">{text}</span>
     </p>
   );
 }

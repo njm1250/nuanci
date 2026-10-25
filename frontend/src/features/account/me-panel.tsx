@@ -7,6 +7,7 @@ import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { ReactionFace } from "@/features/scene/reaction-face";
 import { toggleSound, useSoundEnabled } from "@/features/scene/sfx";
+import { toggleTranslation, useTranslationOn } from "@/features/scene/translation";
 import { deleteAccount, logout, useAccount } from "./account";
 import { GoogleButton } from "./google-button";
 import { useAvatar } from "@/features/avatar/avatar";
@@ -169,6 +170,7 @@ export function MePanel({ total }: { total: number }) {
   const account = useAccount();
   const cleared = useCleared();
   const sound = useSoundEnabled();
+  const translate = useTranslationOn();
   const dark = useTheme() === "dark";
   const member = account.status === "member";
   const { open: openInquiry, element } = useInquiry();
@@ -207,6 +209,14 @@ export function MePanel({ total }: { total: number }) {
           <span id="sound-label">효과음</span>
           <button type="button" role="switch" aria-checked={sound} aria-labelledby="sound-label" onClick={toggleSound} className="grid min-h-11 place-items-center">
             <span className={`flex h-6 w-11 items-center p-0.5 ${sound ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
+              <span className="size-5 bg-ink" />
+            </span>
+          </button>
+        </div>
+        <div className={rowClass}>
+          <span id="translation-label">대사 번역</span>
+          <button type="button" role="switch" aria-checked={translate} aria-labelledby="translation-label" onClick={toggleTranslation} className="grid min-h-11 place-items-center">
+            <span className={`flex h-6 w-11 items-center p-0.5 ${translate ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
               <span className="size-5 bg-ink" />
             </span>
           </button>

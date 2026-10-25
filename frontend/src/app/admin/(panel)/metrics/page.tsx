@@ -30,7 +30,8 @@ type SceneMetrics = {
 type Funnel = { home: number; started: number; firstPick: number; answered: number; wrapped: number; next: number };
 
 type TestMetrics = { viewed: number; started: number; completed: number; shared: number; friendViewed: number; fromFriend: number; types: Record<string, number> };
-type Metrics = { funnel: Funnel; visitors: number; attempts: number; events: number; internalVisitors: number; internalEvents: number; scenes: SceneMetrics[]; activeAccounts: number; registeredAccounts: number; unknownEvents: number; test: TestMetrics };
+type SourceMetrics = { channel: string | null; visitors: number; sceneStarted: number; sceneCompleted: number; testStarted: number; testCompleted: number; shared: number };
+type Metrics = { sources?: SourceMetrics[]; funnel: Funnel; visitors: number; attempts: number; events: number; internalVisitors: number; internalEvents: number; scenes: SceneMetrics[]; activeAccounts: number; registeredAccounts: number; unknownEvents: number; test: TestMetrics };
 
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
@@ -237,6 +238,42 @@ function TestCard({ test }: { test: TestMetrics }) {
   );
 }
 
+// 처음 들어온 채널별 방문자. 홍보 채널마다 링크에 utm_source를 붙여 두면 어디서 온 사람이 끝까지 해 보고 공유하는지 비교할 수 있다
+function SourceCard({ sources }: { sources: SourceMetrics[] }) {
+  return (
+    <Panel className="mt-6">
+      <div className="p-4">
+        <p className="font-pixel text-[15px]">들어온 채널</p>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[420px] text-[13px] tabular-nums">
+            <thead>
+              <tr className="text-left text-ink-subtle">
+                <th className="py-1 pr-2 font-medium">채널</th>
+                <th className="py-1 pr-2 text-right font-medium">방문자</th>
+                <th className="py-1 pr-2 text-right font-medium">테스트 결과</th>
+                <th className="py-1 pr-2 text-right font-medium">장면 완료</th>
+                <th className="py-1 text-right font-medium">공유</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sources.map((s) => (
+                <tr key={s.channel ?? ""} className="border-t border-ink/15">
+                  <td className="py-1.5 pr-2 font-medium">{s.channel ?? "출처 없음"}</td>
+                  <td className="py-1.5 pr-2 text-right">{s.visitors}</td>
+                  <td className="py-1.5 pr-2 text-right">{s.testCompleted} <span className="text-ink-subtle">/ {s.testStarted}</span></td>
+                  <td className="py-1.5 pr-2 text-right">{s.sceneCompleted} <span className="text-ink-subtle">/ {s.sceneStarted}</span></td>
+                  <td className="py-1.5 text-right">{s.shared} <span className="text-ink-subtle">({pct(s.shared, s.visitors)}%)</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-subtle">처음 들어온 경로 기준이에요. 링크에 ?utm_source=threads 처럼 붙이면 그 이름으로, 없으면 넘어온 사이트 주소로 잡혀요. 테스트·장면은 완료 / 시작 인원이에요.</p>
+      </div>
+    </Panel>
+  );
+}
+
 async function MetricsBody({ searchParams }: { searchParams: Promise<{ audience?: string; page?: string }> }) {
   const { audience: requested, page: requestedPage } = await searchParams;
   const audience = ["guest", "member", "unknown"].includes(requested ?? "") ? requested! : "all";
@@ -254,6 +291,7 @@ async function MetricsBody({ searchParams }: { searchParams: Promise<{ audience?
       <p className="mt-3 text-[13px] text-paper-muted">이벤트 당시 상태로 구분해요. 같은 브라우저가 로그인 전후로 이용하면 양쪽에 포함되므로 탭별 방문자 수를 더하면 중복돼요.</p>
       <FunnelCard funnel={metrics.funnel} />
       {metrics.test && <TestCard test={metrics.test} />}
+      {metrics.sources && metrics.sources.length > 0 && <SourceCard sources={metrics.sources} />}
       <Panel className="mt-6">
         <div className="grid grid-cols-3 gap-3 p-4">
           <Stat label="고유 브라우저" value={metrics.visitors} />

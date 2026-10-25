@@ -87,6 +87,15 @@ class SceneStore(
 				}
 			}
 		}
+		for (step in listOf("base", "followUp")) {
+			val lead = node.path(step).path("lead")
+			if (lead.isMissingNode) continue
+			require(lead.isArray) { "${step}.lead는 배열이어야 해요" }
+			for (beat in lead) {
+				require(beat.path("who").asString("") in BEAT_SPEAKERS) { "${step}.lead의 who는 ${BEAT_SPEAKERS} 중 하나여야 해요" }
+				require(beat.path("line").asString("").isNotBlank() && beat.path("meaning").asString("").isNotBlank()) { "${step}.lead의 line과 meaning을 채워야 해요" }
+			}
+		}
 		if (node.has("ending")) {
 			val ending = node.path("ending")
 			require(ending.path("who").asString("") in ENDING_SPEAKERS) { "ending.who는 ${ENDING_SPEAKERS} 중 하나여야 해요" }
@@ -122,5 +131,6 @@ class SceneStore(
 		private val ID = Regex("^[a-z0-9]+(-[a-z0-9]+)*$")
 		private val LEGACY_VERDICTS = mapOf("natural" to "good", "context" to "meh", "literal" to "bad")
 		private val ENDING_SPEAKERS = listOf("partner", "mochi")
+		private val BEAT_SPEAKERS = listOf("partner", "me", "mochi")
 	}
 }

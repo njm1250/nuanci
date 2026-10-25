@@ -624,6 +624,143 @@ export const SETS: Record<SetId, SetDef> = {
     decor: [{ id: "mochi", x: 2.35 }],
   },
 
+  clinic: {
+    label: "동네 의원 · 진료실",
+    wall: SET_WALLS.clinic,
+    me: { x: -0.85, facing: R, posture: "sit" },
+    partner: { x: 0.95, facing: -R, posture: "sit" },
+    // 환자인 내가 둥근 의자에 앉고, 의사가 책상 앞 의자에 앉는다. 벽에는 시력표, 책상에는 모니터가 있다
+    Scenery: ({ evening }) => (
+      <>
+        <Window x={-2.15} y={1.9} w={0.7} h={0.9} evening={evening} blinds />
+        <Flat size={[0.42, 0.66]} at={[0.05, 2.45, WALL_Z]} color={C.paper} />
+        {[0.26, 0.19, 0.13, 0.09, 0.05].map((w, i) => (
+          <Flat key={i} size={[w, 0.045]} at={[0.05, 2.66 - i * 0.11, WALL_Z + 0.01]} color={C.ink} />
+        ))}
+        <Box size={[1.1, 0.06, 0.6]} at={[1.75, 0.76, -0.6]} color={C.plate} />
+        <Box size={[1.1, 0.72, 0.05]} at={[1.75, 0.38, -0.88]} color="#d9dcd6" />
+        <Box size={[0.5, 0.36, 0.05]} at={[1.85, 1.1, -0.75]} color={C.ink} />
+        <Box size={[0.42, 0.28, 0.02]} at={[1.85, 1.1, -0.72]} color="#9fd3e8" />
+        <Box size={[0.08, 0.16, 0.08]} at={[1.85, 0.86, -0.75]} color={C.ink} />
+        <Seat x={0.95} facing={-R} seat={C.navy} back={C.navy} />
+        <Cyl r={0.24} h={0.08} at={[-0.85, 0.46, 0]} color={C.teal} />
+        <Cyl r={0.04} h={0.42} at={[-0.85, 0.21, 0]} color={C.metal} />
+        <Box size={[0.7, 1.5, 0.4]} at={[-1.6, 0.75, -0.85]} color={C.plate} />
+        <Flat size={[0.16, 0.05]} at={[-1.6, 1.25, -0.64]} color={C.teal} />
+        <Flat size={[0.05, 0.16]} at={[-1.6, 1.25, -0.63]} color={C.teal} />
+      </>
+    ),
+    decor: [{ id: "calendar", x: -1.6, y: 2.25 }],
+  },
+
+  pharmacy: {
+    label: "약국 · 계산대",
+    wall: SET_WALLS.pharmacy,
+    me: { x: -0.95, facing: R, posture: "stand" },
+    partner: { x: 1.0, z: -0.65, facing: -R, posture: "stand" },
+    // 편의점과 같은 자리 배치에, 뒤 선반에는 약 상자가 줄지어 있고 벽에는 초록 십자 간판이 있다
+    Scenery: () => (
+      <>
+        <Flat size={[0.46, 0.14]} at={[-1.75, 2.55, WALL_Z + 0.01]} color="#2f9e44" />
+        <Flat size={[0.14, 0.46]} at={[-1.75, 2.55, WALL_Z + 0.02]} color="#2f9e44" />
+        <Box size={[2.6, 1.9, 0.3]} at={[1.0, 1.0, -1.0]} color="#d9ddd6" />
+        {[0.53, 1.03, 1.53, 2.0].map((y) => (
+          <Box key={y} size={[2.6, 0.05, 0.34]} at={[1.0, y, -0.8]} color={C.woodDark} />
+        ))}
+        {[0.55, 1.05, 1.55].map((y, row) =>
+          [0.0, 0.32, 0.64, 0.96, 1.28, 1.6, 1.92].map((x, i) => (
+            <Box key={`${y}-${x}`} size={[0.22, 0.26, 0.12]} at={[x, y + 0.13, -0.78]} color={["#3f73c9", C.paper, "#2f9e44", "#f08a24", C.paper][(i + row) % 5]} />
+          )),
+        )}
+        <Box size={[1.4, 1.0, 0.6]} at={[0.75, 0.5, 0]} color="#f3f1ea" />
+        <Flat size={[1.4, 0.1]} at={[0.75, 0.8, 0.31]} color="#2f9e44" />
+        <Box size={[0.2, 0.14, 0.14]} at={[0.35, 1.07, 0.1]} color={C.paper} />
+        <Box size={[0.32, 0.22, 0.28]} at={[1.15, 1.11, -0.1]} color={C.ink} />
+      </>
+    ),
+  },
+
+  bunsik: {
+    label: "분식집 · 주방 앞",
+    wall: SET_WALLS.bunsik,
+    me: { x: -0.95, facing: R, posture: "stand" },
+    partner: { x: 1.0, z: -0.65, facing: -R, posture: "stand" },
+    // 벽 위쪽에 메뉴판이 줄지어 있고, 계산대 위 큰 판에서 떡볶이가 끓는다
+    Scenery: () => (
+      <>
+        <Flat size={[5.4, 0.5]} at={[0, 2.7, WALL_Z + 0.01]} color={C.ink} />
+        {[-2.1, -1.4, -0.7, 0, 0.7, 1.4, 2.1].map((x, i) => (
+          <Flat key={x} size={[0.56, 0.36]} at={[x, 2.7, WALL_Z + 0.02]} color={[C.mustard, C.paper, "#f08aa8", C.paper, C.mustard, C.paper, "#f08aa8"][i]} />
+        ))}
+        <Box size={[1.6, 1.0, 0.6]} at={[0.75, 0.5, 0]} color={C.wood} />
+        <Box size={[1.6, 0.06, 0.62]} at={[0.75, 1.02, 0]} color={C.metal} />
+        <Cyl r={0.36} h={0.08} at={[0.55, 1.1, 0.02]} color={C.ink} sides={10} />
+        <Cyl r={0.31} h={0.04} at={[0.55, 1.15, 0.02]} color="#d4265f" sides={10} />
+        {[-0.12, 0.05, 0.17].map((dx, i) => (
+          <Box key={dx} size={[0.12, 0.04, 0.04]} at={[0.55 + dx, 1.18, i * 0.08 - 0.06]} color="#f3a3a3" rot={[0, i, 0]} />
+        ))}
+        <Cyl r={0.17} h={0.06} at={[-1.65, 0.62, 0]} color="#d4265f" />
+        <Cyl r={0.04} h={0.6} at={[-1.65, 0.3, 0]} color={C.metal} />
+        <Box size={[0.5, 1.6, 0.35]} at={[2.2, 0.8, -0.85]} color={C.metal} />
+        <Flat size={[0.36, 1.3]} at={[2.2, 0.85, -0.67]} color="#cfe8f0" />
+      </>
+    ),
+    decor: [{ id: "mochi", x: -2.3 }],
+  },
+
+  salon: {
+    label: "미용실 · 거울 앞",
+    wall: SET_WALLS.salon,
+    me: { x: -0.85, facing: R, posture: "sit" },
+    partner: { x: 0.85, facing: -R, posture: "stand" },
+    // 손님인 내가 미용 의자에 앉고 미용사가 옆에 선다. 벽에는 조명이 둘린 큰 거울, 선반에는 병들이 있다
+    Scenery: () => (
+      <>
+        <Flat size={[1.3, 1.5]} at={[-0.85, 1.75, WALL_Z]} color={C.ink} />
+        <Flat size={[1.16, 1.36]} at={[-0.85, 1.75, WALL_Z + 0.01]} color="#cfdfe6" />
+        <Box size={[0.6, 0.04, 0.01]} at={[-1.05, 2.2, WALL_Z + 0.02]} color={C.paper} rot={[0, 0, 0.5]} />
+        {[2.5, 2.2, 1.9, 1.6, 1.3].map((y) => (
+          <Glow key={y} size={[0.06, 0.06, 0.02]} at={[-1.48, y, WALL_Z + 0.02]} on />
+        ))}
+        <Seat x={-0.85} facing={R} seat={C.ink} back={C.ink} head={C.ink} />
+        <Box size={[0.9, 0.05, 0.3]} at={[1.75, 1.35, -0.95]} color={C.wood} />
+        {[1.42, 1.6, 1.78, 1.96].map((x, i) => (
+          <Cyl key={x} r={0.06} h={0.22 + (i % 2) * 0.08} at={[x, 1.49 + (i % 2) * 0.04, -0.95]} color={["#f08aa8", C.teal, C.mustard, C.paper][i]} />
+        ))}
+        <Box size={[0.5, 0.75, 0.4]} at={[1.85, 0.38, -0.7]} color="#e7e1d8" />
+      </>
+    ),
+    decor: [{ id: "poster", x: 2.2, y: 2.3 }],
+  },
+
+  boutique: {
+    label: "옷가게",
+    wall: SET_WALLS.boutique,
+    me: { x: -0.7, facing: R, posture: "stand" },
+    partner: { x: 0.7, facing: -R, posture: "stand" },
+    // 뒤쪽에 옷이 걸린 행거와 탈의실 커튼이 있다
+    Scenery: () => (
+      <>
+        <Box size={[2.2, 0.04, 0.04]} at={[-1.3, 1.95, -0.75]} color={C.metal} />
+        {[-2.3, -0.3].map((x) => (
+          <Box key={x} size={[0.04, 1.95, 0.04]} at={[x, 0.98, -0.75]} color={C.metal} />
+        ))}
+        {[-2.1, -1.8, -1.5, -1.2, -0.9, -0.6].map((x, i) => (
+          <group key={x}>
+            <Box size={[0.24, 0.6, 0.1]} at={[x, 1.6, -0.75]} color={["#f08aa8", C.navy, C.mustard, C.teal, C.paper, C.rust][i]} />
+            <Box size={[0.34, 0.12, 0.1]} at={[x, 1.86, -0.75]} color={["#f08aa8", C.navy, C.mustard, C.teal, C.paper, C.rust][i]} />
+          </group>
+        ))}
+        <Box size={[1.1, 2.4, 0.06]} at={[1.85, 1.2, -1.0]} color={C.ink} />
+        <Flat size={[0.95, 2.2]} at={[1.85, 1.15, -0.96]} color="#b5546b" />
+        {[1.5, 1.7, 1.9, 2.1, 2.3].map((x) => (
+          <Flat key={x} size={[0.02, 2.2]} at={[x - 0.1, 1.15, -0.95]} color="#8f3d52" />
+        ))}
+      </>
+    ),
+    decor: [{ id: "mochi", x: 0.35, z: -0.6 }],
+  },
+
   street: {
     label: "거리 · 헤어질 때",
     wall: SET_WALLS.street,

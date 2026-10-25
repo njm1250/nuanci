@@ -18,11 +18,12 @@ import { preloadStage, Stage } from "@/features/stage/stage";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
-import { BEAT_AT, EndingCaption, MochiCameo, PUNCH_AT, PUNCH_HOLD, type EndingStep } from "./ending";
+import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 import { ReactionFace } from "./reaction-face";
 import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
-import { TRAP_LABELS, type Choice, type Expression, type Scene, type Verdict } from "./types";
+import { useTranslationOn } from "./translation";
+import { TRAP_LABELS, type Beat, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
@@ -315,6 +316,45 @@ function WrapUp({
   );
 }
 
+// 대사 한 줄을 보여주는 시간. 짧은 줄은 빨리, 자막까지 긴 줄은 천천히 넘기고, 누르면 바로 넘어간다
+const beatMs = (b: Beat) => Math.min(2200, Math.max(1100, 800 + Math.max(b.line.length, b.meaning.length) * 26));
+
+// 대사가 몇 줄 남았는지 보여주는 점
+function BeatDots({ total, at }: { total: number; at: number }) {
+  return (
+    <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5">
+      {Array.from({ length: total }, (_, i) => (
+        <span key={i} className={`size-1.5 ${i <= at ? "bg-ink" : "bg-ink/25"}`} />
+      ))}
+    </div>
+  );
+}
+
+// 빌드업·이음 대사가 흐르는 동안 무대 아래에 쌓이는 대화 기록. 질문이 나오면 사라지고 지금의 질문 화면으로 돌아간다
+// 번역은 영어 줄 아래에 작고 흐리게 같이 띄워서, 눈을 여러 번 옮기지 않고도 영어가 먼저 읽히게 한다. 상황 묘사("……")는 번역이 아니라서 번역을 꺼도 보인다
+function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName: string; translate: boolean }) {
+  const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
+  return (
+    <div>
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2.5">
+        {beats.map((b, i) => (
+          <div key={i} className="col-span-2 grid animate-[rise_200ms_ease-out_both] grid-cols-subgrid items-baseline">
+            <span className={tag}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</span>
+            {b.line === "……" ? (
+              <p className="min-w-0 text-[15px] leading-snug text-paper-muted">{b.meaning}</p>
+            ) : (
+              <p className="min-w-0">
+                <span className="block font-line text-[19px] leading-snug text-paper">{b.line}</span>
+                {translate && <span className="block text-[13px] text-paper-subtle">{b.meaning}</span>}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; preview?: boolean };
 
 // Next.js는 떠난 페이지를 숨겨 두기만 해서 상태가 남는다. 링크로 새로 들어오면 처음부터, 뒤로 가기로 돌아오면 하던 곳부터 보여준다
@@ -354,6 +394,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const streakMoment = useStreakMoment(scene.id);
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
+  const translate = useTranslationOn();
   const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
     send({ type: "share_link_copied" }),
   );
@@ -365,6 +406,37 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 완료 화면에서는 마지막에 고른 말 대신 자연스러운 말을 다시 들려준다
   const stageChoice = wrapped ? (scene.followUp.choices.find((c) => c.verdict === "good") ?? choice) : choice;
   const stageSituation = later ? scene.followUp : scene.base;
+
+  // 질문 전에 대사(빌드업·이음)가 있으면 무대에서 한 줄씩 흘려보낸 뒤 질문을 띄운다
+  const step = later ? "followUp" : "base";
+  // 이어지는 장면에서 첫 질문을 틀린 말로 끝냈으면, 이음 대사 앞에 내가 자연스러운 말로 다시 말하는 줄을 넣어 이야기가 모순되지 않게 한다
+  const [recover, setRecover] = useState<Beat | null>(null);
+  const lead = step === "followUp" && recover ? [recover, ...(situation.lead ?? [])] : (situation.lead ?? []);
+  const [leadAt, setLeadAt] = useState({ base: 0, followUp: 0 });
+  const leadIdx = leadAt[step];
+  const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
+  const beat = leading ? lead[leadIdx] : null;
+  const played = phase === "transition" ? [] : lead.slice(0, leading ? leadIdx + 1 : lead.length);
+  const leadFlags = played.flatMap((b) => b.flags ?? []).join(",");
+  // 소품은 대사가 흐르는 동안 마지막으로 든 것을 계속 들고 있는다
+  const heldMe = leading ? played.findLast((b) => b.who === "me" && b.prop)?.prop : undefined;
+  const heldPartner = leading ? played.findLast((b) => b.who === "partner" && b.prop)?.prop : undefined;
+  const nextBeat = () => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
+  const skipLead = () => setLeadAt((a) => ({ ...a, [step]: lead.length }));
+  useEffect(() => {
+    if (!beat) return;
+    const t = window.setTimeout(() => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 })), beatMs(beat));
+    return () => clearTimeout(t);
+  }, [beat, step]);
+
+  // 이어지는 장면(time)은 "만약에" 카드 없이 시간 자막만 잠깐 보여주고 바로 넘어간다
+  const timeCue = scene.followUp.time;
+  const { enterFollowUp } = f;
+  useEffect(() => {
+    if (phase !== "transition" || !timeCue) return;
+    const t = window.setTimeout(enterFollowUp, reduced ? 300 : 1100);
+    return () => clearTimeout(t);
+  }, [phase, timeCue, reduced, enterFollowUp]);
 
   // 완료 화면에서 자연스러운 말을 다시 들려준 뒤 엔딩 컷(한 박자 쉬기 → 펀치라인)을 재생한다
   const ending = scene.ending;
@@ -381,7 +453,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   }, [wrapped, ending, endingStep, reduced]);
   const endingOn = wrapped && ending !== undefined && endingStep !== "off";
   const partnerEnds = endingOn && ending.who === "partner";
-  const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
+  const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (beat ? 40 + leadIdx * 2 : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
 
   // 팡파르(와 연속 기록 줄)가 끝나고 새 물건 카드가 들어올 때 주인공도 무대에서 그 물건을 받는다. 잠깐 보여준 뒤 엔딩으로 돌아간다
   const prize = stagePrize(granted);
@@ -409,8 +481,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
     // 주인공은 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
-    return { ...base, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? [])] };
-  }, [stageSituation, stageChoice, look.hero, wearKey]);
+    return { ...base, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? []), ...(leadFlags ? leadFlags.split(",") : [])] };
+  }, [stageSituation, stageChoice, look.hero, wearKey, leadFlags]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -477,7 +549,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">
-            {!choice && !wrapped && phase !== "transition" && (
+            {!choice && !wrapped && !leading && phase !== "transition" && (
               <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
                 <span className={`border-2 px-1.5 py-1 text-[13px] leading-none ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
@@ -486,34 +558,57 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           </div>
         </header>
 
-        <div ref={stageBox} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
+        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
               <Stage
                 spec={spec}
                 reduced={reduced}
                 state={{
-                  meMotion: prizeOn ? "bounce" : celebrate ? "clap" : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
+                  meMotion: prizeOn ? "bounce" : celebrate ? "clap" : beat?.who === "me" && beat.motion ? beat.motion : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
                   meKey: prizeOn ? stageKey + 1000 : stageKey,
                   // 방에 둘 물건과 상자는 선물 상자를 들고 받는다
-                  meProp: prizeOn && !tryOn ? "gift" : (stageChoice?.meProp ?? stageSituation.meIdle?.prop),
+                  meProp: prizeOn && !tryOn ? "gift" : (heldMe ?? stageChoice?.meProp ?? stageSituation.meIdle?.prop),
                   meNote: prizeOn ? <PrizeNote item={prize} /> : undefined,
                   meNoteKey: prize?.id,
-                  partnerProp: stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
-                  partnerMotion: endingOn ? (partnerEnds && endingStep === "punch" ? (ending.motion ?? "idle") : "idle") : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
+                  partnerProp: heldPartner ?? stageChoice?.partnerProp ?? stageSituation.partnerIdle.prop,
+                  partnerMotion: beat
+                    ? beat.who === "partner" && beat.motion
+                      ? beat.motion
+                      : stageSituation.partnerIdle.motion
+                    : endingOn ? (partnerEnds && endingStep === "punch" ? (ending.motion ?? "idle") : "idle") : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
                   partnerKey: stageKey,
                   talkKey: stageKey,
                   reaction: endingOn ? null : (stageChoice?.expression ?? null),
-                  meLine: endingOn ? undefined : stageChoice?.line,
-                  partnerLine: endingOn ? (partnerEnds ? (endingStep === "beat" ? "……" : ending.line) : undefined) : stageSituation.partnerLine,
-                  meTurn: phase !== "transition" && !choice,
+                  meLine: beat ? (beat.who === "me" ? beat.line : undefined) : endingOn ? undefined : stageChoice?.line,
+                  partnerLine: beat
+                    ? beat.who === "partner"
+                      ? beat.line
+                      : undefined
+                    : endingOn
+                      ? partnerEnds
+                        ? endingStep === "beat"
+                          ? "……"
+                          : ending.line
+                        : undefined
+                      : // 이음 대사가 있는 장면은 전환 중에 다음 질문을 미리 띄우지 않는다
+                        phase === "transition" && scene.followUp.lead?.length
+                        ? undefined
+                        : stageSituation.partnerLine,
+                  meTurn: phase !== "transition" && !choice && !beat,
                 }}
               />
+              {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} />}
+              {beat && <BeatDots total={lead.length} at={leadIdx} />}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
-              {endingOn && endingStep === "punch" && <EndingCaption ending={ending} />}
-              {later && !endingOn && (
+              {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} />}
+              {later && !endingOn && !beat && (
                 <p className="absolute bottom-2 left-2 animate-[fade-in_300ms] bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
-                  <span className="text-gold">만약에</span> {scene.followUp.to}
+                  {timeCue ?? (
+                    <>
+                      <span className="text-gold">만약에</span> {scene.followUp.to}
+                    </>
+                  )}
                 </p>
               )}
               {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-[wipe_520ms_ease-in-out_both] bg-ink" />}
@@ -534,7 +629,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         </div>
 
         <section ref={scroller} className="scroll-area min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2 md:px-1 md:pt-0 md:[mask-image:none]">
-          {phase === "transition" ? (
+          {phase === "transition" && timeCue ? (
+            <p key="time" className="animate-[rise_220ms_ease-out] pt-6 text-center font-pixel-title text-[28px] text-paper">
+              {timeCue}…
+            </p>
+          ) : phase === "transition" ? (
             <Panel key="transition" className="animate-[rise_220ms_ease-out]">
               <div className="p-5">
                 <p className="font-pixel text-[15px] text-rust">만약에…</p>
@@ -560,6 +659,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               streak={streakMoment}
               rewardAt={rewardAt}
             />
+          ) : leading ? (
+            <div key={`lead-${phase}`}>
+              <p className="mb-3 text-[14px] leading-normal text-paper-muted">{situation.context}</p>
+              <BeatLog beats={lead.slice(0, leadIdx + 1)} partnerName={scene.partnerName} translate={translate} />
+            </div>
           ) : !choice ? (
             // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.
             // 고르는 동안 질문이 계속 보이고, 작은 폰(375×667)에서도 선택지 세 개가 스크롤 없이 들어오게 높이를 맞춘다
@@ -634,9 +738,14 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           )}
         </section>
 
-        {(choice || phase === "transition") && (
+        {(choice || leading || (phase === "transition" && !timeCue)) && (
           <footer className="shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
-            {phase === "transition" ? (
+            {leading ? (
+              // 대사는 저절로 빨리 흘러서, 같은 자리의 메인 버튼은 남은 대사를 한 번에 건너뛰고 질문으로 간다. 무대를 누르면 한 줄씩 넘어간다
+              <BlockButton primary onClick={skipLead} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+                건너뛰기
+              </BlockButton>
+            ) : phase === "transition" ? (
               <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 이번엔 뭐라고 할까?
               </BlockButton>
@@ -657,8 +766,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 </BlockLink>
               )
             ) : (
-              <BlockButton primary onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
-                만약에 상황이 바뀐다면?
+              <BlockButton
+                primary
+                onClick={() => {
+                  const good = scene.base.choices.find((c) => c.verdict === "good");
+                  setRecover(timeCue && good && choice?.verdict !== "good" ? { who: "me", line: good.line, meaning: `(정신 차리고) ${good.meaning}` } : null);
+                  sfx.whoosh();
+                  f.startTransition();
+                }}
+                className="w-full"
+                faceClassName="py-3.5 text-center font-pixel text-[15px]"
+              >
+                {timeCue ? "이어서 보기" : "만약에 상황이 바뀐다면?"}
               </BlockButton>
             )}
           </footer>

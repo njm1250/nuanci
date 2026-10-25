@@ -40,6 +40,9 @@ data class Funnel(val home: Int, val started: Int, val firstPick: Int, val answe
 // 영어 사고 유형 테스트: 방문자 기준 소개 화면 → 시작 → 결과 → 공유, 친구 결과 링크를 연 사람과 거기서 테스트를 시작한 사람, 유형 분포
 data class TestMetrics(val viewed: Int, val started: Int, val completed: Int, val shared: Int, val friendViewed: Int, val fromFriend: Int, val types: Map<String, Int>)
 
+// 처음 들어온 채널별 방문자와 핵심 단계. 채널은 utm_source, 없으면 들어오기 전 사이트 주소, 둘 다 없으면 null(출처 없음)
+data class SourceMetrics(val channel: String?, val visitors: Int, val sceneStarted: Int, val sceneCompleted: Int, val testStarted: Int, val testCompleted: Int, val shared: Int)
+
 data class MetricsResponse(
 	val funnel: Funnel,
 	val visitors: Int,
@@ -52,6 +55,7 @@ data class MetricsResponse(
 	val registeredAccounts: Int,
 	val unknownEvents: Int,
 	val test: TestMetrics,
+	val sources: List<SourceMetrics>,
 )
 
 data class InternalVisitorRequest(val visitorId: UUID)
@@ -148,6 +152,25 @@ class MetricsController(
 		val testTypes = jdbc.sql("select choice_id, count(distinct visitor_id) as people from scene_event e where type = 'test_completed' and choice_id is not null and $filter group by choice_id")
 			.query { rs, _ -> rs.getString("choice_id") to rs.getInt("people") }.list().toMap()
 		val testMetrics = TestMetrics(test[0], test[1], test[2], test[3], test[4], test[5], testTypes)
+		val sources = jdbc.sql(
+			"""
+			select coalesce(vs.source, vs.referrer) as channel,
+				   count(distinct e.visitor_id) as visitors,
+				   count(distinct e.visitor_id) filter (where e.type = 'scene_viewed') as scene_started,
+				   count(distinct e.visitor_id) filter (where e.type = 'scene_completed') as scene_completed,
+				   count(distinct e.visitor_id) filter (where e.type = 'test_started') as test_started,
+				   count(distinct e.visitor_id) filter (where e.type = 'test_completed') as test_completed,
+				   count(distinct e.visitor_id) filter (where e.type in ('test_shared', 'share_link_copied')) as shared
+			from scene_event e
+			left join visitor_source vs on vs.visitor_id = e.visitor_id
+			where $filter
+			group by coalesce(vs.source, vs.referrer)
+			order by visitors desc
+			limit 30
+			""",
+		).query { rs, _ ->
+			SourceMetrics(rs.getString("channel"), rs.getInt("visitors"), rs.getInt("scene_started"), rs.getInt("scene_completed"), rs.getInt("test_started"), rs.getInt("test_completed"), rs.getInt("shared"))
+		}.list()
 		val internalVisitors = jdbc.sql("select count(*) from internal_visitor").query(Int::class.java).single()
 		val internalEvents = jdbc.sql("select count(*) from scene_event e where not $EXTERNAL").query(Int::class.java).single()
 
@@ -158,7 +181,7 @@ class MetricsController(
 			)
 		""").query(Int::class.java).single()
 		val unknownEvents = jdbc.sql("select count(*) from scene_event e where $EXTERNAL and e.auth_state = 'unknown'").query(Int::class.java).single()
-		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics)
+		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources)
 	}
 
 	@PostMapping("/internal-visitors")

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import type { Choice, Scene, Situation } from "./types";
 
 export type Phase = "base" | "transition" | "followUp";
@@ -23,6 +23,8 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
   const [picked, setPicked] = useState<Record<Step, string | null>>({ base: null, followUp: null });
   const [seen, setSeen] = useState<Record<Step, string[]>>({ base: [], followUp: [] });
   const choice = phase === "transition" ? null : find(situation, viewed[step]);
+  // 이어지는 장면은 타이머로 넘어가서, effect가 매번 다시 걸리지 않게 같은 함수를 돌려준다
+  const enterFollowUp = useCallback(() => setPhase("followUp"), []);
 
   function pick(id: string) {
     if (phase === "transition" || viewed[step] === id) return;
@@ -45,7 +47,7 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
     done: phase === "followUp" && choice !== null,
     pick,
     startTransition: () => setPhase("transition"),
-    enterFollowUp: () => setPhase("followUp"),
+    enterFollowUp,
   };
 }
 

@@ -73,6 +73,10 @@ export type Choice = {
   imagine?: { icon: string; caption: string };
 };
 
+// 질문 전에 저절로 흘러가는 대사 한 줄. 기본 상황에서는 빌드업, 만약에 상황에서는 앞 장면과 잇는 대사다.
+// 말하는 사람의 동작·소품을 붙일 수 있고, flags는 그 줄부터 이 상황이 끝날 때까지 무대에 남는다(냉장고가 비어 있음 등)
+export type Beat = { who: "partner" | "me" | "mochi"; line: string; meaning: string; motion?: Motion; prop?: PropId; flags?: string[] };
+
 export type Situation = {
   context: string;
   intent: string;
@@ -81,6 +85,7 @@ export type Situation = {
   meIdle?: { motion: Motion; prop?: PropId };
   choices: Choice[];
   stage?: StageSpec;
+  lead?: Beat[];
 };
 
 // 장면을 다 본 뒤 무대에서 저절로 재생되는 마지막 한 컷. 상대나 Mochi가 상황을 한 단계 더 키우는 한마디를 던진다
@@ -100,7 +105,8 @@ export type Scene = {
   place: string;
   partnerName: string;
   base: Situation;
-  followUp: Situation & { prompt: string; from: string; to: string };
+  // time이 있으면 "만약에" 대신 시간이 흐른 이어지는 장면("10분 뒤")으로 보여준다
+  followUp: Situation & { prompt: string; from: string; to: string; time?: string };
   discovery: string;
   ending?: Ending;
 };

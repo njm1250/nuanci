@@ -70,4 +70,20 @@ class TypeTestApiTest {
 		// 테스트 이벤트는 장면 퍼널에 섞이지 않는다
 		assertEquals(0, body.path("funnel").path("started").asInt())
 	}
+
+	@Test
+	fun `처음 들어온 채널로 방문자를 나누고, 나중에 다른 링크로 와도 처음 채널을 유지한다`() {
+		val a = UUID.randomUUID()
+		val b = UUID.randomUUID()
+		send("test_started", a, "utmSource" to "Threads")
+		send("test_completed", a, "utmSource" to "instagram", "choiceId" to "boss")
+		send("test_started", b, "referrer" to "everytime.kr")
+		send("test_started", UUID.randomUUID())
+
+		val body = mapper.readTree(mvc.get("/api/admin/metrics") { header("Authorization", "Bearer ${mvc.adminToken()}") }.andReturn().response.contentAsString)
+		val sources = body.path("sources").associate { (if (it.path("channel").isNull) null else it.path("channel").asString()) to it }
+		assertEquals(setOf("threads", "everytime.kr", null), sources.keys)
+		assertEquals(1, sources["threads"]!!.path("testCompleted").asInt())
+		assertEquals(1, sources[null]!!.path("visitors").asInt())
+	}
 }
