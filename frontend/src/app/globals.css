@@ -194,6 +194,16 @@ body {
   }
 }
 
+/* 제자리에서 두 칸으로 콩콩 뛰는 픽셀 캐릭터 */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
 @keyframes rise {
   from {
     opacity: 0;

@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/opengraph-image": SHARE_FONTS,
     "/scenes/[number]/opengraph-image": SHARE_FONTS,
+    "/test/opengraph-image": SHARE_FONTS,
+    "/test/r/[type]/opengraph-image": SHARE_FONTS,
+    "/test/r/[type]/story": SHARE_FONTS,
   },
   turbopack: {
     rules: {

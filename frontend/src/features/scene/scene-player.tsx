@@ -95,7 +95,7 @@ function Question({ name, line, intent, className = "" }: { name: string; line: 
       <span className={tag}>{name}</span>
       <p className="font-line text-[21px] leading-snug text-paper">{line}</p>
       <span className={tag}>나</span>
-      <p className="font-pixel text-[16px] leading-snug text-paper">{intent}</p>
+      <p className="font-pixel text-[15px] leading-snug text-paper">{intent}</p>
     </div>
   );
 }

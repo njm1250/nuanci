@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getAdminJson, getAdminScene } from "@/features/admin/api";
 import { Panel } from "@/features/scene/block-ui";
 import { TRAP_LABELS, type Choice, type Verdict } from "@/features/scene/types";
+import { TYPES, type TypeId } from "@/features/typetest/types";
 
 export const metadata: Metadata = { title: "지표 · nuanci" };
 
@@ -28,7 +29,8 @@ type SceneMetrics = {
 
 type Funnel = { home: number; started: number; firstPick: number; answered: number; wrapped: number; next: number };
 
-type Metrics = { funnel: Funnel; visitors: number; attempts: number; events: number; internalVisitors: number; internalEvents: number; scenes: SceneMetrics[]; activeAccounts: number; registeredAccounts: number; unknownEvents: number };
+type TestMetrics = { viewed: number; started: number; completed: number; shared: number; friendViewed: number; fromFriend: number; types: Record<string, number> };
+type Metrics = { funnel: Funnel; visitors: number; attempts: number; events: number; internalVisitors: number; internalEvents: number; scenes: SceneMetrics[]; activeAccounts: number; registeredAccounts: number; unknownEvents: number; test: TestMetrics };
 
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
@@ -197,6 +199,44 @@ async function SceneCard({ m }: { m: SceneMetrics }) {
   );
 }
 
+// 영어 사고 유형 테스트. 완료율(시작 대비 결과)과 공유율(결과 대비 공유)이 핵심이고, 친구 링크를 연 사람이 다시 테스트를 시작하는지로 퍼지는 힘을 본다
+function TestCard({ test }: { test: TestMetrics }) {
+  const rows: [string, number, string?][] = [
+    ["소개 화면", test.viewed],
+    ["테스트 시작", test.started, `소개 대비 ${pct(test.started, test.viewed)}%`],
+    ["결과 도착", test.completed, `시작 대비 ${pct(test.completed, test.started)}%`],
+    ["공유", test.shared, `결과 대비 ${pct(test.shared, test.completed)}%`],
+    ["친구 결과 링크 열람", test.friendViewed],
+    ["친구 링크에서 시작", test.fromFriend, `열람 대비 ${pct(test.fromFriend, test.friendViewed)}%`],
+  ];
+  const types = Object.entries(test.types).sort((a, b) => b[1] - a[1]);
+  const total = types.reduce((sum, [, n]) => sum + n, 0);
+  return (
+    <Panel className="mt-6">
+      <div className="p-4">
+        <p className="font-pixel text-[15px]">영어 사고 유형 테스트</p>
+        <ul className="mt-3 space-y-1.5 text-[14px]">
+          {rows.map(([label, n, sub]) => (
+            <li key={label} className="flex justify-between gap-3">
+              <span className="font-medium">{label}</span>
+              <span className="shrink-0 text-[13px] font-medium tabular-nums">
+                {n}
+                {sub && ` · ${sub}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {total > 0 && (
+          <p className="mt-3 text-[13px] leading-relaxed text-ink-subtle">
+            유형 분포: {types.map(([id, n]) => `${TYPES[id as TypeId]?.name ?? id} ${pct(n, total)}%`).join(" · ")}
+          </p>
+        )}
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-subtle">브라우저 기준이에요. 완료율은 90%, 공유율은 20% 이상이면 잘 퍼지는 테스트로 봐요.</p>
+      </div>
+    </Panel>
+  );
+}
+
 async function MetricsBody({ searchParams }: { searchParams: Promise<{ audience?: string; page?: string }> }) {
   const { audience: requested, page: requestedPage } = await searchParams;
   const audience = ["guest", "member", "unknown"].includes(requested ?? "") ? requested! : "all";
@@ -213,6 +253,7 @@ async function MetricsBody({ searchParams }: { searchParams: Promise<{ audience?
       </nav>
       <p className="mt-3 text-[13px] text-paper-muted">이벤트 당시 상태로 구분해요. 같은 브라우저가 로그인 전후로 이용하면 양쪽에 포함되므로 탭별 방문자 수를 더하면 중복돼요.</p>
       <FunnelCard funnel={metrics.funnel} />
+      {metrics.test && <TestCard test={metrics.test} />}
       <Panel className="mt-6">
         <div className="grid grid-cols-3 gap-3 p-4">
           <Stat label="고유 브라우저" value={metrics.visitors} />
