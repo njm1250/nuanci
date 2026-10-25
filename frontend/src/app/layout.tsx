@@ -1,14 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
-// 영어 대사 전용 손글씨 글꼴. 한글이 없어서 한글은 Pretendard로 넘어간다
-import "@fontsource/pangolin/latin-400.css";
 import { AccountSync } from "@/features/account/account-sync";
 import { NavTracker } from "@/features/collection/back-button";
 import { ErrorReporter } from "@/features/monitor/error-reporter";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/features/site/metadata";
 import { THEME_COLORS, THEME_SCRIPT } from "@/features/theme/theme-script";
-import "./fonts/galmuri.css";
+import { fontVariables } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="ko" className={`h-full antialiased ${fontVariables}`} suppressHydrationWarning>
       <head>
         {/* 첫 화면을 그리기 전에 다시 온 방문자인지 표시해서, 재방문 홈 배치로 바뀔 때 화면이 깜빡이지 않게 한다 */}
         <script dangerouslySetInnerHTML={{ __html: RETURNING_SCRIPT }} />

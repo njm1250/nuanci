@@ -1,6 +1,7 @@
-"""픽셀 글꼴(Galmuri)을 자주 쓰는 글자(core)와 나머지(rest)로 나눠 woff2와 @font-face CSS를 만든다.
+"""픽셀 글꼴(Galmuri)을 자주 쓰는 글자(core)와 나머지(rest)로 나누고, 영어 대사 글꼴(Pangolin)은 쓰는 글자만 남겨 woff2를 만든다.
 
-브라우저는 화면에 나온 글자가 속한 파일만 받으므로, 흔한 한글 2,350자와 영문·기호만 쓰는 화면에서는 core만 받는다.
+브라우저는 화면에 나온 글자가 없을 때만 rest를 받으므로, 흔한 한글 2,350자와 영문·기호만 쓰는 화면에서는 core만 받는다.
+@font-face는 src/app/fonts.ts의 next/font/local이 만들고, core는 HTML과 함께 미리 받는다.
 사용법: fonttools와 brotli가 있는 파이썬으로 실행한다. python scripts/subset-fonts.py
 """
 
@@ -11,6 +12,7 @@ from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "frontend/node_modules/galmuri/dist"
+PANGOLIN = ROOT / "frontend/node_modules/@fontsource/pangolin/files/pangolin-latin-400-normal.woff2"
 OUT = ROOT / "frontend/src/app/fonts"
 
 FONTS = [
@@ -35,40 +37,38 @@ def common_hangul():
     return out
 
 
-def build(family, src, slug, weight, core_set):
-    font = TTFont(DIST / src)
-    available = set(font.getBestCmap())
-    core = sorted(available & core_set)
-    rest = sorted(available - core_set)
-    css = []
-    for part, cps in (("core", core), ("rest", rest)):
-        options = subset.Options()
-        options.flavor = "woff2"
-        options.layout_features = ["*"]
-        options.hinting = False
-        target = TTFont(DIST / src)
-        subsetter = subset.Subsetter(options)
-        subsetter.populate(unicodes=cps)
-        subsetter.subset(target)
-        file = OUT / f"{slug}-{part}.woff2"
-        target.save(file)
-        print(f"{file.name}: {len(cps)}자, {file.stat().st_size // 1024}KB")
-        # rest는 이름이 다른 글꼴로 두고 글꼴 목록에서 core 뒤에 적는다. 브라우저는 core에 없는 글자가 나올 때만 rest를 받는다
-        name = family if part == "core" else f"{family} Rest"
-        css.append(
-            f'@font-face {{\n  font-family: "{name}";\n  src: url("./{file.name}") format("woff2");\n'
-            f"  font-weight: {weight};\n  font-display: swap;\n}}\n"
-        )
-    return "".join(css)
+# 영어 대사에 쓰는 글자: 영문·숫자·기호, 줄임표·따옴표·대시, 가운뎃점, café의 é
+LINE_RANGES = [(0x20, 0x7E), (0xA0, 0xA0), (0xB7, 0xB7), (0xE9, 0xE9), (0x2010, 0x2027)]
+
+
+def save_subset(src, cps, file):
+    options = subset.Options()
+    options.flavor = "woff2"
+    options.layout_features = ["*"]
+    options.hinting = False
+    target = TTFont(src)
+    subsetter = subset.Subsetter(options)
+    subsetter.populate(unicodes=cps)
+    subsetter.subset(target)
+    target.save(file)
+    print(f"{file.name}: {len(cps)}자, {file.stat().st_size // 1024}KB")
+
+
+def build(src, slug, core_set):
+    available = set(TTFont(DIST / src).getBestCmap())
+    # rest는 글꼴 목록에서 core 뒤에 두는 다른 글꼴이다. 브라우저는 core에 없는 글자가 나올 때만 rest를 받는다
+    for part, cps in (("core", sorted(available & core_set)), ("rest", sorted(available - core_set))):
+        save_subset(DIST / src, cps, OUT / f"{slug}-{part}.woff2")
 
 
 def main():
     core_set = set(common_hangul())
     for a, b in BASE_RANGES:
         core_set.update(range(a, b + 1))
-    css = "/* scripts/subset-fonts.py로 만든 파일. 직접 고치지 않는다 */\n" + "".join(build(*f, core_set) for f in FONTS)
-    (OUT / "galmuri.css").write_text(css)
-    print(f"galmuri.css: {len(css) // 1024}KB")
+    for _, src, slug, _ in FONTS:
+        build(src, slug, core_set)
+    available = set(TTFont(PANGOLIN).getBestCmap())
+    save_subset(PANGOLIN, sorted(c for a, b in LINE_RANGES for c in range(a, b + 1) if c in available), OUT / "pangolin-line.woff2")
 
 
 if __name__ == "__main__":

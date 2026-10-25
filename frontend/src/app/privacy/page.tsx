@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "개인정보처리방침 · nuanci",
 export default function PrivacyPage() {
   const email = process.env.CONTACT_EMAIL;
   return (
-    <LegalPage title="개인정보처리방침" updated="2026년 10월 24일">
+    <LegalPage title="개인정보처리방침" updated="2026년 10월 25일">
       <p>
         nuanci(이하 &lsquo;서비스&rsquo;)는 이용자의 개인정보를 소중히 여기며, 「개인정보 보호법」에 따라 이용자의 개인정보를 보호하고 관련 고충을 빠르게 처리하기 위해 다음과 같이 개인정보처리방침을
         둡니다.
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
             </tr>
             <tr>
               <td>문의한 이용자</td>
-              <td>이메일 주소, 문의 내용</td>
+              <td>문의 내용, 문의한 화면 주소, 브라우저 정보, 답장 받을 이메일(남긴 경우), 로그인한 경우 계정</td>
               <td>문의 답변과 오류 해결</td>
             </tr>
           </tbody>
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
           <li>회원 정보(계정 정보, 해 본 장면, 꾸미기 설정)는 회원이 계정을 삭제하면 바로 파기해요.</li>
           <li>장면 이용 기록은 통계에 필요한 동안 보관하고, 계정을 삭제하면 계정과의 연결을 끊어 누구의 기록인지 알 수 없게 해요.</li>
           <li>로그인 세션은 최대 90일 뒤 만료되고, 로그아웃하면 바로 지워요.</li>
-          <li>문의 이메일은 답변을 마친 뒤 1년 안에 지워요.</li>
+          <li>문의 내용과 남긴 이메일은 답변을 마친 뒤 1년 안에 지워요. 계정을 삭제하면 문의와 계정의 연결은 바로 끊어요.</li>
           <li>파기할 때는 다시 살릴 수 없는 방법으로 DB에서 지워요.</li>
         </ul>
       </section>

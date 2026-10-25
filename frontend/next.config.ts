@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const SHARE_FONTS = ["./node_modules/galmuri/dist/Galmuri11-Bold.ttf", "./node_modules/@fontsource/pangolin/files/pangolin-latin-400-normal.woff"];
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   // 같은 와이파이의 휴대폰에서 개발 서버에 접속할 수 있게 사설망 주소를 허용한다
@@ -27,8 +29,8 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // 공유 카드 이미지가 런타임에 읽는 글꼴을 배포 묶음에 넣는다
   outputFileTracingIncludes: {
-    "/opengraph-image": ["./node_modules/galmuri/dist/Galmuri11-Bold.ttf"],
-    "/scenes/[number]/opengraph-image": ["./node_modules/galmuri/dist/Galmuri11-Bold.ttf"],
+    "/opengraph-image": SHARE_FONTS,
+    "/scenes/[number]/opengraph-image": SHARE_FONTS,
   },
   turbopack: {
     rules: {

@@ -11,11 +11,13 @@ export function StreakChip() {
   return (
     <Link
       href="/me#streak"
-      aria-label={`${streak.current}일 연속${streak.today ? "" : ", 오늘 아직"}`}
       className={`flex h-11 items-center gap-1.5 px-2 font-pixel text-[15px] ${streak.today ? "text-paper" : "text-paper-subtle"}`}
     >
       <Flame lit={streak.today} size={16} />
+      {/* 화면에 보이는 숫자가 읽어 주는 이름에도 그대로 들어가게, 나머지 말은 화면 밖 글자로 붙인다 */}
+      <span className="sr-only">연속 기록 </span>
       {streak.current}
+      <span className="sr-only">일{streak.today ? "" : ", 오늘 아직"}</span>
     </Link>
   );
 }

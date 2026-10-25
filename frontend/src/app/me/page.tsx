@@ -18,7 +18,7 @@ export default async function MePage() {
           <BackButton />
         </header>
         <h1 className="mb-4 font-pixel-title text-[24px]">내 정보</h1>
-        <MePanel total={total} contactEmail={process.env.CONTACT_EMAIL} />
+        <MePanel total={total} />
       </main>
     </div>
   );

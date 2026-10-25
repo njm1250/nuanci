@@ -34,16 +34,30 @@ export function toggleSound() {
   listeners.forEach((l) => l());
 }
 
+function create() {
+  if (ctx || !enabledSnapshot() || typeof window === "undefined") return;
+  ctx = new AudioContext();
+  master = ctx.createGain();
+  master.gain.value = 0.5;
+  master.connect(ctx.destination);
+}
+
 function audio() {
   if (!enabledSnapshot() || typeof window === "undefined") return null;
-  if (!ctx) {
-    ctx = new AudioContext();
-    master = ctx.createGain();
-    master.gain.value = 0.5;
-    master.connect(ctx.destination);
-  }
-  if (ctx.state === "suspended") void ctx.resume();
+  create();
+  if (ctx!.state === "suspended") void ctx!.resume();
   return ctx;
+}
+
+// AudioContext를 처음 만드는 데 시간이 꽤 걸려서, 고르는 클릭 안에서 만들면 그 클릭의 반응이 늦어진다.
+// 화면을 처음 누르기 시작하는 순간(pointerdown·keydown) 미리 만들어 두고, 소리는 클릭에서 낸다. 정리 함수를 돌려주어 effect에서 쓴다
+export function primeAudio() {
+  window.addEventListener("pointerdown", create, { once: true, capture: true });
+  window.addEventListener("keydown", create, { once: true, capture: true });
+  return () => {
+    window.removeEventListener("pointerdown", create, { capture: true });
+    window.removeEventListener("keydown", create, { capture: true });
+  };
 }
 
 // 실로폰처럼 맑게 울리도록 기본음에 배음을 얹고 빠르게 사라지게 한다. 단순한 삐 소리보다 악기 음색이 더 잘 알아들어진다

@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BACKEND, SCENES_TAG } from "@/features/scene/api";
@@ -104,4 +104,10 @@ export async function reorderScenes(ids: string[]): Promise<{ error?: string }> 
   if (!res.ok) return { error: (await res.json().catch(() => ({}))).message ?? `저장하지 못했어요 (${res.status})` };
   updateTag(SCENES_TAG);
   return {};
+}
+
+// 문의를 처리함/처리 전으로 바꾼다
+export async function markInquiry(id: number, done: boolean) {
+  await adminFetch(`/api/admin/inquiries/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ done }) });
+  revalidatePath("/admin/inquiries");
 }
