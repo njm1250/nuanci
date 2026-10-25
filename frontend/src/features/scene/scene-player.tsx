@@ -425,6 +425,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const skipLead = () => setLeadAt((a) => ({ ...a, [step]: lead.length }));
   useEffect(() => {
     if (!beat) return;
+    sfx.blip(beat.line === "……" ? "narration" : beat.who);
     const t = window.setTimeout(() => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 })), beatMs(beat));
     return () => clearTimeout(t);
   }, [beat, step]);
