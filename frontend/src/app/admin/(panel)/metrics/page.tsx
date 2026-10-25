@@ -15,8 +15,13 @@ async function Content({ searchParams }: PageProps<"/admin/metrics">) {
     ["guest", "member", "unknown"].includes(params.audience)
       ? params.audience
       : "all";
+  const period =
+    typeof params.period === "string" &&
+    ["today", "7d", "30d", "90d"].includes(params.period)
+      ? params.period
+      : "all";
   const metrics = await getAdminJson<Metrics>(
-    `/api/admin/metrics?audience=${audience}`,
+    `/api/admin/metrics?audience=${audience}&period=${period}`,
   );
   if (!metrics) throw new Error("지표를 불러오지 못했습니다.");
   const initialScene =
@@ -41,7 +46,7 @@ async function Content({ searchParams }: PageProps<"/admin/metrics">) {
           ].map(([value, label]) => (
             <Link
               key={value}
-              href={`/admin/metrics?audience=${value}`}
+              href={`/admin/metrics?audience=${value}&period=${period}`}
               aria-current={audience === value ? "page" : undefined}
             >
               {label}
@@ -49,11 +54,31 @@ async function Content({ searchParams }: PageProps<"/admin/metrics">) {
           ))}
         </nav>
         <span className="adm-muted">
-          전체 기간 누적 · 탭별 브라우저 수를 합산하면 중복됩니다.
+          탭별 브라우저 수를 합산하면 중복됩니다.
         </span>
       </div>
+      <div className="adm-toolbar-group" style={{ marginBottom: 20 }}>
+        <nav className="adm-tabs" aria-label="지표 집계 기간">
+          {[
+            ["today", "오늘"],
+            ["7d", "7일"],
+            ["30d", "30일"],
+            ["90d", "90일"],
+            ["all", "전체 기간"],
+          ].map(([value, label]) => (
+            <Link
+              key={value}
+              href={`/admin/metrics?audience=${audience}&period=${value}${initialScene ? `&scene=${encodeURIComponent(initialScene)}` : ""}`}
+              aria-current={period === value ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <span className="adm-muted">한국 시간 · 오늘 포함 · 현재 시각까지</span>
+      </div>
       <MetricsDashboard
-        key={audience}
+        key={`${audience}:${period}`}
         metrics={metrics}
         initialScene={initialScene}
       />

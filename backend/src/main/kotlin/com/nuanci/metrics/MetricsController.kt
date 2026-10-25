@@ -5,6 +5,8 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -56,7 +58,11 @@ data class MetricsResponse(
 	val unknownEvents: Int,
 	val test: TestMetrics,
 	val sources: List<SourceMetrics>,
+	val daily: List<DailyMetrics>,
+	val period: String,
 )
+
+data class DailyMetrics(val day: String, val visitors: Int, val newVisitors: Int, val accounts: Int, val completed: Int)
 
 data class InternalVisitorRequest(val visitorId: UUID)
 
@@ -69,12 +75,14 @@ class MetricsController(
 	private val sessions: AdminSessions,
 ) {
 	@GetMapping
-	fun metrics(@RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?, @RequestParam(defaultValue = "all") audience: String): MetricsResponse {
+	fun metrics(@RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?, @RequestParam(defaultValue = "all") audience: String, @RequestParam(defaultValue = "all") period: String): MetricsResponse {
 		sessions.require(auth)
 		if (audience !in setOf("all", "guest", "member", "unknown")) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid audience")
-		val filter = if (audience == "all") EXTERNAL else "$EXTERNAL and e.auth_state = '$audience'"
+		val range = AdminPeriod(period)
+		val filter = (if (audience == "all") EXTERNAL else "$EXTERNAL and e.auth_state = '$audience'") + " and ${range.clause}"
+		fun query(sql: String) = jdbc.sql(sql).params(range.params)
 
-		val choices = jdbc.sql(
+		val choices = query(
 			"""
 			select scene_id, step, choice_id, count(*) as picks
 			from scene_event e
@@ -86,7 +94,7 @@ class MetricsController(
 			.list()
 			.groupBy({ it.first }, { it.second })
 
-		val scenes = jdbc.sql(
+		val scenes = query(
 			"""
 			select s.id, s.number, s.title, s.current_version,
 				   count(distinct e.attempt_id) filter (where e.type = 'scene_viewed') as viewed,
@@ -124,10 +132,10 @@ class MetricsController(
 			)
 		}.list()
 
-		val totals = jdbc.sql("select count(distinct visitor_id) as v, count(distinct attempt_id) as a, count(*) as e from scene_event e where $filter")
+		val totals = query("select count(distinct visitor_id) as v, count(distinct attempt_id) as a, count(*) as e from scene_event e where $filter")
 			.query { rs, _ -> Triple(rs.getInt("v"), rs.getInt("a"), rs.getInt("e")) }
 			.single()
-		val funnel = jdbc.sql(
+		val funnel = query(
 			"""
 			select count(distinct visitor_id) filter (where type = 'home_viewed') as home,
 				   count(distinct visitor_id) filter (where type = 'scene_viewed') as started,
@@ -138,7 +146,7 @@ class MetricsController(
 			from scene_event e where $filter
 			""",
 		).query { rs, _ -> Funnel(rs.getInt("home"), rs.getInt("started"), rs.getInt("first_pick"), rs.getInt("answered"), rs.getInt("wrapped"), rs.getInt("next")) }.single()
-		val test = jdbc.sql(
+		val test = query(
 			"""
 			select count(distinct visitor_id) filter (where type = 'test_viewed') as viewed,
 				   count(distinct visitor_id) filter (where type = 'test_started') as started,
@@ -149,10 +157,10 @@ class MetricsController(
 			from scene_event e where $filter
 			""",
 		).query { rs, _ -> listOf("viewed", "started", "completed", "shared", "friend_viewed", "from_friend").map { rs.getInt(it) } }.single()
-		val testTypes = jdbc.sql("select choice_id, count(distinct visitor_id) as people from scene_event e where type = 'test_completed' and choice_id is not null and $filter group by choice_id")
+		val testTypes = query("select choice_id, count(distinct visitor_id) as people from scene_event e where type = 'test_completed' and choice_id is not null and $filter group by choice_id")
 			.query { rs, _ -> rs.getString("choice_id") to rs.getInt("people") }.list().toMap()
 		val testMetrics = TestMetrics(test[0], test[1], test[2], test[3], test[4], test[5], testTypes)
-		val sources = jdbc.sql(
+		val sources = query(
 			"""
 			select coalesce(vs.source, vs.referrer) as channel,
 				   count(distinct e.visitor_id) as visitors,
@@ -171,17 +179,39 @@ class MetricsController(
 		).query { rs, _ ->
 			SourceMetrics(rs.getString("channel"), rs.getInt("visitors"), rs.getInt("scene_started"), rs.getInt("scene_completed"), rs.getInt("test_started"), rs.getInt("test_completed"), rs.getInt("shared"))
 		}.list()
-		val internalVisitors = jdbc.sql("select count(*) from internal_visitor").query(Int::class.java).single()
-		val internalEvents = jdbc.sql("select count(*) from scene_event e where not $EXTERNAL").query(Int::class.java).single()
+		val internalVisitors = query("select count(*) from internal_visitor").query(Int::class.java).single()
+		val internalEvents = query("select count(*) from scene_event e where not $EXTERNAL").query(Int::class.java).single()
 
-		val activeAccounts = jdbc.sql("select count(distinct e.user_id) from scene_event e where $filter").query(Int::class.java).single()
-		val registeredAccounts = jdbc.sql("""
+		val activeAccounts = query("select count(distinct e.user_id) from scene_event e where $filter").query(Int::class.java).single()
+		val registeredAccounts = query("""
 			select count(*) from app_user u where not exists (
 				select 1 from user_visitor uv join internal_visitor i on i.visitor_id = uv.visitor_id where uv.user_id = u.id
 			)
 		""").query(Int::class.java).single()
-		val unknownEvents = jdbc.sql("select count(*) from scene_event e where $EXTERNAL and e.auth_state = 'unknown'").query(Int::class.java).single()
-		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources)
+		val unknownEvents = query("select count(*) from scene_event e where $EXTERNAL and ${range.clause} and e.auth_state = 'unknown'").query(Int::class.java).single()
+		val daily = query("""
+			with first_seen as (
+				select visitor_id, min(created_at) as first_at from scene_event e where $EXTERNAL group by visitor_id
+			), days as (
+				select generate_series(cast(:chartStart as date), cast(:chartEnd as date), interval '1 day')::date as day
+			), activity as (
+				select (e.created_at at time zone 'Asia/Seoul')::date as day,
+					count(distinct e.visitor_id) as visitors,
+					count(distinct e.visitor_id) filter (where (f.first_at at time zone 'Asia/Seoul')::date = (e.created_at at time zone 'Asia/Seoul')::date) as new_visitors,
+					count(distinct e.user_id) as accounts,
+					count(distinct e.attempt_id) filter (where e.type = 'scene_completed') as completed
+				from scene_event e join first_seen f on f.visitor_id = e.visitor_id
+				where $filter and e.created_at >= :chartInstant
+				group by 1
+			)
+			select d.day::text, coalesce(a.visitors, 0) as visitors, coalesce(a.new_visitors, 0) as new_visitors,
+				coalesce(a.accounts, 0) as accounts, coalesce(a.completed, 0) as completed
+			from days d left join activity a on a.day = d.day order by d.day
+		""").param("chartStart", range.chartStart.atZone(java.time.ZoneId.of("Asia/Seoul")).toLocalDate())
+			.param("chartEnd", range.end.atZone(java.time.ZoneId.of("Asia/Seoul")).toLocalDate())
+			.param("chartInstant", java.sql.Timestamp.from(range.chartStart))
+			.query { rs, _ -> DailyMetrics(rs.getString("day"), rs.getInt("visitors"), rs.getInt("new_visitors"), rs.getInt("accounts"), rs.getInt("completed")) }.list()
+		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources, daily, period)
 	}
 
 	@PostMapping("/internal-visitors")
@@ -189,6 +219,13 @@ class MetricsController(
 	fun markInternal(@RequestBody req: InternalVisitorRequest, @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?) {
 		sessions.require(auth)
 		jdbc.sql("insert into internal_visitor (visitor_id) values (:id) on conflict do nothing").param("id", req.visitorId).update()
+	}
+
+	@DeleteMapping("/internal-visitors/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	fun unmarkInternal(@PathVariable id: UUID, @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) auth: String?) {
+		sessions.require(auth)
+		jdbc.sql("delete from internal_visitor where visitor_id = :id").param("id", id).update()
 	}
 
 	companion object {

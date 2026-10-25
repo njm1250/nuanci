@@ -11,6 +11,7 @@ const GROUPS = [
     links: [
       { href: "/admin", label: "운영 대시보드", icon: "overview" },
       { href: "/admin/metrics", label: "이용 지표", icon: "chart" },
+      { href: "/admin/users", label: "유저 탐색", icon: "users" },
     ],
   },
   {
@@ -33,6 +34,12 @@ const GROUPS = [
 
 function Icon({ name }: { name: string }) {
   const paths: Record<string, React.ReactNode> = {
+    users: (
+      <>
+        <circle cx="9" cy="8" r="3" />
+        <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v3" />
+      </>
+    ),
     overview: (
       <>
         <rect x="3" y="3" width="7" height="7" rx="1" />

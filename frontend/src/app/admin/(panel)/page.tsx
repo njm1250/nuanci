@@ -111,6 +111,14 @@ async function Dashboard() {
           description="콘텐츠와 사용자 피드백에서 확인할 항목"
         >
           <div className="adm-compact-list">
+            <Link href="/admin/users?kind=accounts&activity=no_completion">
+              <span>시도했지만 완료 기록이 없는 회원 확인</span>
+              <span className="adm-badge adm-badge-informative">유저 탐색 →</span>
+            </Link>
+            <Link href="/admin/metrics?period=7d">
+              <span>최근 7일의 활동 · 신규 브라우저 추이</span>
+              <span className="adm-badge adm-badge-informative">추이 보기 →</span>
+            </Link>
             <Link href="/admin/inquiries">
               <span>처리 전 문의 · 제보</span>
               <span

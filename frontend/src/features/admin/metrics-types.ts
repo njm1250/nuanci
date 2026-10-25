@@ -46,6 +46,8 @@ export type SourceMetrics = {
   shared: number;
 };
 export type Metrics = {
+  period?: string;
+  daily?: DailyMetrics[];
   sources?: SourceMetrics[];
   funnel: Funnel;
   visitors: number;
@@ -58,6 +60,13 @@ export type Metrics = {
   registeredAccounts: number;
   unknownEvents: number;
   test?: TestMetrics;
+};
+export type DailyMetrics = {
+  day: string;
+  visitors: number;
+  newVisitors: number;
+  accounts: number;
+  completed: number;
 };
 export type Inquiry = {
   id: number;
