@@ -22,7 +22,7 @@ import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, Subtitle, type EndingStep } 
 import { ImagineBubble } from "./imagine-bubble";
 import { ReactionFace } from "./reaction-face";
 import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
-import { toggleTranslation, useTranslationOn } from "./translation";
+import { useTranslationOn } from "./translation";
 import { TRAP_LABELS, type Beat, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
@@ -74,16 +74,6 @@ function VerdictStamp({ choice, pop = false }: { choice: Choice; pop?: boolean }
     >
       {v.stamp}
     </span>
-  );
-}
-
-// 번역 켜기/끄기. 켜져 있으면 '가'가 그대로, 꺼져 있으면 줄이 그어진다
-function TranslationToggle() {
-  const on = useTranslationOn();
-  return (
-    <button type="button" onClick={toggleTranslation} aria-pressed={on} aria-label={on ? "번역 끄기" : "번역 켜기"} className="grid size-11 shrink-0 place-items-center text-paper-muted hover:text-paper">
-      <span className={`font-pixel text-[17px] leading-none ${on ? "" : "line-through opacity-60"}`}>가</span>
-    </button>
   );
 }
 
@@ -432,6 +422,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const heldMe = leading ? played.findLast((b) => b.who === "me" && b.prop)?.prop : undefined;
   const heldPartner = leading ? played.findLast((b) => b.who === "partner" && b.prop)?.prop : undefined;
   const nextBeat = () => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
+  const skipLead = () => setLeadAt((a) => ({ ...a, [step]: lead.length }));
   useEffect(() => {
     if (!beat) return;
     const t = window.setTimeout(() => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 })), beatMs(beat));
@@ -563,7 +554,6 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <span className={`border-2 px-1.5 py-1 text-[13px] leading-none ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
             )}
-            <TranslationToggle />
             <SoundToggle />
           </div>
         </header>
@@ -751,9 +741,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         {(choice || leading || (phase === "transition" && !timeCue)) && (
           <footer className="shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
             {leading ? (
-              // 대사는 저절로 흐르지만, 기다리지 않게 같은 자리의 메인 버튼으로 한 줄씩 넘긴다
-              <BlockButton primary onClick={nextBeat} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
-                다음
+              // 대사는 저절로 빨리 흘러서, 같은 자리의 메인 버튼은 남은 대사를 한 번에 건너뛰고 질문으로 간다. 무대를 누르면 한 줄씩 넘어간다
+              <BlockButton primary onClick={skipLead} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+                건너뛰기
               </BlockButton>
             ) : phase === "transition" ? (
               <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
