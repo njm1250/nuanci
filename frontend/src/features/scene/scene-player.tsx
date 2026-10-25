@@ -18,11 +18,11 @@ import { preloadStage, Stage } from "@/features/stage/stage";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
-import { BEAT_AT, EndingCaption, MochiCameo, PUNCH_AT, PUNCH_HOLD, type EndingStep } from "./ending";
+import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 import { ReactionFace } from "./reaction-face";
 import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
-import { TRAP_LABELS, type Choice, type Expression, type Scene, type Verdict } from "./types";
+import { TRAP_LABELS, type Beat, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
@@ -315,6 +315,33 @@ function WrapUp({
   );
 }
 
+// 대사 한 줄을 보여주는 시간. 자막까지 읽을 수 있게 길이에 맞춰 늘리고, 누르면 바로 넘어간다
+const beatMs = (b: Beat) => Math.min(2800, 1300 + Math.max(b.line.length, b.meaning.length) * 30);
+
+// 빌드업·이음 대사가 흐르는 동안 무대 아래에 쌓이는 대화 기록. 질문이 나오면 사라지고 지금의 질문 화면으로 돌아간다
+function BeatLog({ beats, partnerName, onSkip }: { beats: Beat[]; partnerName: string; onSkip: () => void }) {
+  const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
+  return (
+    <div>
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2.5">
+        {beats.map((b, i) => (
+          <div key={i} className="col-span-2 grid animate-[rise_200ms_ease-out_both] grid-cols-subgrid items-baseline">
+            <span className={tag}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</span>
+            <p className="min-w-0">
+              <span className="block font-line text-[19px] leading-snug text-paper">{b.line}</span>
+              <span className="block text-[13px] text-paper-subtle">{b.meaning}</span>
+            </p>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={onSkip} className="-mx-1 mt-3 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
+        건너뛰기
+        <Arrow />
+      </button>
+    </div>
+  );
+}
+
 type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; preview?: boolean };
 
 // Next.js는 떠난 페이지를 숨겨 두기만 해서 상태가 남는다. 링크로 새로 들어오면 처음부터, 뒤로 가기로 돌아오면 하던 곳부터 보여준다
@@ -366,6 +393,30 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const stageChoice = wrapped ? (scene.followUp.choices.find((c) => c.verdict === "good") ?? choice) : choice;
   const stageSituation = later ? scene.followUp : scene.base;
 
+  // 질문 전에 대사(빌드업·이음)가 있으면 무대에서 한 줄씩 흘려보낸 뒤 질문을 띄운다
+  const step = later ? "followUp" : "base";
+  const lead = situation.lead ?? [];
+  const [leadAt, setLeadAt] = useState({ base: 0, followUp: 0 });
+  const leadIdx = leadAt[step];
+  const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
+  const beat = leading ? lead[leadIdx] : null;
+  const nextBeat = () => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
+  const skipLead = () => setLeadAt((a) => ({ ...a, [step]: lead.length }));
+  useEffect(() => {
+    if (!beat) return;
+    const t = window.setTimeout(() => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 })), beatMs(beat));
+    return () => clearTimeout(t);
+  }, [beat, step]);
+
+  // 이어지는 장면(time)은 "만약에" 카드 없이 시간 자막만 잠깐 보여주고 바로 넘어간다
+  const timeCue = scene.followUp.time;
+  const { enterFollowUp } = f;
+  useEffect(() => {
+    if (phase !== "transition" || !timeCue) return;
+    const t = window.setTimeout(enterFollowUp, reduced ? 300 : 1100);
+    return () => clearTimeout(t);
+  }, [phase, timeCue, reduced, enterFollowUp]);
+
   // 완료 화면에서 자연스러운 말을 다시 들려준 뒤 엔딩 컷(한 박자 쉬기 → 펀치라인)을 재생한다
   const ending = scene.ending;
   const [endingStep, setEndingStep] = useState<EndingStep>("off");
@@ -381,7 +432,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   }, [wrapped, ending, endingStep, reduced]);
   const endingOn = wrapped && ending !== undefined && endingStep !== "off";
   const partnerEnds = endingOn && ending.who === "partner";
-  const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
+  const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (beat ? 40 + leadIdx * 2 : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
 
   // 팡파르(와 연속 기록 줄)가 끝나고 새 물건 카드가 들어올 때 주인공도 무대에서 그 물건을 받는다. 잠깐 보여준 뒤 엔딩으로 돌아간다
   const prize = stagePrize(granted);
@@ -477,7 +528,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">
-            {!choice && !wrapped && phase !== "transition" && (
+            {!choice && !wrapped && !leading && phase !== "transition" && (
               <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
                 <span className={`border-2 px-1.5 py-1 text-[13px] leading-none ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
@@ -486,7 +537,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           </div>
         </header>
 
-        <div ref={stageBox} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
+        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
               <Stage
@@ -504,16 +555,35 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   partnerKey: stageKey,
                   talkKey: stageKey,
                   reaction: endingOn ? null : (stageChoice?.expression ?? null),
-                  meLine: endingOn ? undefined : stageChoice?.line,
-                  partnerLine: endingOn ? (partnerEnds ? (endingStep === "beat" ? "……" : ending.line) : undefined) : stageSituation.partnerLine,
-                  meTurn: phase !== "transition" && !choice,
+                  meLine: beat ? (beat.who === "me" ? beat.line : undefined) : endingOn ? undefined : stageChoice?.line,
+                  partnerLine: beat
+                    ? beat.who === "partner"
+                      ? beat.line
+                      : undefined
+                    : endingOn
+                      ? partnerEnds
+                        ? endingStep === "beat"
+                          ? "……"
+                          : ending.line
+                        : undefined
+                      : // 이음 대사가 있는 장면은 전환 중에 다음 질문을 미리 띄우지 않는다
+                        phase === "transition" && scene.followUp.lead?.length
+                        ? undefined
+                        : stageSituation.partnerLine,
+                  meTurn: phase !== "transition" && !choice && !beat,
                 }}
               />
+              {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} />}
+              {beat && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} />}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
-              {endingOn && endingStep === "punch" && <EndingCaption ending={ending} />}
-              {later && !endingOn && (
+              {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} />}
+              {later && !endingOn && !beat && (
                 <p className="absolute bottom-2 left-2 animate-[fade-in_300ms] bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
-                  <span className="text-gold">만약에</span> {scene.followUp.to}
+                  {timeCue ?? (
+                    <>
+                      <span className="text-gold">만약에</span> {scene.followUp.to}
+                    </>
+                  )}
                 </p>
               )}
               {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-[wipe_520ms_ease-in-out_both] bg-ink" />}
@@ -534,7 +604,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         </div>
 
         <section ref={scroller} className="scroll-area min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2 md:px-1 md:pt-0 md:[mask-image:none]">
-          {phase === "transition" ? (
+          {phase === "transition" && timeCue ? (
+            <p key="time" className="animate-[rise_220ms_ease-out] pt-6 text-center font-pixel-title text-[28px] text-paper">
+              {timeCue}…
+            </p>
+          ) : phase === "transition" ? (
             <Panel key="transition" className="animate-[rise_220ms_ease-out]">
               <div className="p-5">
                 <p className="font-pixel text-[15px] text-rust">만약에…</p>
@@ -560,6 +634,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               streak={streakMoment}
               rewardAt={rewardAt}
             />
+          ) : leading ? (
+            <div key={`lead-${phase}`}>
+              <p className="mb-3 text-[14px] leading-normal text-paper-muted">{situation.context}</p>
+              <BeatLog beats={lead.slice(0, leadIdx + 1)} partnerName={scene.partnerName} onSkip={skipLead} />
+            </div>
           ) : !choice ? (
             // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.
             // 고르는 동안 질문이 계속 보이고, 작은 폰(375×667)에서도 선택지 세 개가 스크롤 없이 들어오게 높이를 맞춘다
@@ -634,7 +713,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           )}
         </section>
 
-        {(choice || phase === "transition") && (
+        {(choice || (phase === "transition" && !timeCue)) && (
           <footer className="shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
             {phase === "transition" ? (
               <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
@@ -658,7 +737,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               )
             ) : (
               <BlockButton primary onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
-                만약에 상황이 바뀐다면?
+                {timeCue ? "이어서 보기" : "만약에 상황이 바뀐다면?"}
               </BlockButton>
             )}
           </footer>
