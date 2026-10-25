@@ -315,8 +315,20 @@ function WrapUp({
   );
 }
 
-// 대사 한 줄을 보여주는 시간. 자막까지 읽을 수 있게 길이에 맞춰 늘리고, 누르면 바로 넘어간다
-const beatMs = (b: Beat) => Math.min(2800, 1300 + Math.max(b.line.length, b.meaning.length) * 30);
+// 대사 한 줄을 보여주는 시간. 짧은 줄은 빨리, 자막까지 긴 줄은 천천히 넘기고, 누르면 바로 넘어간다
+const beatMs = (b: Beat) => Math.min(2400, Math.max(1200, 900 + Math.max(b.line.length, b.meaning.length) * 28));
+
+// 대사가 몇 줄 남았는지 보여주는 점. 첫 줄에는 눌러서 넘길 수 있다는 표시를 붙인다
+function BeatDots({ total, at, hint }: { total: number; at: number; hint: boolean }) {
+  return (
+    <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5">
+      {Array.from({ length: total }, (_, i) => (
+        <span key={i} className={`size-1.5 ${i <= at ? "bg-ink" : "bg-ink/25"}`} />
+      ))}
+      {hint && <span className="ml-1 animate-[fade-in_300ms] bg-ink px-1.5 py-1 font-pixel text-[12px] leading-none text-paper">탭해서 넘기기</span>}
+    </div>
+  );
+}
 
 // 빌드업·이음 대사가 흐르는 동안 무대 아래에 쌓이는 대화 기록. 질문이 나오면 사라지고 지금의 질문 화면으로 돌아간다
 function BeatLog({ beats, partnerName, onSkip }: { beats: Beat[]; partnerName: string; onSkip: () => void }) {
@@ -395,7 +407,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
 
   // 질문 전에 대사(빌드업·이음)가 있으면 무대에서 한 줄씩 흘려보낸 뒤 질문을 띄운다
   const step = later ? "followUp" : "base";
-  const lead = situation.lead ?? [];
+  // 이어지는 장면에서 첫 질문을 틀린 말로 끝냈으면, 이음 대사 앞에 내가 자연스러운 말로 다시 말하는 줄을 넣어 이야기가 모순되지 않게 한다
+  const [recover, setRecover] = useState<Beat | null>(null);
+  const lead = step === "followUp" && recover ? [recover, ...(situation.lead ?? [])] : (situation.lead ?? []);
   const [leadAt, setLeadAt] = useState({ base: 0, followUp: 0 });
   const leadIdx = leadAt[step];
   const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
@@ -575,6 +589,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               />
               {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} />}
               {beat && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} />}
+              {beat && <BeatDots total={lead.length} at={leadIdx} hint={step === "base" && leadIdx === 0} />}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
               {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} />}
               {later && !endingOn && !beat && (
@@ -736,7 +751,17 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 </BlockLink>
               )
             ) : (
-              <BlockButton primary onClick={() => (sfx.whoosh(), f.startTransition())} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+              <BlockButton
+                primary
+                onClick={() => {
+                  const good = scene.base.choices.find((c) => c.verdict === "good");
+                  setRecover(timeCue && good && choice?.verdict !== "good" ? { who: "me", line: good.line, meaning: `(정신 차리고) ${good.meaning}` } : null);
+                  sfx.whoosh();
+                  f.startTransition();
+                }}
+                className="w-full"
+                faceClassName="py-3.5 text-center font-pixel text-[15px]"
+              >
                 {timeCue ? "이어서 보기" : "만약에 상황이 바뀐다면?"}
               </BlockButton>
             )}
