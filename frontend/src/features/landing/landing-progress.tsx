@@ -55,7 +55,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const target = next ?? scenes[0];
   if (!target || returning) return null;
   const label = !returning ? "사고 치러 가기" : next ? "다음 장면 해 보기" : "처음부터 다시 하기";
-  const note = !returning ? "가입 없음. 진짜로. · 한 장면에 1분" : next ? `다음 · ${next.relation} · ${next.place}` : "모든 장면을 다 해 봤어요";
+  const note = !returning ? "가입 없이 바로 · 한 장면에 1분" : next ? `다음 · ${next.relation} · ${next.place}` : "모든 장면을 다 해 봤어요";
   return (
     <>
       <BlockLink href={`/scenes/${target.number}`} entry="home" primary>
