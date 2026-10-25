@@ -71,6 +71,8 @@ export type Choice = {
   flags?: string[];
   // 상대가 이 말을 듣고 머릿속에 떠올린 엉뚱한 그림. 고른 직후 생각 말풍선으로 잠깐 보여준다
   imagine?: { icon: string; caption: string };
+  // 자연스러운 말의 핵심 표현이 실제로 실린 곳. 예: "Cambridge Dictionary · on the house". 직접 확인한 것만 적는다
+  source?: string;
 };
 
 // 질문 전에 저절로 흘러가는 대사 한 줄. 기본 상황에서는 빌드업, 만약에 상황에서는 앞 장면과 잇는 대사다.

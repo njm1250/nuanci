@@ -46,6 +46,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
           <p className="font-line text-[20px] leading-snug">{pair.right}</p>
         )}
       </div>
+      {!hidden && pair.source && <p className="mt-0.5 pl-7 text-[11px] text-ink-subtle">출처: {pair.source}</p>}
     </li>
   );
 }

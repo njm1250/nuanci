@@ -185,6 +185,7 @@ function ResultBody({
           <HiddenReaction />
         )}
         {active && <span className="mt-2 block text-[16px] leading-relaxed text-paper-muted">{choice.why}</span>}
+        {revealed && choice.source && <span className={`mt-1 block text-[11px] ${active ? "text-paper-subtle" : "text-ink-subtle"}`}>출처: {choice.source}</span>}
         {revealed && (mine || share !== undefined) && (
           <span className={`mt-1.5 block text-[13px] tabular-nums ${active ? "text-paper-muted" : "text-ink-subtle"}`}>
             {mine && <span className="font-semibold">내 선택</span>}
