@@ -331,7 +331,7 @@ function BeatDots({ total, at }: { total: number; at: number }) {
 }
 
 // 빌드업·이음 대사가 흐르는 동안 무대 아래에 쌓이는 대화 기록. 질문이 나오면 사라지고 지금의 질문 화면으로 돌아간다
-// 영어를 먼저 읽도록 번역은 영어 줄 아래에 작게, 조금 늦게 띄운다. 상황 묘사("……")는 번역이 아니라서 번역을 꺼도 보인다
+// 영어를 먼저 읽도록 번역은 영어 줄 아래에 작고 흐리게, 살짝 늦게 띄운다. 읽을 시간이 줄지 않게 지연은 짧게 둔다. 상황 묘사("……")는 번역이 아니라서 번역을 꺼도 보인다
 function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName: string; translate: boolean }) {
   const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
   return (
@@ -345,7 +345,7 @@ function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName
             ) : (
               <p className="min-w-0">
                 <span className="block font-line text-[19px] leading-snug text-paper">{b.line}</span>
-                {translate && <span className="block animate-[fade-in_300ms_500ms_both] text-[13px] text-paper-subtle">{b.meaning}</span>}
+                {translate && <span className="block animate-[fade-in_250ms_200ms_both] text-[13px] text-paper-subtle">{b.meaning}</span>}
               </p>
             )}
           </div>
