@@ -84,8 +84,8 @@ case "${1:-}" in
   status) status ;;
   logs) tail -n "${3:-50}" "$RUN_DIR/${2:?be 또는 fe}.log" ;;
   db-reset) docker compose -f "$ROOT/compose.yaml" down -v ;;
-  # 장면의 원본은 DB라서, 빈 DB에는 content/scenes의 JSON을 직접 올려 채운다
-  seed) "$ROOT/scripts/push-scene.sh" "$ROOT"/content/scenes/*.json ;;
+  # 장면의 원본은 DB라서, 빈 DB에는 테스트용 장면 JSON을 올려 채운다
+  seed) "$ROOT/scripts/push-scene.sh" "$ROOT"/backend/src/test/resources/scenes/*.json ;;
   *)
     echo "사용법: $0 {up|down|restart|status|logs <be|fe> [줄수]|db-reset|seed}" >&2
     exit 1

@@ -37,6 +37,9 @@ data class SceneMetrics(
 // 방문자 기준 단계별 인원. 홈 방문 → 장면 시작 → 첫 선택 → 답변 완료 → 정리 화면 → 다음 장면
 data class Funnel(val home: Int, val started: Int, val firstPick: Int, val answered: Int, val wrapped: Int, val next: Int)
 
+// 영어 사고 유형 테스트: 방문자 기준 소개 화면 → 시작 → 결과 → 공유, 친구 결과 링크를 연 사람과 거기서 테스트를 시작한 사람, 유형 분포
+data class TestMetrics(val viewed: Int, val started: Int, val completed: Int, val shared: Int, val friendViewed: Int, val fromFriend: Int, val types: Map<String, Int>)
+
 data class MetricsResponse(
 	val funnel: Funnel,
 	val visitors: Int,
@@ -48,6 +51,7 @@ data class MetricsResponse(
 	val activeAccounts: Int,
 	val registeredAccounts: Int,
 	val unknownEvents: Int,
+	val test: TestMetrics,
 )
 
 data class InternalVisitorRequest(val visitorId: UUID)
@@ -130,6 +134,20 @@ class MetricsController(
 			from scene_event e where $filter
 			""",
 		).query { rs, _ -> Funnel(rs.getInt("home"), rs.getInt("started"), rs.getInt("first_pick"), rs.getInt("answered"), rs.getInt("wrapped"), rs.getInt("next")) }.single()
+		val test = jdbc.sql(
+			"""
+			select count(distinct visitor_id) filter (where type = 'test_viewed') as viewed,
+				   count(distinct visitor_id) filter (where type = 'test_started') as started,
+				   count(distinct visitor_id) filter (where type = 'test_completed') as completed,
+				   count(distinct visitor_id) filter (where type = 'test_shared') as shared,
+				   count(distinct visitor_id) filter (where type = 'test_result_viewed' and entry = 'share') as friend_viewed,
+				   count(distinct visitor_id) filter (where type = 'test_started' and entry = 'share') as from_friend
+			from scene_event e where $filter
+			""",
+		).query { rs, _ -> listOf("viewed", "started", "completed", "shared", "friend_viewed", "from_friend").map { rs.getInt(it) } }.single()
+		val testTypes = jdbc.sql("select choice_id, count(distinct visitor_id) as people from scene_event e where type = 'test_completed' and choice_id is not null and $filter group by choice_id")
+			.query { rs, _ -> rs.getString("choice_id") to rs.getInt("people") }.list().toMap()
+		val testMetrics = TestMetrics(test[0], test[1], test[2], test[3], test[4], test[5], testTypes)
 		val internalVisitors = jdbc.sql("select count(*) from internal_visitor").query(Int::class.java).single()
 		val internalEvents = jdbc.sql("select count(*) from scene_event e where not $EXTERNAL").query(Int::class.java).single()
 
@@ -140,7 +158,7 @@ class MetricsController(
 			)
 		""").query(Int::class.java).single()
 		val unknownEvents = jdbc.sql("select count(*) from scene_event e where $EXTERNAL and e.auth_state = 'unknown'").query(Int::class.java).single()
-		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents)
+		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics)
 	}
 
 	@PostMapping("/internal-visitors")

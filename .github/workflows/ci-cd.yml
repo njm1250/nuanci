@@ -37,7 +37,6 @@ jobs:
           filters: |
             backend:
               - 'backend/**'
-              - 'content/scenes/**'
               - 'compose.prod.yaml'
               - 'Caddyfile'
               - 'scripts/deploy-backend.sh'

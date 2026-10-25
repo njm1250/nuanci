@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 장면 JSON 파일을 실행 중인 BE에 올린다. 새 장면은 초안으로 들어가고, 있는 장면은 새 버전이 된다
-# 사용법: scripts/push-scene.sh [--check] content/scenes/foo.json [...]
+# 사용법: scripts/push-scene.sh [--check] drafts/claude/foo.json [...]
 #   NUANCI_API (기본 http://localhost:8080), NUANCI_SITE (캐시를 비울 FE, 기본은 API에 맞춰 정함), NUANCI_ADMIN_ID (기본 admin), NUANCI_ADMIN_PASSWORD (기본 admin)
 set -euo pipefail
 

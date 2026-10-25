@@ -9,6 +9,7 @@ import { AttractReel } from "@/features/landing/attract-reel";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
 import { reelBeats } from "@/features/landing/reel";
 import { SiteFooter } from "@/features/landing/site-footer";
+import { TestBanner } from "@/features/typetest/test-banner";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
 
@@ -36,6 +37,10 @@ export default async function Home() {
             <span className="hl">nuanci</span>
           </p>
           <div className="-mr-2 ml-auto flex items-center">
+            {/* 다시 온 방문자는 소개 영역이 없어서 테스트 입구를 머리줄에 둔다 */}
+            <Link href="/test" className="hidden h-11 items-center px-2 font-pixel text-[15px] text-paper-muted hover:text-paper returning:flex">
+              유형 테스트
+            </Link>
             <StreakChip />
             <Link href="/me" aria-label="내 정보" className="grid size-11 place-items-center text-paper-muted hover:text-paper">
               <svg width="20" height="20" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="currentColor" aria-hidden>
@@ -62,6 +67,7 @@ export default async function Home() {
             <span className="hl">사고 나는</span> 순간들
           </h1>
           <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
+          <TestBanner className="mt-5" />
         </section>
 
         {/* 다시 온 방문자는 데모와 소개 대신 진행 상황과 다음 장면만 본다. 첫 방문자에게는 아무것도 그리지 않는다 */}
