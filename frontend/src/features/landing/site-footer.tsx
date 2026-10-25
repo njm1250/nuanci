@@ -9,7 +9,18 @@ export function SiteFooter() {
   const linkClass = "inline-flex min-h-11 items-center px-2 text-[13px] transition-colors hover:text-gold";
 
   return (
-    <footer className="mx-4 mt-auto border-t border-slate-block pb-6 pt-3 md:mx-0 md:mt-6 md:flex md:items-center md:justify-between md:gap-4 md:pb-0 md:pt-4">
+    <footer className="mx-4 mt-auto pb-6 md:mx-0 md:mt-6 md:pb-0">
+      {/* 제보는 법적 안내 사이에 묻히지 않게, 눌러서 바로 여는 띠로 따로 둔다 */}
+      <button type="button" onClick={() => openInquiry("scene")} className="blk-btn mb-3 block w-full text-left">
+        <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
+          <span>
+            <span className="block font-pixel text-[15px]">이상한 영어를 발견했나요?</span>
+            <span className="block text-[13px] text-paper-subtle">알려 주시면 바로 고칠게요</span>
+          </span>
+          <span className="shrink-0 font-pixel text-[13px] text-gold">알려 주기 ›</span>
+        </span>
+      </button>
+      <div className="border-t border-slate-block pt-3 md:flex md:items-center md:justify-between md:gap-4 md:pt-4">
       <nav aria-label="서비스 안내" className="flex flex-wrap items-center justify-center text-paper-subtle md:-ml-2 md:justify-start">
         <Link href="/terms" className={linkClass}>
           이용약관
@@ -23,9 +34,8 @@ export function SiteFooter() {
           문의 / 오류 제보
         </button>
       </nav>
-      <p className="mt-1 text-center text-[12px] leading-5 tracking-normal text-paper-subtle md:mt-0 md:shrink-0">
-        © 2026 nuanci · 이상한 영어를 발견하면 제보해 주세요
-      </p>
+      <p className="mt-1 text-center text-[12px] leading-5 tracking-normal text-paper-subtle md:mt-0 md:shrink-0">© 2026 nuanci</p>
+      </div>
 
       {element}
     </footer>

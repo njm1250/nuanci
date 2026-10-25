@@ -38,8 +38,8 @@ export default async function Home() {
           </p>
           <div className="-mr-2 ml-auto flex items-center">
             {/* 다시 온 방문자는 소개 영역이 없어서 테스트 입구를 머리줄에 둔다 */}
-            <Link href="/test" className="hidden h-11 items-center px-2 font-pixel text-[15px] text-paper-muted hover:text-paper returning:flex">
-              유형 테스트
+            <Link href="/test" className="hidden h-11 items-center px-1.5 returning:flex">
+              <span className="border-2 border-paper-subtle px-2 py-1 font-pixel text-[13px] leading-none text-paper hover:border-paper">유형 테스트</span>
             </Link>
             <StreakChip />
             <Link href="/me" aria-label="내 정보" className="grid size-11 place-items-center text-paper-muted hover:text-paper">

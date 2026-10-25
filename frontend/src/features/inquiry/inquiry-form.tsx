@@ -26,6 +26,19 @@ export function useInquiry() {
   return { open, element: <InquiryDialog dialog={dialog} kind={kind} setKind={setKind} /> };
 }
 
+// 서버 화면(개인정보처리방침 등)에서도 문의 창을 열 수 있는 버튼
+export function InquiryButton({ kind = "question", className = "", children }: { kind?: Kind; className?: string; children: React.ReactNode }) {
+  const { open, element } = useInquiry();
+  return (
+    <>
+      <button type="button" onClick={() => open(kind)} className={className}>
+        {children}
+      </button>
+      {element}
+    </>
+  );
+}
+
 function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTMLDialogElement | null>; kind: Kind; setKind: (k: Kind) => void }) {
   const [message, setMessage] = useState("");
   const [contact, setContact] = useState("");

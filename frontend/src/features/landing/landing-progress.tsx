@@ -211,14 +211,28 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
       )}
       <DailyExpression scenes={scenes} />
       <ThumbStudio />
-      <div className="mt-3 flex justify-between">
-        <Link href="/expressions" className="-ml-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
-          표현 모음 ({done * PAIRS_PER_SCENE}개)
-        </Link>
-        <Link href="/scenes" className="-mr-2 flex min-h-11 items-center gap-2 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
-          전체 보기
-          <Arrow />
-        </Link>
+      {/* 눌러서 들어가는 곳은 글자만 두지 않고, 화살표가 붙은 줄로 만들어 누를 수 있다는 게 보이게 한다 */}
+      <div className="blk-frame mt-5">
+        <ul className="blk divide-y-2 divide-ink/10 bg-cream text-ink">
+          <li>
+            <Link href="/expressions" className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5">
+              <span>
+                <span className="block font-pixel text-[15px]">표현 모음</span>
+                <span className="block text-[13px] text-ink-subtle">모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기</span>
+              </span>
+              <Arrow />
+            </Link>
+          </li>
+          <li>
+            <Link href="/scenes" className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5">
+              <span>
+                <span className="block font-pixel text-[15px]">전체 장면</span>
+                <span className="block text-[13px] text-ink-subtle">{scenes.length}개 중에서 골라 보기</span>
+              </span>
+              <Arrow />
+            </Link>
+          </li>
+        </ul>
       </div>
     </section>
   );
