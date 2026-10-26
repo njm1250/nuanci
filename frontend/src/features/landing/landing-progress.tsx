@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome } from "@/features/scene/track";
@@ -10,19 +10,13 @@ import { DailyExpression } from "./daily-expression";
 import { isUnopened, nextGoalParts, useRewards } from "@/features/rewards/rewards";
 import type { StageSpec } from "@/features/stage/types";
 import { episode, SceneThumb, ThumbStudio } from "./scene-thumb";
+import { groupOf, OTHER_GROUP, SCENE_GROUPS, setSceneView, useSceneView } from "./scene-groups";
 
 // stage는 기본 상황의 무대로, 카드 썸네일을 그릴 때 쓴다
 export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string; stage?: StageSpec };
 
 const noop = () => () => {};
 
-// 전체 장면을 누구와 말하는지로 묶는다. 같은 말도 상대에 따라 뉘앙스가 달라져서 장소보다 관계로 고르는 게 낫다.
-// 장면의 관계(relation) 글에 이 낱말이 들어 있으면 그 묶음에 넣고, 어디에도 안 맞으면 '그 밖에'로 모은다
-const RELATION_GROUPS = [
-  { label: "회사에서", words: ["동료", "상사", "팀장", "부장", "사장", "회사", "인턴", "거래처"] },
-  { label: "친구랑", words: ["친구"] },
-  { label: "같이 사는 사이", words: ["룸메이트", "가족", "엄마", "아빠", "동생", "언니", "누나", "형", "오빠"] },
-];
 // 장면 하나를 끝내면 기본 상황과 만약에에서 표현이 하나씩 모인다
 const PAIRS_PER_SCENE = 2;
 
@@ -66,8 +60,9 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   );
 }
 
-// 장면 카드. 무대 썸네일과 회차 번호로 어떤 장면인지 보여주고, 정답 표현은 장면 안에서만 알 수 있다
-function SceneCard({ scene, done, fresh = false }: { scene: ShelfScene; done: boolean; fresh?: boolean }) {
+// 장면 카드. 무대 썸네일과 회차 번호로 어떤 장면인지 보여주고, 정답 표현은 장면 안에서만 알 수 있다.
+// 순서대로 볼 때는 회차 번호 자리에 몇 번째 장면인지를 쓰고, 이어서 할 장면에 '다음'을 단다
+function SceneCard({ scene, done, fresh = false, label, next = false }: { scene: ShelfScene; done: boolean; fresh?: boolean; label?: string; next?: boolean }) {
   return (
     <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn block h-full">
       <span className="blk flex h-full items-center gap-3 bg-cream p-2 pr-3 text-ink">
@@ -80,7 +75,7 @@ function SceneCard({ scene, done, fresh = false }: { scene: ShelfScene; done: bo
           )}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">{episode(scene.number)}</span>
+          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">{label ?? episode(scene.number)}</span>
           <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
             {scene.title}
           </span>
@@ -88,7 +83,7 @@ function SceneCard({ scene, done, fresh = false }: { scene: ShelfScene; done: bo
             {scene.relation} · {scene.place}
           </span>
         </span>
-        {fresh && <NewChip />}
+        {next ? <span className="shrink-0 border-2 border-ink px-1.5 py-0.5 font-pixel text-[13px] leading-none">다음</span> : fresh && <NewChip />}
       </span>
     </EntryLink>
   );
@@ -238,40 +233,99 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
   );
 }
 
-// 전체 장면 목록. 장면이 많아도 고르기 쉽게 누구와 말하는지로 묶고, 깬 장면에는 체크가 붙는다. 잠금 없이 아무 장면이나 고를 수 있다
+// 상황별 보기와 순서대로 보기를 바꾸는 세그먼트 컨트롤. 둘 중 하나만 고르므로 라디오 그룹으로 알린다
+function ViewSwitch({ view }: { view: "group" | "order" }) {
+  const options = [
+    { value: "group", label: "상황별" },
+    { value: "order", label: "순서대로" },
+  ] as const;
+  return (
+    <div role="radiogroup" aria-label="보기 방식" className="flex border-2 border-paper-subtle/40">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={view === o.value}
+          onClick={() => setSceneView(o.value)}
+          className={`min-h-10 px-4 font-pixel text-[15px] ${view === o.value ? "bg-gold text-ink" : "text-paper-muted"}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SceneList({ scenes, cleared, fresh }: { scenes: ShelfScene[]; cleared: string[]; fresh: string[] }) {
+  return (
+    <ul className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {scenes.map((s) => (
+        <li key={s.id}>
+          <SceneCard scene={s} done={cleared.includes(s.id)} fresh={fresh.includes(s.id)} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// 전체 장면 목록. 상황별로 묶어 보거나, 장면이 나오는 순서 그대로 볼 수 있다. 깬 장면에는 체크가 붙고, 잠금 없이 아무 장면이나 고를 수 있다
 export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   const { cleared, fresh } = useVisitor(scenes);
+  const view = useSceneView();
+  const [only, setOnly] = useState<string | null>(null);
   const done = scenes.filter((s) => cleared.includes(s.id)).length;
-  const groupOf = (s: ShelfScene) => RELATION_GROUPS.find((g) => g.words.some((w) => s.relation.includes(w)))?.label;
-  const grouped = RELATION_GROUPS.map(({ label }) => ({ label, scenes: scenes.filter((s) => groupOf(s) === label) }));
-  const rest = scenes.filter((s) => !groupOf(s));
-  const groups = [...grouped, { label: "그 밖에", scenes: rest }].filter((g) => g.scenes.length > 0);
+  const next = nextUncleared(scenes, cleared);
+  const groups = [...SCENE_GROUPS.map((g) => g.label), OTHER_GROUP]
+    .map((label) => ({ label, scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set) === label) }))
+    .filter((g) => g.scenes.length > 0);
+  const shown = only ? groups.filter((g) => g.label === only) : groups;
   return (
     <>
-      <div className="flex items-baseline justify-between">
-        <span />
+      <div className="flex items-center justify-between gap-3">
+        <ViewSwitch view={view} />
         <p className="shrink-0 text-[13px] text-paper-subtle">
           {scenes.length}개 중 <span className="font-semibold text-gold">{done}개</span>
         </p>
       </div>
       <Progress scenes={scenes} cleared={cleared} />
-      {groups.map((g) => (
-        <section key={g.label} className="mt-8">
-          <h2 className="flex items-baseline gap-2">
-            <span className="font-pixel-title text-[24px]">{g.label}</span>
-            <span className="text-[13px] text-paper-subtle">
-              {g.scenes.length}개 중 {g.scenes.filter((s) => cleared.includes(s.id)).length}개
-            </span>
-          </h2>
-          <ul className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {g.scenes.map((s) => (
-              <li key={s.id}>
-                <SceneCard scene={s} done={cleared.includes(s.id)} fresh={fresh.includes(s.id)} />
-              </li>
+      {view === "order" ? (
+        <ol className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {scenes.map((s, i) => (
+            <li key={s.id}>
+              <SceneCard scene={s} done={cleared.includes(s.id)} fresh={fresh.includes(s.id)} label={`${i + 1}번째`} next={s.id === next?.id} />
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <>
+          {/* 묶음이 많아 한 줄을 넘으면 옆으로 밀어서 본다. 고르면 그 묶음만 남긴다 */}
+          <div role="group" aria-label="상황" className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
+            {[null, ...groups.map((g) => g.label)].map((label) => (
+              <button
+                key={label ?? "all"}
+                type="button"
+                onClick={() => setOnly(label)}
+                aria-pressed={only === label}
+                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[13px] ${only === label ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
+              >
+                {label ?? "전체"}
+              </button>
             ))}
-          </ul>
-        </section>
-      ))}
+          </div>
+          {shown.map((g) => (
+            <section key={g.label} className="mt-6">
+              <h2 className="flex items-baseline gap-2">
+                <span className="font-pixel-title text-[24px]">{g.label}</span>
+                <span className="text-[13px] text-paper-subtle">
+                  {g.scenes.length}개 중 {g.scenes.filter((s) => cleared.includes(s.id)).length}개
+                </span>
+              </h2>
+              <SceneList scenes={g.scenes} cleared={cleared} fresh={fresh} />
+            </section>
+          ))}
+        </>
+      )}
       <ThumbStudio />
     </>
   );
