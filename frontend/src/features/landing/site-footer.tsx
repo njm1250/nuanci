@@ -10,8 +10,8 @@ export function SiteFooter() {
 
   return (
     <footer className="mx-4 mt-auto pb-6 md:mx-0 md:mt-6 md:pb-0">
-      {/* 제보는 법적 안내 사이에 묻히지 않게, 눌러서 바로 여는 띠로 따로 둔다 */}
-      <button type="button" onClick={() => openInquiry("scene")} className="blk-btn mb-3 block w-full text-left">
+      {/* 제보는 법적 안내 사이에 묻히지 않게, 눌러서 바로 여는 띠로 따로 둔다. 아직 영어를 안 본 첫 방문자에게는 이른 질문이라 장면을 해 본 사람에게만 보인다 */}
+      <button type="button" onClick={() => openInquiry("scene")} className="blk-btn mb-3 hidden w-full text-left returning:block">
         <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
           <span>
             <span className="block font-pixel text-[15px]">이상한 영어를 발견했나요?</span>

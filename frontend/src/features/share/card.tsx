@@ -167,15 +167,14 @@ export function homeCard() {
 type SceneCard = { number: number; title: string; partnerName: string; partnerLine: string; intent: string };
 
 // 장면 링크를 공유했을 때 보이는 카드. 상대 대사와 내가 하고 싶은 말까지만 보여주고 답은 감춘다
-export function sceneCard({ number, title, partnerName, partnerLine, intent }: SceneCard) {
+export function sceneCard({ title, partnerName, partnerLine, intent }: SceneCard) {
   return render(
     <>
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 1072 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: 1072 }}>
           <Lockup />
           <div style={{ display: "flex", alignItems: "center", fontSize: 28 }}>
-            <div style={{ display: "flex", background: INK, color: LIME, padding: "6px 12px 4px" }}>EP.{String(number).padStart(2, "0")}</div>
-            <div style={{ display: "flex", marginLeft: 16, maxWidth: 560 }}>{title}</div>
+            <div style={{ display: "flex", background: INK, color: LIME, padding: "6px 12px 4px", maxWidth: 640 }}>{title}</div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", width: 790 }}>

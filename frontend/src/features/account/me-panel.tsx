@@ -54,7 +54,7 @@ function Stat({ href, label, value }: { href: string; label: string; value: stri
 const BARCODE = [2, 1, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 1, 3, 2, 1, 1, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 2];
 
 // 내 활동 숫자를 담은 nuanci 사원증. 이름과 사진, 해 본 장면 수로 오르는 직급, 이름 옆 연속 기록 뱃지를 단다
-function IdCard({ cleared, total, ranks }: { cleared: number; total: number; ranks: RankRule[] }) {
+function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
   const account = useAccount();
   const avatar = useAvatar();
   const streak = useStreak();
@@ -91,7 +91,8 @@ function IdCard({ cleared, total, ranks }: { cleared: number; total: number; ran
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
-        <Stat href="/scenes" label="해 본 장면" value={`${cleared}/${total}`} />
+        {/* 성취는 전체 중 몇 개가 아니라 내가 해낸 개수로 보여 준다. 다음 목표는 위 직급 줄이 맡는다 */}
+        <Stat href="/scenes" label="해 본 장면" value={`${cleared}`} />
         <Stat href="/expressions" label="표현 모음" value={`${cleared * PAIRS_PER_SCENE}`} />
       </div>
       <div aria-hidden className="flex h-9 items-stretch gap-[2px] px-4 py-2">
@@ -154,7 +155,7 @@ function GuestProfile({ notice, google }: { notice: string | null; google: boole
 }
 
 // 내 정보 화면. 프로필, 내 활동 숫자, 설정, 안내를 순서대로 모은다
-export function MePanel({ total, ranks }: { total: number; ranks: RankRule[] }) {
+export function MePanel({ ranks }: { ranks: RankRule[] }) {
   const account = useAccount();
   const cleared = useCleared();
   const sound = useSoundEnabled();
@@ -174,7 +175,7 @@ export function MePanel({ total, ranks }: { total: number; ranks: RankRule[] }) 
   return (
     <div className="space-y-6 md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10 md:space-y-0">
       <div className="space-y-6">
-      <IdCard cleared={cleared.length} total={total} ranks={ranks} />
+      <IdCard cleared={cleared.length} ranks={ranks} />
 
       <Profile />
 

@@ -311,7 +311,7 @@ function Review({ questions, picks }: { questions: TestQuestion[]; picks: number
                     </p>
                   )}
                   <Link href={`/scenes/${q.sceneNumber}`} className="mt-2 inline-flex min-h-11 items-center font-pixel text-ink underline underline-offset-4">
-                    EP.{String(q.sceneNumber).padStart(2, "0")} {q.sceneTitle} 플레이 →
+                    {q.sceneTitle} 플레이 →
                   </Link>
                 </div>
               </Panel>

@@ -31,11 +31,6 @@ function useNear(ref: React.RefObject<HTMLElement | null>) {
   return near;
 }
 
-// 장면 번호를 시트콤 회차처럼 보여준다
-export function episode(n: number) {
-  return `EP.${String(n).padStart(2, "0")}`;
-}
-
 // 장면 카드의 무대 썸네일. 주인공은 아지트에서 고른 모습 그대로 나온다
 export function SceneThumb({ stage, className = "" }: { stage?: StageSpec; className?: string }) {
   const look = useHeroLook();

@@ -35,16 +35,16 @@ export function groupOf(relation: string, set?: SetId) {
   );
 }
 
-// 전체 장면을 상황별로 볼지, 장면이 나오는 순서대로 볼지. 마지막에 고른 쪽을 기기에 기억해 둔다
+// 전체 장면을 장면이 나오는 순서대로(기본) 볼지, 상황별로 볼지. 마지막에 고른 쪽을 기기에 기억해 둔다
 export type SceneView = "group" | "order";
 const KEY = "nuanci.sceneView";
 const listeners = new Set<() => void>();
 
 function snapshot(): SceneView {
   try {
-    return localStorage.getItem(KEY) === "order" ? "order" : "group";
+    return localStorage.getItem(KEY) === "group" ? "group" : "order";
   } catch {
-    return "group";
+    return "order";
   }
 }
 
@@ -55,7 +55,7 @@ export function useSceneView() {
       return () => listeners.delete(on);
     },
     snapshot,
-    () => "group" as const,
+    () => "order" as const,
   );
 }
 
