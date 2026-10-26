@@ -2,6 +2,8 @@ package com.nuanci.reward
 
 import com.nuanci.account.AccountStore
 import com.nuanci.account.SESSION_COOKIE
+import com.nuanci.operations.ProgressionRules
+import com.nuanci.operations.ProgressionSettingsStore
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.PathVariable
@@ -38,7 +40,7 @@ data class RewardsResponse(val items: List<ItemView>, val next: NextView?, val s
 // 보상 상태와 지급. 로그인했으면 계정, 아니면 이 기기의 방문자 id가 주인이다
 @RestController
 @RequestMapping("/api/rewards")
-class RewardController(private val rewards: RewardStore, private val accounts: AccountStore) {
+class RewardController(private val rewards: RewardStore, private val accounts: AccountStore, private val settings: ProgressionSettingsStore) {
 	private data class Owner(val id: UUID, val member: Boolean)
 
 	// 지금 상태를 돌려준다. 예전 기기 기록(끝낸 장면)으로 받을 수 있었던 보상도 이때 채운다.
@@ -52,8 +54,9 @@ class RewardController(private val rewards: RewardStore, private val accounts: A
 		} else {
 			rewards.addVisitorCleared(owner.id, req.cleared)
 		}
-		rewards.evaluate(owner.id, rewards.cleared(owner.id, owner.member), "sync")
-		return view(owner)
+		val rules = settings.current().rules
+		rewards.evaluate(owner.id, rewards.cleared(owner.id, owner.member), "sync", rules)
+		return view(owner, rules = rules)
 	}
 
 	// 장면을 끝낼 때 부른다. 이번에 새로 얻은 보상 id를 함께 돌려줘서 완료 화면에서 보여준다
@@ -63,13 +66,14 @@ class RewardController(private val rewards: RewardStore, private val accounts: A
 		if (owner.member) accounts.addCleared(owner.id, listOf(req.sceneId)) else rewards.addVisitorCleared(owner.id, listOf(req.sceneId))
 		val cleared = rewards.cleared(owner.id, owner.member)
 		if (req.sceneId !in cleared) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown scene")
-		val granted = rewards.evaluate(owner.id, cleared, "play").map { it.rewardId }.toMutableList()
+		val rules = settings.current().rules
+		val granted = rewards.evaluate(owner.id, cleared, "play", rules).map { it.rewardId }.toMutableList()
 		val sharer = req.via?.let(rewards::shareOwner)
 		if (sharer != null && sharer != owner.id && sharer != req.visitorId) {
 			rewards.grantShare(owner.id, sharer, req.sceneId)?.let { granted += it.rewardId }
 		}
 		rewards.ensureShareCode(owner.id)
-		return view(owner, granted)
+		return view(owner, granted, rules)
 	}
 
 	@PutMapping("/{id}/color")
@@ -91,20 +95,20 @@ class RewardController(private val rewards: RewardStore, private val accounts: A
 		return Owner(visitorId ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "visitor required"), false)
 	}
 
-	private fun view(owner: Owner, granted: List<String> = emptyList()): RewardsResponse {
+	private fun view(owner: Owner, granted: List<String> = emptyList(), rules: ProgressionRules): RewardsResponse {
 		val grants = rewards.grants(owner.id).associateBy { it.rewardId }
 		val cleared = rewards.cleared(owner.id, owner.member)
 		val count = cleared.size
-		val items = RewardCatalog.ITEMS.map { def ->
+		val items = RewardCatalog.configured(rules.milestones).map { def ->
 			val grant = grants[def.id]
 			val rule = def.rule
 			ItemView(
 				def.id, def.kind, def.slot, grant?.let { def.name }, def.colors,
-				grant?.let { OwnedView(it.color, it.reason, it.sceneId, (rule as? Rule.Milestone)?.count, (rule as? Rule.Bundle)?.group, it.seen, it.grantedAt) },
+				grant?.let { OwnedView(it.color, it.reason, it.sceneId, it.milestoneCount ?: (RewardCatalog.find(def.id)?.rule as? Rule.Milestone)?.count, (rule as? Rule.Bundle)?.group, it.seen, it.grantedAt) },
 				if (grant != null) null else lock(rule, cleared),
 			)
 		}
-		return RewardsResponse(items, next(grants.keys, count), rewards.shareCode(owner.id), granted)
+		return RewardsResponse(items, next(grants, count, rules), rewards.shareCode(owner.id), granted)
 	}
 
 	private fun lock(rule: Rule, cleared: List<String>) = when (rule) {
@@ -116,12 +120,13 @@ class RewardController(private val rewards: RewardStore, private val accounts: A
 	}
 
 	// 가장 가까운 다음 목표. 깜짝 상자는 무엇이 나올지 알리지 않는다
-	private fun next(owned: Set<String>, count: Int): NextView? {
-		val item = RewardCatalog.ITEMS
-			.mapNotNull { def -> (def.rule as? Rule.Milestone)?.takeIf { def.id !in owned && it.count > count }?.let { def to it.count } }
+	private fun next(grants: Map<String, Grant>, count: Int, rules: ProgressionRules): NextView? {
+		val item = RewardCatalog.configured(rules.milestones)
+			.mapNotNull { def -> (def.rule as? Rule.Milestone)?.takeIf { def.id !in grants && it.count > count }?.let { def to it.count } }
 			.minByOrNull { it.second }
-		val poolLeft = RewardCatalog.ITEMS.count { it.rule == Rule.Box && it.id !in owned }
-		val box = RewardCatalog.BOXES.firstOrNull { it > count }?.takeIf { poolLeft > 0 }
+		val poolLeft = RewardCatalog.ITEMS.count { it.rule == Rule.Box && it.id !in grants }
+		val boxesOwned = grants.values.count { it.reason == "box" }
+		val box = rules.boxes.drop(boxesOwned).firstOrNull { it > count }?.takeIf { poolLeft > 0 }
 		return when {
 			item != null && (box == null || item.second <= box) -> NextView("item", item.first.name, item.second - count)
 			box != null -> NextView("box", null, box - count)

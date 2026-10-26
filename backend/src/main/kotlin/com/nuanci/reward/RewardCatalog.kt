@@ -71,4 +71,8 @@ object RewardCatalog {
 	private val byId = ITEMS.associateBy { it.id }
 
 	fun find(id: String) = byId[id]
+
+	fun configured(milestones: Map<String, Int>) = ITEMS.map { def ->
+		if (def.rule is Rule.Milestone) def.copy(rule = Rule.Milestone(milestones.getValue(def.id))) else def
+	}
 }

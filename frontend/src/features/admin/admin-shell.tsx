@@ -25,6 +25,7 @@ const GROUPS = [
   {
     label: "운영",
     links: [
+      { href: "/admin/settings", label: "운영 설정", icon: "settings" },
       { href: "/admin/inquiries", label: "문의 · 제보", icon: "inbox" },
       { href: "/admin/errors", label: "클라이언트 오류", icon: "error" },
       { href: "/admin/query", label: "SQL 콘솔", icon: "database" },
@@ -34,6 +35,12 @@ const GROUPS = [
 
 function Icon({ name }: { name: string }) {
   const paths: Record<string, React.ReactNode> = {
+    settings: (
+      <>
+        <path d="M4 6h16M4 12h16M4 18h16" />
+        <circle cx="9" cy="6" r="2" /><circle cx="15" cy="12" r="2" /><circle cx="8" cy="18" r="2" />
+      </>
+    ),
     users: (
       <>
         <circle cx="9" cy="8" r="3" />

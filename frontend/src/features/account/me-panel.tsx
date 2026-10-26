@@ -15,6 +15,7 @@ import { StreakSection } from "@/features/streak/streak-section";
 import { useStreak } from "@/features/streak/streak";
 import { StreakBadge } from "@/features/streak/streak-ui";
 import { setTheme, useTheme } from "@/features/theme/theme";
+import { rankAt, type RankRule } from "@/features/progression/types";
 
 const noop = () => () => {};
 const PAIRS_PER_SCENE = 2;
@@ -49,39 +50,18 @@ function Stat({ href, label, value }: { href: string; label: string; value: stri
   );
 }
 
-// 사원증의 직급. 해 본 장면 수로 올라간다. 처음엔 금방 오르고 위로 갈수록 간격이 벌어진다.
-// 맨 위는 지금 장면 수보다 높게 두어, 장면이 늘어도 늘 다음 목표가 남게 한다
-const RANKS = [
-  { min: 0, name: "인턴" },
-  { min: 3, name: "사원" },
-  { min: 8, name: "주임" },
-  { min: 15, name: "대리" },
-  { min: 25, name: "과장" },
-  { min: 40, name: "차장" },
-  { min: 60, name: "부장" },
-  { min: 85, name: "이사" },
-  { min: 110, name: "상무" },
-  { min: 140, name: "전무" },
-  { min: 175, name: "부사장" },
-  { min: 215, name: "사장" },
-  { min: 260, name: "회장" },
-];
 // 사원증 아래 바코드 막대 너비(도트)
 const BARCODE = [2, 1, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 1, 3, 2, 1, 1, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 2];
 
 // 내 활동 숫자를 담은 nuanci 사원증. 이름과 사진, 해 본 장면 수로 오르는 직급, 이름 옆 연속 기록 뱃지를 단다
-function IdCard({ cleared, total }: { cleared: number; total: number }) {
+function IdCard({ cleared, total, ranks }: { cleared: number; total: number; ranks: RankRule[] }) {
   const account = useAccount();
   const avatar = useAvatar();
   const streak = useStreak();
   const me = account.status === "member" ? account.me : null;
   // 고른 뱃지가 실제로 얻은 것일 때만 이름 옆에 단다
   const badge = avatar.badge && streak?.badges.includes(avatar.badge) ? avatar.badge : null;
-  let level = 0;
-  RANKS.forEach((r, i) => {
-    if (cleared >= r.min) level = i;
-  });
-  const next = RANKS[level + 1];
+  const { current, next } = rankAt(ranks, cleared);
   return (
     <Panel>
       <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-pixel text-[15px] text-paper">
@@ -106,8 +86,8 @@ function IdCard({ cleared, total }: { cleared: number; total: number }) {
             {badge && <StreakBadge days={badge} />}
           </p>
           <p className="mt-2 text-[12px] text-ink-subtle">직급</p>
-          <p className="font-pixel-title text-[24px] leading-none">{RANKS[level].name}</p>
-          {next && <p className="mt-1.5 text-[13px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
+          <p className="break-all font-pixel-title text-[24px] leading-none">{current.name}</p>
+          {next && <p className="mt-1.5 break-all text-[13px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
@@ -174,7 +154,7 @@ function GuestProfile({ notice, google }: { notice: string | null; google: boole
 }
 
 // 내 정보 화면. 프로필, 내 활동 숫자, 설정, 안내를 순서대로 모은다
-export function MePanel({ total }: { total: number }) {
+export function MePanel({ total, ranks }: { total: number; ranks: RankRule[] }) {
   const account = useAccount();
   const cleared = useCleared();
   const sound = useSoundEnabled();
@@ -194,7 +174,7 @@ export function MePanel({ total }: { total: number }) {
   return (
     <div className="space-y-6 md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10 md:space-y-0">
       <div className="space-y-6">
-      <IdCard cleared={cleared.length} total={total} />
+      <IdCard cleared={cleared.length} total={total} ranks={ranks} />
 
       <Profile />
 

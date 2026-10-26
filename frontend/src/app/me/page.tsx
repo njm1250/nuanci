@@ -3,11 +3,13 @@ import Link from "next/link";
 import { MePanel } from "@/features/account/me-panel";
 import { BackButton } from "@/features/collection/back-button";
 import { getScenes } from "@/features/scene/api";
+import { getRanks } from "@/features/progression/api";
 
 export const metadata: Metadata = { title: "내 정보 · nuanci" };
 
 export default async function MePage() {
-  const total = (await getScenes()).length;
+  const [scenes, { ranks }] = await Promise.all([getScenes(), getRanks()]);
+  const total = scenes.length;
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep md:bg-night">
       <main className="flex w-full max-w-[480px] flex-col bg-night px-4 pb-6 md:max-w-[1080px] md:px-8 md:pb-12">
@@ -18,7 +20,7 @@ export default async function MePage() {
           <BackButton />
         </header>
         <h1 className="mb-4 font-pixel-title text-[24px]">내 정보</h1>
-        <MePanel total={total} />
+        <MePanel total={total} ranks={ranks} />
       </main>
     </div>
   );
