@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
-import { hasPlayed, trackHome } from "@/features/scene/track";
+import { hasPlayed, trackHome, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
 import { DailyExpression } from "./daily-expression";
 import { isUnopened, nextGoalParts, useRewards } from "@/features/rewards/rewards";
@@ -45,7 +45,10 @@ function Check() {
 export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const { returning, cleared } = useVisitor(scenes);
   const next = nextUncleared(scenes, cleared);
-  useEffect(trackHome, []);
+  useEffect(() => {
+    trackHome();
+    return watchEngagement();
+  }, []);
   const target = next ?? scenes[0];
   if (!target || returning) return null;
   const label = !returning ? "사고 치러 가기" : next ? "다음 장면 해 보기" : "처음부터 다시 하기";

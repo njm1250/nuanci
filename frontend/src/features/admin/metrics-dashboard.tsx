@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { loadMetricScene } from "./actions";
 import type { AdminSceneContent } from "./api";
-import type { ChoiceCount, Metrics, SceneMetrics } from "./metrics-types";
+import type { ChoiceCount, Journey, Metrics, SceneMetrics } from "./metrics-types";
 import { AdminEmpty, AdminPanel, AdminStat, number, percent } from "./ui";
 import { TRAP_LABELS, type Choice } from "@/features/scene/types";
 import { TYPES, type TypeId } from "@/features/typetest/types";
@@ -17,6 +17,7 @@ const COLUMNS = [
   { key: "followUpChosen", label: "후속 선택" },
   { key: "completed", label: "답변 완료" },
   { key: "rate", label: "완료 / 노출" },
+  { key: "wrongRate", label: "첫 답 오답률" },
   { key: "wrapViewed", label: "정리 화면" },
   { key: "nextClicked", label: "다음 클릭" },
   { key: "alternativesViewed", label: "다른 표현" },
@@ -24,6 +25,28 @@ const COLUMNS = [
   { key: "fromNext", label: "다음으로 유입" },
 ] as const;
 type Sort = (typeof COLUMNS)[number]["key"] | "number";
+type Column = (typeof COLUMNS)[number]["key"];
+
+// 첫 답 오답률이 이보다 낮으면 대부분 한 번에 맞히는 장면이라 '쉬움'으로 표시한다(표본이 적으면 표시하지 않는다)
+const EASY_BELOW = 0.3;
+const EASY_MIN_TRIES = 5;
+
+// 표의 한 칸 값. 비율 칸은 계산해서, 나머지는 장면 지표 그대로 쓴다
+function columnValue(s: SceneMetrics, key: Column) {
+  if (key === "rate") return s.viewed ? s.completed / s.viewed : -1;
+  if (key === "wrongRate") return s.firstTries ? s.firstWrong / s.firstTries : -1;
+  return s[key];
+}
+
+function columnText(s: SceneMetrics, key: Column) {
+  if (key === "rate") return ratio(s.completed, s.viewed);
+  if (key === "wrongRate") {
+    if (!s.firstTries) return "—";
+    const easy = s.firstTries >= EASY_MIN_TRIES && s.firstWrong / s.firstTries < EASY_BELOW;
+    return `${ratio(s.firstWrong, s.firstTries)} (${s.firstTries})${easy ? " 쉬움" : ""}`;
+  }
+  return number(s[key]);
+}
 
 function exportCsv(rows: SceneMetrics[]) {
   const escape = (value: string | number) => {
@@ -43,9 +66,7 @@ function exportCsv(rows: SceneMetrics[]) {
       s.id,
       s.title,
       s.version,
-      ...COLUMNS.map((c) =>
-        c.key === "rate" ? ratio(s.completed, s.viewed) : s[c.key],
-      ),
+      ...COLUMNS.map((c) => columnText(s, c.key)),
     ]),
   ]
     .map((row) => row.map(escape).join(","))
@@ -272,6 +293,50 @@ function SceneDetail({ row }: { row: SceneMetrics | undefined }) {
   );
 }
 
+// 사람 방문자가 가장 깊이 간 단계. 앞쪽(얕은 단계)에서 많이 멈출수록 그 단계가 구멍이다
+function JourneyPanel({ journey: j }: { journey: Journey }) {
+  const stages = [
+    ["홈에서 반응 없이 나감", j.silentHome, "누르거나 스크롤하지 않음 · 잠깐 보고 닫았거나 봇"],
+    ["홈만 둘러보고 나감", j.browsed, "반응은 했지만 장면을 열지 않음"],
+    ["장면을 열고 반응 없이 나감", j.silentScene, "링크로 바로 열고 닫음 · 봇일 수 있음"],
+    ["빌드업 대사 중에 나감", j.leftInLead, "대사가 끝나기 전에 떠남"],
+    ["질문에서 나감", j.leftAtQuestion, "대사는 다 봤지만 답을 안 고름"],
+    ["답을 고르고 장면 중간에 나감", j.leftMidScene, "장면을 끝내지 않음"],
+    ["장면 1개 끝냄", j.oneScene, ""],
+    ["장면 2개 이상 끝냄", j.moreScenes, "다시 하고 싶었던 사람"],
+  ] as const;
+  const total = stages.reduce((n, [, v]) => n + v, 0);
+  const max = Math.max(...stages.map(([, v]) => v), 1);
+  return (
+    <AdminPanel
+      title="사람 방문자는 어디까지 갔나"
+      description="가장 깊이 간 단계 하나로 셈 · 내부·봇 제외 · 선택 기간"
+    >
+      <div className="adm-panel-body">
+        {stages.map(([label, n, note], i) => (
+          <div
+            className="adm-funnel-row"
+            key={label}
+            data-tone={i >= 6 ? "positive" : "informative"}
+          >
+            <span title={note || undefined}>{label}</span>
+            <div className="adm-bar">
+              <span style={{ width: `${(n / max) * 100}%` }} />
+            </div>
+            <strong>{number(n)}</strong>
+            <small>{ratio(n, total)}</small>
+          </div>
+        ))}
+        <p className="adm-muted" style={{ marginTop: 12 }}>
+          {j.engagementTracked
+            ? "반응은 화면을 처음 누르거나 스크롤한 순간입니다. 대사 단계는 빌드업이 끝날 때 남깁니다."
+            : "이 기간에는 반응·대사 기록이 아직 없어서 답을 안 고른 방문이 모두 ‘반응 없이 나감’으로 잡힙니다. 기록을 넣은 뒤부터 정확해집니다."}
+        </p>
+      </div>
+    </AdminPanel>
+  );
+}
+
 export function MetricsDashboard({
   metrics: m,
   initialScene,
@@ -295,7 +360,7 @@ export function MetricsDashboard({
     )
     .sort((a, b) => {
       const val = (s: SceneMetrics) =>
-        sort === "rate" ? (s.viewed ? s.completed / s.viewed : -1) : s[sort];
+        sort === "number" ? s.number : columnValue(s, sort);
       return (val(a) - val(b)) * (desc ? -1 : 1) || a.number - b.number;
     });
   const pages = Math.max(1, Math.ceil(rows.length / size));
@@ -344,10 +409,22 @@ export function MetricsDashboard({
           value={m.registeredAccounts}
           note="내부 계정 제외 · 탭과 무관"
         />
+        {m.botVisitors !== undefined && (
+          <AdminStat
+            label="봇으로 거른 브라우저"
+            value={m.botVisitors}
+            note="크롤러·미리보기·자동화 · 전체 누적"
+          />
+        )}
       </div>
       {m.daily && (
         <div style={{ marginBottom: 20 }}>
           <ActivityTrend days={m.daily} period={m.period ?? "all"} />
+        </div>
+      )}
+      {m.journey && (
+        <div style={{ marginBottom: 20 }}>
+          <JourneyPanel journey={m.journey} />
         </div>
       )}
       <div className="adm-grid adm-grid-2">
@@ -605,11 +682,9 @@ export function MetricsDashboard({
                     {COLUMNS.map((c) => (
                       <td
                         key={c.key}
-                        className={`adm-numeric ${(c.key === "rate" ? s.completed === 0 : s[c.key] === 0) ? "adm-value-zero" : c.key === "completed" || c.key === "rate" ? "adm-value-positive" : ""}`}
+                        className={`adm-numeric ${columnValue(s, c.key) <= 0 ? "adm-value-zero" : c.key === "completed" || c.key === "rate" ? "adm-value-positive" : ""}`}
                       >
-                        {c.key === "rate"
-                          ? ratio(s.completed, s.viewed)
-                          : number(s[c.key])}
+                        {columnText(s, c.key)}
                       </td>
                     ))}
                   </tr>
@@ -675,7 +750,7 @@ export function MetricsDashboard({
             중복 포함될 수 있습니다.
           </p>
           <p className="adm-muted" style={{ marginTop: 8 }}>
-            전체 기간 내부 브라우저 {m.internalVisitors}개(그중 AI 확인 {m.aiVisitors}개) · 내부 이벤트{" "}
+            전체 기간 내부 브라우저 {m.internalVisitors}개(그중 AI 확인 {m.aiVisitors}개), 봇 {number(m.botVisitors ?? 0)}개 · 내부 이벤트{" "}
             {number(m.internalEvents)}건 제외. 당시 로그인 상태를 모르는 과거
             이벤트 {number(m.unknownEvents)}건은 ‘과거 기록’ 탭에 포함됩니다.
             탈퇴 시 이벤트의 계정 연결은 해제됩니다.
@@ -691,6 +766,10 @@ export function MetricsDashboard({
             이상 보통, 40% 미만 어려움. 오답 보기의 선택 비율 표시는 30건
             이상에서 10% 미만 ‘선택 적음’, 30–60% ‘선택 집중’으로 표시하며 품질
             판정이 아닙니다.
+          </p>
+          <p className="adm-muted" style={{ marginTop: 8 }}>
+            첫 답 오답률은 시도마다 질문 1에서 처음 고른 답 중 O가 아닌 비율입니다(괄호는 첫 답 수). {EASY_MIN_TRIES}건 이상에서{" "}
+            {EASY_BELOW * 100}% 미만이면 ‘쉬움’으로 표시합니다. 맞혀도 처음 알게 되는 게 없는 장면일 수 있습니다.
           </p>
         </div>
       </details>

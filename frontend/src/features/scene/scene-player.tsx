@@ -26,7 +26,7 @@ import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { TRAP_LABELS, type Beat, type Choice, type Expression, type Scene, type Verdict } from "./types";
 import { markCleared, nextScene, useCleared } from "./progress";
-import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, type TrackEvent } from "./track";
+import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 
 preloadStage();
@@ -391,6 +391,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     markPlayed();
     track({ type: "scene_viewed", sceneId: scene.id, sceneVersion: scene.version, attemptId, entry: takeEntry() });
   }, [scene.id, scene.version, attemptId, preview]);
+  useEffect(() => (preview ? undefined : watchEngagement({ sceneId: scene.id, sceneVersion: scene.version, attemptId })), [scene.id, scene.version, attemptId, preview]);
 
   useEffect(primeAudio, []);
 
@@ -428,14 +429,25 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 소품은 대사가 흐르는 동안 마지막으로 든 것을 계속 들고 있는다
   const heldMe = leading ? played.findLast((b) => b.who === "me" && b.prop)?.prop : undefined;
   const heldPartner = leading ? played.findLast((b) => b.who === "partner" && b.prop)?.prop : undefined;
-  const nextBeat = () => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
-  const skipLead = () => setLeadAt((a) => ({ ...a, [step]: lead.length }));
+  // 대사가 끝날 때 끝까지 봤는지(저절로 흐르거나 무대를 눌러 넘김) 건너뛰었는지 한 번 남긴다. 대사 도중에 나가는지 보려는 것이다
+  const lastBeat = leadIdx + 1 >= lead.length;
+  const nextBeat = () => {
+    if (lastBeat) send({ type: "lead_finished", step, choiceId: "watched" });
+    setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
+  };
+  const skipLead = () => {
+    send({ type: "lead_finished", step, choiceId: "skipped" });
+    setLeadAt((a) => ({ ...a, [step]: lead.length }));
+  };
   useEffect(() => {
     if (!beat) return;
     sfx.blip(beat.line === "……" ? "narration" : beat.who);
-    const t = window.setTimeout(() => setLeadAt((a) => ({ ...a, [step]: a[step] + 1 })), beatMs(beat));
+    const t = window.setTimeout(() => {
+      if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
+      setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
+    }, beatMs(beat));
     return () => clearTimeout(t);
-  }, [beat, step]);
+  }, [beat, step, lastBeat, preview, scene.id, scene.version, attemptId]);
 
   // 이어지는 장면(time)은 "만약에" 카드 없이 시간 자막만 잠깐 보여주고 바로 넘어간다
   const timeCue = scene.followUp.time;

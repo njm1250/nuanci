@@ -17,6 +17,8 @@ export type SceneMetrics = {
   alternativesViewed: number;
   shared: number;
   fromNext: number;
+  firstTries: number;
+  firstWrong: number;
   choices: ChoiceCount[];
 };
 export type Funnel = {
@@ -26,6 +28,17 @@ export type Funnel = {
   answered: number;
   wrapped: number;
   next: number;
+};
+export type Journey = {
+  silentHome: number;
+  browsed: number;
+  silentScene: number;
+  leftInLead: number;
+  leftAtQuestion: number;
+  leftMidScene: number;
+  oneScene: number;
+  moreScenes: number;
+  engagementTracked: boolean;
 };
 export type TestMetrics = {
   viewed: number;
@@ -56,6 +69,8 @@ export type Metrics = {
   internalVisitors: number;
   internalEvents: number;
   aiVisitors: number;
+  botVisitors?: number;
+  journey?: Journey;
   scenes: SceneMetrics[];
   activeAccounts: number;
   registeredAccounts: number;
