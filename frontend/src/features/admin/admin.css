@@ -1,5 +1,10 @@
 @import "./admin-tokens.css";
 
+/* 문서 스크롤바도 관리자 화면이 열렸을 때만 어두운 테마를 따른다. */
+:root:has(.admin-shell) {
+  color-scheme: dark;
+}
+
 /* 운영 화면은 서비스 테마와 분리해 표·코드·긴 본문의 가독성을 일정하게 유지한다. */
 .admin-shell {
   --color-night: var(--adm-bg-layer-basement);
@@ -17,7 +22,7 @@
   --color-good: var(--adm-bg-positive-solid);
   --color-warn: var(--adm-bg-warning-solid);
   --color-bad: var(--adm-bg-critical-solid);
-  color-scheme: light;
+  color-scheme: dark;
   min-height: 100dvh;
   background: var(--adm-bg-layer-basement);
   color: var(--adm-fg-neutral);
@@ -56,21 +61,21 @@
   flex-direction: column;
   background: var(--adm-sidebar-bg);
   color: var(--adm-sidebar-fg);
-  border-right: 1px solid var(--adm-palette-gray-900);
+  border-right: 1px solid var(--adm-stroke-neutral-weak);
 }
 .adm-brand {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 28px 22px 32px;
-  color: var(--adm-fg-on-neutral-solid);
+  color: var(--adm-fg-neutral);
   font-size: 23px;
   font-weight: 750;
   letter-spacing: -1px;
 }
 .adm-brand-mark {
   background: var(--adm-brand-mark);
-  color: var(--adm-fg-neutral);
+  color: var(--adm-brand-on-mark);
   width: 34px;
   height: 34px;
   display: grid;
@@ -83,7 +88,7 @@
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 1.7px;
-  color: var(--adm-palette-gray-500);
+  color: var(--adm-fg-neutral-muted);
   margin-top: 1px;
 }
 .adm-nav-group {
@@ -91,7 +96,7 @@
   margin-bottom: 26px;
 }
 .adm-nav-group > p {
-  color: var(--adm-palette-gray-500);
+  color: var(--adm-fg-neutral-muted);
   font-size: 10px;
   font-weight: 650;
   padding: 0 12px;
@@ -109,8 +114,8 @@
   font-size: 13px;
 }
 .adm-nav-group a:hover {
-  background: var(--adm-palette-gray-900);
-  color: var(--adm-bg-layer-default);
+  background: var(--adm-bg-neutral-weak);
+  color: var(--adm-fg-neutral);
 }
 .adm-nav-group a[aria-current] {
   background: var(--adm-bg-layer-default);
@@ -120,7 +125,7 @@
 }
 .adm-sidebar-bottom {
   margin-top: auto;
-  border-top: 1px solid var(--adm-palette-gray-800);
+  border-top: 1px solid var(--adm-stroke-neutral-weak);
   padding: 14px 24px 24px;
 }
 .adm-sidebar-bottom a {
@@ -129,7 +134,7 @@
   margin-bottom: 12px;
 }
 .adm-sidebar-bottom button {
-  color: var(--adm-palette-gray-500);
+  color: var(--adm-fg-neutral-muted);
   font-size: 12px;
 }
 .adm-workspace {
@@ -164,7 +169,7 @@
   font-weight: 600;
 }
 .adm-topbar .adm-avatar {
-  color: var(--adm-bg-layer-default);
+  color: var(--adm-fg-on-neutral-solid);
   background: var(--adm-bg-neutral-solid);
   border-radius: 50%;
   width: 28px;
@@ -350,12 +355,16 @@
 .adm-select {
   min-height: 33px;
   border: 1px solid var(--adm-stroke-neutral-weak);
-  background: var(--adm-bg-layer-default);
+  background: var(--adm-bg-input);
   border-radius: 5px;
   padding: 6px 10px;
   color: var(--adm-fg-neutral);
   font-size: 12px;
   outline-color: var(--adm-bg-informative-solid);
+}
+.adm-input::placeholder {
+  color: var(--adm-fg-placeholder);
+  opacity: 1;
 }
 .adm-input[type="search"] {
   min-width: 240px;
@@ -408,10 +417,10 @@
   color: var(--adm-fg-neutral-muted);
   white-space: nowrap;
 
-  background: var(--adm-palette-gray-300);
+  background: var(--adm-bg-table-heading);
   font-size: 11px;
   font-weight: 700;
-  border-bottom: 1px solid var(--adm-palette-gray-500);
+  border-bottom: 1px solid var(--adm-stroke-neutral-weak);
 }
 .adm-table td {
   padding: 11px 14px;
@@ -535,7 +544,7 @@
   background: var(--adm-bg-neutral-weak);
   color: var(--adm-fg-neutral-muted);
   border-color: var(--adm-stroke-neutral-weak);
-  border-left: 3px solid var(--adm-palette-gray-600);
+  border-left: 3px solid var(--adm-stroke-neutral-solid);
   font-size: 12px;
 }
 .adm-notice-warning {
@@ -572,7 +581,7 @@
   overflow: hidden;
 
   height: 7px;
-  background: var(--adm-palette-gray-300);
+  background: var(--adm-bg-table-heading);
 }
 .adm-bar > span {
   display: block;
@@ -661,7 +670,7 @@
   font-family: monospace;
   font-size: 12px;
   line-height: 1.8;
-  border: 1px solid var(--adm-palette-gray-800);
+  border: 1px solid var(--adm-stroke-neutral-weak);
   border-radius: 5px;
   outline-color: var(--adm-bg-informative-solid);
   tab-size: 2;
@@ -722,7 +731,8 @@
   position: sticky;
   bottom: 0;
   padding: 12px 0;
-  background: #f5f6f8f0;
+  background: var(--adm-bg-save-bar);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1126,7 +1136,7 @@
 }
 .adm-mix-tags > span {
   background: var(--adm-bg-neutral-muted);
-  color: #627087;
+  color: var(--adm-fg-neutral-muted);
   padding: 5px 8px;
   border-radius: 4px;
   font-size: 11px;
@@ -1351,7 +1361,7 @@
   background: var(--adm-bg-informative-weak);
 }
 .adm-table-sticky-first .adm-selected td:first-child {
-  background: var(--adm-palette-blue-200);
+  background: var(--adm-bg-informative-weak-pressed);
 }
 
 .admin-shell [data-tone="informative"] {
@@ -1424,7 +1434,7 @@
 }
 
 .adm-table tbody tr.adm-selected {
-  --adm-row-bg: var(--adm-palette-blue-200);
+  --adm-row-bg: var(--adm-bg-informative-weak-pressed);
   background: var(--adm-row-bg);
   box-shadow: inset 4px 0 var(--adm-stroke-informative-solid);
 }
@@ -1456,7 +1466,7 @@
 
 .adm-table th[aria-sort="ascending"],
 .adm-table th[aria-sort="descending"] {
-  background: var(--adm-palette-blue-200);
+  background: var(--adm-bg-informative-weak-pressed);
   color: var(--adm-fg-informative-contrast);
 }
 .adm-detail {
