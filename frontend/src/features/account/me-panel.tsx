@@ -49,14 +49,22 @@ function Stat({ href, label, value }: { href: string; label: string; value: stri
   );
 }
 
-// 사원증의 직급. 해 본 장면 수로 올라간다
+// 사원증의 직급. 해 본 장면 수로 올라간다. 처음엔 금방 오르고 위로 갈수록 간격이 벌어진다.
+// 맨 위는 지금 장면 수보다 높게 두어, 장면이 늘어도 늘 다음 목표가 남게 한다
 const RANKS = [
   { min: 0, name: "인턴" },
   { min: 3, name: "사원" },
-  { min: 10, name: "대리" },
-  { min: 20, name: "과장" },
-  { min: 35, name: "차장" },
-  { min: 55, name: "부장" },
+  { min: 8, name: "주임" },
+  { min: 15, name: "대리" },
+  { min: 25, name: "과장" },
+  { min: 40, name: "차장" },
+  { min: 60, name: "부장" },
+  { min: 85, name: "이사" },
+  { min: 110, name: "상무" },
+  { min: 140, name: "전무" },
+  { min: 175, name: "부사장" },
+  { min: 215, name: "사장" },
+  { min: 260, name: "회장" },
 ];
 // 사원증 아래 바코드 막대 너비(도트)
 const BARCODE = [2, 1, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 1, 3, 2, 1, 1, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 2];
