@@ -22,12 +22,13 @@ mkdir -p "$(dirname "$OUT")"
 jq -rn --argjson scenes "$scenes" --argjson mix "$mix" --arg api "$API" --arg at "$(date '+%Y-%m-%d %H:%M')" '
   def traps: {literal: "직역", konglish: "콩글리시", answer: "대답 방식", textbook: "교과서식", blunt: "너무 직설적", formal: "너무 격식", context: "맥락 어긋남", misread: "다른 뜻으로 들림", culture: "문화 차이"};
   def status: {draft: "초안", published: "공개", hidden: "숨김"}[.] // .;
-  def mark: {good: "O", meh: "△", bad: "X"}[.] // "?";
-  def choice: "  - \(.verdict | mark) \(.line)" + (if .trap then " · \(traps[.trap] // .trap)" else "" end);
-  def situation($label): "- \($label): \(.intent)", "  - 상대: \(.partnerLine)", (.choices[] | choice);
+  # 장면 하나를 한 줄로: 정답과 함정(X, 없으면 △) 표현만 남겨 겹치는 표현·소재를 빨리 훑게 한다
+  def wrong: [.choices[] | select(.verdict == "bad")] as $bad | if ($bad | length) > 0 then $bad else [.choices[] | select(.verdict == "meh")] end;
+  def situation: ([.choices[] | select(.verdict == "good") | .line] | join(" / ")) + " ✗ " + ([wrong[] | .line + (if .trap then "(\(traps[.trap] // .trap))" else "" end)] | join(" / "));
   "# 지금 있는 장면",
   "",
   "\($at) 기준, \($api)에서 뽑음. 장면 \($scenes | length)개, 상황 \($mix.situations)개. 숨긴 장면도 번호와 소재를 다시 쓰지 않는다.",
+  "한 줄 형식: #번호 제목 · 상대 · 장소 | 질문 1 정답 ✗ 함정 | 질문 2 정답 ✗ 함정",
   "",
   "## 함정 유형 분포 (초안·공개)",
   "",
@@ -39,13 +40,10 @@ jq -rn --argjson scenes "$scenes" --argjson mix "$mix" --arg api "$API" --arg at
   (if ($mix.warnings | length) > 0 then "", "경고:", ($mix.warnings[] | "- \(.)") else empty end),
   "",
   "## 장면",
+  "",
   ($scenes[] |
-    "",
-    "### \(.number). \(.title) [\(.status | status)] · \(.relation) · \(.place) · \(.partnerName)",
-    "",
-    (.base | situation("기본")),
-    (.followUp | situation("만약에 (\(.to))")),
-    "- 정리: \(.discovery)")
+    "- #\(.number) \(.title)" + (if .status == "published" then "" else " [\(.status | status)]" end)
+    + " · \(.partnerName) · \(.place) | \(.base | situation) | \(.followUp | situation)")
 ' >"$OUT"
 
 echo "$OUT: 장면 $(jq length <<<"$scenes")개"
