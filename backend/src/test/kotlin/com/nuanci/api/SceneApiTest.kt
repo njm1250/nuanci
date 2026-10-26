@@ -180,6 +180,35 @@ class SceneApiTest {
 	}
 
 	@Test
+	fun `봇이 보낸 이벤트는 지표와 선택 비율에서 빼고 사람은 어디까지 갔는지 센다`() {
+		val token = mvc.adminToken()
+		val person = UUID.randomUUID()
+		val attempt = UUID.randomUUID()
+		val iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"
+		fun post(body: Map<String, Any?>, ua: String) = mvc.post("/api/events") {
+			contentType = MediaType.APPLICATION_JSON
+			header("User-Agent", ua)
+			content = mapper.writeValueAsString(body)
+		}.andExpect { status { isAccepted() } }
+		post(event("choice_selected", UUID.randomUUID(), step = "base", choiceId = "eat-a-lot") + ("visitorId" to UUID.randomUUID()), "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)")
+		post(event("scene_viewed", UUID.randomUUID()) + ("visitorId" to UUID.randomUUID()) + ("automated" to true), iphone)
+		post(mapOf("type" to "page_engaged", "visitorId" to person), iphone)
+		post(event("scene_viewed", attempt) + ("visitorId" to person), iphone)
+		post(event("lead_finished", attempt, step = "base", choiceId = "skipped") + ("visitorId" to person), iphone)
+		post(event("choice_selected", attempt, step = "base", choiceId = "eat-a-lot") + ("visitorId" to person), iphone)
+
+		mvc.get("/api/scenes/eat-a-lot/picks").andExpect { jsonPath("$.base.total") { value(1) } }
+		val body = mapper.readTree(mvc.get("/api/admin/metrics") { header("Authorization", "Bearer $token") }.andReturn().response.contentAsString)
+		assertEquals(1, body.path("visitors").asInt())
+		assertEquals(2, body.path("botVisitors").asInt())
+		assertEquals(1, body.path("journey").path("leftMidScene").asInt())
+		assertEquals(0, body.path("journey").path("silentScene").asInt())
+		val scene = body.path("scenes").first { it.path("id").asString() == "eat-a-lot" }
+		assertEquals(1, scene.path("firstTries").asInt())
+		assertEquals(1, scene.path("firstWrong").asInt())
+	}
+
+	@Test
 	fun `로그인 당시 계정을 기록하고 여러 브라우저는 계정 하나로 센다`() {
 		val user = accounts.upsertGoogle(GoogleProfile("metrics-user", "metrics@example.com", "지표", null))
 		val session = Cookie("nuanci_session", accounts.createSession(user))

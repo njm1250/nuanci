@@ -1,5 +1,5 @@
 export type TrackEvent = {
-  type: "scene_viewed" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied" | "reward_shown" | "reward_equipped";
+  type: "scene_viewed" | "lead_finished" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied" | "reward_shown" | "reward_equipped";
   sceneId: string;
   sceneVersion: number;
   attemptId: string;
@@ -78,7 +78,8 @@ export function sendEvent(body: Record<string, unknown>) {
     void fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...body, ...captureSource(), visitorId: visitorId() }),
+      // 자동화 도구로 움직이는 브라우저(navigator.webdriver)는 서버가 봇으로 나눠 지표에서 뺀다
+      body: JSON.stringify({ ...body, ...captureSource(), visitorId: visitorId(), automated: navigator.webdriver === true }),
       keepalive: true,
     }).catch(() => {});
   } catch {}
@@ -91,6 +92,19 @@ export function track(event: TrackEvent) {
 // 홈 방문은 장면과 상관없어서 방문자 id만 보낸다
 export function trackHome() {
   sendEvent({ type: "home_viewed" });
+}
+
+// 화면을 처음 누르거나 스크롤하는 순간 한 번 알린다. 사람이 보고 나간 방문과, 열리기만 하고 아무 반응이 없는 방문(봇·미리보기일 수 있음)을 나눠 보려는 것이다.
+// 정리 함수를 돌려주어 effect에서 쓴다
+const ENGAGE_EVENTS = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
+export function watchEngagement(extra: Record<string, unknown> = {}) {
+  const stop = () => ENGAGE_EVENTS.forEach((t) => window.removeEventListener(t, once, true));
+  const once = () => {
+    stop();
+    sendEvent({ type: "page_engaged", ...extra });
+  };
+  ENGAGE_EVENTS.forEach((t) => window.addEventListener(t, once, { capture: true, passive: true }));
+  return stop;
 }
 
 export function markPlayed() {
