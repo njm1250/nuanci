@@ -1,5 +1,7 @@
 package com.nuanci.reward
 
+import com.nuanci.operations.ProgressionRules
+import com.nuanci.operations.ProgressionSettingsStore
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -7,17 +9,17 @@ import java.security.SecureRandom
 import java.time.Instant
 import java.util.UUID
 
-data class Grant(val rewardId: String, val color: String?, val reason: String, val sceneId: String?, val seen: Boolean, val grantedAt: Instant)
+data class Grant(val rewardId: String, val color: String?, val reason: String, val sceneId: String?, val seen: Boolean, val grantedAt: Instant, val milestoneCount: Int? = null)
 
 // 보상 지급과 보관. 끝낸 장면이 늘 때마다 조건을 다시 보고, 아직 없는 것만 한 번씩 준다
 @Service
-class RewardStore(private val jdbc: JdbcClient) {
+class RewardStore(private val jdbc: JdbcClient, private val settings: ProgressionSettingsStore) {
 	private val random = SecureRandom()
 
 	fun grants(owner: UUID): List<Grant> =
-		jdbc.sql("select reward_id, color, reason, scene_id, seen, granted_at from reward_grant where owner_id = :owner order by granted_at, reward_id")
+		jdbc.sql("select reward_id, color, reason, scene_id, seen, granted_at, milestone_count from reward_grant where owner_id = :owner order by granted_at, reward_id")
 			.param("owner", owner)
-			.query { rs, _ -> Grant(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getBoolean(5), rs.getTimestamp(6).toInstant()) }
+			.query { rs, _ -> Grant(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getBoolean(5), rs.getTimestamp(6).toInstant(), rs.getObject(7) as Int?) }
 			.list()
 
 	// 로그인한 사용자는 계정 기록을, 로그인 전이면 방문자 기록을 쓴다
@@ -40,7 +42,11 @@ class RewardStore(private val jdbc: JdbcClient) {
 
 	// 끝낸 장면 수와 목록으로 받을 수 있는 보상을 모두 준다. 이번에 새로 준 것만 돌려준다
 	@Transactional
-	fun evaluate(owner: UUID, cleared: List<String>, source: String): List<Grant> {
+	fun evaluate(owner: UUID, cleared: List<String>, source: String): List<Grant> =
+		evaluate(owner, cleared, source, settings.current().rules)
+
+	@Transactional
+	fun evaluate(owner: UUID, cleared: List<String>, source: String, rules: ProgressionRules): List<Grant> {
 		// 같은 주인의 요청이 동시에 오면(페이지 첫 동기화와 장면 완료가 겹칠 때 등) 상자 개수를 둘 다 0으로 보고 더 줄 수 있어서, 주인별로 차례로 판단한다
 		jdbc.sql("select pg_advisory_xact_lock(hashtext(:owner))").param("owner", owner.toString()).query { _, _ -> 0 }.list()
 		val owned = grants(owner)
@@ -52,7 +58,7 @@ class RewardStore(private val jdbc: JdbcClient) {
 				ids += def.id
 			}
 		}
-		for (def in RewardCatalog.ITEMS) {
+		for (def in RewardCatalog.configured(rules.milestones)) {
 			if (def.id in ids) continue
 			when (val rule = def.rule) {
 				is Rule.Milestone -> if (cleared.size >= rule.count) give(def, "milestone")
@@ -62,8 +68,8 @@ class RewardStore(private val jdbc: JdbcClient) {
 			}
 		}
 		val opened = owned.count { it.reason == "box" }
-		val due = RewardCatalog.BOXES.count { cleared.size >= it }
-		repeat(due - opened) {
+		val due = rules.boxes.count { cleared.size >= it }
+		repeat((due - opened).coerceAtLeast(0)) {
 			val pool = RewardCatalog.ITEMS.filter { it.rule == Rule.Box && it.id !in ids }
 			if (pool.isNotEmpty()) give(pool[random.nextInt(pool.size)], "box")
 		}
@@ -97,8 +103,8 @@ class RewardStore(private val jdbc: JdbcClient) {
 	fun mergeVisitor(visitor: UUID, user: UUID) {
 		jdbc.sql(
 			"""
-			insert into reward_grant (owner_id, reward_id, color, reason, scene_id, source, seen, granted_at)
-			select :user, reward_id, color, reason, scene_id, source, seen, granted_at from reward_grant where owner_id = :visitor
+			insert into reward_grant (owner_id, reward_id, color, reason, scene_id, source, seen, granted_at, milestone_count)
+			select :user, reward_id, color, reason, scene_id, source, seen, granted_at, milestone_count from reward_grant where owner_id = :visitor
 			on conflict do nothing
 			""",
 		).param("user", user).param("visitor", visitor).update()
@@ -145,13 +151,14 @@ class RewardStore(private val jdbc: JdbcClient) {
 		val color = def.colors.firstOrNull()
 		val inserted = jdbc.sql(
 			"""
-			insert into reward_grant (owner_id, reward_id, color, reason, scene_id, source, seen, granted_at)
-			values (:owner, :id, :color, :reason, :scene, :source, false, :now)
+			insert into reward_grant (owner_id, reward_id, color, reason, scene_id, source, seen, granted_at, milestone_count)
+			values (:owner, :id, :color, :reason, :scene, :source, false, :now, :milestone)
 			on conflict do nothing
 			""",
 		).param("owner", owner).param("id", def.id).param("color", color).param("reason", reason)
-			.param("scene", sceneId).param("source", source).param("now", java.sql.Timestamp.from(now)).update()
-		return if (inserted > 0) Grant(def.id, color, reason, sceneId, false, now) else null
+			.param("scene", sceneId).param("source", source).param("now", java.sql.Timestamp.from(now))
+			.param("milestone", (def.rule as? Rule.Milestone)?.count).update()
+		return if (inserted > 0) Grant(def.id, color, reason, sceneId, false, now, (def.rule as? Rule.Milestone)?.count) else null
 	}
 
 	companion object {
