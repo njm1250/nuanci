@@ -351,9 +351,6 @@ function WrapUp({
   );
 }
 
-// 대사 한 줄을 보여주는 시간. 짧은 줄은 빨리, 자막까지 긴 줄은 천천히 넘기고, 누르면 바로 넘어간다
-const beatMs = (b: Beat) => Math.min(2200, Math.max(1100, 800 + Math.max(b.line.length, b.meaning.length) * 26));
-
 // 대사가 몇 줄 남았는지 보여주는 점
 function BeatDots({ total, at }: { total: number; at: number }) {
   return (
@@ -458,7 +455,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 소품은 대사가 흐르는 동안 마지막으로 든 것을 계속 들고 있는다
   const heldMe = leading ? played.findLast((b) => b.who === "me" && b.prop)?.prop : undefined;
   const heldPartner = leading ? played.findLast((b) => b.who === "partner" && b.prop)?.prop : undefined;
-  // 대사가 끝날 때 끝까지 봤는지(저절로 흐르거나 무대를 눌러 넘김) 건너뛰었는지 한 번 남긴다. 대사 도중에 나가는지 보려는 것이다
+  // 대사가 끝날 때 끝까지 봤는지(한 줄씩 눌러 넘김) 건너뛰었는지 한 번 남긴다. 대사 도중에 나가는지 보려는 것이다
   const lastBeat = leadIdx + 1 >= lead.length;
   const nextBeat = () => {
     if (lastBeat) send({ type: "lead_finished", step, choiceId: "watched" });
@@ -468,15 +465,22 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     send({ type: "lead_finished", step, choiceId: "skipped" });
     setLeadAt((a) => ({ ...a, [step]: lead.length }));
   };
+  // 대사는 저절로 넘어가지 않는다. 영어 한 줄과 뜻을 읽는 속도가 사람마다 달라서, 다 읽고 눌러야 다음 줄로 간다
   useEffect(() => {
-    if (!beat) return;
-    sfx.blip(beat.line === "……" ? "narration" : beat.who);
-    const t = window.setTimeout(() => {
-      if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
-      setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
-    }, beatMs(beat));
-    return () => clearTimeout(t);
-  }, [beat, step, lastBeat, preview, scene.id, scene.version, attemptId]);
+    if (beat) sfx.blip(beat.line === "……" ? "narration" : beat.who);
+  }, [beat]);
+  // 데스크톱에서는 키보드로도 넘긴다. 버튼에 포커스가 있으면 버튼이 받으니 한 번에 두 줄 넘어가지 않게 비켜 준다
+  useEffect(() => {
+    if (!leading) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || !["Enter", " ", "ArrowRight"].includes(e.key)) return;
+      if (e.target instanceof Element && e.target.closest("button, a, input, textarea")) return;
+      e.preventDefault();
+      nextBeat();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   // 이어지는 장면(time)은 "만약에" 카드 없이 시간 자막만 잠깐 보여주고 바로 넘어간다
   const timeCue = scene.followUp.time;
@@ -590,7 +594,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
 
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink">
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8">
+      {/* 데스크톱은 무대를 키우고, 머리줄·무대·오른쪽 패널을 한 덩어리로 세로 가운데에 둔다. 메인 버튼이 화면 맨 아래로 떨어지지 않고 무대 아래 끝에 맞춰진다.
+          세로 여백 = (화면 높이 − 머리줄·아래 여백 96px − 무대 높이) / 2. 무대 높이는 무대 칸 너비(화면 너비 − 여백·패널 504px)의 3/4, 작은 화면에서도 결과 카드 세 장이 들어가게 최소 560px */}
+      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1280px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8 md:py-[max(0px,calc((100dvh_-_96px_-_max(560px,(min(100vw,1280px)_-_504px)*0.75))/2))]">
         <header className="flex h-12 shrink-0 items-center gap-2 px-4 font-pixel text-[15px] md:col-span-2 md:h-16 md:px-0">
           <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2">
             <span className="hl">{preview ? "검수" : "nuanci"}</span>
@@ -798,10 +804,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         {(choice || leading || (phase === "transition" && !timeCue)) && (
           <footer className="shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
             {leading ? (
-              // 대사는 저절로 빨리 흘러서, 같은 자리의 메인 버튼은 남은 대사를 한 번에 건너뛰고 질문으로 간다. 무대를 누르면 한 줄씩 넘어간다
-              <BlockButton primary onClick={skipLead} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
-                건너뛰기
-              </BlockButton>
+              // 메인 버튼(과 무대)은 한 줄씩 넘기고, 이미 본 장면이면 옆의 건너뛰기로 바로 질문에 간다
+              <div className="flex items-center gap-2">
+                <BlockButton primary onClick={nextBeat} className="flex-1" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+                  다음
+                </BlockButton>
+                <button type="button" onClick={skipLead} className="min-h-11 shrink-0 px-3 font-pixel text-[15px] text-paper-muted hover:text-paper">
+                  건너뛰기
+                </button>
+              </div>
             ) : phase === "transition" ? (
               <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                 이번엔 뭐라고 할까?
