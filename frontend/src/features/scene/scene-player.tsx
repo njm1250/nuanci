@@ -145,6 +145,34 @@ function usePickStats(sceneId: string, preview: boolean) {
   return stats;
 }
 
+// 다음 장면을 미리 불러와 끝난 화면의 버튼에 예고로 쓴다("다음: 「이건 서비스예요!」 영어로?").
+// 장면 하나를 끝낸 멈춤 지점에서, 모르는 게 하나 보여야 이어서 누를 호기심이 생긴다.
+// 하고 싶은 말에서 따옴표로 뽑을 말이 있으면 그 말, 없으면 첫 질문 보기의 한국어 뜻, 둘 다 길면 장면 제목을 쓴다
+const TEASER_MAX = 16;
+function teaserOf(s: Scene) {
+  const fit = (t: string | undefined) => (t && t.length <= TEASER_MAX ? t : null);
+  const said = s.base.intent.match(/^(.+?)\s하고\s/)?.[1].trim();
+  const meaning = s.base.choices.find((c) => c.verdict !== "good")?.meaning.replace(/\s*\(.*?\)/g, "").trim();
+  const line = fit(said) ?? fit(meaning);
+  return line ? `다음: 「${line}」 영어로?` : `다음: ${s.title}`;
+}
+
+function useNextTeaser(nextId: string | undefined, preview: boolean) {
+  const [teaser, setTeaser] = useState<string | null>(null);
+  useEffect(() => {
+    if (!nextId || preview) return;
+    let alive = true;
+    fetch(`/api/scenes/${encodeURIComponent(nextId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s: Scene | null) => alive && s && setTeaser(teaserOf(s)))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [nextId, preview]);
+  return teaser;
+}
+
 function ResultBody({
   choice,
   n,
@@ -384,6 +412,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   };
   const cleared = useCleared();
   const next = nextScene(order, cleared, scene.id);
+  const teaser = useNextTeaser(next?.id, preview);
   const viewedSent = useRef(false);
   useEffect(() => {
     if (preview || viewedSent.current) return;
@@ -690,7 +719,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             <div key={`ask-${phase}`}>
               <p className="text-[14px] leading-normal text-paper-muted">{situation.context}</p>
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-[rise_220ms_ease-out_both]" />
-              <ul className="mt-3.5 space-y-2.5">
+              {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게 형광펜으로 묻는다 */}
+              <p className="mt-3.5 animate-[rise_220ms_ease-out_both] font-pixel text-[15px] [animation-delay:200ms]">
+                <span className="hl">너라면 뭐라고 할래?</span>
+              </p>
+              <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_220ms_ease-out_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
                     <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
@@ -782,7 +815,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             ) : f.done ? (
               next ? (
                 <BlockLink href={`/scenes/${next.number}`} entry="next" primary onClick={goNext}>
-                  다음 장면
+                  {teaser ?? "다음 장면"}
                 </BlockLink>
               ) : (
                 <BlockLink href="/" primary onClick={holdForEnding}>
