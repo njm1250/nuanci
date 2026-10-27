@@ -194,6 +194,13 @@ body {
   }
 }
 
+/* 대사가 저절로 넘어가기까지 남은 시간을 왼쪽부터 채운다 */
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
 /* 제자리에서 두 칸으로 콩콩 뛰는 픽셀 캐릭터 */
 @keyframes bob {
   0%,
