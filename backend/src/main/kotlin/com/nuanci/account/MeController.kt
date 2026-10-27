@@ -2,6 +2,7 @@ package com.nuanci.account
 
 import jakarta.servlet.http.HttpServletResponse
 import com.nuanci.reward.RewardCatalog
+import com.nuanci.review.ReviewStore
 import com.nuanci.reward.RewardStore
 import com.nuanci.streak.StreakStore
 import org.springframework.http.HttpHeaders
@@ -33,7 +34,7 @@ data class ClearedRequest(val sceneId: String = "")
 // 로그인한 사용자의 정보와 끝낸 장면. 로그인하면 이 기기의 기록을 합쳐 계정에 남긴다
 @RestController
 @RequestMapping("/api/me")
-class MeController(private val accounts: AccountStore, private val rewards: RewardStore, private val streaks: StreakStore) {
+class MeController(private val accounts: AccountStore, private val rewards: RewardStore, private val streaks: StreakStore, private val reviews: ReviewStore) {
 	@GetMapping
 	fun me(@CookieValue(SESSION_COOKIE, required = false) token: String?): MeResponse {
 		val account = require(token)
@@ -82,6 +83,7 @@ class MeController(private val accounts: AccountStore, private val rewards: Rewa
 		val account = require(token)
 		rewards.deleteOwner(account.id)
 		streaks.deleteOwner(account.id)
+		reviews.deleteOwner(account.id)
 		accounts.delete(account.id)
 		response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(SESSION_COOKIE, "").path("/").maxAge(0).build().toString())
 	}

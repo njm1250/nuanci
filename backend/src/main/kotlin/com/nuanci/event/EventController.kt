@@ -3,6 +3,7 @@ package com.nuanci.event
 import com.nuanci.account.AccountStore
 import com.nuanci.account.SESSION_COOKIE
 import org.springframework.web.bind.annotation.CookieValue
+import com.nuanci.review.ReviewStore
 import com.nuanci.scene.SceneRepository
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Pattern
@@ -63,6 +64,7 @@ class EventController(
 	private val scenes: SceneRepository,
 	private val accounts: AccountStore,
 	private val jdbc: JdbcClient,
+	private val reviews: ReviewStore,
 ) {
 	@PostMapping
 	@ResponseStatus(HttpStatus.ACCEPTED)
@@ -81,6 +83,10 @@ class EventController(
 		events.save(
 			SceneEvent(req.type, req.sceneId, req.sceneVersion, req.attemptId, req.visitorId, req.step, req.choiceId, req.entry, userId = account?.id, authState = if (account == null) "guest" else "member"),
 		)
+		// 그 질문의 첫 선택이 O가 아니면 다음에 다시 물을 복습 카드를 만든다
+		if (req.type == "choice_selected" && req.sceneId != null && req.sceneVersion != null && req.step != null && req.choiceId != null) {
+			reviews.recordPick(account?.id ?: req.visitorId, req.visitorId, account?.id, req.sceneId, req.sceneVersion, req.step, req.choiceId)
+		}
 		// 처음 들어온 경로만 남긴다. 나중에 다른 링크로 다시 와도 덮어쓰지 않는다
 		if (req.utmSource != null || req.referrer != null) {
 			jdbc.sql("insert into visitor_source (visitor_id, source, medium, campaign, referrer) values (:v, :s, :m, :c, :r) on conflict do nothing")
