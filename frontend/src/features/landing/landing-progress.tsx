@@ -6,7 +6,7 @@ import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
-import { DailyExpression } from "./daily-expression";
+import { ReviewToday } from "@/features/review/review-today";
 import { isUnopened, nextGoalParts, useRewards } from "@/features/rewards/rewards";
 import type { StageSpec } from "@/features/stage/types";
 import { SceneThumb, ThumbStudio } from "./scene-thumb";
@@ -237,6 +237,8 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
   const upNext = scenes.filter((s) => open.has(s.id) && !cleared.includes(s.id)).slice(0, limit);
   return (
     <section className="animate-[fade-in_200ms] px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10">
+      {/* 다시 온 이유가 되도록 지난번 헷갈린 말을 맨 위에서 먼저 묻는다 */}
+      <ReviewToday />
       <div className="flex items-baseline justify-between">
         <h2 className="font-pixel text-[15px]">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</h2>
         <BlockCount progress={progress} />
@@ -268,7 +270,6 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
           </BlockLink>
         </>
       )}
-      <DailyExpression scenes={scenes} />
       <ThumbStudio />
       {/* 눌러서 들어가는 곳은 글자만 두지 않고, 화살표가 붙은 줄로 만들어 누를 수 있다는 게 보이게 한다 */}
       <div className="blk-frame mt-5">
