@@ -351,6 +351,9 @@ function WrapUp({
   );
 }
 
+// 대사 한 줄을 보여주는 시간. 영어 한 줄과 뜻을 읽을 수 있게 2~4초, 다 읽었으면 눌러서 바로 넘긴다
+const beatMs = (b: Beat) => Math.min(4000, Math.max(2000, 1400 + Math.max(b.line.length, b.meaning.length) * 45));
+
 // 대사가 몇 줄 남았는지 보여주는 점
 function BeatDots({ total, at }: { total: number; at: number }) {
   return (
@@ -455,7 +458,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   // 소품은 대사가 흐르는 동안 마지막으로 든 것을 계속 들고 있는다
   const heldMe = leading ? played.findLast((b) => b.who === "me" && b.prop)?.prop : undefined;
   const heldPartner = leading ? played.findLast((b) => b.who === "partner" && b.prop)?.prop : undefined;
-  // 대사가 끝날 때 끝까지 봤는지(한 줄씩 눌러 넘김) 건너뛰었는지 한 번 남긴다. 대사 도중에 나가는지 보려는 것이다
+  // 대사가 끝날 때 끝까지 봤는지(저절로 흐르거나 눌러 넘김) 건너뛰었는지 한 번 남긴다. 대사 도중에 나가는지 보려는 것이다
   const lastBeat = leadIdx + 1 >= lead.length;
   const nextBeat = () => {
     if (lastBeat) send({ type: "lead_finished", step, choiceId: "watched" });
@@ -465,10 +468,15 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     send({ type: "lead_finished", step, choiceId: "skipped" });
     setLeadAt((a) => ({ ...a, [step]: lead.length }));
   };
-  // 대사는 저절로 넘어가지 않는다. 영어 한 줄과 뜻을 읽는 속도가 사람마다 달라서, 다 읽고 눌러야 다음 줄로 간다
   useEffect(() => {
-    if (beat) sfx.blip(beat.line === "……" ? "narration" : beat.who);
-  }, [beat]);
+    if (!beat) return;
+    sfx.blip(beat.line === "……" ? "narration" : beat.who);
+    const t = window.setTimeout(() => {
+      if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
+      setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
+    }, beatMs(beat));
+    return () => clearTimeout(t);
+  }, [beat, step, lastBeat, preview, scene.id, scene.version, attemptId]);
   // 데스크톱에서는 키보드로도 넘긴다. 버튼에 포커스가 있으면 버튼이 받으니 한 번에 두 줄 넘어가지 않게 비켜 준다
   useEffect(() => {
     if (!leading) return;
@@ -802,9 +810,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         </section>
 
         {(choice || leading || (phase === "transition" && !timeCue)) && (
-          <footer className="shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
+          <footer className="relative shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
+            {/* 대사가 저절로 넘어간다는 걸 알 수 있게 위 테두리를 남은 시간만큼 채운다 */}
+            {beat && !reduced && (
+              <span
+                key={`fill-${step}-${leadIdx}`}
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 -top-[3px] h-[3px] origin-left bg-gold"
+                style={{ animation: `fill ${beatMs(beat)}ms linear both` }}
+              />
+            )}
             {leading ? (
-              // 메인 버튼(과 무대)은 한 줄씩 넘기고, 이미 본 장면이면 옆의 건너뛰기로 바로 질문에 간다
+              // 대사는 저절로 넘어가고, 메인 버튼(과 무대)을 누르면 바로 다음 줄로, 이미 본 장면이면 옆의 건너뛰기로 바로 질문에 간다
               <div className="flex items-center gap-2">
                 <BlockButton primary onClick={nextBeat} className="flex-1" faceClassName="py-3.5 text-center font-pixel text-[15px]">
                   다음
