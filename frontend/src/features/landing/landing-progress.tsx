@@ -6,7 +6,6 @@ import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
 import { hasPlayed, trackHome, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
-import { DailyExpression } from "./daily-expression";
 import { ReviewToday } from "@/features/review/review-today";
 import { isUnopened, nextGoalParts, useRewards } from "@/features/rewards/rewards";
 import type { StageSpec } from "@/features/stage/types";
@@ -271,7 +270,6 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
           </BlockLink>
         </>
       )}
-      <DailyExpression scenes={scenes} />
       <ThumbStudio />
       {/* 눌러서 들어가는 곳은 글자만 두지 않고, 화살표가 붙은 줄로 만들어 누를 수 있다는 게 보이게 한다 */}
       <div className="blk-frame mt-5">
