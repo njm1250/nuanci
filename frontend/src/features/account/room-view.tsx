@@ -144,7 +144,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
               state={{ partnerMotion: "idle", partnerKey: 0, talkKey: 0, reaction: null, meLine: "여기가 내 아지트야!" }}
             />
             {next && (
-              <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-pixel text-[13px] leading-none text-paper">
+              <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
                 {nextGoalParts(next)[0]}
                 <span className="mx-0.5 bg-gold px-1 text-ink">{nextGoalParts(next)[1]}</span>
                 {nextGoalParts(next)[2]}
@@ -357,7 +357,7 @@ function Detail({
             <p className="truncate text-[12px] text-paper-subtle">「{memory.title}」에서 배운 말</p>
             <p className="truncate text-[14px] font-semibold text-paper">{memory.right}</p>
           </div>
-          <EntryLink href={`/scenes/${memory.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-[13px] text-paper-muted underline underline-offset-4">
+          <EntryLink href={`/scenes/${memory.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4">
             다시 하기
           </EntryLink>
         </div>

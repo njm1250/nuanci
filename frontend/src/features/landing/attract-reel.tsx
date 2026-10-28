@@ -72,7 +72,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
         「{beat.ask}」 영어로?
       </p>
       {said && (
-        <p key={`punch-${step.n}`} className="absolute bottom-2 left-2 animate-[rise_240ms_ease-out_400ms_both] bg-gold px-2 py-1 font-pixel text-[15px] leading-none text-ink">
+        <p key={`punch-${step.n}`} className="absolute bottom-2 left-2 animate-[rise_240ms_var(--ease-snap)_400ms_both] bg-gold px-2 py-1 font-pixel text-[15px] leading-none text-ink">
           → {beat.punch}
         </p>
       )}

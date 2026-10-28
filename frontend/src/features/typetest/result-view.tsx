@@ -164,7 +164,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
         </h1>
         <p className="mt-1.5 text-[15px] leading-snug text-ink-subtle">{t.tagline}</p>
         <div className="mt-3 flex items-baseline gap-2.5">
-          <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel text-[12px] leading-none text-paper">자주 하는 말</span>
+          <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">자주 하는 말</span>
           <p className="font-line text-[20px] leading-snug">{t.says}</p>
         </div>
         {kinds && (

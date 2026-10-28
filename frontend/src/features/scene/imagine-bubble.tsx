@@ -13,7 +13,7 @@ export function ImagineBubble({ icon, caption, reduced }: { icon: string; captio
       <div className="blk-frame-sm">
         <div className="blk flex items-center gap-2 bg-[#f6f4ee] px-2.5 py-1.5">
           <RewardIcon id={icon} size={32} />
-          <span className="font-pixel text-[13px] leading-tight text-[#141317]">{caption}</span>
+          <span className="font-pixel text-[15px] leading-tight text-[#141317]">{caption}</span>
         </div>
       </div>
       <span aria-hidden className="absolute -bottom-2 right-5 size-2 bg-[#f6f4ee] outline outline-2 outline-[#141317]" />

@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { EntryLink } from "@/features/scene/block-ui";
+import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { TRAP_LABELS, type Trap } from "@/features/scene/types";
 import type { BookEntry, ExpressionPair } from "./pairs";
 
 export function Mark({ good }: { good: boolean }) {
   return (
-    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-pixel text-[12px] leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
+    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-pixel text-[15px] leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
       {good ? "O" : "X"}
     </span>
   );
@@ -37,7 +37,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
           <Mark good />
         </span>
         {hidden ? (
-          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border-2 border-dashed border-ink/30 px-2 text-left font-pixel text-[13px] text-ink-subtle">
+          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border-2 border-dashed border-ink/30 px-2 text-left font-pixel text-[15px] text-ink-subtle">
             눌러서 보기
           </button>
         ) : (
@@ -58,9 +58,38 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
         {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
       </p>
       {!hidden && pair.sources && pair.sources.length > 0 && (
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-subtle">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-subtle">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
       )}
     </li>
+  );
+}
+
+// 처음 온 사람이 빈 화면에서 멈추지 않게, 첫 장면으로 가는 메인 버튼과 모으게 될 표현 몇 개를 영어만 가린 채 보여 준다.
+// 미리 보기는 첫 10화를 스포하지 않게 그 뒤 장면에서 고른다
+function EmptyBook({ entries }: { entries: BookEntry[] }) {
+  const first = entries[0];
+  const peek = entries.slice(10).flatMap((e) => e.pairs.slice(0, 1)).slice(0, 3);
+  return (
+    <>
+      <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">장면을 해 보면 &lsquo;이럴 땐 영어로 이렇게&rsquo;가 여기 모여요.</p>
+      {first && (
+        <BlockLink href={`/scenes/${first.number}`} entry="home" primary className="mt-5">
+          첫 장면 하러 가기
+        </BlockLink>
+      )}
+      {peek.length > 0 && (
+        <div className="blk-frame mt-8" aria-hidden>
+          <ul className="blk divide-y-2 divide-ink/10 bg-cream px-4 text-ink">
+            {peek.map((p) => (
+              <li key={`${p.who}:${p.right}`} className="py-3">
+                <p className="text-[14px] text-ink-muted">{p.intent}</p>
+                <p className="mt-1 select-none font-line text-[20px] leading-snug blur-[6px]">{p.right}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -95,7 +124,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
       </div>
 
       {count === 0 ? (
-        <p className="mt-3 text-[14px] text-paper-muted">장면을 해 보면 표현이 여기 모여요.</p>
+        <EmptyBook entries={entries} />
       ) : (
         <>
           <div className="mt-4 flex gap-2">
@@ -125,7 +154,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
                   type="button"
                   onClick={() => setTrap(t)}
                   aria-pressed={trap === t}
-                  className={`min-h-9 shrink-0 border-2 px-3 font-pixel text-[13px] ${trap === t ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
+                  className={`min-h-9 shrink-0 border-2 px-3 font-pixel text-[15px] ${trap === t ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
                 >
                   {t ? TRAP_LABELS[t] : "전체"}
                 </button>
@@ -141,7 +170,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
                 <section key={entry.id}>
                   <div className="mb-1.5 flex items-center justify-between gap-2">
                     <h2 className="min-w-0 truncate font-pixel text-[15px] text-paper">{entry.title}</h2>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="-mr-1 flex min-h-9 shrink-0 items-center gap-1.5 px-1 font-pixel text-[13px] text-paper-subtle hover:text-paper">
+                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="-mr-1 flex min-h-9 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-subtle hover:text-paper">
                       다시 하기
                       <Arrow />
                     </EntryLink>
@@ -161,7 +190,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
         </>
       )}
 
-      {lockedCount > 0 && (
+      {lockedCount > 0 && count > 0 && (
         <Link href="/scenes" className="blk-btn mt-8 block">
           <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
             <span>

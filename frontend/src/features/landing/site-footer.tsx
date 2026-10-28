@@ -17,7 +17,7 @@ export function SiteFooter() {
             <span className="block font-pixel text-[15px]">이상한 영어를 발견했나요?</span>
             <span className="block text-[13px] text-paper-subtle">알려 주시면 바로 고칠게요</span>
           </span>
-          <span className="shrink-0 font-pixel text-[13px] text-gold">알려 주기 ›</span>
+          <span className="shrink-0 font-pixel text-[15px] text-gold">알려 주기 ›</span>
         </span>
       </button>
       <div className="border-t border-slate-block pt-3 md:flex md:items-center md:justify-between md:gap-4 md:pt-4">

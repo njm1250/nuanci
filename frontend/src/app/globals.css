@@ -90,6 +90,15 @@ body {
   font-family: var(--font-sans);
   letter-spacing: -0.01em;
 }
+/* 픽셀 글꼴은 글자 사이가 정수 픽셀이어야 획이 고르게 보여서, 본문의 소수 자간을 물려받지 않는다 */
+.font-pixel,
+.font-pixel-title {
+  letter-spacing: 0;
+}
+:root {
+  /* 등장 애니메이션 곡선. 기본 ease-out보다 처음에 빨리 나왔다가 부드럽게 멈춘다 */
+  --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
+}
 
 /* 스크롤 영역의 스크롤바를 얇게, 배경에 묻히게 */
 .scroll-area {
@@ -132,11 +141,19 @@ body {
   filter: drop-shadow(2px 0 0 var(--color-ink)) drop-shadow(-2px 0 0 var(--color-ink)) drop-shadow(0 2px 0 var(--color-ink)) drop-shadow(0 -2px 0 var(--color-ink));
 }
 
+/* 밑단 두께도 버튼 면과 같이 움직이게 애니메이션되는 값으로 등록한다 */
+@property --lift {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 4px;
+}
 /* 아래쪽 두께가 있어서 누르면 블록처럼 내려가는 버튼. 마우스는 올리면 반쯤, 누르면 끝까지 내려간다. 두께(--lift)만큼 밑단 색 블록을 아래로 내려 깔고, 테두리도 그만큼 길게 그린다 */
 .blk-btn {
   --edge: #bdbab2;
   --lift: 4px;
-  transition: transform 60ms;
+  transition:
+    transform 80ms var(--ease-snap),
+    --lift 80ms var(--ease-snap);
 }
 .blk-btn::before {
   bottom: calc(-3px - var(--lift));
@@ -416,11 +433,13 @@ body {
   }
 }
 
+/* 움직임 줄이기: 다 끄면 판정 색 번짐처럼 뜻이 있는 변화까지 사라져서, 모든 움직임을 0.15초 한 번으로 줄인다 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
   }
 }

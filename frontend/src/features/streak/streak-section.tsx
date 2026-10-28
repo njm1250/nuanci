@@ -74,7 +74,7 @@ export function StreakSection({ member }: { member: boolean }) {
                   const body = (
                     <>
                       <Medal days={days} size={32} />
-                      <span className="font-pixel text-[12px] leading-none">{days}일</span>
+                      <span className="font-pixel text-[15px] leading-none">{days}일</span>
                     </>
                   );
                   const tile = `relative flex size-14 flex-col items-center justify-center gap-1 ${on ? "bg-gold outline outline-2 outline-ink" : "bg-ink/5"}`;

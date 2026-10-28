@@ -182,7 +182,7 @@ export function RewardCard({
               ))}
           </div>
           <div className="min-w-0 flex-1 self-start">
-            <p className={`font-pixel text-[13px] ${tone.muted}`}>새 물건</p>
+            <p className={`font-pixel text-[15px] ${tone.muted}`}>새 물건</p>
             <p className={`truncate font-pixel-title leading-[1.25] ${tone.name}`}>{item.name}</p>
             <p className={`truncate text-[12px] ${tone.muted}`}>{ownedReason(owned, sceneTitle)}</p>
           </div>
