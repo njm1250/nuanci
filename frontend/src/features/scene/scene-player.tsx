@@ -96,7 +96,7 @@ function Question({ name, line, intent, className = "" }: { name: string; line: 
   return (
     <div className={`grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1 ${className}`}>
       <span className={tag}>{name}</span>
-      <p className="font-line text-[21px] leading-snug text-paper">{line}</p>
+      <p className="font-line text-[21px] leading-snug text-paper md:text-[23px]">{line}</p>
       <span className={tag}>나</span>
       <p className="font-pixel text-[15px] leading-snug text-paper">{intent}</p>
     </div>
@@ -197,7 +197,7 @@ function ResultBody({
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="font-line text-[20px] leading-snug">{choice.line}</span>
+          <span className="font-line text-[20px] leading-snug md:text-[22px]">{choice.line}</span>
           <span className="flex shrink-0 items-center gap-1.5 pt-1">
             {showTrap && <TrapChip choice={choice} />}
             {revealed && <VerdictStamp key={verdictKey} choice={choice} pop={active} />}
@@ -743,7 +743,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                     <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} />
                       <span className="min-w-0 flex-1">
-                        <span className="block font-line text-[20px] leading-snug">{c.line}</span>
+                        <span className="block font-line text-[20px] leading-snug md:text-[22px]">{c.line}</span>
                         {showMeaning && <span className="mt-0.5 block text-[14px] text-ink-subtle">{c.meaning}</span>}
                       </span>
                       {preview && (

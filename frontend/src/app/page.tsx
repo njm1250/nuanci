@@ -30,7 +30,7 @@ export default async function Home() {
   return (
     <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep md:bg-night">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
-      <main className="flex min-h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:min-h-0 md:self-start md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_auto_1fr_auto_auto] md:content-start md:gap-x-10 md:px-8 md:pb-10">
+      <main className="flex min-h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:min-h-dvh md:max-w-[1080px] md:grid-cols-[minmax(0,1fr)_400px] md:grid-rows-[auto_auto_1fr_auto_auto] md:pt-[max(0px,calc((100dvh_-_560px)/2))] returning:md:pt-0 md:gap-x-10 md:px-8 md:pb-10">
         <header className="order-1 flex h-12 shrink-0 items-center px-4 md:order-none md:col-span-2 md:h-16 md:px-0">
           <p className="font-pixel text-[15px] text-paper">
             <span className="hl">nuanci</span>

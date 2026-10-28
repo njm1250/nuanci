@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { EntryLink } from "@/features/scene/block-ui";
+import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { TRAP_LABELS, type Trap } from "@/features/scene/types";
 import type { BookEntry, ExpressionPair } from "./pairs";
@@ -64,6 +64,35 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
   );
 }
 
+// 처음 온 사람이 빈 화면에서 멈추지 않게, 첫 장면으로 가는 메인 버튼과 모으게 될 표현 몇 개를 영어만 가린 채 보여 준다.
+// 미리 보기는 첫 10화를 스포하지 않게 그 뒤 장면에서 고른다
+function EmptyBook({ entries }: { entries: BookEntry[] }) {
+  const first = entries[0];
+  const peek = entries.slice(10).flatMap((e) => e.pairs.slice(0, 1)).slice(0, 3);
+  return (
+    <>
+      <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">장면을 해 보면 &lsquo;이럴 땐 영어로 이렇게&rsquo;가 여기 모여요.</p>
+      {first && (
+        <BlockLink href={`/scenes/${first.number}`} entry="home" primary className="mt-5">
+          첫 장면 하러 가기
+        </BlockLink>
+      )}
+      {peek.length > 0 && (
+        <div className="blk-frame mt-8" aria-hidden>
+          <ul className="blk divide-y-2 divide-ink/10 bg-cream px-4 text-ink">
+            {peek.map((p) => (
+              <li key={`${p.who}:${p.right}`} className="py-3">
+                <p className="text-[14px] text-ink-muted">{p.intent}</p>
+                <p className="mt-1 select-none font-line text-[20px] leading-snug blur-[6px]">{p.right}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  );
+}
+
 // 끝낸 장면에서 모은 표현을 최근에 한 장면부터 보여준다. 찾기, 틀리는 이유별로 거르기, 영어 가리고 복습하기를 한 화면에서 한다.
 // 안 해 본 장면은 칸을 늘어놓지 않고 장면 목록으로 보내는 한 줄로 줄인다
 export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
@@ -95,7 +124,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
       </div>
 
       {count === 0 ? (
-        <p className="mt-3 text-[14px] text-paper-muted">장면을 해 보면 표현이 여기 모여요.</p>
+        <EmptyBook entries={entries} />
       ) : (
         <>
           <div className="mt-4 flex gap-2">
@@ -161,7 +190,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
         </>
       )}
 
-      {lockedCount > 0 && (
+      {lockedCount > 0 && count > 0 && (
         <Link href="/scenes" className="blk-btn mt-8 block">
           <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
             <span>
