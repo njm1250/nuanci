@@ -216,7 +216,7 @@ const SETTLE_MS = 2500;
 function useBusy(spec: StageSpec, state: StageState | undefined, reduced: boolean) {
   // 말풍선 그림(meNote)은 React 요소라 글자로 바꿀 수 없어서 빼고, 대신 meNoteKey로 바뀐 것을 안다
   const busyKey = JSON.stringify([spec, state], (key, value) => (key === "meNote" ? undefined : value));
-  const looping = !reduced && (LOOPING.has(state?.partnerMotion ?? "idle") || LOOPING.has(state?.meMotion ?? "idle"));
+  const looping = !reduced || LOOPING.has(state?.partnerMotion ?? "idle") || LOOPING.has(state?.meMotion ?? "idle");
   const [settled, setSettled] = useState<string | null>(null);
   useEffect(() => {
     if (looping) return;
@@ -326,6 +326,7 @@ export function PixelStage({
           talkKey={0}
           reduced={reduced}
           prop={state?.partnerProp}
+          expression={state?.reaction}
         />
       </Canvas>
 
