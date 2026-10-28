@@ -3,6 +3,7 @@
 import { C } from "./palette";
 import { Box, Cyl, Flat, Gem } from "./primitives";
 import type { Decor, DecorId } from "./types";
+import { PixOval, PixRect } from "./wear";
 
 // 무대에 붙이는 소품 스티커. 세트마다 기본으로 몇 개씩 놓이고, 장면 JSON의 stage.decor에 id와 x만 적으면 더 붙는다.
 // 벽에 거는 것은 (x, y)가 가운데, 바닥이나 가구 위에 두는 것은 (x, y)가 밑면 가운데다. y·z를 비우면 소품마다 정한 기본 자리에 놓인다
@@ -337,23 +338,26 @@ function Tambourine({ x, y, z }: At) {
   );
 }
 
-// 장면마다 어딘가 숨어 있는 nuanci 고양이 Mochi
+// 장면마다 어딘가 숨어 있는 nuanci 고양이 Mochi (2.5D 도트 치비 스타일)
 function MochiCameo({ x, y, z }: At) {
-  return (
-    <>
-      <Box size={[0.04, 0.22, 0.04]} at={[x + 0.14, y + 0.14, z - 0.04]} color={FUR} rot={[0, 0, -0.5]} />
-      <Gem r={0.13} at={[x, y + 0.13, z]} color={FUR} scale={[1, 1.1, 0.9]} />
-      <Box size={[0.22, 0.17, 0.17]} at={[x, y + 0.33, z + 0.02]} color={FUR} />
-      {[-1, 1].map((s) => (
-        <group key={s}>
-          <Box size={[0.06, 0.07, 0.05]} at={[x + 0.07 * s, y + 0.44, z + 0.02]} color={FUR} />
-          <Box size={[0.03, 0.04, 0.01]} at={[x + 0.07 * s, y + 0.44, z + 0.05]} color="#ffd9b8" />
-          <Box size={[0.03, 0.035, 0.01]} at={[x + 0.05 * s, y + 0.34, z + 0.11]} color={C.ink} />
+    return (
+        <group position={[x, y, z]}>
+            <PixRect w={0.04} h={0.22} at={[0.14, 0.14, -0.02]} color={FUR} rot={-0.45} outlineZ={-0.045} />
+            <PixOval rx={0.13} ry={0.12} at={[0, 0.13, 0]} color={FUR} outlineZ={-0.04} />
+            <PixOval rx={0.07} ry={0.07} at={[0, 0.11, 0.02]} color="#fff5e8" outline={false} />
+            <PixOval rx={0.16} ry={0.13} at={[0, 0.34, 0.02]} color={FUR} outlineZ={-0.035} />
+            {[-1, 1].map((s) => (
+                <group key={s}>
+                    <PixRect w={0.08} h={0.09} at={[0.09 * s, 0.46, 0.01]} color={FUR} outlineZ={-0.04} />
+                    <PixRect w={0.04} h={0.05} at={[0.09 * s, 0.45, 0.03]} color="#ff9ebb" outline={false} />
+                    <PixRect w={0.056} h={0.072} at={[0.068 * s, 0.34, 0.05]} color={C.ink} outline={false} />
+                    <PixRect w={0.028} h={0.028} at={[0.068 * s - 0.012, 0.355, 0.06]} color="#ffffff" outline={false} />
+                    <PixRect w={0.056} h={0.028} at={[0.105 * s, 0.295, 0.05]} color="#ff7aa2" outline={false} />
+                </group>
+            ))}
+            <PixRect w={0.035} h={0.028} at={[0, 0.3, 0.05]} color="#ff7aa2" outline={false} />
         </group>
-      ))}
-      <Box size={[0.03, 0.02, 0.01]} at={[x, y + 0.3, z + 0.11]} color="#f08aa8" />
-    </>
-  );
+    );
 }
 
 // 여러 장면에 숨어 있는 푸딩. '사라진 푸딩'의 범인을 찾는 이스터에그
