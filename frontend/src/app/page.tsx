@@ -37,11 +37,11 @@ export default async function Home() {
           </p>
           <div className="-mr-2 ml-auto flex items-center">
             {/* 테스트 입구는 머리줄에 작게 둔다. 첫 화면에서 '사고 치러 가기'와 시선을 나눠 갖지 않게 한다 */}
-            <Link href="/test" className="flex h-11 items-center px-1.5">
-              <span className="border-2 border-paper-subtle px-2 py-1 font-pixel text-[13px] leading-none text-paper hover:border-paper">유형 테스트</span>
+            <Link href="/test" className="flex h-11 items-center px-1.5 active:opacity-70">
+              <span className="border-2 border-paper-subtle px-2 py-1 font-pixel text-[15px] leading-none text-paper hover:border-paper">유형 테스트</span>
             </Link>
             <StreakChip />
-            <Link href="/me" aria-label="내 정보" className="grid size-11 place-items-center text-paper-muted hover:text-paper">
+            <Link href="/me" aria-label="내 정보" className="grid size-11 place-items-center text-paper-muted hover:text-paper active:opacity-70">
               <svg width="20" height="20" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="currentColor" aria-hidden>
                 <path d="M3 1h4v1h1v3H7v1H3V5H2V2h1zM1 7h8v1h1v2H0V8h1z" />
               </svg>
@@ -60,7 +60,7 @@ export default async function Home() {
         )}
 
         <section className="order-4 px-4 pt-6 md:order-none md:px-0 md:pt-2 returning:hidden">
-          <h1 className="font-pixel-title text-[24px] leading-[1.25]">
+          <h1 className="font-pixel-title text-[24px] leading-[1.25] md:text-[48px]">
             직역하면
             <br />
             <span className="hl">사고 나는</span> 순간들

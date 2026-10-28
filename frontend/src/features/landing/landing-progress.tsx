@@ -86,7 +86,7 @@ function SceneCard({ scene, done, fresh = false, label, next = false }: { scene:
             {scene.relation} · {scene.place}
           </span>
         </span>
-        {next ? <span className="shrink-0 border-2 border-ink px-1.5 py-0.5 font-pixel text-[13px] leading-none">다음</span> : fresh && <NewChip />}
+        {next ? <span className="shrink-0 border-2 border-ink px-1.5 py-0.5 font-pixel text-[15px] leading-none">다음</span> : fresh && <NewChip />}
       </span>
     </EntryLink>
   );
@@ -97,7 +97,7 @@ function LockedSceneCard({ scene, label }: { scene: ShelfScene; label: string })
   return (
     <div aria-disabled="true" className="blk-frame h-full opacity-50">
       <span className="blk flex h-full items-center gap-3 bg-cream p-2 pr-3 text-ink">
-        <span className="grid aspect-[4/3] w-[84px] shrink-0 place-items-center border-2 border-dashed border-ink/40 font-pixel text-[13px] text-ink-subtle">잠김</span>
+        <span className="grid aspect-[4/3] w-[84px] shrink-0 place-items-center border-2 border-dashed border-ink/40 font-pixel text-[15px] text-ink-subtle">잠김</span>
         <span className="min-w-0 flex-1">
           <span className="block font-pixel text-[15px] leading-none text-ink-subtle">{label}</span>
           <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">{scene.title}</span>
@@ -406,7 +406,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                 type="button"
                 onClick={() => setOnly(label)}
                 aria-pressed={only === label}
-                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[13px] ${only === label ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
+                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[15px] ${only === label ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
               >
                 {label ?? "전체"}
               </button>

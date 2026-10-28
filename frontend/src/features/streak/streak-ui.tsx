@@ -46,7 +46,7 @@ export function badgeLabel(days: number) {
 // 이름 옆에 다는 연속 기록 뱃지. 작은 메달과 날 수만 보여준다
 export function StreakBadge({ days }: { days: number }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 font-pixel text-[13px] leading-none text-ink" aria-label={badgeLabel(days)}>
+    <span className="inline-flex shrink-0 items-center gap-1 font-pixel text-[15px] leading-none text-ink" aria-label={badgeLabel(days)}>
       <Medal days={days} size={16} />
       {days}일
     </span>
@@ -65,7 +65,7 @@ export function StreakMomentCard({ current, newBadge, reduced, delay }: { curren
         <span className="ml-2 font-sans text-[13px] text-paper-subtle">내일도 하면 {current + 1}일</span>
       </p>
       {newBadge && (
-        <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[13px] text-gold" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 380}ms both` }}>
+        <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-gold" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 380}ms both` }}>
           <Medal days={newBadge} size={22} />
           새 뱃지
         </span>

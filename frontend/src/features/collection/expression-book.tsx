@@ -9,7 +9,7 @@ import type { BookEntry, ExpressionPair } from "./pairs";
 
 export function Mark({ good }: { good: boolean }) {
   return (
-    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-pixel text-[12px] leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
+    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-pixel text-[15px] leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
       {good ? "O" : "X"}
     </span>
   );
@@ -37,7 +37,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
           <Mark good />
         </span>
         {hidden ? (
-          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border-2 border-dashed border-ink/30 px-2 text-left font-pixel text-[13px] text-ink-subtle">
+          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border-2 border-dashed border-ink/30 px-2 text-left font-pixel text-[15px] text-ink-subtle">
             눌러서 보기
           </button>
         ) : (
@@ -58,7 +58,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
         {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
       </p>
       {!hidden && pair.sources && pair.sources.length > 0 && (
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-subtle">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-subtle">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
       )}
     </li>
   );
@@ -125,7 +125,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
                   type="button"
                   onClick={() => setTrap(t)}
                   aria-pressed={trap === t}
-                  className={`min-h-9 shrink-0 border-2 px-3 font-pixel text-[13px] ${trap === t ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
+                  className={`min-h-9 shrink-0 border-2 px-3 font-pixel text-[15px] ${trap === t ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
                 >
                   {t ? TRAP_LABELS[t] : "전체"}
                 </button>
@@ -141,7 +141,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
                 <section key={entry.id}>
                   <div className="mb-1.5 flex items-center justify-between gap-2">
                     <h2 className="min-w-0 truncate font-pixel text-[15px] text-paper">{entry.title}</h2>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="-mr-1 flex min-h-9 shrink-0 items-center gap-1.5 px-1 font-pixel text-[13px] text-paper-subtle hover:text-paper">
+                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="-mr-1 flex min-h-9 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-subtle hover:text-paper">
                       다시 하기
                       <Arrow />
                     </EntryLink>

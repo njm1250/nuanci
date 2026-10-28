@@ -56,10 +56,10 @@ export function ReviewToday() {
         <div key={card.id} className="blk animate-[fade-in_200ms] bg-cream p-4 text-ink">
           <p className="text-[12px] text-ink-subtle">{card.title}</p>
           <div className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1">
-            <span className="justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper">{card.partnerName}</span>
+            <span className="justify-self-start bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">{card.partnerName}</span>
             <p className="font-line text-[19px] leading-snug">{card.partnerLine}</p>
-            <span className="justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper">나</span>
-            <p className="font-pixel text-[14px] leading-snug">{card.intent}</p>
+            <span className="justify-self-start bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">나</span>
+            <p className="font-pixel text-[15px] leading-snug">{card.intent}</p>
           </div>
           {!revealed ? (
             <>

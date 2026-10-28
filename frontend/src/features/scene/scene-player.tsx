@@ -92,7 +92,7 @@ function SoundToggle() {
 
 // 이 장면의 질문: 상대가 한 말과 내가 하고 싶은 말. 무대 말풍선은 작아서 상대 말을 여기서 가장 크게 다시 보여주고, 내 마음은 한 단계 작게 둔다
 function Question({ name, line, intent, className = "" }: { name: string; line: string; intent: string; className?: string }) {
-  const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
+  const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper";
   return (
     <div className={`grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1 ${className}`}>
       <span className={tag}>{name}</span>
@@ -116,7 +116,7 @@ function Caret({ open }: { open: boolean }) {
 function HiddenReaction() {
   return (
     <span className="mt-1.5 flex items-center gap-2 text-[14px] leading-snug text-ink-subtle">
-      <span className="grid size-[18px] shrink-0 place-items-center border-2 border-ink-subtle font-pixel text-[12px] leading-none">?</span>
+      <span className="grid size-[18px] shrink-0 place-items-center border-2 border-ink-subtle font-pixel text-[15px] leading-none">?</span>
       반응 보기
     </span>
   );
@@ -289,7 +289,7 @@ function WrapUp({
     sfx.streak((STREAK_DELAY + 120) / 1000);
   }, [streak]);
   return (
-    <div className="animate-[rise_240ms_ease-out]">
+    <div className="animate-[rise_240ms_var(--ease-snap)]">
       <div className="flex items-end gap-3">
         <Mascot scale={3} className="shrink-0" />
         <div className="pb-1">
@@ -368,12 +368,12 @@ function BeatDots({ total, at }: { total: number; at: number }) {
 // 빌드업·이음 대사가 흐르는 동안 무대 아래에 쌓이는 대화 기록. 질문이 나오면 사라지고 지금의 질문 화면으로 돌아간다
 // 번역은 영어 줄 아래에 작고 흐리게 같이 띄워서, 눈을 여러 번 옮기지 않고도 영어가 먼저 읽히게 한다. 상황 묘사("……")는 번역이 아니라서 번역을 꺼도 보인다
 function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName: string; translate: boolean }) {
-  const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[13px] leading-none text-paper";
+  const tag = "shrink-0 justify-self-start bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper";
   return (
     <div>
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2.5">
         {beats.map((b, i) => (
-          <div key={i} className="col-span-2 grid animate-[rise_200ms_ease-out_both] grid-cols-subgrid items-baseline">
+          <div key={i} className="col-span-2 grid animate-[rise_200ms_var(--ease-snap)_both] grid-cols-subgrid items-baseline">
             <span className={tag}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</span>
             {b.line === "……" ? (
               <p className="min-w-0 text-[15px] leading-snug text-paper-muted">{b.meaning}</p>
@@ -693,11 +693,11 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
 
         <section ref={scroller} className="scroll-area min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2 md:px-1 md:pt-0 md:[mask-image:none]">
           {phase === "transition" && timeCue ? (
-            <p key="time" className="animate-[rise_220ms_ease-out] pt-6 text-center font-pixel-title text-[28px] text-paper">
+            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-pixel-title text-[28px] text-paper">
               {timeCue}…
             </p>
           ) : phase === "transition" ? (
-            <Panel key="transition" className="animate-[rise_220ms_ease-out]">
+            <Panel key="transition" className="animate-[rise_220ms_var(--ease-snap)]">
               <div className="p-5">
                 <p className="font-pixel text-[15px] text-rust">만약에…</p>
                 <p className="mt-1.5 font-pixel-title text-[24px] leading-[1.25]">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
@@ -732,14 +732,14 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             // 고르는 동안 질문이 계속 보이고, 작은 폰(375×667)에서도 선택지 세 개가 스크롤 없이 들어오게 높이를 맞춘다
             <div key={`ask-${phase}`}>
               <p className="text-[14px] leading-normal text-paper-muted">{situation.context}</p>
-              <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-[rise_220ms_ease-out_both]" />
+              <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-[rise_220ms_var(--ease-snap)_both]" />
               {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게 형광펜으로 묻는다 */}
-              <p className="mt-3.5 animate-[rise_220ms_ease-out_both] font-pixel text-[15px] [animation-delay:200ms]">
+              <p className="mt-3.5 animate-[rise_220ms_var(--ease-snap)_both] font-pixel text-[15px] [animation-delay:200ms]">
                 <span className="hl">너라면 뭐라고 할래?</span>
               </p>
               <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-[rise_220ms_ease-out_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
+                  <li key={c.id} className="animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
                     <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} />
                       <span className="min-w-0 flex-1">
@@ -763,7 +763,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               <p className="mt-4 font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-[rise_240ms_ease-out_both]" style={{ animationDelay: `${i * 70}ms` }}>
+                  <li key={c.id} className="animate-[rise_240ms_var(--ease-snap)_both]" style={{ animationDelay: `${i * 70}ms` }}>
                     {c.id === choice.id ? (
                       <Panel dark>
                         <div className="relative overflow-hidden px-3 py-3" aria-current="true">
@@ -797,7 +797,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               </ul>
               {/* 표현 출처는 선택지 카드마다가 아니라 이 상황에 한 번, 목록 아래에 작게 둔다 */}
               {situation.sources && situation.sources.length > 0 && (
-                <p className="mt-3 text-[11px] leading-relaxed text-paper-subtle">출처 · {situation.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
+                <p className="mt-3 text-[12px] leading-relaxed text-paper-subtle">출처 · {situation.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
               )}
               {f.done && preview && (
                 <div className="blk mt-6 bg-night-deep px-4 py-3">

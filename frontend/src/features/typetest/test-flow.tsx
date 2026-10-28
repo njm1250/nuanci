@@ -191,7 +191,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
       </div>
       {!relaxed && <Timer key={index} paused={shown !== null} onTimeout={() => answer(null)} />}
 
-      <div key={`q-${index}`} className="mt-5 animate-[rise_220ms_ease-out_both]">
+      <div key={`q-${index}`} className="mt-5 animate-[rise_220ms_var(--ease-snap)_both]">
         <p className="flex items-center gap-2 font-pixel text-[15px] text-paper-subtle">
           <span className="bg-ink px-1.5 py-1 text-[12px] leading-none text-paper">{q.partnerName}</span>
           {q.sceneTitle}
@@ -200,7 +200,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
           <p className="blk bg-card px-4 py-3 font-line text-[24px] leading-snug text-ink">{q.partnerLine}</p>
         </div>
         <div className="mt-3 flex items-baseline gap-2.5">
-          <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel text-[12px] leading-none text-paper">나</span>
+          <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">나</span>
           <p className="font-pixel text-[15px] leading-snug">{q.intent}</p>
         </div>
       </div>
@@ -209,7 +209,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
         {q.choices.map((c, i) => {
           const mine = shown?.choice?.id === c.id;
           return (
-            <li key={`${index}-${c.id}`} className="relative animate-[rise_220ms_ease-out_both]" style={{ animationDelay: `${150 + i * 60}ms` }}>
+            <li key={`${index}-${c.id}`} className="relative animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${150 + i * 60}ms` }}>
               <BlockButton onClick={() => answer(c)} className={`w-full text-left ${shown && !mine ? "opacity-40" : ""}`} faceClassName="flex items-center gap-3">
                 <span className="grid size-7 shrink-0 place-items-center bg-ink font-pixel text-[15px] text-paper">{i + 1}</span>
                 <span className="min-w-0 flex-1 font-line text-[20px] leading-snug">{c.line}</span>

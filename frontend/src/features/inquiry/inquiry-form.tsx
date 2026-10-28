@@ -99,7 +99,7 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
                     role="radio"
                     aria-checked={kind === k.id}
                     onClick={() => setKind(k.id)}
-                    className={`blk min-h-11 px-1 font-pixel text-[13px] ${kind === k.id ? "bg-ink text-paper" : "bg-cream text-ink ring-2 ring-inset ring-ink/15"}`}
+                    className={`blk min-h-11 px-1 font-pixel text-[15px] ${kind === k.id ? "bg-ink text-paper" : "bg-cream text-ink ring-2 ring-inset ring-ink/15"}`}
                   >
                     {k.label}
                   </button>
