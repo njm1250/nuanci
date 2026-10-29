@@ -26,7 +26,7 @@ const counterLift = (p: Placement) => ((p.z ?? 0) < -0.4 ? 0.34 : 0);
 
 // 동물 캐릭터는 머리가 크고 귀가 솟아 있어서 말풍선을 조금 더 위에 띄운다
 export const headTop = (p: Placement, look?: Look) =>
-    HIP[p.posture] + counterLift(p) + (look?.animal ? 1.38 : 1.34);
+    HIP[p.posture] + counterLift(p) + (look?.animal ? 1.43 : 1.41);
 
 function shiftColor(hex: string, amount: number): string {
     const c = new THREE.Color(hex);
@@ -117,7 +117,7 @@ export function Figure({
     const lBrowRef = useRef<THREE.Mesh>(null!);
     const rBrowRef = useRef<THREE.Mesh>(null!);
     const sweatRef = useRef<THREE.Group>(null!);
-    const mouthClosedRef = useRef<THREE.Mesh>(null!);
+    const mouthClosedRef = useRef<THREE.Group>(null!);
     const mouthOpenRef = useRef<THREE.Group>(null!);
     const mouthShockRef = useRef<THREE.Mesh>(null!);
 
@@ -490,7 +490,7 @@ export function Figure({
                             3. 머리 (2등신 찹쌀떡 도트 헤드):
                                모든 외곽선은 z = -0.035에 깔리고 얼굴·눈·머리카락은 앞쪽 평면에 선명하게 배치
                            ========================================================= */}
-                        <group ref={head} position={[0, torsoH + 0.35, 0.02]} scale={animal ? 1.12 : 1.08}>
+                        <group ref={head} position={[0, torsoH + 0.37, 0.02]} scale={animal ? 1.16 : 1.14}>
                             {/* 긴 머리 뒷머리 레이어 (얼굴 뒤쪽) */}
                             {look.hairStyle === "long" && (
                                 <PixRect w={0.78} h={0.48} at={[0, -0.14, -0.02]} color={look.hair} outlineZ={-0.03} />
@@ -661,9 +661,9 @@ export function Figure({
                                 {[-1, 1].map((s) => (
                                     <PixRect
                                         key={`blush${s}`}
-                                        w={0.115}
-                                        h={0.052}
-                                        at={[0.245 * s, -0.115, 0]}
+                                        w={0.135}
+                                        h={0.062}
+                                        at={[0.26 * s, -0.135, 0]}
                                         color={BLUSH}
                                         outline={false}
                                     />
@@ -684,9 +684,10 @@ export function Figure({
                                 {/* (A) 기본 초롱초롱 도트 눈 (숨쉬기 중에도 검은 눈 테두리 안에 안정적으로 자리잡는 화이트 안광) */}
                                 <group ref={normalEyesRef}>
                                     {[-1, 1].map((s) => (
-                                        <group key={`eye${s}`} position={[0.155 * s, -0.042, 0.005]}>
-                                            <PixRect w={0.114} h={0.162} at={[0, 0, 0]} color={INK} outline={false} />
-                                            <PixRect w={0.046} h={0.048} at={[0.014 * dir, 0.018, 0.005]} color="#ffffff" outline={false} />
+                                        <group key={`eye${s}`} position={[0.165 * s, -0.055, 0.005]}>
+                                            <PixRect w={0.13} h={0.18} at={[0, 0, 0]} color={INK} outline={false} />
+                                            {/* 안광은 눈 한가운데 두면 1~2픽셀로 줄어 구멍 난 네모처럼 보여서, 위쪽 모서리에 붙여 반짝임으로 읽히게 한다 */}
+                                            <PixRect w={0.052} h={0.056} at={[0.028 * dir, 0.05, 0.005]} color="#ffffff" outline={false} />
                                         </group>
                                     ))}
                                 </group>
@@ -720,8 +721,9 @@ export function Figure({
                                 <group ref={shockedEyesRef} visible={false}>
                                     {[-1, 1].map((s) => (
                                         <group key={`shk${s}`} position={[0.16 * s, -0.04, 0.005]}>
-                                            <PixRect w={0.125} h={0.15} at={[0, 0, 0]} color="#ffffff" outlineZ={-0.005} />
-                                            <PixRect w={0.05} h={0.054} at={[0, 0, 0.006]} color={INK} outline={false} />
+                                            {/* 동공이 1픽셀이면 흰 네모만 보여서, 동공을 키워 아래쪽에 붙인다. 놀라 동그래진 눈으로 읽힌다 */}
+                                            <PixRect w={0.14} h={0.17} at={[0, 0, 0]} color="#ffffff" outlineZ={-0.005} />
+                                            <PixRect w={0.075} h={0.085} at={[0.012 * dir, -0.028, 0.006]} color={INK} outline={false} />
                                         </group>
                                     ))}
                                 </group>
@@ -765,10 +767,13 @@ export function Figure({
                                 </group>
 
                                 {/* 도트 입: 양 볼터치 바로 사이에 앙증맞게 배치 */}
-                                <mesh ref={mouthClosedRef} position={[0, -0.115, 0.01]}>
-                                    <boxGeometry args={[0.065, 0.032, 0.01]} />
-                                    <meshBasicMaterial color={INK} />
-                                </mesh>
+                                {/* 기본 입: 납작한 막대 대신 양끝이 올라간 작은 미소(‿). 무표정도 순하게 웃는 얼굴로 보인다 */}
+                                <group ref={mouthClosedRef} position={[0, -0.13, 0.01]}>
+                                    <PixRect w={0.06} h={0.032} at={[0, 0, 0]} color={INK} outline={false} />
+                                    {[-1, 1].map((s) => (
+                                        <PixRect key={`smile${s}`} w={0.03} h={0.032} at={[0.042 * s, 0.026, 0]} color={INK} outline={false} />
+                                    ))}
+                                </group>
                                 <group ref={mouthOpenRef} position={[0, -0.12, 0.01]} visible={false}>
                                     <PixRect w={0.095} h={0.065} at={[0, 0, 0]} color={MOUTH} outlineZ={-0.005} />
                                 </group>
