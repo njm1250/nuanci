@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { mochiSvg } from "@/features/mascot/mochi";
-import { BlockButton, Panel } from "@/features/scene/block-ui";
+import { BlockButton, Panel, SpeakerTag } from "@/features/scene/block-ui";
 import { primeAudio, sfx } from "@/features/scene/sfx";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
 import { characterDataUrl } from "./characters";
@@ -193,14 +193,14 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
 
       <div key={`q-${index}`} className="mt-5 animate-[rise_220ms_var(--ease-snap)_both]">
         <p className="flex items-center gap-2 font-pixel text-[15px] text-paper-subtle">
-          <span className="bg-ink px-1.5 py-1 text-[12px] leading-none text-paper">{q.partnerName}</span>
+          <SpeakerTag>{q.partnerName}</SpeakerTag>
           {q.sceneTitle}
         </p>
         <div className="blk-frame mt-2">
           <p className="blk bg-card px-4 py-3 font-line text-[24px] leading-snug text-ink">{q.partnerLine}</p>
         </div>
         <div className="mt-3 flex items-baseline gap-2.5">
-          <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">나</span>
+          <SpeakerTag me>나</SpeakerTag>
           <p className="font-pixel text-[15px] leading-snug">{q.intent}</p>
         </div>
       </div>

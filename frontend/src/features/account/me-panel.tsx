@@ -177,19 +177,22 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
       <div className="space-y-6">
       <IdCard cleared={cleared.length} ranks={ranks} />
 
-      <Profile />
-
-      <StreakSection member={member} />
-
+      {/* 장면을 깨고 받은 물건을 쓰는 곳이라 내 정보에서 가장 먼저, 크게 보이게 둔다 */}
+      {/* 먹색은 사원증 머리와 겹쳐 무거워져서, 브랜드 연두로 눈에 띄게 한다 */}
       <Link href="/me/room" className="blk-btn block">
-        <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
+        <span className="blk flex items-center justify-between gap-3 bg-gold px-4 py-4 text-ink">
           <span>
-            <span className="block font-pixel text-[15px]">아지트</span>
-            <span className="block text-[13px] text-paper-subtle">주인공 꾸미기 · 물건 두기</span>
+            <span className="block font-pixel-title text-[24px] leading-tight">내 아지트</span>
+            <span className="mt-1 block text-[14px] text-ink-muted">받은 옷 입히기 · 방에 물건 두기</span>
           </span>
           <Arrow />
         </span>
       </Link>
+
+      <Profile />
+
+      <StreakSection member={member} />
+
       </div>
 
       <div className="space-y-6">
