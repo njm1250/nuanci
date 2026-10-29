@@ -7,6 +7,15 @@
  * 픽셀 폰트는 원래 크기 배수로만 쓴다: font-pixel 15px, font-pixel-title 12px·24px
  * 픽셀 폰트는 제목·버튼·짧은 라벨처럼 한 줄짜리 '게임 목소리'에만 쓰고, 두 줄 넘게 읽는 글은 Pretendard 16px로 쓴다
  * 영어 대사(선택지·말풍선·모은 표현)는 손글씨 글꼴 font-line으로 써서 사람이 한 말처럼 보이게 한다
+ *
+ * 글자 위계 (SEED 크기 단계를 따른다). 한 카드 안에서는 위계가 한 단계씩 내려갈 때마다 크기·굵기·색 중 둘 이상을 바꾼다
+ *   영어 대사  font-line 20~22px, 가장 진하게      — 이 앱의 주인공
+ *   강조 본문  16px semibold, 진하게(paper·ink)   — 상대 반응처럼 먼저 읽을 한 줄
+ *   본문      15px/1.6, 진하게                    — 왜 그런지 같은 설명. 중요하니 흐리게 두지 않는다
+ *   보조      13px, muted                        — 번역, 상황 설명
+ *   메타      12px, subtle                       — 내 선택·비율·출처
+ * 간격은 4px 단위. 같은 묶음 안은 4~8px, 묶음 사이는 12~16px, 영역 사이는 24px 이상
+ * 먹색(ink)은 가장 강한 색이라 화면마다 주요 버튼·지금 고른 것처럼 하나만 칠한다. 이름표·번호 같은 라벨에는 쓰지 않는다
  */
 /* 다시 온 방문자. layout의 인라인 스크립트가 그리기 전에 html에 data-returning을 붙인다 */
 @custom-variant returning (&:where([data-returning], [data-returning] *));
@@ -15,8 +24,8 @@
 
 @theme {
   --color-ink: #141317;
-  --color-ink-muted: #47454c;
-  --color-ink-subtle: #5d5b62;
+  --color-ink-muted: #4b505a;
+  --color-ink-subtle: #646872;
   --color-paper: #f6f4ee;
   --color-paper-muted: #cbc8bf;
   --color-paper-subtle: #a5a29b;
@@ -59,16 +68,20 @@
   --color-night: #f1ede4;
   --color-night-deep: #e4dfd3;
   --color-slate-block: #d8d2c4;
-  --color-paper: #141317;
-  --color-paper-muted: #47454c;
-  /* 진한 칸(slate-block) 위에서도 대비 4.5:1을 넘게 조금 더 진하게 둔다 */
-  --color-paper-subtle: #55535a;
+  /* SEED의 글자색 3단계(neutral·muted·subtle)처럼 단계마다 밝기 차이를 크게 벌려서, 중요한 글과 덜 중요한 글이 색만으로도 갈린다 */
+  --color-paper: #1a1c20;
+  --color-paper-muted: #4b505a;
+  --color-paper-subtle: #646872;
   --color-card: #fffdf8;
   --color-rust-light: #c01f55;
   --color-cta: #141317;
   --color-cta-text: #f6f4ee;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
+/* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */
+:root[data-theme="light"] :is(.bg-slate-block, .bg-night-deep) {
+  --color-paper-subtle: #4b505a;
+}
 :root[data-theme="light"] .bg-ink {
   --color-paper: #f6f4ee;
   --color-paper-muted: #cbc8bf;

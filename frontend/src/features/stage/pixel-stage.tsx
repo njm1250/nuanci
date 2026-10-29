@@ -54,7 +54,9 @@ function Snapshot({ onSnapshot }: { onSnapshot: (url: string) => void }) {
   return null;
 }
 
-// 무대 너비와 상관없이 항상 가로 200픽셀로 그리도록 해상도 배율을 정한다.
+// 무대 너비와 상관없이 가로 200픽셀 안팎으로 그리도록 해상도 배율을 정한다.
+// 화면의 실제 픽셀 수를 정수로 나눈 만큼만 그려서, 무대 한 칸이 늘 같은 개수의 화면 픽셀로 커진다.
+// 200으로 딱 맞추면 7.8배처럼 배율이 소수가 되어 칸마다 굵기가 달라지고, 큰 화면에서 도트가 지저분하게 깨져 보인다.
 // Canvas의 dpr 속성으로 넘겨야 다시 그릴 때마다 기본값으로 돌아가 픽셀 크기가 바뀌는 일이 없다
 function usePixelDpr() {
   const box = useRef<HTMLDivElement>(null);
@@ -64,7 +66,9 @@ function usePixelDpr() {
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
       const width = entry.contentRect.width;
-      if (width > 0) setDpr(PIXELS_WIDE / width);
+      if (width <= 0) return;
+      const device = window.devicePixelRatio || 1;
+      setDpr(device / Math.max(1, Math.round((width * device) / PIXELS_WIDE)));
     });
     observer.observe(el);
     return () => observer.disconnect();
