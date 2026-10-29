@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Mark } from "@/features/collection/expression-book";
-import { BlockButton } from "@/features/scene/block-ui";
+import { BlockButton, SpeakerTag } from "@/features/scene/block-ui";
 import { sfx } from "@/features/scene/sfx";
 import { answerReview, loadReview, type ReviewToday as Today } from "./review";
 
@@ -56,9 +56,9 @@ export function ReviewToday() {
         <div key={card.id} className="blk animate-[fade-in_200ms] bg-cream p-4 text-ink">
           <p className="text-[12px] text-ink-subtle">{card.title}</p>
           <div className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1">
-            <span className="justify-self-start bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">{card.partnerName}</span>
+            <SpeakerTag>{card.partnerName}</SpeakerTag>
             <p className="font-line text-[19px] leading-snug">{card.partnerLine}</p>
-            <span className="justify-self-start bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">나</span>
+            <SpeakerTag me>나</SpeakerTag>
             <p className="font-pixel text-[15px] leading-snug">{card.intent}</p>
           </div>
           {!revealed ? (

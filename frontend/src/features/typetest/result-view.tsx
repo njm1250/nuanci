@@ -153,7 +153,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
       <div className="px-4 pb-4 pt-3">
         <div className="flex items-center justify-between font-pixel text-[15px] text-ink-subtle">
           <span>No.{String(t.no).padStart(2, "0")}</span>
-          {rarity !== null && <span className="bg-ink px-1.5 py-1 text-[12px] leading-none text-paper">전체 참여자 중 {rarity}%</span>}
+          {rarity !== null && <span className="border border-ink/25 px-1.5 py-1 text-[12px] leading-none text-ink-muted">전체 참여자 중 {rarity}%</span>}
         </div>
         <div className="mt-2 grid place-items-center border-[3px] border-ink bg-[linear-gradient(var(--color-night-deep)_2px,transparent_2px),linear-gradient(90deg,var(--color-night-deep)_2px,transparent_2px)] bg-[length:24px_24px] py-3 light:bg-[linear-gradient(#e4dfd3_2px,transparent_2px),linear-gradient(90deg,#e4dfd3_2px,transparent_2px)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -164,7 +164,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
         </h1>
         <p className="mt-1.5 text-[15px] leading-snug text-ink-subtle">{t.tagline}</p>
         <div className="mt-3 flex items-baseline gap-2.5">
-          <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">자주 하는 말</span>
+          <span className="shrink-0 bg-night-deep px-1.5 py-1 font-pixel text-[15px] leading-none text-ink-muted">자주 하는 말</span>
           <p className="font-line text-[20px] leading-snug">{t.says}</p>
         </div>
         {kinds && (

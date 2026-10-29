@@ -41,10 +41,12 @@ export default async function Home() {
               <span className="border-2 border-paper-subtle px-2 py-1 font-pixel text-[15px] leading-none text-paper hover:border-paper">유형 테스트</span>
             </Link>
             <StreakChip />
-            <Link href="/me" aria-label="내 정보" className="grid size-11 place-items-center text-paper-muted hover:text-paper active:opacity-70">
-              <svg width="20" height="20" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="currentColor" aria-hidden>
+            {/* 아이콘만 두면 누를 수 있는지, 무엇인지 몰라서 글자를 같이 붙인다 */}
+            <Link href="/me" className="flex h-11 items-center gap-1.5 px-2 text-paper-muted hover:text-paper active:opacity-70">
+              <svg width="16" height="16" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="currentColor" aria-hidden>
                 <path d="M3 1h4v1h1v3H7v1H3V5H2V2h1zM1 7h8v1h1v2H0V8h1z" />
               </svg>
+              <span className="font-pixel text-[15px]">내 정보</span>
             </Link>
           </div>
         </header>

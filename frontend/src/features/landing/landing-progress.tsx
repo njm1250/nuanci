@@ -3,18 +3,47 @@
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
-import { newSceneIds, nextUncleared, rememberSince, useCleared, useSince } from "@/features/scene/progress";
+import {
+  newSceneIds,
+  nextUncleared,
+  rememberSince,
+  useCleared,
+  useSince,
+} from "@/features/scene/progress";
 import { hasPlayed, trackHome, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
 import { ReviewToday } from "@/features/review/review-today";
-import { isUnopened, nextGoalParts, useRewards } from "@/features/rewards/rewards";
+import {
+  isUnopened,
+  nextGoalParts,
+  useRewards,
+} from "@/features/rewards/rewards";
 import type { StageSpec } from "@/features/stage/types";
 import { SceneThumb, ThumbStudio } from "./scene-thumb";
-import { groupOf, OTHER_GROUP, SCENE_GROUPS, setSceneView, useSceneView } from "./scene-groups";
-import { BLOCK_SIZE, blockProgress, blockTitle, markOpenSeen, useSeenOpenEnd } from "@/features/scene/episodes";
+import {
+  groupOf,
+  OTHER_GROUP,
+  SCENE_GROUPS,
+  setSceneView,
+  useSceneView,
+} from "./scene-groups";
+import {
+  BLOCK_SIZE,
+  blockProgress,
+  blockTitle,
+  markOpenSeen,
+  useSeenOpenEnd,
+} from "@/features/scene/episodes";
 
 // stage는 기본 상황의 무대로, 카드 썸네일을 그릴 때 쓴다
-export type ShelfScene = { id: string; number: number; title: string; relation: string; place: string; stage?: StageSpec };
+export type ShelfScene = {
+  id: string;
+  number: number;
+  title: string;
+  relation: string;
+  place: string;
+  stage?: StageSpec;
+};
 
 const noop = () => () => {};
 
@@ -31,12 +60,23 @@ function useVisitor(scenes: ShelfScene[] = []) {
 }
 
 function NewChip() {
-  return <span className="shrink-0 bg-gold px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">NEW</span>;
+  return (
+    <span className="shrink-0 bg-gold px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">
+      NEW
+    </span>
+  );
 }
 
 function Check() {
   return (
-    <svg width="14" height="14" viewBox="0 0 7 7" shapeRendering="crispEdges" aria-hidden className="fill-ink">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 7 7"
+      shapeRendering="crispEdges"
+      aria-hidden
+      className="fill-ink"
+    >
       <path d="M6 1h1v1h-1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h1v1h1v1h1v-1h1v-1h1z" />
     </svg>
   );
@@ -52,8 +92,16 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   }, []);
   const target = next ?? scenes[0];
   if (!target || returning) return null;
-  const label = !returning ? "사고 치러 가기" : next ? "다음 장면 해 보기" : "처음부터 다시 하기";
-  const note = !returning ? "가입 없이 바로 · 한 장면에 1분" : next ? `다음 · ${next.relation} · ${next.place}` : "모든 장면을 다 해 봤어요";
+  const label = !returning
+    ? "첫 장면 시작하기"
+    : next
+      ? "다음 장면 해 보기"
+      : "처음부터 다시 하기";
+  const note = !returning
+    ? "가입 없이 바로 · 한 장면에 1분"
+    : next
+      ? `다음 · ${next.relation} · ${next.place}`
+      : "모든 장면을 다 해 봤어요";
   return (
     <>
       <BlockLink href={`/scenes/${target.number}`} entry="home" primary>
@@ -65,20 +113,44 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
 }
 
 // 장면 카드. 무대 썸네일과 "3화" 같은 이름으로 어떤 장면인지 보여주고, 정답 표현은 장면 안에서만 알 수 있다. 이어서 할 장면에 '다음'을 단다
-function SceneCard({ scene, done, fresh = false, label, next = false }: { scene: ShelfScene; done: boolean; fresh?: boolean; label: string; next?: boolean }) {
+function SceneCard({
+  scene,
+  done,
+  fresh = false,
+  label,
+  next = false,
+}: {
+  scene: ShelfScene;
+  done: boolean;
+  fresh?: boolean;
+  label: string;
+  next?: boolean;
+}) {
   return (
-    <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn block h-full">
+    <EntryLink
+      href={`/scenes/${scene.number}`}
+      entry="home"
+      className="blk-btn block h-full"
+    >
       <span className="blk flex h-full items-center gap-3 bg-cream p-2 pr-3 text-ink">
         <span className="relative shrink-0">
-          <SceneThumb stage={scene.stage} className="aspect-[4/3] w-[84px] border-2 border-ink" />
+          <SceneThumb
+            stage={scene.stage}
+            className="aspect-[4/3] w-[84px] border-2 border-ink"
+          />
           {done && (
-            <span aria-label="해 본 장면" className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-gold">
+            <span
+              aria-label="해 본 장면"
+              className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-gold"
+            >
               <Check />
             </span>
           )}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">{label}</span>
+          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">
+            {label}
+          </span>
           <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
             {scene.title}
           </span>
@@ -86,21 +158,39 @@ function SceneCard({ scene, done, fresh = false, label, next = false }: { scene:
             {scene.relation} · {scene.place}
           </span>
         </span>
-        {next ? <span className="shrink-0 border-2 border-ink px-1.5 py-0.5 font-pixel text-[15px] leading-none">다음</span> : fresh && <NewChip />}
+        {next ? (
+          <span className="shrink-0 border-2 border-ink px-1.5 py-0.5 font-pixel text-[15px] leading-none">
+            다음
+          </span>
+        ) : (
+          fresh && <NewChip />
+        )}
       </span>
     </EntryLink>
   );
 }
 
 // 아직 열리지 않은 장면. 제목은 보여 줘서 궁금하게 하되 누를 수는 없다
-function LockedSceneCard({ scene, label }: { scene: ShelfScene; label: string }) {
+function LockedSceneCard({
+  scene,
+  label,
+}: {
+  scene: ShelfScene;
+  label: string;
+}) {
   return (
     <div aria-disabled="true" className="blk-frame h-full opacity-50">
       <span className="blk flex h-full items-center gap-3 bg-cream p-2 pr-3 text-ink">
-        <span className="grid aspect-[4/3] w-[84px] shrink-0 place-items-center border-2 border-dashed border-ink/40 font-pixel text-[15px] text-ink-subtle">잠김</span>
+        <span className="grid aspect-[4/3] w-[84px] shrink-0 place-items-center border-2 border-dashed border-ink/40 font-pixel text-[15px] text-ink-subtle">
+          잠김
+        </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">{label}</span>
-          <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">{scene.title}</span>
+          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">
+            {label}
+          </span>
+          <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
+            {scene.title}
+          </span>
           <span className="block truncate text-[13px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
@@ -116,8 +206,17 @@ type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
 function BlockBar({ progress }: { progress: Progress }) {
   const filled = progress.left === 0 ? BLOCK_SIZE : progress.into;
   return (
-    <div className="mt-2 h-3 border-2 border-paper" role="progressbar" aria-valuenow={filled} aria-valuemax={BLOCK_SIZE} aria-label="다음 10화까지">
-      <div className="h-full bg-gold" style={{ width: `${(filled / BLOCK_SIZE) * 100}%` }} />
+    <div
+      className="mt-2 h-3 border-2 border-paper"
+      role="progressbar"
+      aria-valuenow={filled}
+      aria-valuemax={BLOCK_SIZE}
+      aria-label="다음 10화까지"
+    >
+      <div
+        className="h-full bg-gold"
+        style={{ width: `${(filled / BLOCK_SIZE) * 100}%` }}
+      />
     </div>
   );
 }
@@ -130,11 +229,14 @@ function BlockCount({ progress }: { progress: Progress }) {
         "모든 화가 열렸어요"
       ) : progress.into < BLOCK_SIZE / 2 ? (
         <>
-          다음 {BLOCK_SIZE}화 열기 <span className="font-semibold text-gold">{progress.into}</span>/{BLOCK_SIZE}
+          다음 {BLOCK_SIZE}화 열기{" "}
+          <span className="font-semibold text-gold">{progress.into}</span>/
+          {BLOCK_SIZE}
         </>
       ) : (
         <>
-          다음 {BLOCK_SIZE}화까지 <span className="font-semibold text-gold">{progress.left}개</span>
+          다음 {BLOCK_SIZE}화까지{" "}
+          <span className="font-semibold text-gold">{progress.left}개</span>
         </>
       )}
     </p>
@@ -147,13 +249,22 @@ function Unlocked({ progress }: { progress: Progress }) {
   if (progress.openEnd <= seen) return null;
   return (
     <div className="mt-3 flex items-center gap-2 bg-gold px-3 py-2 text-ink">
-      <Link href="/scenes" onClick={() => markOpenSeen(progress.openEnd)} className="flex min-w-0 flex-1 items-center justify-between gap-2 font-pixel text-[15px]">
+      <Link
+        href="/scenes"
+        onClick={() => markOpenSeen(progress.openEnd)}
+        className="flex min-w-0 flex-1 items-center justify-between gap-2 font-pixel text-[15px]"
+      >
         <span>
           {seen + 1}~{progress.openEnd}화가 열렸어요
         </span>
         <Arrow />
       </Link>
-      <button type="button" onClick={() => markOpenSeen(progress.openEnd)} aria-label="닫기" className="grid size-8 shrink-0 place-items-center font-pixel text-[15px]">
+      <button
+        type="button"
+        onClick={() => markOpenSeen(progress.openEnd)}
+        aria-label="닫기"
+        className="grid size-8 shrink-0 place-items-center font-pixel text-[15px]"
+      >
         ✕
       </button>
     </div>
@@ -162,19 +273,41 @@ function Unlocked({ progress }: { progress: Progress }) {
 
 function Arrow() {
   return (
-    <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 5 5"
+      shapeRendering="crispEdges"
+      aria-hidden
+      className="fill-current"
+    >
       <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
     </svg>
   );
 }
 
 // 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 하고, 제목에만 형광펜을 긋는다
-function FeaturedScene({ scene, fresh, label }: { scene: ShelfScene; fresh: boolean; label: string }) {
+function FeaturedScene({
+  scene,
+  fresh,
+  label,
+}: {
+  scene: ShelfScene;
+  fresh: boolean;
+  label: string;
+}) {
   return (
-    <EntryLink href={`/scenes/${scene.number}`} entry="home" className="blk-btn mt-4 block">
+    <EntryLink
+      href={`/scenes/${scene.number}`}
+      entry="home"
+      className="blk-btn mt-4 block"
+    >
       <span className="blk block bg-cream p-2 pb-4 text-ink">
         <span className="relative block">
-          <SceneThumb stage={scene.stage} className="aspect-[2/1] w-full border-2 border-ink [&_img]:object-[center_60%]" />
+          <SceneThumb
+            stage={scene.stage}
+            className="aspect-[2/1] w-full border-2 border-ink [&_img]:object-[center_60%]"
+          />
           <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">
             {label}
             {fresh && <span className="ml-1.5 text-gold">NEW</span>}
@@ -205,7 +338,10 @@ function NextGoal() {
   const unseen = rewards.items.some((i) => i.owned && !i.owned.seen);
   const box = rewards.items.some(isUnopened);
   return (
-    <Link href="/me/room" className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block">
+    <Link
+      href="/me/room"
+      className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block"
+    >
       <Mascot scale={2} className="shrink-0" />
       <span className="min-w-0 flex-1 text-[13px] text-paper-muted">
         {before}
@@ -214,7 +350,9 @@ function NextGoal() {
       </span>
       <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
         {box ? (
-          <span className="hl font-pixel-title text-[12px] leading-[1.4]">새 상자</span>
+          <span className="hl font-pixel-title text-[12px] leading-[1.4]">
+            새 상자
+          </span>
         ) : (
           unseen && <span aria-label="새 물건" className="size-2 bg-gold" />
         )}
@@ -226,21 +364,35 @@ function NextGoal() {
 }
 
 // 다시 온 방문자에게 진행도와 다음에 볼 장면 몇 개만 보여준다. 장면이 늘어도 메인이 길어지지 않게 전체 목록은 따로 둔다
-export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?: number }) {
+export function SceneShelf({
+  scenes,
+  limit = 3,
+}: {
+  scenes: ShelfScene[];
+  limit?: number;
+}) {
   const { returning, cleared, fresh } = useVisitor(scenes);
   if (!returning) return null;
   const done = scenes.filter((s) => cleared.includes(s.id)).length;
   const progress = blockProgress(scenes, cleared);
-  const open = new Set(progress.list.filter((x) => x.open).flatMap((x) => x.scenes.map((s) => s.id)));
+  const open = new Set(
+    progress.list
+      .filter((x) => x.open)
+      .flatMap((x) => x.scenes.map((s) => s.id)),
+  );
   const label = (s: ShelfScene) => `${scenes.indexOf(s) + 1}화`;
   // 다음에 볼 장면은 열린 화 안에서만 고른다
-  const upNext = scenes.filter((s) => open.has(s.id) && !cleared.includes(s.id)).slice(0, limit);
+  const upNext = scenes
+    .filter((s) => open.has(s.id) && !cleared.includes(s.id))
+    .slice(0, limit);
   return (
     <section className="animate-[fade-in_200ms] px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10">
       {/* 다시 온 이유가 되도록 지난번 헷갈린 말을 맨 위에서 먼저 묻는다 */}
       <ReviewToday />
       <div className="flex items-baseline justify-between">
-        <h2 className="font-pixel text-[15px]">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</h2>
+        <h2 className="font-pixel text-[15px]">
+          {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
+        </h2>
         <BlockCount progress={progress} />
       </div>
       <BlockBar progress={progress} />
@@ -248,14 +400,25 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
       <NextGoal />
       {upNext.length > 0 ? (
         <>
-          <FeaturedScene scene={upNext[0]} fresh={fresh.includes(upNext[0].id)} label={label(upNext[0])} />
+          <FeaturedScene
+            scene={upNext[0]}
+            fresh={fresh.includes(upNext[0].id)}
+            label={label(upNext[0])}
+          />
           {upNext.length > 1 && (
             <>
-              <p className="mt-5 font-pixel text-[15px] text-paper-subtle">다른 장면</p>
+              <p className="mt-5 font-pixel text-[15px] text-paper-subtle">
+                다른 장면
+              </p>
               <ul className="mt-2 grid gap-3 md:grid-cols-2">
                 {upNext.slice(1).map((s) => (
                   <li key={s.id}>
-                    <SceneCard scene={s} done={false} fresh={fresh.includes(s.id)} label={label(s)} />
+                    <SceneCard
+                      scene={s}
+                      done={false}
+                      fresh={fresh.includes(s.id)}
+                      label={label(s)}
+                    />
                   </li>
                 ))}
               </ul>
@@ -264,8 +427,15 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
         </>
       ) : (
         <>
-          <p className="mt-3 text-[14px] leading-relaxed text-paper">새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.</p>
-          <BlockLink href={`/scenes/${scenes[0]?.number ?? 1}`} entry="home" primary className="mt-4">
+          <p className="mt-3 text-[14px] leading-relaxed text-paper">
+            새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.
+          </p>
+          <BlockLink
+            href={`/scenes/${scenes[0]?.number ?? 1}`}
+            entry="home"
+            primary
+            className="mt-4"
+          >
             처음부터 다시 하기
           </BlockLink>
         </>
@@ -275,19 +445,29 @@ export function SceneShelf({ scenes, limit = 3 }: { scenes: ShelfScene[]; limit?
       <div className="blk-frame mt-5">
         <ul className="blk divide-y-2 divide-ink/10 bg-cream text-ink">
           <li>
-            <Link href="/expressions" className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5">
+            <Link
+              href="/expressions"
+              className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
+            >
               <span>
                 <span className="block font-pixel text-[15px]">표현 모음</span>
-                <span className="block text-[13px] text-ink-subtle">모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기</span>
+                <span className="block text-[13px] text-ink-subtle">
+                  모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
+                </span>
               </span>
               <Arrow />
             </Link>
           </li>
           <li>
-            <Link href="/scenes" className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5">
+            <Link
+              href="/scenes"
+              className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
+            >
               <span>
                 <span className="block font-pixel text-[15px]">전체 장면</span>
-                <span className="block text-[13px] text-ink-subtle">{progress.openEnd}화까지 열림 · 상황별로도 골라 보기</span>
+                <span className="block text-[13px] text-ink-subtle">
+                  {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
+                </span>
               </span>
               <Arrow />
             </Link>
@@ -305,7 +485,11 @@ function ViewSwitch({ view }: { view: "group" | "order" }) {
     { value: "group", label: "상황별" },
   ] as const;
   return (
-    <div role="radiogroup" aria-label="보기 방식" className="flex border-2 border-paper-subtle/40">
+    <div
+      role="radiogroup"
+      aria-label="보기 방식"
+      className="flex border-2 border-paper-subtle/40"
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -323,12 +507,33 @@ function ViewSwitch({ view }: { view: "group" | "order" }) {
 }
 
 // 상황별 목록. 아직 안 열린 장면도 자리를 지키되 잠김으로 보여 준다
-function SceneList({ scenes, cleared, fresh, lockedIn, labelOf }: { scenes: ShelfScene[]; cleared: string[]; fresh: string[]; lockedIn: Set<string>; labelOf: (s: ShelfScene) => string }) {
+function SceneList({
+  scenes,
+  cleared,
+  fresh,
+  lockedIn,
+  labelOf,
+}: {
+  scenes: ShelfScene[];
+  cleared: string[];
+  fresh: string[];
+  lockedIn: Set<string>;
+  labelOf: (s: ShelfScene) => string;
+}) {
   return (
     <ul className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
       {scenes.map((s) => (
         <li key={s.id}>
-          {lockedIn.has(s.id) ? <LockedSceneCard scene={s} label={labelOf(s)} /> : <SceneCard scene={s} done={cleared.includes(s.id)} fresh={fresh.includes(s.id)} label={labelOf(s)} />}
+          {lockedIn.has(s.id) ? (
+            <LockedSceneCard scene={s} label={labelOf(s)} />
+          ) : (
+            <SceneCard
+              scene={s}
+              done={cleared.includes(s.id)}
+              fresh={fresh.includes(s.id)}
+              label={labelOf(s)}
+            />
+          )}
         </li>
       ))}
     </ul>
@@ -345,12 +550,22 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   const progress = blockProgress(scenes, cleared);
   const opened = progress.list.filter((x) => x.open);
   const locked = progress.list.filter((x) => !x.open);
-  const next = nextUncleared(opened.flatMap((x) => x.scenes), cleared);
+  const next = nextUncleared(
+    opened.flatMap((x) => x.scenes),
+    cleared,
+  );
   // 순서를 바꾸다 이미 해 본 장면이 잠긴 묶음으로 밀려나도, 해 본 장면은 잠그지 않는다
-  const lockedIn = new Set(locked.flatMap((x) => x.scenes.filter((s) => !cleared.includes(s.id)).map((s) => s.id)));
+  const lockedIn = new Set(
+    locked.flatMap((x) =>
+      x.scenes.filter((s) => !cleared.includes(s.id)).map((s) => s.id),
+    ),
+  );
   const labelOf = (s: ShelfScene) => `${scenes.indexOf(s) + 1}화`;
   const groups = [...SCENE_GROUPS.map((g) => g.label), OTHER_GROUP]
-    .map((label) => ({ label, scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set) === label) }))
+    .map((label) => ({
+      label,
+      scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set) === label),
+    }))
     .filter((g) => g.scenes.length > 0);
   const shown = only ? groups.filter((g) => g.label === only) : groups;
   return (
@@ -360,13 +575,17 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
         <BlockCount progress={progress} />
       </div>
       <BlockBar progress={progress} />
-      <p className="mt-2 text-[13px] text-paper-subtle">장면 {BLOCK_SIZE}개를 할 때마다 다음 {BLOCK_SIZE}화가 열려요</p>
+      <p className="mt-2 text-[13px] text-paper-subtle">
+        장면 {BLOCK_SIZE}개를 할 때마다 다음 {BLOCK_SIZE}화가 열려요
+      </p>
       {view === "order" ? (
         <>
           {opened.map((x) => (
             <section key={x.start} className="mt-6">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px]">{blockTitle(x)}</span>
+                <span className="font-pixel-title text-[24px]">
+                  {blockTitle(x)}
+                </span>
                 <span className="text-[13px] text-paper-subtle">
                   {x.scenes.length}화 중 {x.done}화
                 </span>
@@ -374,7 +593,13 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
               <ol className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {x.scenes.map((s, i) => (
                   <li key={s.id}>
-                    <SceneCard scene={s} done={cleared.includes(s.id)} fresh={fresh.includes(s.id)} label={`${x.start + i}화`} next={s.id === next?.id} />
+                    <SceneCard
+                      scene={s}
+                      done={cleared.includes(s.id)}
+                      fresh={fresh.includes(s.id)}
+                      label={`${x.start + i}화`}
+                      next={s.id === next?.id}
+                    />
                   </li>
                 ))}
               </ol>
@@ -383,13 +608,26 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {locked.map((x, k) => (
             <section key={x.start} className="mt-8">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px] text-paper-subtle">{blockTitle(x)}</span>
-                <span className="text-[13px] text-paper-subtle">장면 {progress.left + k * BLOCK_SIZE}개 더 하면 열려요</span>
+                <span className="font-pixel-title text-[24px] text-paper-subtle">
+                  {blockTitle(x)}
+                </span>
+                <span className="text-[13px] text-paper-subtle">
+                  장면 {progress.left + k * BLOCK_SIZE}개 더 하면 열려요
+                </span>
               </h2>
               <ol className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {x.scenes.map((s, i) => (
                   <li key={s.id}>
-                    {lockedIn.has(s.id) ? <LockedSceneCard scene={s} label={`${x.start + i}화`} /> : <SceneCard scene={s} done fresh={false} label={`${x.start + i}화`} />}
+                    {lockedIn.has(s.id) ? (
+                      <LockedSceneCard scene={s} label={`${x.start + i}화`} />
+                    ) : (
+                      <SceneCard
+                        scene={s}
+                        done
+                        fresh={false}
+                        label={`${x.start + i}화`}
+                      />
+                    )}
                   </li>
                 ))}
               </ol>
@@ -399,7 +637,11 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
       ) : (
         <>
           {/* 묶음이 많아 한 줄을 넘으면 옆으로 밀어서 본다. 고르면 그 묶음만 남긴다 */}
-          <div role="group" aria-label="상황" className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
+          <div
+            role="group"
+            aria-label="상황"
+            className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0"
+          >
             {[null, ...groups.map((g) => g.label)].map((label) => (
               <button
                 key={label ?? "all"}
@@ -417,10 +659,17 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
               <h2 className="flex items-baseline gap-2">
                 <span className="font-pixel-title text-[24px]">{g.label}</span>
                 <span className="text-[13px] text-paper-subtle">
-                  {g.scenes.length}개 중 {g.scenes.filter((s) => cleared.includes(s.id)).length}개
+                  {g.scenes.length}개 중{" "}
+                  {g.scenes.filter((s) => cleared.includes(s.id)).length}개
                 </span>
               </h2>
-              <SceneList scenes={g.scenes} cleared={cleared} fresh={fresh} lockedIn={lockedIn} labelOf={labelOf} />
+              <SceneList
+                scenes={g.scenes}
+                cleared={cleared}
+                fresh={fresh}
+                lockedIn={lockedIn}
+                labelOf={labelOf}
+              />
             </section>
           ))}
         </>
