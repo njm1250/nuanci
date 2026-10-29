@@ -7,6 +7,7 @@ import type { Expression, Motion } from "@/features/scene/types";
 import { CAST, HEROES } from "./cast";
 import { DecorPieces } from "./decor";
 import { Figure, headTop } from "./figure";
+import { SpriteFigure } from "./sprite-figure";
 import { C } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
 import { SETS } from "./sets";
@@ -322,6 +323,17 @@ export function PixelStage({
           reduced={reduced}
           prop={state?.meProp}
         />
+        {/* 시험용: Sam만 메이플스토리식 2D 픽셀 그림으로 그린다 */}
+        {spec.partner === "sam" ? (
+          <SpriteFigure
+            placement={set.partner}
+            look={CAST[spec.partner]}
+            motion={state?.partnerMotion ?? "idle"}
+            motionKey={state?.partnerKey ?? 0}
+            reduced={reduced}
+            expression={state?.reaction}
+          />
+        ) : (
         <Figure
           placement={set.partner}
           look={CAST[spec.partner]}
@@ -332,6 +344,7 @@ export function PixelStage({
           prop={state?.partnerProp}
           expression={state?.reaction}
         />
+        )}
       </Canvas>
 
       {state && (

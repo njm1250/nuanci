@@ -39,7 +39,7 @@ function shiftColor(hex: string, amount: number): string {
 }
 
 // 동작(motion)과 반응(expression)을 조합해 치비 캐릭터가 지을 표정을 결정한다
-function resolveExpression(expression: Expression | null | undefined, motion: Motion): Expression {
+export function resolveExpression(expression: Expression | null | undefined, motion: Motion): Expression {
     if (expression) return expression;
     switch (motion) {
         case "bounce":
