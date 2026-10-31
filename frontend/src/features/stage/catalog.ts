@@ -4,7 +4,7 @@ import type { AccessoryId, CastId, DecorId, PropId, SetId } from "./types";
 // 장면 JSON에 쓸 수 있는 무대 값 목록. 관리자 에셋 화면에서 미리 보고 고를 때 쓴다
 export const SET_IDS = ["dining", "office", "cafe", "living", "street", "park", "elevator", "store", "karaoke", "gym", "room", "plane", "subway", "classroom", "clinic", "pharmacy", "bunsik", "salon", "boutique"] as const satisfies readonly SetId[];
 export const PARTNER_IDS = ["sam", "alex", "barista", "jordan", "mochi", "bori", "boss", "kong"] as const satisfies readonly CastId[];
-export const ACCESSORY_IDS = ["cap", "glasses", "headphones", "crown", "beanie", "cat-ears", "flower", "sunglasses", "scarf", "bowtie", "badge"] as const satisfies readonly AccessoryId[];
+export const ACCESSORY_IDS = ["hair-bob", "hair-twintail", "hair-ribbon", "hair-spacebuns", "hair-sidepony", "hair-wave", "cap", "glasses", "headphones", "crown", "beanie", "cat-ears", "flower", "sunglasses", "scarf", "bowtie", "badge"] as const satisfies readonly AccessoryId[];
 export const DECOR_IDS = [
   "fridge",
   "postit",

@@ -9,7 +9,7 @@ import type { AccessoryId, Hero } from "@/features/stage/types";
 export type Avatar = { hero: Hero; wear: AccessoryId[]; placed?: string[]; hidden?: string[]; badge?: number };
 
 const KEY = "nuanci.avatar";
-const DEFAULT: Avatar = { hero: "boy", wear: [], placed: [] };
+const DEFAULT: Avatar = { hero: "girl", wear: [], placed: [] };
 
 // 아이템을 하나만 쓰던 때 저장한 accessory를 wear 목록으로 바꾼다
 function normalize(raw: Partial<Avatar> & { accessory?: AccessoryId | null }): Avatar {

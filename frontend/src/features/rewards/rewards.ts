@@ -23,7 +23,7 @@ export type Lock = { type: "milestone"; remaining: number } | { type: "bundle"; 
 
 // wear는 주인공이 쓰는 아이템(장면에도 그대로 나온다), room은 아지트에 놓이는 물건이다. id는 무대의 wear·flags로 그대로 쓴다.
 // 쓰는 아이템은 slot(머리·얼굴·목)마다 하나씩 함께 쓴다. 아직 못 얻은 아이템은 이름이 비어 있다
-export type WearSlot = "head" | "face" | "neck";
+export type WearSlot = "hair" | "head" | "face" | "neck";
 export type RewardItem = { id: string; kind: "wear" | "room"; slot: WearSlot | null; name: string | null; colors: RewardColor[]; owned: Owned | null; lock: Lock | null };
 
 export type NextGoal = { type: "item"; name: string; remaining: number } | { type: "box"; name: null; remaining: number };

@@ -3,7 +3,7 @@ import type { CastId, Hero, Look } from "./types";
 
 export const CAST: Record<CastId, Look & { name: string }> = {
   me: { name: "나", shirt: C.navy, hair: C.ink, hairStyle: "short" },
-  meGirl: { name: "나", shirt: "#7b5ea7", hair: "#2b1d16", hairStyle: "long" },
+  meGirl: { name: "나", shirt: "#f4a6bd", hair: "#5b3a29", hairStyle: "long" },
   sam: { name: "Sam", shirt: C.mustard, hair: "#4a2e1f", hairStyle: "bun" },
   alex: { name: "Alex", shirt: C.teal, hair: "#2e2620", hairStyle: "short", glasses: true },
   barista: { name: "Barista", shirt: "#e9e5dc", hair: "#6b4a2f", hairStyle: "cap", apron: "#3b2a20" },

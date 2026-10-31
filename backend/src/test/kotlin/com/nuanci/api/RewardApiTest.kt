@@ -58,7 +58,7 @@ class RewardApiTest {
 			jsonPath("${item("cap")}.owned.color") { value("red") }
 			jsonPath("${item("plant")}.name") { value(null as Any?) }
 			jsonPath("${item("plant")}.lock.remaining") { value(4) }
-			jsonPath("$.next.name") { value("화분") }
+			jsonPath("$.next.name") { value("단발머리") }
 			jsonPath("$.shareCode") { exists() }
 		}
 		clear(visitor, "my-treat").andExpect { jsonPath("$.granted.length()") { value(0) } }

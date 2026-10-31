@@ -111,6 +111,8 @@ export function markPlayed() {
   try {
     localStorage.setItem(PLAYED_KEY, "1");
   } catch {}
+  // layout의 인라인 스크립트는 새로고침할 때만 도니, 로고를 눌러 돌아와도 데모가 숨게 바로 붙인다
+  document.documentElement.setAttribute("data-returning", "");
 }
 
 export function hasPlayed() {

@@ -19,7 +19,7 @@ sealed interface Rule {
 }
 
 // wear는 주인공이 쓰는 아이템(장면에도 나온다), room은 아지트에 놓는 물건.
-// 쓰는 아이템은 slot(머리·얼굴·목)마다 하나씩 함께 쓸 수 있다. colors가 있으면 얻을 때 색을 고른다
+// 쓰는 아이템은 slot(머리 모양·머리·얼굴·목)마다 하나씩 함께 쓸 수 있다. colors가 있으면 얻을 때 색을 고른다
 data class RewardDef(val id: String, val name: String, val kind: String, val rule: Rule, val colors: List<String> = emptyList(), val slot: String? = null)
 
 object RewardCatalog {
@@ -31,12 +31,18 @@ object RewardCatalog {
 	// 나머지 방 물건은 깜짝 상자에서 나온다
 	val ITEMS = listOf(
 		wear("cap", "모자", "head", Rule.Milestone(1), "red", "blue", "yellow"),
+		wear("hair-bob", "단발머리", "hair", Rule.Milestone(3), "pink", "black", "yellow"),
 		room("plant", "화분", Rule.Milestone(5)),
+		wear("hair-twintail", "양갈래 머리", "hair", Rule.Milestone(7), "yellow", "pink", "blue"),
 		wear("glasses", "동그란 안경", "face", Rule.Milestone(10), "yellow", "red", "black"),
 		wear("headphones", "헤드폰", "head", Rule.Milestone(15), "blue", "red", "yellow"),
+		wear("hair-ribbon", "리본 긴 머리", "hair", Rule.Milestone(18), "yellow", "black", "red"),
 		room("poster", "포스터", Rule.Milestone(20)),
+		wear("hair-spacebuns", "만두 머리", "hair", Rule.Milestone(25), "blue", "pink", "black"),
 		wear("scarf", "목도리", "neck", Rule.Milestone(30), "red", "green", "yellow"),
+		wear("hair-sidepony", "옆으로 묶은 머리", "hair", Rule.Milestone(35), "black", "red", "green"),
 		wear("cat-ears", "고양이 귀", "head", Rule.Milestone(40), "black", "pink", "yellow"),
+		wear("hair-wave", "웨이브 머리", "hair", Rule.Milestone(45), "red", "pink", "yellow"),
 		wear("crown", "왕관", "head", Rule.Milestone(50)),
 		wear("sunglasses", "선글라스", "face", Rule.Milestone(60)),
 		wear("bowtie", "나비넥타이", "neck", Rule.Milestone(70), "red", "yellow", "pink"),

@@ -13,7 +13,7 @@ import { SETS } from "./sets";
 import type { PropId, StageSpec } from "./types";
 
 // 화면 크기와 상관없이 가로 픽셀 수를 고정해서 어떤 크기에서도 같은 도트 밀도로 보이게 한다
-const PIXELS_WIDE = 200;
+const PIXELS_WIDE = 400;
 const EDGE = 8;
 const BUBBLE_MAX = 208;
 // 말풍선 아래 꼬리 자리. 말풍선 클래스의 bottom-[9px]와 같다
@@ -315,7 +315,7 @@ export function PixelStage({
         {scenery}
         <Figure
           placement={set.me}
-          look={{ ...CAST[HEROES[spec.hero ?? "boy"]], wear: spec.wear }}
+          look={{ ...CAST[HEROES[spec.hero ?? "girl"]], wear: spec.wear }}
           motion={state?.meMotion ?? "idle"}
           motionKey={state?.meKey ?? 0}
           talkKey={state?.talkKey ?? 0}

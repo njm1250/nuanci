@@ -5,7 +5,7 @@ import type { StageSpec } from "./types";
 
 // 장면 목록 카드에 쓰는 무대 썸네일. 화면 밖 무대 하나(thumb-studio)가 차례로 그려 그림으로 남기고, 이 기기에 저장해 두어 다음에 와도 다시 그리지 않는다.
 // 다 그려 둔 뒤에는 three.js를 받지 않아도 되게, 그리는 쪽과 파일을 나눈다. 무대 그림이 바뀌면 VERSION을 올려 예전 그림을 버린다
-const VERSION = 3;
+const VERSION = 4;
 const KEY = `nuanci.thumbs.v${VERSION}`;
 
 type Job = { key: string; spec: StageSpec };
@@ -35,7 +35,7 @@ function subscribe(on: () => void) {
 }
 
 export function thumbKey(spec: StageSpec) {
-  return JSON.stringify([spec.set, spec.time, spec.partner, spec.hero ?? "boy", spec.wear ?? [], spec.flags ?? [], spec.decor ?? []]);
+  return JSON.stringify([spec.set, spec.time, spec.partner, spec.hero ?? "girl", spec.wear ?? [], spec.flags ?? [], spec.decor ?? []]);
 }
 
 // 이 무대의 썸네일 주소. 아직 없고 wanted(카드가 화면 가까이 왔을 때)면 그릴 차례에 올리고 null을 돌려준다

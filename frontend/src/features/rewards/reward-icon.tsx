@@ -53,6 +53,12 @@ const ICONS: Record<string, string[]> = {
   guitar: ["........kk..", ".......kk...", "......nk....", ".....nn.....", "..oooo......", ".oookoo.....", ".ookkko.....", ".oookoo.....", "..ooo......."],
   lights: ["", "", "kk........kk", "y.kk....kk.b", "y...kkkk...b", "...r.yy.p...", "...r.yy.p..."],
   beanbag: ["", "", "", "...oooooo...", "..oooooooo..", ".oooooooooo.", "oooooooooooo", "oooooooooooo", ".oooooooooo."],
+  "hair-bob": ["...cccccc...", "..cccccccc..", ".cccccccccc.", ".ccsssssscc.", ".ccskssskcc.", ".ccsssssscc.", ".ccsssssscc.", ".cc......cc."],
+  "hair-twintail": ["...cccccc...", "..cccccccc..", "ppccssssccpp", "ccccskskcccc", "cc.ssssss.cc", "cc........cc", ".c........c."],
+  "hair-ribbon": [".ppp.kk.ppp.", ".pppkkkkppp.", "...cccccc...", "..cccccccc..", ".ccsssssscc.", ".ccskssskcc.", ".cc.ssss.cc.", ".cc......cc.", ".cc......cc."],
+  "hair-spacebuns": [".cc......cc.", "cccc....cccc", "cccc.cc.cccc", ".pccccccccp.", "..cccccccc..", "..cssssssc..", "..cskssksc..", "...ssssss..."],
+  "hair-sidepony": ["...cccccc.cc", "..ccccccccpc", "..cccccccccc", "..csssssc.cc", "..cskssks.cc", "..cssssss.cc", "...ssssss.c.", "..........c."],
+  "hair-wave": ["...cccccc...", "..cccccccc..", ".ccsssssscc.", ".ccskssskcc.", "cc.ssssss.cc", ".cc......cc.", "cc........cc", ".cc......cc."],
   // 생각 말풍선(상대가 오해해서 떠올린 그림)에 쓰는 그림
   "imagine-food": ["....nnnn....", "...wwwwww...", "...nnnnnn...", "..wwwwwwww..", "..nnnnnnnn..", ".wwwwwwwwww.", ".nnnnnnnnnn.", "nnnnnnnnnnnn"],
   "imagine-stomachs": [".pppp..pppp.", "pppppppppppp", "pppprppprppp", "pppppppppppp", ".pppp..pppp.", "..pp....pp..", "...p....p..."],
