@@ -191,7 +191,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                 주인공
               </span>
               <div role="group" aria-labelledby="hero-label" className="grid flex-1 grid-cols-2 gap-2">
-                {(["boy", "girl"] as const).map((hero) => (
+                {(["girl", "boy"] as const).map((hero) => (
                   <button
                     key={hero}
                     type="button"

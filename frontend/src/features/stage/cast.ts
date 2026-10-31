@@ -2,8 +2,8 @@ import { C } from "./palette";
 import type { CastId, Hero, Look } from "./types";
 
 export const CAST: Record<CastId, Look & { name: string }> = {
-  me: { name: "나", shirt: C.navy, hair: C.ink, hairStyle: "short" },
-  meGirl: { name: "나", shirt: "#f4a6bd", hair: "#5b3a29", hairStyle: "long" },
+  me: { name: "나", hero: "boy", shirt: C.navy, hair: "#3a2a22", hairStyle: "fluffy" },
+  meGirl: { name: "나", hero: "girl", shirt: "#f4a6bd", hair: "#5b3a29", hairStyle: "long" },
   sam: { name: "Sam", shirt: C.mustard, hair: "#4a2e1f", hairStyle: "bun" },
   alex: { name: "Alex", shirt: C.teal, hair: "#2e2620", hairStyle: "short", glasses: true },
   barista: { name: "Barista", shirt: "#e9e5dc", hair: "#6b4a2f", hairStyle: "cap", apron: "#3b2a20" },
