@@ -9,9 +9,9 @@ export const CARD_SIZE = { width: 1200, height: 630 };
 
 // 종이 화면과 같은 색. 테스트 결과 카드도 같은 색과 블록을 쓴다
 export const INK = "#141317";
-export const PAPER = "#f1ede4";
-export const RULE = "#e4dfd3";
-export const CARD = "#fffdf8";
+export const PAPER = "#f3f4f0";
+export const RULE = "#e7e9e3";
+export const CARD = "#ffffff";
 export const SUBTLE = "#55535a";
 export const LIME = "#c8f031";
 export const BAD = "#ff6b6b";

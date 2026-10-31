@@ -23,7 +23,7 @@ import java.util.UUID
 // placed는 아지트에 둔 물건이다. 예전 화면은 placed 없이 보내므로, 그때는 저장된 값을 그대로 둔다.
 // accessory는 아이템을 하나만 쓰던 예전 화면이 보내는 값이다. wear가 비어 있으면 이것을 쓴다
 // badge는 이름 옆에 다는 연속 기록 뱃지(며칠짜리). 0이면 떼고, 없으면 저장된 값을 그대로 둔다
-data class Avatar(val hero: String = "boy", val wear: List<String> = emptyList(), val placed: List<String>? = null, val badge: Int? = null, val accessory: String? = null)
+data class Avatar(val hero: String = "girl", val wear: List<String> = emptyList(), val placed: List<String>? = null, val badge: Int? = null, val accessory: String? = null)
 
 data class MeResponse(val name: String?, val email: String?, val picture: String?, val cleared: List<String>, val avatar: Avatar?)
 
@@ -97,6 +97,6 @@ class MeController(private val accounts: AccountStore, private val rewards: Rewa
 		private val HEROES = setOf("boy", "girl")
 		private val ITEM_ID = Regex("^[a-z][a-z-]{0,39}$")
 		private const val MAX_PLACED = 40
-		private const val MAX_WEAR = 3
+		private const val MAX_WEAR = 4
 	}
 }

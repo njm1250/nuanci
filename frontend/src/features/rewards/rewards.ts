@@ -1,8 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
+import { useAvatar } from "@/features/avatar/avatar";
 import { currentCleared, onCleared } from "@/features/scene/progress";
 import { VIA_KEY, visitorId } from "@/features/scene/track";
+import { HAIR_ITEMS, isHairItem } from "@/features/stage/hair";
+import type { Hero } from "@/features/stage/types";
 
 // 보상 목록과 얻은 기록은 서버가 정한다. 로그인했으면 계정, 아니면 이 기기의 방문자 id가 주인이다.
 // 화면이 바로 그려지도록 마지막으로 받은 상태를 이 기기에 남겨 둔다
@@ -23,10 +26,10 @@ export type Lock = { type: "milestone"; remaining: number } | { type: "bundle"; 
 
 // wear는 주인공이 쓰는 아이템(장면에도 그대로 나온다), room은 아지트에 놓이는 물건이다. id는 무대의 wear·flags로 그대로 쓴다.
 // 쓰는 아이템은 slot(머리·얼굴·목)마다 하나씩 함께 쓴다. 아직 못 얻은 아이템은 이름이 비어 있다
-export type WearSlot = "head" | "face" | "neck";
+export type WearSlot = "hair" | "head" | "face" | "neck";
 export type RewardItem = { id: string; kind: "wear" | "room"; slot: WearSlot | null; name: string | null; colors: RewardColor[]; owned: Owned | null; lock: Lock | null };
 
-export type NextGoal = { type: "item"; name: string; remaining: number } | { type: "box"; name: null; remaining: number };
+export type NextGoal = { type: "item"; id?: string; name: string; remaining: number } | { type: "box"; name: null; remaining: number };
 
 export type RewardState = { items: RewardItem[]; next: NextGoal | null; shareCode: string | null };
 
@@ -74,8 +77,20 @@ function subscribe(on: () => void) {
   return () => listeners.delete(on);
 }
 
+// 머리 아이템은 서버에 하나로 있고 주인공에 따라 이름이 다르다
+function forHero(current: RewardState | null, hero: Hero): RewardState | null {
+  if (!current) return current;
+  return {
+    ...current,
+    items: current.items.map((i) => (isHairItem(i.id) && i.name ? { ...i, name: HAIR_ITEMS[i.id][hero].name } : i)),
+    next: current.next?.type === "item" && current.next.id && isHairItem(current.next.id) ? { ...current.next, name: HAIR_ITEMS[current.next.id][hero].name } : current.next,
+  };
+}
+
 export function useRewards() {
-  return useSyncExternalStore(subscribe, snapshot, () => null);
+  const current = useSyncExternalStore(subscribe, snapshot, () => null);
+  const { hero } = useAvatar();
+  return useMemo(() => forHero(current, hero), [current, hero]);
 }
 
 async function post(path: string, body: object, method = "POST") {

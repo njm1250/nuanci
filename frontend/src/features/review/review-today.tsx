@@ -47,8 +47,8 @@ export function ReviewToday() {
   return (
     <section className="mb-7 animate-[fade-in_200ms]">
       <div className="flex items-baseline justify-between">
-        <h2 className="font-pixel text-[15px]">오늘의 1분 복습</h2>
-        <p className="text-[13px] text-paper-subtle">
+        <h2 className="text-[16px] font-bold">오늘의 1분 복습</h2>
+        <p className="text-[14px] text-paper-subtle">
           지난번 헷갈린 말 {at + 1}/{total}
         </p>
       </div>
@@ -57,7 +57,7 @@ export function ReviewToday() {
           <p className="text-[12px] text-ink-subtle">{card.title}</p>
           <div className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1">
             <SpeakerTag>{card.partnerName}</SpeakerTag>
-            <p className="font-line text-[19px] leading-snug">{card.partnerLine}</p>
+            <p className="font-line text-[20px] leading-snug">{card.partnerLine}</p>
             <SpeakerTag me>나</SpeakerTag>
             <p className="font-pixel text-[15px] leading-snug">{card.intent}</p>
           </div>
@@ -78,10 +78,10 @@ export function ReviewToday() {
                 </span>
                 <span className="min-w-0">
                   <span className="block font-line text-[20px] leading-snug">{card.right.line}</span>
-                  <span className="block text-[13px] text-ink-subtle">{card.right.meaning}</span>
+                  <span className="block text-[14px] text-ink-subtle">{card.right.meaning}</span>
                 </span>
               </p>
-              <p className="mt-2 flex items-center gap-2 text-[13px] text-ink-subtle">
+              <p className="mt-2 flex items-center gap-2 text-[14px] text-ink-subtle">
                 <Mark good={false} />
                 <span className="shrink-0">지난번 내가 고른 말</span>
                 <s className="min-w-0 truncate">{card.mine.line}</s>

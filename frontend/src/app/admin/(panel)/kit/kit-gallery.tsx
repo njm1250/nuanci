@@ -60,7 +60,7 @@ function Pick<T extends string>({
 export function KitGallery() {
   const [set, setSet] = useState<SetId>("dining");
   const [time, setTime] = useState<Time>("day");
-  const [hero, setHero] = useState<Hero>("boy");
+  const [hero, setHero] = useState<Hero>("girl");
   const [accessory, setAccessory] = useState<AccessoryId | "">("");
   const [partner, setPartner] = useState<CastId>("sam");
   const [motion, setMotion] = useState<Motion | "">("idle");
@@ -74,7 +74,7 @@ export function KitGallery() {
   const replay = () => setKey((k) => k + 1);
 
   const snippet = {
-    ...(hero !== "boy" && { hero }),
+    ...(hero !== "girl" && { hero }),
     stage: {
       set,
       time,
@@ -151,7 +151,7 @@ export function KitGallery() {
           <Pick
             label="주인공 hero"
             value={hero}
-            options={["boy", "girl"] as const}
+            options={["girl", "boy"] as const}
             onChange={(v) => v && setHero(v)}
           />
           <Pick

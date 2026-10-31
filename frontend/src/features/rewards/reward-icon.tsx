@@ -1,3 +1,7 @@
+"use client";
+
+import { useAvatar } from "@/features/avatar/avatar";
+import { isHairItem } from "@/features/stage/hair";
 import { COLOR_HEX, type RewardColor } from "./rewards";
 
 // 보상 아이템의 12×12 픽셀 아이콘. c는 고른 색이 들어가는 자리다
@@ -53,6 +57,18 @@ const ICONS: Record<string, string[]> = {
   guitar: ["........kk..", ".......kk...", "......nk....", ".....nn.....", "..oooo......", ".oookoo.....", ".ookkko.....", ".oookoo.....", "..ooo......."],
   lights: ["", "", "kk........kk", "y.kk....kk.b", "y...kkkk...b", "...r.yy.p...", "...r.yy.p..."],
   beanbag: ["", "", "", "...oooooo...", "..oooooooo..", ".oooooooooo.", "oooooooooooo", "oooooooooooo", ".oooooooooo."],
+  "hair-1": ["...cccccc...", "..cccccccc..", ".cccccccccc.", ".ccsssssscc.", ".ccskssskcc.", ".ccsssssscc.", ".ccsssssscc.", ".cc......cc."],
+  "hair-2": ["...cccccc...", "..cccccccc..", "ppccssssccpp", "ccccskskcccc", "cc.ssssss.cc", "cc........cc", ".c........c."],
+  "hair-3": [".ppp.kk.ppp.", ".pppkkkkppp.", "...cccccc...", "..cccccccc..", ".ccsssssscc.", ".ccskssskcc.", ".cc.ssss.cc.", ".cc......cc.", ".cc......cc."],
+  "hair-4": [".cc......cc.", "cccc....cccc", "cccc.cc.cccc", ".pccccccccp.", "..cccccccc..", "..cssssssc..", "..cskssksc..", "...ssssss..."],
+  "hair-5": ["...cccccc.cc", "..ccccccccpc", "..cccccccccc", "..csssssc.cc", "..cskssks.cc", "..cssssss.cc", "...ssssss.c.", "..........c."],
+  "hair-6": ["...cccccc...", "..cccccccc..", ".ccsssssscc.", ".ccskssskcc.", "cc.ssssss.cc", ".cc......cc.", "cc........cc", ".cc......cc."],
+  "hair-1-boy": ["...cccccc...", "..cccccccc..", ".cccccccccc.", ".cccccccccc.", ".ccsssssscc.", ".csskssksc..", "..ssssssss..", "...ssssss..."],
+  "hair-2-boy": ["...cccccc...", "..ccccccccc.", ".cccccccccc.", ".ccccsssscc.", ".cssssssssc.", "..sskssks...", "..ssssssss..", "...ssssss..."],
+  "hair-3-boy": ["..cc.cc.cc..", ".cccccccccc.", "cccccccccccc", "cccccccccccc", ".csccccccsc.", "..sskssks...", "..ssssssss..", "...ssssss..."],
+  "hair-4-boy": ["..c..c..c...", ".cc.ccc.cc..", ".ccccccccc..", "cccccccccccc", ".cssssssssc.", "..sskssks...", "..ssssssss..", "...ssssss..."],
+  "hair-5-boy": ["...cccccc...", "..cccccccc..", ".cccccccccc.", ".ccsssssscc.", ".cskssksscc.", "cc.ssssss.cc", "c..ssssss..c"],
+  "hair-6-boy": ["..cccccccc..", ".cccccccccc.", ".cccccccccc.", "..cc....cc..", "..cssssssc..", "..sskssks...", "..ssssssss..", "...ssssss..."],
   // 생각 말풍선(상대가 오해해서 떠올린 그림)에 쓰는 그림
   "imagine-food": ["....nnnn....", "...wwwwww...", "...nnnnnn...", "..wwwwwwww..", "..nnnnnnnn..", ".wwwwwwwwww.", ".nnnnnnnnnn.", "nnnnnnnnnnnn"],
   "imagine-stomachs": [".pppp..pppp.", "pppppppppppp", "pppprppprppp", "pppppppppppp", ".pppp..pppp.", "..pp....pp..", "...p....p..."],
@@ -64,7 +80,8 @@ const ICONS: Record<string, string[]> = {
 };
 
 export function RewardIcon({ id, color, size = 36, className }: { id: string; color?: RewardColor | null; size?: number; className?: string }) {
-  const rows = ICONS[id] ?? ICONS.locked;
+  const { hero } = useAvatar();
+  const rows = ICONS[isHairItem(id) && hero === "boy" ? `${id}-boy` : id] ?? ICONS.locked;
   // 아이콘마다 줄 수가 달라서 세로 가운데에 놓는다
   const top = Math.floor((12 - rows.length) / 2);
   const rects: React.ReactNode[] = [];

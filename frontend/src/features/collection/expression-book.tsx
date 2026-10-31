@@ -52,7 +52,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
           </div>
         )}
       </div>
-      <p className="mt-1.5 flex items-center gap-2 text-[13px] text-ink-subtle">
+      <p className="mt-1.5 flex items-center gap-2 text-[14px] text-ink-subtle">
         <Mark good={false} />
         <s className="min-w-0">{pair.wrong}</s>
         {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
@@ -134,7 +134,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="표현 찾기"
               aria-label="표현 찾기"
-              className="blk min-h-11 min-w-0 flex-1 bg-cream px-3 text-[15px] text-ink placeholder:text-ink-subtle"
+              className="blk min-h-11 min-w-0 flex-1 bg-cream px-3 text-[16px] text-ink placeholder:text-ink-subtle"
             />
             <button
               type="button"
@@ -195,7 +195,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
           <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
             <span>
               <span className="block font-pixel text-[15px]">아직 안 해 본 장면 {lockedCount}개</span>
-              <span className="block text-[13px] text-paper-subtle">해 보면 표현이 더 모여요</span>
+              <span className="block text-[14px] text-paper-subtle">해 보면 표현이 더 모여요</span>
             </span>
             <Arrow />
           </span>

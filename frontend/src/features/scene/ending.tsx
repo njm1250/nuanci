@@ -23,7 +23,7 @@ export function MochiCameo({ step, line }: { step: EndingStep; line: string }) {
   return (
     <div className="pointer-events-none absolute bottom-9 right-2 flex animate-[rise_240ms_steps(3,end)_both] flex-col items-end">
       <div key={step} className="blk-frame-sm relative mb-3 animate-[fade-in_160ms]">
-        <div className="blk w-max max-w-[10rem] bg-white px-2.5 py-1.5 font-line text-[15px] leading-snug text-ink break-keep">{step === "beat" ? "……" : line}</div>
+        <div className="blk w-max max-w-[10rem] bg-white px-2.5 py-1.5 font-line text-[14px] leading-snug text-ink break-keep">{step === "beat" ? "……" : line}</div>
         <span className="absolute -bottom-[5px] right-4 h-[5px] w-[10px] bg-white" />
         <span className="absolute -bottom-[9px] right-[19px] h-[4px] w-[4px] bg-white" />
       </div>

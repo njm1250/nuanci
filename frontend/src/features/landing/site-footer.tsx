@@ -6,7 +6,7 @@ import { useInquiry } from "@/features/inquiry/inquiry-form";
 export function SiteFooter() {
   const { open: openInquiry, element } = useInquiry();
 
-  const linkClass = "inline-flex min-h-11 items-center px-2 text-[13px] transition-colors hover:text-gold";
+  const linkClass = "inline-flex min-h-11 items-center px-2 text-[14px] transition-colors hover:text-gold";
 
   return (
     <footer className="mx-4 mt-auto pb-6 md:mx-0 md:mt-6 md:pb-0">
@@ -15,7 +15,7 @@ export function SiteFooter() {
         <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
           <span>
             <span className="block font-pixel text-[15px]">이상한 영어를 발견했나요?</span>
-            <span className="block text-[13px] text-paper-subtle">알려 주시면 바로 고칠게요</span>
+            <span className="block text-[14px] text-paper-subtle">알려 주시면 바로 고칠게요</span>
           </span>
           <span className="shrink-0 font-pixel text-[15px] text-gold">알려 주기 ›</span>
         </span>
