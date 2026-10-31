@@ -298,6 +298,7 @@ export function PixelStage({
   return (
     <div ref={box} className="absolute inset-0 overflow-hidden" style={{ background: wall }}>
       <Canvas
+        flat
         frameloop="demand"
         orthographic
         dpr={dpr}
