@@ -328,7 +328,8 @@ export function Figure({
         [s.torsoX, s.vTorsoX] = stepSpring(s.torsoX, s.vTorsoX, p.torsoX * 0.35, 190, 15);
         [s.headX, s.vHeadX] = stepSpring(s.headX, s.vHeadX, p.headX * 0.4, 175, 13);
         [s.headY, s.vHeadY] = stepSpring(s.headY, s.vHeadY, p.headY * 0.35, 175, 13);
-        const headTiltZ = -p.headZ * dir + (motion === "nod" ? Math.sin(mt * 10) * 0.14 * Math.max(0, 1 - mt / 1.4) : 0);
+        // 가만히 있을 때도 고개를 살짝 기울여 얼굴이 대칭으로 굳지 않게 한다
+        const headTiltZ = (motion === "idle" ? 0.08 * dir : 0) - p.headZ * dir + (motion === "nod" ? Math.sin(mt * 10) * 0.14 * Math.max(0, 1 - mt / 1.4) : 0);
         [s.headZ, s.vHeadZ] = stepSpring(s.headZ, s.vHeadZ, headTiltZ, 165, 11);
         [s.headDrop, s.vHeadDrop] = stepSpring(s.headDrop, s.vHeadDrop, p.headDrop, 230, 14);
         [s.squash, s.vSquash] = stepSpring(s.squash, s.vSquash, p.squash, 220, 13);
@@ -531,23 +532,23 @@ export function Figure({
                             {/* 뒷머리 레이어 (얼굴 뒤쪽) */}
                             {(hairStyle === "long" || hairStyle === "ribbon") && (
                                 <>
-                                    <PixRect w={0.76} h={0.3} at={[0, -0.08, -0.02]} color={hair} outlineZ={-0.03} />
-                                    <PixOval rx={0.38} ry={0.13} at={[0, -0.23, -0.02]} color={hair} outlineZ={-0.03} />
+                                    <PixRect w={0.78} h={0.46} at={[0, -0.13, -0.02]} color={hair} outlineZ={-0.03} />
+                                    <PixOval rx={0.39} ry={0.1} at={[0, -0.36, -0.02]} color={hair} outlineZ={-0.03} />
                                 </>
                             )}
                             {hairStyle === "bob" && <PixOval rx={0.47} ry={0.43} at={[0, -0.04, -0.02]} color={hair} outlineZ={-0.03} />}
                             {hairStyle === "mash" && <PixOval rx={0.455} ry={0.38} at={[0, 0.02, -0.02]} color={hair} outlineZ={-0.03} />}
                             {hairStyle === "wolf" && (
                                 <>
-                                    <PixOval rx={0.43} ry={0.27} at={[0, -0.04, -0.02]} color={hair} outlineZ={-0.03} />
+                                    <PixOval rx={0.43} ry={0.32} at={[0, -0.08, -0.02]} color={hair} outlineZ={-0.03} />
                                     {[-1, 1].map((s) => (
-                                        <PixRect key={`wf${s}`} w={0.1} h={0.13} at={[0.33 * s, -0.27, -0.02]} color={hair} rot={0.2 * s} outlineZ={-0.03} />
+                                        <PixRect key={`wf${s}`} w={0.13} h={0.17} at={[0.36 * s, -0.3, -0.02]} color={hair} rot={0.12 * s} outlineZ={-0.03} />
                                     ))}
                                 </>
                             )}
                             {hairStyle === "wave" &&
                                 [-1, 1].flatMap((s) =>
-                                    [0.02, -0.15, -0.3].map((y, i) => (
+                                    [0.02, -0.2, -0.4].map((y, i) => (
                                         <PixOval key={`w${s}${i}`} rx={0.17} ry={0.14} at={[(0.36 + (i % 2) * 0.06) * s, y, -0.02]} color={hair} outlineZ={-0.03} />
                                     )),
                                 )}
@@ -662,8 +663,8 @@ export function Figure({
                                                     <PixRect
                                                         key={`long${s}`}
                                                         w={0.105}
-                                                        h={0.22}
-                                                        at={[0.325 * s, -0.09, 0.006]}
+                                                        h={0.27}
+                                                        at={[0.325 * s, -0.14, 0.006]}
                                                         color={hair}
                                                         outlineZ={-0.05}
                                                     />
@@ -701,15 +702,15 @@ export function Figure({
                                         {hairStyle === "twintail" &&
                                             [-1, 1].map((s) => (
                                                 <group key={`tt${s}`} position={[0.44 * s, 0.13, -0.03]}>
-                                                    <PixOval rx={0.14} ry={0.2} at={[0.08 * s, -0.16, 0]} color={hair} outlineZ={-0.015} />
-                                                    <PixOval rx={0.07} ry={0.08} at={[0.06 * s, -0.36, 0]} color={hair} outlineZ={-0.015} />
+                                                    <PixOval rx={0.15} ry={0.25} at={[0.09 * s, -0.2, 0]} color={hair} outlineZ={-0.015} />
+                                                    <PixOval rx={0.08} ry={0.1} at={[0.07 * s, -0.46, 0]} color={hair} outlineZ={-0.015} />
                                                     <PixOval rx={0.06} ry={0.055} at={[0, 0, 0.05]} color={RIBBON} outlineZ={-0.02} />
                                                 </group>
                                             ))}
                                         {hairStyle === "ribbon" && (
                                             <>
                                                 {[-1, 1].map((s) => (
-                                                    <PixRect key={`rl${s}`} w={0.105} h={0.22} at={[0.325 * s, -0.09, 0.006]} color={hair} outlineZ={-0.05} />
+                                                    <PixRect key={`rl${s}`} w={0.105} h={0.27} at={[0.325 * s, -0.14, 0.006]} color={hair} outlineZ={-0.05} />
                                                 ))}
                                                 <group position={[0.08 * dir, 0.4, 0.02]}>
                                                     {[-1, 1].map((s) => (
@@ -728,8 +729,8 @@ export function Figure({
                                             ))}
                                         {hairStyle === "sidepony" && (
                                             <group position={[-0.42 * dir, 0.16, -0.03]}>
-                                                <PixOval rx={0.15} ry={0.22} at={[-0.09 * dir, -0.17, 0]} color={hair} outlineZ={-0.015} />
-                                                <PixOval rx={0.07} ry={0.08} at={[-0.07 * dir, -0.39, 0]} color={hair} outlineZ={-0.015} />
+                                                <PixOval rx={0.16} ry={0.28} at={[-0.1 * dir, -0.22, 0]} color={hair} outlineZ={-0.015} />
+                                                <PixOval rx={0.08} ry={0.11} at={[-0.08 * dir, -0.5, 0]} color={hair} outlineZ={-0.015} />
                                                 <PixOval rx={0.065} ry={0.06} at={[0, 0, 0.05]} color={RIBBON} outlineZ={-0.02} />
                                             </group>
                                         )}
