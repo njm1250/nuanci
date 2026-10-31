@@ -71,14 +71,14 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
         <br />
         <span className="hl">어떤 사고</span>를 칠까?
       </h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-paper-muted">상대가 한 말에 바로 대답해 보세요. 고른 답에 숨은 함정으로 9가지 사고 유형 중 하나가 나와요.</p>
+      <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">상대가 한 말에 바로 대답해 보세요. 고른 답에 숨은 함정으로 9가지 사고 유형 중 하나가 나와요.</p>
 
       {friend && (
         <Panel className="mt-5">
           <div className="flex items-center gap-3 px-3 py-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={characterDataUrl(friend.type)} width={48} height={48} alt="" className="shrink-0 [image-rendering:pixelated]" />
-            <p className="text-[15px] leading-snug">
+            <p className="text-[16px] leading-snug">
               친구는 <b>{TYPES[friend.type].name}</b>이었어요.
               <br />
               <span className="text-ink-subtle">같은 문제로 붙어 볼래요?</span>
@@ -231,7 +231,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
       <div className="mt-4 min-h-[64px]" aria-live="polite">
         {shown && (
           <Panel dark className="animate-[pop_260ms_steps(4,end)_both]">
-            <p className="px-3 py-2.5 text-[17px] leading-snug">
+            <p className="px-3 py-2.5 text-[16px] leading-snug">
               <span className="font-pixel text-[15px] text-paper-subtle">{q.partnerName} 속마음 </span>
               {shown.choice ? shown.choice.reaction : "…? (대답이 없네)"}
             </p>

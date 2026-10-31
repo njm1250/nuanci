@@ -143,7 +143,7 @@ export function RewardCard({
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-pixel text-[15px]">깜짝 상자</p>
-            <p className={`mt-0.5 text-[13px] ${tone.muted}`}>아지트에 둘 물건 하나</p>
+            <p className={`mt-0.5 text-[14px] ${tone.muted}`}>아지트에 둘 물건 하나</p>
           </div>
           <button type="button" onClick={open} disabled={shaking} className="blk min-h-11 shrink-0 bg-ink px-4 font-pixel text-[15px] text-gold">
             열기

@@ -96,9 +96,9 @@ function Question({ name, line, intent, className = "" }: { name: string; line: 
   return (
     <div className={`grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2 ${className}`}>
       <SpeakerTag>{name}</SpeakerTag>
-      <p className="font-line text-[21px] leading-snug text-paper md:text-[23px]">{line}</p>
+      <p className="font-line text-[20px] leading-snug text-paper md:text-[24px]">{line}</p>
       <SpeakerTag me>나</SpeakerTag>
-      <p className="font-pixel text-[15px] leading-snug text-paper-muted">{intent}</p>
+      <p className="text-[16px] font-semibold leading-snug text-paper">{intent}</p>
     </div>
   );
 }
@@ -197,14 +197,14 @@ function ResultBody({
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="font-line text-[20px] leading-snug md:text-[22px]">{choice.line}</span>
+          <span className="font-line text-[20px] leading-snug">{choice.line}</span>
           <span className="flex shrink-0 items-center gap-1.5 pt-1">
             {showTrap && <TrapChip choice={choice} />}
             {revealed && <VerdictStamp key={verdictKey} choice={choice} pop={active} />}
           </span>
         </span>
         {revealed ? (
-          <span className={`flex items-start gap-2 leading-snug ${active ? "mt-2 text-[16px] font-semibold text-ink" : "mt-1.5 text-[15px] text-ink-muted"}`}>
+          <span className={`flex items-start gap-2 leading-snug ${active ? "mt-2 text-[16px] font-semibold text-ink" : "mt-1.5 text-[14px] text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -214,7 +214,7 @@ function ResultBody({
           <HiddenReaction />
         )}
         {/* 왜 어색한지가 이 카드에서 배울 내용이라 흐리게 두지 않고 본문 색으로 쓴다 */}
-        {active && <span className="mt-2 block text-[15px] leading-[1.6] text-ink">{choice.why}</span>}
+        {active && <span className="mt-2 block text-[16px] leading-[1.6] text-ink">{choice.why}</span>}
         {revealed && (mine || share !== undefined) && (
           <span className={`flex flex-wrap items-center gap-x-1.5 text-[12px] tabular-nums text-ink-subtle ${active ? "mt-3" : "mt-1.5"}`}>
             {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
@@ -305,7 +305,7 @@ function WrapUp({
             {pairs.map((p) => (
               <li key={p.right}>
                 <p className="font-line text-[20px] leading-snug">{p.right}</p>
-                <p className="text-[13px] text-ink-subtle">
+                <p className="text-[14px] text-ink-subtle">
                   {spoken(p.intent)} · <s>{p.wrong}</s>
                 </p>
               </li>
@@ -329,7 +329,7 @@ function WrapUp({
       <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
-          <p className="text-[13px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
+          <p className="text-[14px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
         </div>
         <BlockButton primary onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
           {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
@@ -343,7 +343,7 @@ function WrapUp({
         다른 말 다시 보기
       </button>
       {/* 판정이나 영어가 이상하면 그 장면에서 바로 알린다. 문의 창이 보던 장면 주소를 함께 보낸다 */}
-      <button type="button" onClick={() => openInquiry("scene")} className="-mx-1 flex min-h-11 items-center px-1 text-[13px] text-paper-subtle underline underline-offset-4 hover:text-paper">
+      <button type="button" onClick={() => openInquiry("scene")} className="-mx-1 flex min-h-11 items-center px-1 text-[14px] text-paper-subtle underline underline-offset-4 hover:text-paper">
         이 장면의 영어가 이상해요
       </button>
       {inquiry}
@@ -375,11 +375,11 @@ function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName
           <div key={i} className="col-span-2 grid animate-[rise_200ms_var(--ease-snap)_both] grid-cols-subgrid items-baseline">
             <SpeakerTag me={b.who === "me"}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</SpeakerTag>
             {b.line === "……" ? (
-              <p className="min-w-0 text-[15px] leading-snug text-paper-muted">{b.meaning}</p>
+              <p className="min-w-0 text-[16px] leading-snug text-paper-muted">{b.meaning}</p>
             ) : (
               <p className="min-w-0">
-                <span className="block font-line text-[19px] leading-snug text-paper">{b.line}</span>
-                {translate && <span className="mt-0.5 block text-[13px] leading-snug text-paper-muted">{b.meaning}</span>}
+                <span className="block font-line text-[20px] leading-snug text-paper">{b.line}</span>
+                {translate && <span className="mt-0.5 block text-[14px] leading-snug text-paper-muted">{b.meaning}</span>}
               </p>
             )}
           </div>
@@ -600,11 +600,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink">
-      {/* 데스크톱은 머리줄·무대·오른쪽 패널을 한 덩어리로 세로 가운데에 둔다. 메인 버튼이 화면 맨 아래로 떨어지지 않고 무대 아래 끝에 맞춰진다.
-          주로 읽고 누르는 건 오른쪽 선택 영역이라, 무대는 보조로 두고 선택 영역을 넓게(480px) 잡는다.
-          세로 여백 = (화면 높이 − 머리줄·아래 여백 96px − 무대 높이) / 2. 무대 높이는 무대 칸 너비(화면 너비 − 여백·패널 584px)의 3/4, 작은 화면에서도 결과 카드 세 장이 들어가게 최소 560px */}
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_480px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8 md:py-[max(0px,calc((100dvh_-_96px_-_max(560px,(min(100vw,1200px)_-_584px)*0.75))/2))]">
+    <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink md:items-center md:bg-night">
+      {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
+      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_480px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:h-[min(100dvh,820px)] md:gap-x-10 md:px-8">
         <header className="flex h-12 shrink-0 items-center gap-2 px-4 font-pixel text-[15px] md:col-span-2 md:h-16 md:px-0">
           <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2">
             <span className="hl">{preview ? "검수" : "nuanci"}</span>
@@ -614,7 +612,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && !leading && phase !== "transition" && (
               <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
-                <span className={`border-2 px-1.5 py-1 text-[13px] leading-none ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
+                <span className={`border-2 px-1.5 py-1 text-[14px] leading-none ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
             )}
             <SoundToggle />
@@ -622,7 +620,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         </header>
 
         <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
-          <Panel>
+          <Panel className="blk-strong">
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
               <Stage
                 spec={spec}
@@ -694,7 +692,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
         <section ref={scroller} className="scroll-area min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2 md:pl-1 md:pr-3 md:pt-2 md:[scrollbar-gutter:stable] md:[mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_calc(100%-32px),transparent)]">
           {phase === "transition" && timeCue ? (
-            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-pixel-title text-[28px] text-paper">
+            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-pixel-title text-[24px] text-paper">
               {timeCue}…
             </p>
           ) : phase === "transition" ? (
@@ -741,10 +739,10 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
               <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
-                    <BlockButton onClick={() => play(c)} className="w-full text-left" faceClassName="flex items-center gap-3">
+                    <BlockButton onClick={() => play(c)} className="blk-strong w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} />
                       <span className="min-w-0 flex-1">
-                        <span className="block font-line text-[20px] leading-snug md:text-[22px]">{c.line}</span>
+                        <span className="block font-line text-[20px] leading-snug">{c.line}</span>
                         {showMeaning && <span className="mt-0.5 block text-[14px] text-ink-subtle">{c.meaning}</span>}
                       </span>
                       {preview && (
@@ -761,12 +759,12 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             <div key={`result-${phase}`}>
               {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} />
-              <p className="mt-4 font-pixel text-[15px] text-paper-subtle">다른 말도 눌러 보세요</p>
+              <p className="mt-4 text-[14px] text-paper-muted">다른 말도 눌러 보세요</p>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_240ms_var(--ease-snap)_both]" style={{ animationDelay: `${i * 70}ms` }}>
                     {c.id === choice.id ? (
-                      <Panel>
+                      <Panel className="blk-strong">
                         <div className="relative overflow-hidden px-3.5 pb-1 pt-3.5" aria-current="true">
                           {/* 판정 색을 옅게 깔아 두고, 방금 고른 순간에만 진하게 한 번 번쩍인다 */}
                           <span aria-hidden className={`pointer-events-none absolute inset-0 opacity-15 ${VERDICTS[c.verdict].color}`} />
@@ -776,7 +774,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                           <span className="relative block">
                             <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} />
                             <span className="mt-3 block border-t border-ink/10 pl-9">
-                              {detailOpen && <span className="mt-3 block animate-[fade-in_150ms] text-[15px] leading-[1.6] text-ink-muted">{c.detail}</span>}
+                              {detailOpen && <span className="mt-3 block animate-[fade-in_150ms] text-[16px] leading-[1.6] text-ink-muted">{c.detail}</span>}
                               <button
                                 type="button"
                                 onClick={() => setDetailOpen((v) => !v)}

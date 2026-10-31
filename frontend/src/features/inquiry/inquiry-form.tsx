@@ -120,7 +120,7 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
               </label>
 
               <label className="mt-3 block">
-                <span className="text-[13px] text-ink-muted">답장 받을 이메일 (선택)</span>
+                <span className="text-[14px] text-ink-muted">답장 받을 이메일 (선택)</span>
                 <input
                   type="email"
                   value={contact}

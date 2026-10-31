@@ -31,7 +31,7 @@ function Arrow() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-2 font-pixel text-[15px] text-paper-subtle">{title}</h2>
+      <h2 className="mb-2 text-[16px] font-bold text-paper">{title}</h2>
       <Panel>
         <div className="divide-y-2 divide-ink/10 px-4">{children}</div>
       </Panel>
@@ -39,13 +39,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const rowClass = "flex min-h-12 w-full items-center justify-between gap-3 text-left text-[15px]";
+const rowClass = "flex min-h-12 w-full items-center justify-between gap-3 text-left text-[16px]";
 
 function Stat({ href, label, value }: { href: string; label: string; value: string }) {
   return (
     <Link href={href} className="flex flex-col items-center justify-center py-3 text-center">
       <span className="font-pixel-title text-[24px] leading-none">{value}</span>
-      <span className="mt-1.5 text-[13px] text-ink-subtle">{label}</span>
+      <span className="mt-1.5 text-[14px] text-ink-subtle">{label}</span>
     </Link>
   );
 }
@@ -82,12 +82,12 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
         <div className="min-w-0 flex-1">
           <p className="text-[12px] text-ink-subtle">이름</p>
           <p className="flex min-w-0 items-center gap-2">
-            <span className="truncate text-[17px] font-semibold">{me ? (me.name ?? "이름 없음") : "손님"}</span>
+            <span className="truncate text-[16px] font-semibold">{me ? (me.name ?? "이름 없음") : "손님"}</span>
             {badge && <StreakBadge days={badge} />}
           </p>
           <p className="mt-2 text-[12px] text-ink-subtle">직급</p>
           <p className="break-all font-pixel-title text-[24px] leading-none">{current.name}</p>
-          {next && <p className="mt-1.5 break-all text-[13px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
+          {next && <p className="mt-1.5 break-all text-[14px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
@@ -122,7 +122,7 @@ function Profile() {
     return (
       <Panel>
         <div className="p-4">
-          {notice === "1" && <p className="mb-2 text-[13px] text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합쳤어요.</p>}
+          {notice === "1" && <p className="mb-2 text-[14px] text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합쳤어요.</p>}
           <p className="truncate text-[14px] text-ink-muted">{account.me.email}로 로그인했어요</p>
         </div>
       </Panel>
@@ -136,7 +136,7 @@ function GuestProfile({ notice, google }: { notice: string | null; google: boole
   return (
     <Panel>
       <div className="p-4">
-        {notice === "failed" && <p className="mb-3 text-[13px] text-rust">로그인하지 못했어요. 다시 시도해 주세요.</p>}
+        {notice === "failed" && <p className="mb-3 text-[14px] text-rust">로그인하지 못했어요. 다시 시도해 주세요.</p>}
         <p className="font-pixel-title text-[24px] leading-[1.25]">로그인하면</p>
         <ul className="mt-3 space-y-2 text-[14px] leading-snug text-ink-muted">
           <li className="flex gap-2">

@@ -90,9 +90,9 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
 
         <Panel className="mt-5">
           <div className="px-4 py-3.5">
-            <p className="text-[15px] leading-relaxed">{t.about}</p>
+            <p className="text-[16px] leading-relaxed">{t.about}</p>
             <p className="mt-3 border-t-[3px] border-dotted border-ink/20 pt-3 font-pixel text-[15px] text-ink-subtle">고치는 한 줄</p>
-            <p className="mt-1 text-[15px] leading-relaxed">{t.fix}</p>
+            <p className="mt-1 text-[16px] leading-relaxed">{t.fix}</p>
           </div>
         </Panel>
 
@@ -162,7 +162,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
         <h1 className="mt-3 font-pixel-title text-[24px] leading-tight">
           <span className="hl">{t.name}</span>
         </h1>
-        <p className="mt-1.5 text-[15px] leading-snug text-ink-subtle">{t.tagline}</p>
+        <p className="mt-1.5 text-[16px] leading-snug text-ink-subtle">{t.tagline}</p>
         <div className="mt-3 flex items-baseline gap-2.5">
           <span className="shrink-0 bg-night-deep px-1.5 py-1 font-pixel text-[15px] leading-none text-ink-muted">자주 하는 말</span>
           <p className="font-line text-[20px] leading-snug">{t.says}</p>
@@ -186,7 +186,7 @@ function Ingredients({ mix, name }: { mix: ReturnType<typeof ingredients>; name:
       <p className="mt-1 border-b-[6px] border-ink pb-1.5 text-[12px]">1회 제공량 5문장 · {name}</p>
       <ul>
         {mix.map((m) => (
-          <li key={m.key} className="flex items-center gap-3 border-b-2 border-ink py-1.5 text-[15px]">
+          <li key={m.key} className="flex items-center gap-3 border-b-2 border-ink py-1.5 text-[16px]">
             <span className="w-28 shrink-0 font-pixel">{m.label}</span>
             <span className="h-2.5 flex-1 border-2 border-ink">
               <span className="block h-full bg-ink" style={{ width: `${m.share}%` }} />
@@ -217,7 +217,7 @@ function Compare({ me, friend, same, total }: { me: TypeId; friend: TypeId; same
             </div>
           ))}
         </div>
-        <p className="mt-3 text-center text-[15px] leading-snug">{pairLine(me, friend)}</p>
+        <p className="mt-3 text-center text-[16px] leading-snug">{pairLine(me, friend)}</p>
         {same !== null && (
           <p className="mt-1 text-center font-pixel text-[15px] text-paper-subtle">
             같은 답 {same} / {total}
@@ -291,23 +291,23 @@ function Review({ questions, picks }: { questions: TestQuestion[]; picks: number
           return (
             <li key={`${q.sceneId}-${q.step}`}>
               <Panel>
-                <div className="px-3.5 py-3 text-[15px] leading-snug">
+                <div className="px-3.5 py-3 text-[16px] leading-snug">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-pixel text-ink-subtle">
                       {i + 1}. {q.partnerName}
                     </span>
                     <StampRow kinds={[stampKind(c?.verdict ?? null)]} total={1} size={22} />
                   </div>
-                  <p className="mt-1 font-line text-[18px]">{q.partnerLine}</p>
+                  <p className="mt-1 font-line text-[20px]">{q.partnerLine}</p>
                   <p className="mt-2">
                     <span className="text-ink-subtle">내 답 </span>
-                    {c ? <span className="font-line text-[18px]">{c.line}</span> : "시간 초과"}
+                    {c ? <span className="font-line text-[20px]">{c.line}</span> : "시간 초과"}
                   </p>
                   {c && c.verdict !== "good" && <p className="mt-0.5 text-ink-subtle">→ {c.reaction}</p>}
                   {good && c?.id !== good.id && (
                     <p className="mt-2">
                       <span className="text-ink-subtle">자연스러운 말 </span>
-                      <span className="font-line text-[18px]">{good.line}</span>
+                      <span className="font-line text-[20px]">{good.line}</span>
                     </p>
                   )}
                   <Link href={`/scenes/${q.sceneNumber}`} className="mt-2 inline-flex min-h-11 items-center font-pixel text-ink underline underline-offset-4">
@@ -372,7 +372,7 @@ function Collection({ current }: { current: TypeId }) {
           );
         })}
       </ul>
-      <p className="mt-2 text-[13px] leading-snug text-paper-subtle">친구에게 받은 결과 링크를 열면 그 유형이 도감에 모여요.</p>
+      <p className="mt-2 text-[14px] leading-snug text-paper-subtle">친구에게 받은 결과 링크를 열면 그 유형이 도감에 모여요.</p>
     </section>
   );
 }
