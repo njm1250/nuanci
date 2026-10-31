@@ -13,6 +13,9 @@ export type Pose = {
   lArmZ: number;
   rArmX: number;
   rArmZ: number;
+  /* 팔이 짧아서 동작은 머리와 몸 전체로 보여 준다. headDrop은 머리가 내려오는 양, squash는 몸이 눌리는 양이다 */
+  headDrop: number;
+  squash: number;
 };
 
 export const REST: Pose = {
@@ -28,6 +31,8 @@ export const REST: Pose = {
   lArmZ: 0.1,
   rArmX: -0.8,
   rArmZ: -0.1,
+  headDrop: 0,
+  squash: 0,
 };
 
 const easeOut = (x: number) => 1 - (1 - Math.min(Math.max(x, 0), 1)) ** 3;
@@ -39,7 +44,7 @@ export function targetPose(motion: Motion, t: number): Pose {
   const fade = (d: number) => Math.max(0, 1 - t / d);
   switch (motion) {
     case "nod":
-      p.headX = Math.sin(t * 9) * 0.24 * fade(1.4);
+      p.headDrop = Math.abs(Math.sin(t * 8)) * 0.06 * fade(1.3);
       break;
     case "tilt":
       p.headZ = 0.34;
@@ -48,7 +53,7 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.rArmZ = 0.5;
       break;
     case "bounce":
-      p.rootY = Math.abs(Math.sin(t * 8)) * 0.1 * fade(1.3);
+      p.rootY = Math.abs(Math.sin(t * 8)) * 0.15 * fade(1.3);
       p.headX = -0.1;
       if (t < 1.3) {
         p.lArmX = -2.7;
@@ -62,13 +67,18 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.rArmX = -0.5;
       p.lArmZ = 0.55;
       p.rArmZ = -0.55;
-      p.headZ = 0.12;
+      p.headZ = 0.16;
+      p.rootY = 0.03;
+      p.squash = -0.05;
       break;
     case "patBelly":
       p.torsoX = -0.12;
       p.headX = -0.14;
       p.rArmX = -0.45 + Math.sin(t * 7) * 0.12;
       p.rArmZ = 0.4;
+      // 배가 불러 몸이 납작하게 퍼지고 천천히 흔들거린다
+      p.squash = -0.09;
+      p.rootX = Math.sin(t * 3) * 0.015;
       break;
     case "lean":
       p.torsoX = -0.18;
@@ -76,6 +86,9 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.headY = 0.3;
       p.lArmX = -1.4;
       p.lArmZ = 0.05;
+      // 관심이 생기면 상대 쪽으로 몸이 쏠린다
+      p.rootX = 0.09;
+      p.headZ = 0.1;
       break;
     case "faint":
       // 잠깐 굳었다가 옆으로 뻣뻣하게 쓰러진다
@@ -102,13 +115,16 @@ export function targetPose(motion: Motion, t: number): Pose {
         p.lArmZ = 0.3;
         p.rArmZ = -0.3;
         p.rootY = -Math.abs(Math.sin((t - 0.3) * 14)) * 0.04 * fade(0.9);
+        p.squash = -0.3;
+        p.headDrop = 0.06;
       }
       break;
     case "spin":
-      // 신나서 점프하며 제자리에서 한 바퀴 돈다
-      p.rootSpin = Math.PI * 2 * easeOut(t / 0.7);
-      p.rootY = t < 0.7 ? Math.sin((Math.PI * t) / 0.7) * 0.3 : 0;
-      if (t < 0.9) {
+      // 신나서 팔을 들고 좌우로 씰룩거리며 콩콩 뛴다. 납작한 그림이라 제자리에서 돌면 옆면이 막대처럼 보여서 돌지 않는다
+      p.rootY = Math.abs(Math.sin(t * 9)) * 0.17 * fade(1.3);
+      p.rootX = Math.sin(t * 9) * 0.07 * fade(1.3);
+      p.headZ = Math.sin(t * 9) * 0.2 * fade(1.3);
+      if (t < 1.3) {
         p.lArmX = -2.7;
         p.rArmX = -2.7;
         p.lArmZ = 0.4;
@@ -124,6 +140,7 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.rArmX = -1.3;
       p.lArmZ = -0.6;
       p.rArmZ = 0.6;
+      p.squash = -0.06;
       break;
     case "aim":
       p.rArmX = -1.57;
@@ -137,23 +154,31 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.rArmX = -1.7 + Math.sin(t * 10) * 0.06 * fade(1.2);
       p.rArmZ = 0.12;
       p.headX = -0.05;
+      p.rootX = 0.05;
+      p.headZ = 0.08;
       break;
     case "facepalm":
       p.rArmX = -2.3;
       p.rArmZ = 0.45;
       p.headX = 0.28;
       p.headY = Math.sin(t * 3) * 0.15;
+      // 어이없어서 몸이 축 처진다
+      p.headDrop = 0.06;
+      p.squash = -0.07;
+      p.rootTilt = 0.07;
       break;
     case "wave":
       // 옆모습에서도 머리에 가리지 않게 얼굴 앞쪽 높이에서 앞뒤로 흔든다
       p.rArmX = -2.3 + Math.sin(t * 10) * 0.3;
       p.rArmZ = -0.35;
-      p.headZ = 0.08;
+      p.headZ = 0.08 + Math.sin(t * 5) * 0.06;
+      p.rootX = Math.sin(t * 5) * 0.025;
       break;
     case "bow":
       // 한국식으로 허리를 숙여 꾸벅 인사하고 천천히 일어난다
       p.torsoX = 0.85 * Math.sin(Math.PI * Math.min(t / 1.4, 1));
-      p.headX = 0.2 * Math.sin(Math.PI * Math.min(t / 1.4, 1));
+      p.headDrop = 0.13 * Math.sin(Math.PI * Math.min(t / 1.4, 1));
+      p.squash = -0.1 * Math.sin(Math.PI * Math.min(t / 1.4, 1));
       p.lArmX = 0;
       p.rArmX = 0;
       break;
@@ -164,7 +189,7 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.rArmX = -1.35;
       p.lArmZ = -0.38 + s * 0.3;
       p.rArmZ = 0.38 - s * 0.3;
-      p.headX = -0.06;
+      p.rootY = s * 0.05;
       break;
     }
     case "sob":
@@ -175,6 +200,8 @@ export function targetPose(motion: Motion, t: number): Pose {
       p.rArmZ = 0.5;
       p.headX = 0.25;
       p.rootY = Math.abs(Math.sin(t * 16)) * 0.018;
+      p.headDrop = 0.05;
+      p.squash = Math.sin(t * 16) * 0.025;
       break;
     case "dance":
       // 몸을 좌우로 흔들며 팔을 번갈아 뻗는 막춤
