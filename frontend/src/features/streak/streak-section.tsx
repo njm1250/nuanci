@@ -27,14 +27,14 @@ export function StreakSection({ member }: { member: boolean }) {
 
   return (
     <section id="streak" className="scroll-mt-4">
-      <h2 className="mb-2 font-pixel text-[15px] text-paper-subtle">연속 기록</h2>
+      <h2 className="mb-2 text-[16px] font-bold text-paper">연속 기록</h2>
       <Panel>
         <div className="divide-y-2 divide-ink/10 px-4">
           <div className="flex items-center gap-3 py-4">
             <Flame lit={Boolean(streak?.today)} size={36} />
             <div className="min-w-0 flex-1">
               <p className="font-pixel-title text-[24px] leading-none">{current}일 연속</p>
-              <p className="mt-1.5 text-[13px] text-ink-subtle">최고 {streak?.best ?? 0}일</p>
+              <p className="mt-1.5 text-[14px] text-ink-subtle">최고 {streak?.best ?? 0}일</p>
             </div>
           </div>
 
@@ -65,7 +65,7 @@ export function StreakSection({ member }: { member: boolean }) {
 
           {earned.length > 0 && (
             <div className="py-3">
-              <p id="badge-label" className="text-[13px] text-ink-subtle">
+              <p id="badge-label" className="text-[14px] text-ink-subtle">
                 모은 뱃지
               </p>
               <div role={member ? "radiogroup" : "list"} aria-labelledby="badge-label" className="mt-2 flex flex-wrap gap-2">

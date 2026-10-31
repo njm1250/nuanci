@@ -13,7 +13,7 @@ export function LegalPage({ title, updated, children }: { title: string; updated
           <BackButton />
         </header>
         <h1 className="font-pixel-title text-[24px]">{title}</h1>
-        <p className="mt-1 text-[13px] text-paper-subtle">시행일 {updated}</p>
+        <p className="mt-1 text-[14px] text-paper-subtle">시행일 {updated}</p>
         <article className="mt-8 space-y-8 text-[15px] leading-relaxed text-paper-muted [&_h2]:mb-2 [&_h2]:font-pixel [&_h2]:text-[15px] [&_h2]:text-paper [&_li]:ml-5 [&_li]:list-disc [&_li]:pl-1 [&_strong]:text-paper [&_table]:w-full [&_td]:border-t [&_td]:border-slate-block [&_td]:py-2 [&_td]:pr-3 [&_td]:align-top [&_th]:pb-2 [&_th]:pr-3 [&_th]:text-left [&_th]:font-semibold [&_th]:text-paper [&_ul]:space-y-1">
           {children}
         </article>

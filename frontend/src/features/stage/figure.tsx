@@ -6,18 +6,26 @@ import * as THREE from "three";
 import type { Expression, Motion } from "@/features/scene/types";
 import { C } from "./palette";
 import { targetPose } from "./pose";
+import { HAIR_ITEMS, isHairItem } from "./hair";
 import { HeldProp } from "./props";
 import type { Look, Placement, PropId } from "./types";
 import { HeadWear, NeckWear, PixOval, PixRect } from "./wear";
 
 const INK = "#141317";
 const SKIN = "#ffe3ca";
-const SKIN_SHADE = "#f3c6a3";
 const BLUSH = "#ff7aa2";
 const MOUTH = "#d94862";
 const TEAR = "#7fb4d8";
 const HEART = "#e03168";
 const GOLD = "#e8b931";
+
+// 색을 고르지 않은 머리 아이템의 색
+const HAIR_DEFAULT: Partial<Record<Look["hairStyle"], string>> = { bob: "#f08aa8", twintail: "#e8b931", ribbon: "#e8b931", spacebuns: "#3f73c9", sidepony: "#2a2a28", wave: "#b4452f", mash: "#2a2a28", part: "#5b3a29", perm: "#b4452f", spiky: "#3f73c9", wolf: "#2a2a28", pomp: "#e8b931" };
+// 앞머리를 둥근 물결 모양으로 그리는 스타일
+const SOFT_BANGS = new Set<Look["hairStyle"]>(["long", "bun", "bob", "twintail", "ribbon", "spacebuns", "sidepony", "wave", "fluffy", "mash", "perm", "wolf"]);
+// 머리카락이 귀를 덮는 스타일
+const HAIR_OVER_EARS = new Set<Look["hairStyle"]>(["long", "bob", "ribbon", "wave", "mash", "wolf"]);
+const RIBBON = "#ff6f9c";
 
 export const HIP = { sit: 0.48, stand: 0.42 };
 
@@ -145,8 +153,12 @@ export function Figure({
     const torsoH = 0.42;
     const armLen = 0.24;
     const animal = look.animal;
+    // 아지트에서 고른 머리 아이템이 있으면 기본 머리 대신 그 모양과 색으로 그린다
+    const wornHair = look.wear?.find((w) => isHairItem(w.id));
+    const hairStyle: Look["hairStyle"] = wornHair && isHairItem(wornHair.id) ? HAIR_ITEMS[wornHair.id][look.hero ?? "girl"].style : look.hairStyle;
+    const hair = wornHair?.color ?? HAIR_DEFAULT[hairStyle] ?? look.hair;
+    const softBangs = SOFT_BANGS.has(hairStyle);
     const skin = animal?.fur ?? SKIN;
-    const skinShade = useMemo(() => (animal ? shiftColor(animal.fur, -0.1) : SKIN_SHADE), [animal]);
     const shirtShade = useMemo(() => shiftColor(look.shirt, -0.18), [look.shirt]);
 
     // 상대방을 바라보는 방향(+1: 오른쪽을 봄, -1: 왼쪽을 봄)
@@ -491,32 +503,50 @@ export function Figure({
                                모든 외곽선은 z = -0.035에 깔리고 얼굴·눈·머리카락은 앞쪽 평면에 선명하게 배치
                            ========================================================= */}
                         <group ref={head} position={[0, torsoH + 0.35, 0.02]} scale={animal ? 1.12 : 1.08}>
-                            {/* 긴 머리 뒷머리 레이어 (얼굴 뒤쪽) */}
-                            {look.hairStyle === "long" && (
-                                <PixRect w={0.78} h={0.48} at={[0, -0.14, -0.02]} color={look.hair} outlineZ={-0.03} />
+                            {/* 뒷머리 레이어 (얼굴 뒤쪽) */}
+                            {(hairStyle === "long" || hairStyle === "ribbon") && (
+                                <>
+                                    <PixRect w={0.78} h={0.46} at={[0, -0.13, -0.02]} color={hair} outlineZ={-0.03} />
+                                    <PixOval rx={0.39} ry={0.1} at={[0, -0.36, -0.02]} color={hair} outlineZ={-0.03} />
+                                </>
                             )}
+                            {hairStyle === "bob" && <PixOval rx={0.47} ry={0.43} at={[0, -0.04, -0.02]} color={hair} outlineZ={-0.03} />}
+                            {hairStyle === "mash" && <PixOval rx={0.455} ry={0.38} at={[0, 0.02, -0.02]} color={hair} outlineZ={-0.03} />}
+                            {hairStyle === "wolf" && (
+                                <>
+                                    <PixOval rx={0.43} ry={0.32} at={[0, -0.08, -0.02]} color={hair} outlineZ={-0.03} />
+                                    {[-1, 1].map((s) => (
+                                        <PixRect key={`wf${s}`} w={0.13} h={0.17} at={[0.36 * s, -0.3, -0.02]} color={hair} rot={0.12 * s} outlineZ={-0.03} />
+                                    ))}
+                                </>
+                            )}
+                            {hairStyle === "wave" &&
+                                [-1, 1].flatMap((s) =>
+                                    [0.02, -0.2, -0.4].map((y, i) => (
+                                        <PixOval key={`w${s}${i}`} rx={0.17} ry={0.14} at={[(0.36 + (i % 2) * 0.06) * s, y, -0.02]} color={hair} outlineZ={-0.03} />
+                                    )),
+                                )}
 
                             {/* 정수리 뒤쪽 헤어 볼륨 (얼굴 피부 레이어 바로 뒤에 깔아 눈을 가리지 않게 한다) */}
-                            {look.hairStyle !== "none" && (
+                            {hairStyle !== "none" && (
                                 <PixOval
-                                    rx={look.hairStyle === "curly" ? 0.425 : 0.405}
-                                    ry={look.hairStyle === "curly" ? 0.27 : 0.24}
+                                    rx={hairStyle === "curly" ? 0.425 : hairStyle === "fluffy" ? 0.43 : 0.405}
+                                    ry={hairStyle === "curly" ? 0.27 : hairStyle === "fluffy" ? 0.285 : 0.24}
                                     at={[0, 0.14, -0.006]}
-                                    color={look.hair}
+                                    color={hair}
                                     outlineZ={-0.032}
                                 />
                             )}
 
                             {/* 양쪽 귀 (외곽선은 머리 뒤쪽에 통합) */}
-                            {!animal &&
+                            {!animal && !HAIR_OVER_EARS.has(hairStyle) &&
                                 [-1, 1].map((s) => (
                                     <PixOval key={`ear${s}`} rx={0.065} ry={0.075} at={[0.355 * s, -0.045, -0.005]} color={skin} outlineZ={-0.035} />
                                 ))}
 
-                            {/* 통통한 찹쌀떡 얼굴 본체 + 턱선 미세 음영 */}
+                            {/* 통통한 찹쌀떡 얼굴 본체 */}
                             <PixOval rx={0.39} ry={0.325} at={[0, 0, 0]} color={skin} outlineZ={-0.035} />
-                            <PixOval rx={0.31} ry={0.06} at={[0, -0.23, 0.002]} color={skinShade} outline={false} />
-
+                            
                             {/* 동물 캐릭터 귀 (후속 동작 포함) */}
                             {animal?.kind === "cat" && (
                                 <group ref={hairFollow}>
@@ -557,14 +587,22 @@ export function Figure({
                             {/* =========================================================
                                 4. 도트 헤어스타일 앞머리 & 포인트 (눈 위에 시원한 이마 여백 확보)
                                ========================================================= */}
-                            {look.hairStyle !== "none" && (
+                            {hairStyle !== "none" && (
                                 <group position={[0, 0, 0.012]}>
                                     {/* 이마 윗부분(y = 0.11 위쪽)만 덮는 귀여운 도트 앞머리 */}
-                                    <PixOval rx={0.36} ry={0.13} at={[0, 0.22, 0]} color={look.hair} outline={false} />
-                                    <PixRect w={0.58} h={0.09} at={[0, 0.175, 0.002]} color={look.hair} outline={false} />
-                                    <PixRect w={0.19} h={0.06} at={[-0.18, 0.125, 0.002]} color={look.hair} outline={false} />
-                                    <PixRect w={0.19} h={0.06} at={[0.18, 0.125, 0.002]} color={look.hair} outline={false} />
-                                    <PixRect w={0.12} h={0.055} at={[0.02 * dir, 0.13, 0.002]} color={look.hair} outline={false} />
+                                    <PixOval rx={0.36} ry={0.13} at={[0, 0.22, 0]} color={hair} outline={false} />
+                                    <PixRect w={0.58} h={0.09} at={[0, 0.175, 0.002]} color={hair} outline={false} />
+                                    {softBangs ? (
+                                        (hairStyle === "mash" ? [-0.25, -0.085, 0.085, 0.25] : hairStyle === "fluffy" ? [-0.23, -0.05, 0.15] : [-0.2, 0, 0.2]).map((x) => (
+                                            <PixOval key={`bang${x}`} rx={hairStyle === "mash" ? 0.1 : 0.125} ry={0.08} at={[x + 0.02 * dir, hairStyle === "mash" ? 0.135 : 0.125, 0.002]} color={hair} outline={false} />
+                                        ))
+                                    ) : (
+                                        <>
+                                            <PixRect w={0.19} h={0.06} at={[-0.18, 0.125, 0.002]} color={hair} outline={false} />
+                                            <PixRect w={0.19} h={0.06} at={[0.18, 0.125, 0.002]} color={hair} outline={false} />
+                                            <PixRect w={0.12} h={0.055} at={[0.02 * dir, 0.13, 0.002]} color={hair} outline={false} />
+                                        </>
+                                    )}
 
                                     {/* 볼 양옆을 감싸는 옆머리(애교머리) */}
                                     {[-1, 1].map((s) => (
@@ -573,32 +611,32 @@ export function Figure({
                                             w={0.125}
                                             h={0.23}
                                             at={[0.325 * s, 0.08, 0.004]}
-                                            color={look.hair}
+                                            color={hair}
                                             outlineZ={-0.05}
                                         />
                                     ))}
 
                                     {/* 후속 동작(Follow-Through)으로 통통 튀는 머리 포인트 */}
                                     <group ref={hairFollow}>
-                                        {look.hairStyle === "short" && (
+                                        {(hairStyle === "short" || hairStyle === "fluffy" || hairStyle === "wolf") && (
                                             /* 바보털(아호게) */
                                             <PixRect
                                                 w={0.065}
                                                 h={0.13}
                                                 at={[0.04 * dir, 0.39, -0.005]}
-                                                color={look.hair}
+                                                color={hair}
                                                 rot={-0.32 * dir}
                                                 outlineZ={-0.045}
                                             />
                                         )}
-                                        {look.hairStyle === "bun" && (
+                                        {hairStyle === "bun" && (
                                             /* Sam의 통통한 똥머리 + 핑크 머리끈 */
                                             <group position={[0, 0.41, -0.005]}>
-                                                <PixOval rx={0.155} ry={0.145} at={[0, 0.02, 0]} color={look.hair} outlineZ={-0.045} />
+                                                <PixOval rx={0.155} ry={0.145} at={[0, 0.02, 0]} color={hair} outlineZ={-0.045} />
                                                 <PixRect w={0.21} h={0.05} at={[0, -0.075, 0.008]} color={BLUSH} outline={false} />
                                             </group>
                                         )}
-                                        {look.hairStyle === "long" && (
+                                        {hairStyle === "long" && (
                                             <>
                                                 {[-1, 1].map((s) => (
                                                     <PixRect
@@ -606,7 +644,7 @@ export function Figure({
                                                         w={0.105}
                                                         h={0.27}
                                                         at={[0.325 * s, -0.14, 0.006]}
-                                                        color={look.hair}
+                                                        color={hair}
                                                         outlineZ={-0.05}
                                                     />
                                                 ))}
@@ -614,7 +652,68 @@ export function Figure({
                                                 <PixRect w={0.095} h={0.038} at={[-0.24 * dir, 0.12, 0.015]} color={GOLD} outline={false} />
                                             </>
                                         )}
-                                        {look.hairStyle === "curly" && (
+                                        {hairStyle === "part" && (
+                                            <PixOval rx={0.3} ry={0.12} at={[-0.08 * dir, 0.13, 0.006]} rot={0.3 * dir} color={hair} outline={false} />
+                                        )}
+                                        {hairStyle === "perm" &&
+                                            [[-0.36, 0.2], [-0.2, 0.33], [0, 0.38], [0.2, 0.33], [0.36, 0.2]].map(([x, y]) => (
+                                                <PixOval key={`pm${x}`} rx={0.14} ry={0.13} at={[x, y, -0.008]} color={hair} outlineZ={-0.03} />
+                                            ))}
+                                        {hairStyle === "spiky" &&
+                                            [[-0.3, 0.33, 0.55], [-0.15, 0.41, 0.25], [0, 0.45, 0], [0.15, 0.41, -0.25], [0.3, 0.33, -0.55]].map(([x, y, rot]) => (
+                                                <PixRect key={`sp${x}`} w={0.13} h={0.2} at={[x, y, -0.008]} rot={rot} color={hair} outlineZ={-0.03} />
+                                            ))}
+                                        {hairStyle === "pomp" && (
+                                            <PixOval rx={0.3} ry={0.15} at={[0.07 * dir, 0.35, -0.005]} color={hair} outlineZ={-0.03} />
+                                        )}
+                                        {hairStyle === "bob" &&
+                                            [-1, 1].map((s) => (
+                                                <group key={`bob${s}`}>
+                                                    <PixRect w={0.11} h={0.3} at={[0.345 * s, -0.08, 0.006]} color={hair} outlineZ={-0.05} />
+                                                    <PixOval rx={0.055} ry={0.05} at={[0.345 * s, -0.23, 0.006]} color={hair} outlineZ={-0.05} />
+                                                </group>
+                                            ))}
+                                        {hairStyle === "bob" && (
+                                            <group position={[-0.24 * dir, 0.13, 0.015]}>
+                                                <PixRect w={0.1} h={0.038} at={[0, 0, 0]} color={GOLD} outline={false} />
+                                            </group>
+                                        )}
+                                        {hairStyle === "twintail" &&
+                                            [-1, 1].map((s) => (
+                                                <group key={`tt${s}`} position={[0.44 * s, 0.13, -0.03]}>
+                                                    <PixOval rx={0.15} ry={0.25} at={[0.09 * s, -0.2, 0]} color={hair} outlineZ={-0.015} />
+                                                    <PixOval rx={0.08} ry={0.1} at={[0.07 * s, -0.46, 0]} color={hair} outlineZ={-0.015} />
+                                                    <PixOval rx={0.06} ry={0.055} at={[0, 0, 0.05]} color={RIBBON} outlineZ={-0.02} />
+                                                </group>
+                                            ))}
+                                        {hairStyle === "ribbon" && (
+                                            <>
+                                                {[-1, 1].map((s) => (
+                                                    <PixRect key={`rl${s}`} w={0.105} h={0.27} at={[0.325 * s, -0.14, 0.006]} color={hair} outlineZ={-0.05} />
+                                                ))}
+                                                <group position={[0.08 * dir, 0.4, 0.02]}>
+                                                    {[-1, 1].map((s) => (
+                                                        <PixRect key={`rb${s}`} w={0.19} h={0.16} at={[0.14 * s, 0, 0]} color={RIBBON} rot={0.28 * s} outlineZ={-0.015} />
+                                                    ))}
+                                                    <PixRect w={0.08} h={0.1} at={[0, 0, 0.01]} color="#ffb3cb" outlineZ={-0.012} />
+                                                </group>
+                                            </>
+                                        )}
+                                        {hairStyle === "spacebuns" &&
+                                            [-1, 1].map((s) => (
+                                                <group key={`sb${s}`} position={[0.29 * s, 0.37, -0.02]}>
+                                                    <PixOval rx={0.15} ry={0.14} at={[0, 0.02, 0]} color={hair} outlineZ={-0.02} />
+                                                    <PixRect w={0.16} h={0.04} at={[-0.02 * s, -0.1, 0.03]} color={RIBBON} outline={false} />
+                                                </group>
+                                            ))}
+                                        {hairStyle === "sidepony" && (
+                                            <group position={[-0.42 * dir, 0.16, -0.03]}>
+                                                <PixOval rx={0.16} ry={0.28} at={[-0.1 * dir, -0.22, 0]} color={hair} outlineZ={-0.015} />
+                                                <PixOval rx={0.08} ry={0.11} at={[-0.08 * dir, -0.5, 0]} color={hair} outlineZ={-0.015} />
+                                                <PixOval rx={0.065} ry={0.06} at={[0, 0, 0.05]} color={RIBBON} outlineZ={-0.02} />
+                                            </group>
+                                        )}
+                                        {hairStyle === "curly" && (
                                             <>
                                                 {[-1, 1].map((s) => (
                                                     <PixOval
@@ -622,7 +721,7 @@ export function Figure({
                                                         rx={0.12}
                                                         ry={0.12}
                                                         at={[0.35 * s, 0.17, -0.005]}
-                                                        color={look.hair}
+                                                        color={hair}
                                                         outlineZ={-0.045}
                                                     />
                                                 ))}
@@ -630,7 +729,7 @@ export function Figure({
                                         )}
                                     </group>
 
-                                    {look.hairStyle === "cap" && (
+                                    {hairStyle === "cap" && (
                                         <PixRect w={0.58} h={0.065} at={[0.06 * dir, 0.16, 0.02]} color={look.apron ?? INK} />
                                     )}
                                 </group>

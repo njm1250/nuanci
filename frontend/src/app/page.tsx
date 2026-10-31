@@ -53,7 +53,7 @@ export default async function Home() {
 
         {beats.length > 0 && (
           <div className="order-3 px-4 md:order-none md:row-span-2 md:px-0 returning:hidden">
-            <Panel>
+            <Panel className="blk-strong">
               <div className="relative aspect-[4/3] max-h-[40dvh] w-full overflow-hidden md:max-h-none">
                 <AttractReel beats={beats} />
               </div>

@@ -107,7 +107,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
       <BlockLink href={`/scenes/${target.number}`} entry="home" primary>
         {label}
       </BlockLink>
-      <p className="mt-3 text-center text-[13px] text-paper-subtle">{note}</p>
+      <p className="mt-3 text-center text-[14px] text-paper-subtle">{note}</p>
     </>
   );
 }
@@ -136,7 +136,7 @@ function SceneCard({
         <span className="relative shrink-0">
           <SceneThumb
             stage={scene.stage}
-            className="aspect-[4/3] w-[84px] border-2 border-ink"
+            className="aspect-[4/3] w-[84px] border-2 border-line"
           />
           {done && (
             <span
@@ -154,7 +154,7 @@ function SceneCard({
           <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
             {scene.title}
           </span>
-          <span className="block truncate text-[13px] text-ink-subtle">
+          <span className="block truncate text-[14px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
         </span>
@@ -191,7 +191,7 @@ function LockedSceneCard({
           <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
             {scene.title}
           </span>
-          <span className="block truncate text-[13px] text-ink-subtle">
+          <span className="block truncate text-[14px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
         </span>
@@ -224,7 +224,7 @@ function BlockBar({ progress }: { progress: Progress }) {
 // 진행도 문구는 작은 쪽을 보여 준다. 10개 중 절반 전에는 한 개수를, 절반이 넘으면 남은 개수를 보여 줘야 빨리 나아가는 느낌이 든다
 function BlockCount({ progress }: { progress: Progress }) {
   return (
-    <p className="shrink-0 text-[13px] text-paper-subtle">
+    <p className="shrink-0 text-[14px] text-paper-subtle">
       {progress.left === 0 ? (
         "모든 화가 열렸어요"
       ) : progress.into < BLOCK_SIZE / 2 ? (
@@ -286,7 +286,8 @@ function Arrow() {
   );
 }
 
-// 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 하고, 제목에만 형광펜을 긋는다
+// 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 한다.
+// 데스크톱은 그림과 글을 나란히 둬서 버튼과 아래 목록이 첫 화면에 들어오게 한다
 function FeaturedScene({
   scene,
   fresh,
@@ -300,28 +301,30 @@ function FeaturedScene({
     <EntryLink
       href={`/scenes/${scene.number}`}
       entry="home"
-      className="blk-btn mt-4 block"
+      className="blk-btn blk-strong mt-4 block"
     >
-      <span className="blk block bg-cream p-2 pb-4 text-ink">
+      <span className="blk block bg-cream p-2 pb-4 text-ink md:grid md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-6 md:p-3">
         <span className="relative block">
           <SceneThumb
             stage={scene.stage}
-            className="aspect-[2/1] w-full border-2 border-ink [&_img]:object-[center_60%]"
+            className="aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
           />
           <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">
             {label}
             {fresh && <span className="ml-1.5 text-gold">NEW</span>}
           </span>
         </span>
-        <span className="mt-3 block px-2 font-pixel-title text-[24px] leading-[1.25]">
-          <span className="hl">{scene.title}</span>
-        </span>
-        <span className="mt-1 block px-2 text-[13px] text-ink-muted">
-          {scene.relation} · {scene.place}
-        </span>
-        <span className="mx-2 mt-3 flex items-center justify-between bg-ink px-3 py-2.5 font-pixel text-[15px] text-paper">
-          다음 장면 해 보기
-          <Arrow />
+        <span className="block md:flex md:flex-col md:justify-center">
+          <span className="mt-3 block px-2 font-pixel-title text-[24px] leading-[1.25] md:mt-0">
+            {scene.title}
+          </span>
+          <span className="mt-1.5 block px-2 text-[14px] text-ink-subtle">
+            {scene.relation} · {scene.place}
+          </span>
+          <span className="mx-2 mt-4 flex items-center justify-between bg-ink px-3 py-2.5 font-pixel text-[15px] text-paper">
+            다음 장면 해 보기
+            <Arrow />
+          </span>
         </span>
       </span>
     </EntryLink>
@@ -343,9 +346,9 @@ function NextGoal() {
       className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block"
     >
       <Mascot scale={2} className="shrink-0" />
-      <span className="min-w-0 flex-1 text-[13px] text-paper-muted">
+      <span className="min-w-0 flex-1 text-[14px] text-paper-muted">
         {before}
-        <span className="hl mx-0.5 font-semibold">{em}</span>
+        <span className="mx-0.5 font-bold text-paper">{em}</span>
         {after}
       </span>
       <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
@@ -390,7 +393,7 @@ export function SceneShelf({
       {/* 다시 온 이유가 되도록 지난번 헷갈린 말을 맨 위에서 먼저 묻는다 */}
       <ReviewToday />
       <div className="flex items-baseline justify-between">
-        <h2 className="font-pixel text-[15px]">
+        <h2 className="text-[16px] font-bold">
           {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
         </h2>
         <BlockCount progress={progress} />
@@ -407,7 +410,7 @@ export function SceneShelf({
           />
           {upNext.length > 1 && (
             <>
-              <p className="mt-5 font-pixel text-[15px] text-paper-subtle">
+              <p className="mt-6 text-[16px] font-bold">
                 다른 장면
               </p>
               <ul className="mt-2 grid gap-3 md:grid-cols-2">
@@ -451,7 +454,7 @@ export function SceneShelf({
             >
               <span>
                 <span className="block font-pixel text-[15px]">표현 모음</span>
-                <span className="block text-[13px] text-ink-subtle">
+                <span className="block text-[14px] text-ink-subtle">
                   모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
                 </span>
               </span>
@@ -465,7 +468,7 @@ export function SceneShelf({
             >
               <span>
                 <span className="block font-pixel text-[15px]">전체 장면</span>
-                <span className="block text-[13px] text-ink-subtle">
+                <span className="block text-[14px] text-ink-subtle">
                   {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
                 </span>
               </span>
@@ -575,7 +578,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
         <BlockCount progress={progress} />
       </div>
       <BlockBar progress={progress} />
-      <p className="mt-2 text-[13px] text-paper-subtle">
+      <p className="mt-2 text-[14px] text-paper-subtle">
         장면 {BLOCK_SIZE}개를 할 때마다 다음 {BLOCK_SIZE}화가 열려요
       </p>
       {view === "order" ? (
@@ -586,7 +589,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                 <span className="font-pixel-title text-[24px]">
                   {blockTitle(x)}
                 </span>
-                <span className="text-[13px] text-paper-subtle">
+                <span className="text-[14px] text-paper-subtle">
                   {x.scenes.length}화 중 {x.done}화
                 </span>
               </h2>
@@ -611,7 +614,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                 <span className="font-pixel-title text-[24px] text-paper-subtle">
                   {blockTitle(x)}
                 </span>
-                <span className="text-[13px] text-paper-subtle">
+                <span className="text-[14px] text-paper-subtle">
                   장면 {progress.left + k * BLOCK_SIZE}개 더 하면 열려요
                 </span>
               </h2>
@@ -658,7 +661,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
             <section key={g.label} className="mt-6">
               <h2 className="flex items-baseline gap-2">
                 <span className="font-pixel-title text-[24px]">{g.label}</span>
-                <span className="text-[13px] text-paper-subtle">
+                <span className="text-[14px] text-paper-subtle">
                   {g.scenes.length}개 중{" "}
                   {g.scenes.filter((s) => cleared.includes(s.id)).length}개
                 </span>

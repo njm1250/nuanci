@@ -18,8 +18,11 @@ data class SaveProgressionSettings(val version: Int, val rules: ProgressionRules
 @Service
 class ProgressionSettingsStore(private val jdbc: JdbcClient, private val mapper: JsonMapper) {
 	fun current(): ProgressionSettings = jdbc.sql("select version, rules, updated_at from progression_settings where id = 1")
-		.query { rs, _ -> ProgressionSettings(rs.getInt("version"), rs.getTimestamp("updated_at").toInstant(), mapper.readValue(rs.getString("rules"), ProgressionRules::class.java)) }
+		.query { rs, _ -> ProgressionSettings(rs.getInt("version"), rs.getTimestamp("updated_at").toInstant(), withNewItems(mapper.readValue(rs.getString("rules"), ProgressionRules::class.java))) }
 		.optional().orElse(ProgressionSettings(0, null, DEFAULTS))
+
+	// 저장해 둔 뒤에 새로 생긴 장면 수 보상은 기본 기준을 쓴다
+	private fun withNewItems(rules: ProgressionRules) = rules.copy(milestones = DEFAULTS.milestones + rules.milestones)
 
 	// 다른 관리 화면에서 먼저 저장한 내용을 덮어쓰지 않도록 버전을 확인한다.
 	@Transactional

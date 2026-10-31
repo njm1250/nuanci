@@ -33,7 +33,7 @@ data class LockView(val type: String, val remaining: Int? = null, val group: Str
 
 data class ItemView(val id: String, val kind: String, val slot: String?, val name: String?, val colors: List<String>, val owned: OwnedView?, val lock: LockView?)
 
-data class NextView(val type: String, val name: String?, val remaining: Int)
+data class NextView(val type: String, val id: String?, val name: String?, val remaining: Int)
 
 data class RewardsResponse(val items: List<ItemView>, val next: NextView?, val shareCode: String?, val granted: List<String> = emptyList())
 
@@ -128,8 +128,8 @@ class RewardController(private val rewards: RewardStore, private val accounts: A
 		val boxesOwned = grants.values.count { it.reason == "box" }
 		val box = rules.boxes.drop(boxesOwned).firstOrNull { it > count }?.takeIf { poolLeft > 0 }
 		return when {
-			item != null && (box == null || item.second <= box) -> NextView("item", item.first.name, item.second - count)
-			box != null -> NextView("box", null, box - count)
+			item != null && (box == null || item.second <= box) -> NextView("item", item.first.id, item.first.name, item.second - count)
+			box != null -> NextView("box", null, null, box - count)
 			else -> null
 		}
 	}

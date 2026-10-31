@@ -62,7 +62,7 @@ export function StreakMomentCard({ current, newBadge, reduced, delay }: { curren
       </span>
       <p className="min-w-0 flex-1 font-pixel text-[15px] text-paper">
         {current === 1 ? "연속 첫날" : `${current}일 연속`}
-        <span className="ml-2 font-sans text-[13px] text-paper-subtle">내일도 하면 {current + 1}일</span>
+        <span className="ml-2 font-sans text-[14px] text-paper-subtle">내일도 하면 {current + 1}일</span>
       </p>
       {newBadge && (
         <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-gold" style={reduced ? undefined : { animation: `reward-pop 520ms ease-out ${delay + 380}ms both` }}>

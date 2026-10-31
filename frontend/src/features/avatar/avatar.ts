@@ -9,7 +9,8 @@ import type { AccessoryId, Hero } from "@/features/stage/types";
 export type Avatar = { hero: Hero; wear: AccessoryId[]; placed?: string[]; hidden?: string[]; badge?: number };
 
 const KEY = "nuanci.avatar";
-const DEFAULT: Avatar = { hero: "boy", wear: [], placed: [] };
+const HERO_RESET_KEY = "nuanci.heroReset";
+const DEFAULT: Avatar = { hero: "girl", wear: [], placed: [] };
 
 // 아이템을 하나만 쓰던 때 저장한 accessory를 wear 목록으로 바꾼다
 function normalize(raw: Partial<Avatar> & { accessory?: AccessoryId | null }): Avatar {
@@ -21,9 +22,18 @@ const listeners = new Set<() => void>();
 let lastRaw: string | null = null;
 let lastValue: Avatar = DEFAULT;
 
+// 기본 주인공을 여자로 바꾸면서 이 기기에 저장된 선택도 한 번만 여자로 맞춘다. 그 뒤에 남자를 고르면 그대로 둔다
+function resetHeroOnce() {
+  if (localStorage.getItem(HERO_RESET_KEY)) return;
+  localStorage.setItem(HERO_RESET_KEY, "1");
+  const raw = localStorage.getItem(KEY);
+  if (raw) localStorage.setItem(KEY, JSON.stringify({ ...JSON.parse(raw), hero: "girl" }));
+}
+
 function snapshot(): Avatar {
   let raw: string | null = null;
   try {
+    resetHeroOnce();
     raw = localStorage.getItem(KEY);
   } catch {}
   if (raw !== lastRaw) {

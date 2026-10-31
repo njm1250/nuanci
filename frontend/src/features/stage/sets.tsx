@@ -34,7 +34,7 @@ function Window({ x, y, w = 1.1, h = 0.8, evening, blinds = false }: { x: number
 function Pendant({ x, on, y = 2.3 }: { x: number; on: boolean; y?: number }) {
   return (
     <>
-      <Box size={[0.015, 3.2 - y, 0.015]} at={[x, (3.2 + y) / 2, 0]} color={C.ink} />
+      <Box size={[0.03, 3.2 - y, 0.03]} at={[x, (3.2 + y) / 2, 0]} color={C.ink} />
       <mesh position={[x, y, 0]}>
         <coneGeometry args={[0.24, 0.2, 6]} />
         <meshLambertMaterial color={C.ink} flatShading />
@@ -321,7 +321,7 @@ export const SETS: Record<SetId, SetDef> = {
         {[-1, 1].map((s) => (
           <Box key={s} size={[0.2, 0.58, 0.8]} at={[1.55 * s, 0.38, -0.45]} color="#5e2c52" />
         ))}
-        <Box size={[0.015, 0.4, 0.015]} at={[0, 3.0, -0.3]} color={C.ink} />
+        <Box size={[0.03, 0.4, 0.03]} at={[0, 3.0, -0.3]} color={C.ink} />
         <Gem r={0.17} at={[0, 2.75, -0.3]} color="#c9ced2" />
       </>
     ),
@@ -492,7 +492,7 @@ export const SETS: Record<SetId, SetDef> = {
           )}
           {flags.has("mirrorball") && (
             <>
-              <Box size={[0.015, 0.4, 0.015]} at={[0.3, 3.0, -0.4]} color={C.ink} />
+              <Box size={[0.03, 0.4, 0.03]} at={[0.3, 3.0, -0.4]} color={C.ink} />
               <Gem r={0.14} at={[0.3, 2.72, -0.4]} color="#c9d3d8" />
               <Box size={[0.05, 0.05, 0.01]} at={[0.26, 2.75, -0.27]} color="#ffffff" />
             </>

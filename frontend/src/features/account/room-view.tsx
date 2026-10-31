@@ -191,7 +191,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                 주인공
               </span>
               <div role="group" aria-labelledby="hero-label" className="grid flex-1 grid-cols-2 gap-2">
-                {(["boy", "girl"] as const).map((hero) => (
+                {(["girl", "boy"] as const).map((hero) => (
                   <button
                     key={hero}
                     type="button"
@@ -242,7 +242,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-pixel text-[15px] text-paper">{r.name}</span>
                       <span className="block truncate text-[12px] text-paper-subtle">{ownedReason(r.owned!, titleOf(r))}</span>
-                      {memoryOf(r) && <span className="mt-0.5 block truncate text-[13px] text-paper-muted">“{memoryOf(r)!.right}”</span>}
+                      {memoryOf(r) && <span className="mt-0.5 block truncate text-[14px] text-paper-muted">“{memoryOf(r)!.right}”</span>}
                     </span>
                     <span className="shrink-0 text-[12px] text-paper-subtle">{formatDate(r.owned!.grantedAt)}</span>
                   </li>
@@ -255,7 +255,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
           <Panel className="mt-6">
             <div className="p-4">
               <p className="font-pixel text-[15px]">로그인하고 계정에 남기기</p>
-              <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">꾸민 모습과 모은 물건이 다른 기기에서도 그대로예요.</p>
+              <p className="mt-1 text-[14px] leading-relaxed text-ink-muted">꾸민 모습과 모은 물건이 다른 기기에서도 그대로예요.</p>
               <GoogleButton next="/me/room" enabled={account.google} />
             </div>
           </Panel>

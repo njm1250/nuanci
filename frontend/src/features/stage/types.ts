@@ -18,7 +18,13 @@ export type AccessoryId =
   | "sunglasses"
   | "scarf"
   | "bowtie"
-  | "badge";
+  | "badge"
+  | "hair-1"
+  | "hair-2"
+  | "hair-3"
+  | "hair-4"
+  | "hair-5"
+  | "hair-6";
 
 // 쓰고 있는 아이템과 얻을 때 고른 색. 색이 없으면 아이템 기본색
 export type Worn = { id: AccessoryId; color?: string };
@@ -74,7 +80,9 @@ export type Placement = {
 export type Look = {
   shirt: string;
   hair: string;
-  hairStyle: "short" | "bun" | "curly" | "cap" | "long" | "none";
+  hairStyle: "short" | "bun" | "curly" | "cap" | "long" | "none" | "bob" | "twintail" | "ribbon" | "spacebuns" | "sidepony" | "wave" | "fluffy" | "mash" | "part" | "perm" | "spiky" | "wolf" | "pomp";
+  /* 주인공이면 어느 쪽인지. 머리 아이템의 모습을 정한다 */
+  hero?: Hero;
   glasses?: boolean;
   apron?: string;
   tie?: string;
