@@ -80,7 +80,7 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
               <Compare me={mine.type} friend={type} same={picks ? countSame(myPicks, picks) : null} total={questions.length} />
             ) : (
               <BlockLink href="/test" primary>
-                나도 테스트하기 · 5문제
+                나도 테스트하기 · 8문제
               </BlockLink>
             )}
           </div>
@@ -104,15 +104,17 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
         )}
 
         <div className="mt-6 space-y-3">
-          {mode === "mine" && picks ? <WorstScene questions={questions} picks={picks} /> : null}
+          {mode === "mine" && <WorstScene />}
           {mode === "browse" && (
             <BlockLink href="/test" primary>
               나는 무슨 유형인지 테스트하기
             </BlockLink>
           )}
+          {mode !== "mine" && (
           <BlockLink href="/scenes" entry="home">
             본편: 장면 플레이하러 가기
           </BlockLink>
+          )}
           {mode === "mine" && (
             <Link href="/test" className="flex min-h-11 items-center justify-center text-[14px] text-paper-muted underline underline-offset-4">
               테스트 다시 하기
@@ -178,7 +180,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
   );
 }
 
-// 영양 성분표를 흉내 낸 사고 성분표. 다섯 답이 어떤 함정으로 이루어졌는지 비율로 보여준다
+// 영양 성분표를 흉내 낸 사고 성분표. 내 답이 어떤 함정으로 이루어졌는지 비율로 보여준다
 function Ingredients({ mix, name }: { mix: ReturnType<typeof ingredients>; name: string }) {
   return (
     <div className="mt-5 border-[3px] border-ink bg-card px-3.5 pb-2 pt-2.5 text-ink">
@@ -244,7 +246,7 @@ function Share({ type }: { type: TypeId }) {
   const t = TYPES[type];
   const params = useSearchParams();
   const path = `/test/r/${type}?${params}`;
-  const { state, share } = useShare(path, `나는 영어 사고 유형 '${t.name}'이래.\n"${t.tagline}"\n너는 무슨 사고 칠지 5문제로 맞혀 봐!`, () => trackTest("test_shared", { choiceId: type }));
+  const { state, share } = useShare(path, `나는 영어 사고 유형 '${t.name}'이래.\n"${t.tagline}"\n너는 무슨 사고 칠지 8문제로 맞혀 봐!`, () => trackTest("test_shared", { choiceId: type }));
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -289,7 +291,7 @@ function Review({ questions, picks }: { questions: TestQuestion[]; picks: number
           const c = mine[i];
           const good = q.choices.find((x) => x.verdict === "good");
           return (
-            <li key={`${q.sceneId}-${q.step}`}>
+            <li key={q.id}>
               <Panel>
                 <div className="px-3.5 py-3 text-[16px] leading-snug">
                   <div className="flex items-center justify-between gap-2">
@@ -310,9 +312,6 @@ function Review({ questions, picks }: { questions: TestQuestion[]; picks: number
                       <span className="font-line text-[20px]">{good.line}</span>
                     </p>
                   )}
-                  <Link href={`/scenes/${q.sceneNumber}`} className="mt-2 inline-flex min-h-11 items-center font-pixel text-ink underline underline-offset-4">
-                    {q.sceneTitle} 플레이 →
-                  </Link>
                 </div>
               </Panel>
             </li>
@@ -323,16 +322,11 @@ function Review({ questions, picks }: { questions: TestQuestion[]; picks: number
   );
 }
 
-// 가장 크게 사고 친 문제의 장면으로 바로 보내서 테스트가 본편으로 이어지게 한다
-function WorstScene({ questions, picks }: { questions: TestQuestion[]; picks: number[] }) {
-  const mine = chosen(questions, picks);
-  const rank = (i: number) => (mine[i] === null ? 1 : mine[i]!.verdict === "bad" ? 2 : mine[i]!.verdict === "meh" ? 1 : 0);
-  const worst = questions.map((_, i) => i).sort((a, b) => rank(b) - rank(a))[0];
-  const q = questions[worst];
-  if (rank(worst) === 0) return null;
+// 테스트가 본편으로 이어지게 한다
+function WorstScene() {
   return (
-    <BlockLink href={`/scenes/${q.sceneNumber}`} primary entry="home">
-      사고 친 장면 직접 해 보기 · {q.sceneTitle}
+    <BlockLink href="/" primary entry="home">
+      장면에서 직접 사고 쳐 보기
     </BlockLink>
   );
 }

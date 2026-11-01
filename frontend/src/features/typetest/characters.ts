@@ -57,7 +57,7 @@ const LOOKS: Record<TypeId, Look> = {
       [18, 14, [".kk.", "kkkk", "kwwk", "kddk", "kwwk", ".kk."]],
     ],
   },
-  // 푸딩 범인형: 들고 있는 푸딩, 입가에 묻은 캐러멜, 식은땀
+  // 예스 노 반대형: 들고 있는 푸딩, 입가에 묻은 캐러멜, 식은땀
   pudding: {
     shirt: "#ffd166",
     layers: [

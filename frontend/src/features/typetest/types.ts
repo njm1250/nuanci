@@ -28,12 +28,12 @@ export const TYPES: Record<TypeId, TypeInfo> = {
   },
   pudding: {
     no: 2,
-    name: "푸딩 범인형",
-    tagline: "안 먹었다고 했는데 먹었다고 들림",
-    says: "Yes.",
-    about: "'안 먹었지?'에 한국식으로 '응(안 먹었어)'이라고 답하는 타입. 결백한데 범인이 돼요. 억울함 지수 최상.",
-    fix: "영어는 질문 모양 말고 사실대로 답해요. 안 먹었으면 무조건 'No, I didn't.'",
-    trip: "안 먹은 푸딩 값을 물어 줘요",
+    name: "예스 노 반대형",
+    tagline: "'응'이라고 했는데 '아니'로 들림",
+    says: "Yes, I can't go.",
+    about: "'안 와?'에 한국식으로 '응(안 가)'이라고 답하는 타입. 분명 대답했는데 상대는 온다는 건지 안 온다는 건지 몰라요. 억울함 지수 최상.",
+    fix: "영어는 질문 모양 말고 사실대로 답해요. 안 가면 무조건 'No, I can't make it.'",
+    trip: "안 먹은 음식 값을 물어 줘요",
   },
   robot: {
     no: 3,
@@ -91,7 +91,7 @@ export const TYPES: Record<TypeId, TypeInfo> = {
   },
   delivery: {
     no: 9,
-    name: "말 오배송형",
+    name: "딴소리 제조형",
     tagline: "보낸 말은 맞는데 엉뚱한 뜻으로 도착",
     says: "Cheer up!",
     about: "틀린 말은 아닌데 상황에 안 맞거나 다른 뜻으로 들리는 타입. 응원했는데 위로가 되고, 칭찬했는데 의심이 돼요.",
@@ -122,20 +122,21 @@ export const TRAP_TYPE: Record<Trap, TypeId> = {
 // 한 문제의 답. 시간 안에 못 고르면 choice가 없다
 export type Answer = { verdict: Verdict | null; trap?: Trap; ms: number };
 
-// 5문제 중 4개 이상 자연스러우면 현지인 빙의형, 아니면 가장 많이 걸린 함정 유형.
-// X는 2점, △는 1점, 시간 초과는 '머릿속 교과서 검색 중'으로 보고 교과서 로봇형에 2점. 동점이면 먼저 걸린 함정을 따른다
+// 한 문제만 빼고 다 자연스러워야 현지인 빙의형, 아니면 가장 많이 고른 함정 유형. 시간 초과는 '머릿속 교과서 검색 중'으로 보고 교과서 로봇형에 넣는다.
+// 동점이 잦아서, 특정 유형에 쏠리지 않게 답의 조합으로 고른다. 같은 답이면 언제나 같은 결과가 나온다
 export function scoreType(answers: Answer[]): TypeId {
-  if (answers.filter((a) => a.verdict === "good").length >= Math.min(4, answers.length)) return "native";
+  if (answers.filter((a) => a.verdict === "good").length >= answers.length - 1) return "native";
   const score = new Map<TypeId, number>();
-  for (const a of answers) {
-    if (a.verdict === "good") continue;
+  let seed = 0;
+  answers.forEach((a, i) => {
+    if (a.verdict === "good") return;
     const type = a.verdict === null ? "robot" : a.trap ? TRAP_TYPE[a.trap] : "literal";
-    score.set(type, (score.get(type) ?? 0) + (a.verdict === "meh" ? 1 : 2));
-  }
-  let best: TypeId = "native";
-  let top = 0;
-  for (const [type, points] of score) if (points > top) [best, top] = [type, points];
-  return best;
+    score.set(type, (score.get(type) ?? 0) + 1);
+    seed += (i + 1) * (TYPES[type].no + 1);
+  });
+  const top = Math.max(...score.values());
+  const tied = [...score.keys()].filter((t) => score.get(t) === top).sort((x, y) => TYPES[x].no - TYPES[y].no);
+  return tied[seed % tied.length];
 }
 
 // 사고 성분표에 쓰는 이름. 함정 대신 유형 이름 앞부분을 써서 결과 카드와 말투를 맞춘다
@@ -148,10 +149,10 @@ export const INGREDIENTS: Record<TypeId, string> = {
   hotel: "과한 격식",
   boss: "직설",
   literal: "직역",
-  delivery: "오배송",
+  delivery: "딴소리",
 };
 
-// 다섯 답을 성분별 비율로 나눈다. 많은 것부터. 시간 초과는 점수로는 교과서 로봇형에 넣지만 성분표에는 따로 적는다
+// 답을 성분별 비율로 나눈다. 많은 것부터. 시간 초과는 점수로는 교과서 로봇형에 넣지만 성분표에는 따로 적는다
 export function ingredients(answers: Answer[]): { key: TypeId | "time"; label: string; share: number }[] {
   const count = new Map<TypeId | "time", number>();
   for (const a of answers) {

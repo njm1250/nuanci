@@ -1,61 +1,107 @@
-import { getScene, getScenes } from "@/features/scene/api";
-import { shuffleChoices } from "@/features/scene/choice-order";
-import type { Scene } from "@/features/scene/types";
-import { QUESTION_COUNT, type Step, type TestQuestion } from "./model";
-import { TRAP_TYPE, type TypeId } from "./types";
+import type { TestQuestion } from "./model";
 
-// 테스트에 낼 상황(장면 id와 기본·만약에 상황). 테스트용으로 만든 장면이라 틀린 보기도 실제로 자주 고르는 말만 담았다.
-// 다섯 문제의 틀린 보기 열 개가 유형 여덟 개(대답 방식·콩글리시·말 오배송·직역·K-정·교과서·팀장님·호텔 직원)를 한 번 이상 담는다.
-// 여기 적은 장면이 없거나 공개되지 않았으면, 남은 자리는 아직 안 나온 함정이 많은 상황으로 자동으로 채운다
-export const TEST_QUESTIONS: { scene: string; step: Step }[] = [
-  { scene: "hibernation-late", step: "base" },
-  { scene: "dog-influencer", step: "base" },
-  { scene: "first-day-intro", step: "base" },
-  { scene: "rush-hour-latte", step: "base" },
-  { scene: "gym-crush", step: "base" },
+// 이 테스트만을 위해 쓴 문제. 본편 장면과 따로 두어 난이도와 함정 구성을 테스트에 맞춘다.
+// 틀린 보기 16개가 유형 8가지를 정확히 두 번씩 담아서, 어느 유형이 나올지 문제 구성에 치우치지 않는다.
+// 정답은 일부러 어렵게 잡았고, 현지인 빙의형은 8문제 중 7문제 이상 맞혀야 나온다
+export const TEST_QUESTIONS: TestQuestion[] = [
+  {
+    id: "t1",
+    title: "계산대 앞 눈치 싸움",
+    partnerName: "Alex",
+    partnerLine: "Should we split the bill?",
+    intent: "오늘은 내가 살게! 하고 말하고 싶다.",
+    choices: [
+      { id: "t1-service", line: "No, this is my service.", meaning: "아니, 이건 내 서비스야.", verdict: "bad", trap: "konglish", reaction: "서비스…? 너 여기서 일해?" },
+      { id: "t1-on-me", line: "No, it's on me.", meaning: "아니, 내가 낼게.", verdict: "good", reaction: "오! 다음엔 내가 살게!" },
+      { id: "t1-give", line: "No. Give me the bill.", meaning: "아니. 계산서 내놔.", verdict: "meh", trap: "blunt", reaction: "어… 나 뭐 잘못했어?" },
+    ],
+  },
+  {
+    id: "t2",
+    title: "읽씹 추궁",
+    partnerName: "Bori",
+    partnerLine: "Why didn't you text me back?",
+    intent: "미안, 폰 배터리 나갔었어 하고 말하고 싶다.",
+    choices: [
+      { id: "t2-died", line: "Sorry, my phone died.", meaning: "미안, 폰 꺼졌었어.", verdict: "good", reaction: "아하! 충전기 좀 들고 다녀." },
+      { id: "t2-battery", line: "Sorry, my battery went out.", meaning: "미안, 배터리가 나갔어.", verdict: "bad", trap: "literal", reaction: "건전지가 어디 나갔는데…? 언제 온대?" },
+      { id: "t2-handphone", line: "Sorry, my handphone was off.", meaning: "미안, 핸드폰이 꺼져 있었어.", verdict: "meh", trap: "konglish", reaction: "핸드…폰? 아, 폰! 손에 드는 폰!" },
+    ],
+  },
+  {
+    id: "t3",
+    title: "오늘 밤 약속",
+    partnerName: "Jordan",
+    partnerLine: "So you're not coming tonight?",
+    intent: "응, 못 가 ㅠㅠ 하고 말하고 싶다.",
+    choices: [
+      { id: "t3-yes", line: "Yes, I can't go.", meaning: "응, 못 가.", verdict: "bad", trap: "answer", reaction: "온다는 거야, 못 온다는 거야?" },
+      { id: "t3-promise", line: "No, I have a promise.", meaning: "아니, 약속 있어.", verdict: "bad", trap: "literal", reaction: "약속…? 누구랑 무슨 맹세를 했길래?" },
+      { id: "t3-make-it", line: "No, I can't make it.", meaning: "응, 못 가.", verdict: "good", reaction: "아쉽다! 다음엔 꼭 와." },
+    ],
+  },
+  {
+    id: "t4",
+    title: "동료에게 부탁하기",
+    partnerName: "Alex",
+    partnerLine: "Hey, what's up?",
+    intent: "그 파일 좀 보내 줄 수 있어? 하고 편하게 부탁하고 싶다.",
+    choices: [
+      { id: "t4-please", line: "Please send me the file.", meaning: "파일 보내 주세요.", verdict: "meh", trap: "blunt", reaction: "넵… 결재 올리겠습니다." },
+      { id: "t4-could", line: "Could you send me that file?", meaning: "그 파일 좀 보내 줄래?", verdict: "good", reaction: "그럼! 바로 보낼게." },
+      { id: "t4-waiting", line: "I'm still waiting for your file.", meaning: "아직 네 파일을 기다리고 있어.", verdict: "bad", trap: "context", reaction: "헉, 나 지금 혼나는 거야?" },
+    ],
+  },
+  {
+    id: "t5",
+    title: "한 상 차린 집들이",
+    partnerName: "Sam",
+    partnerLine: "Wow, you cooked all this?",
+    intent: "차린 건 없지만 많이 먹어! 하고 말하고 싶다.",
+    choices: [
+      { id: "t5-nothing", line: "There's nothing to eat, but eat a lot!", meaning: "먹을 건 없지만 많이 먹어!", verdict: "bad", trap: "culture", reaction: "먹을 게 없다며? 이 상다리는 뭐야?" },
+      { id: "t5-enjoy", line: "Please enjoy your meal, ma'am!", meaning: "손님, 맛있게 드십시오!", verdict: "meh", trap: "formal", reaction: "…여기 식당이었어? 팁 줘야 해?" },
+      { id: "t5-help", line: "Yeah, help yourself!", meaning: "응, 마음껏 먹어!", verdict: "good", reaction: "좋았어, 사양 안 한다!" },
+    ],
+  },
+  {
+    id: "t6",
+    title: "폰 없이 시간 묻기",
+    partnerName: "Kong",
+    partnerLine: "Hm? Did you need something?",
+    intent: "실례지만 지금 몇 시예요? 하고 묻고 싶다.",
+    choices: [
+      { id: "t6-have-the-time", line: "Do you have the time?", meaning: "지금 몇 시예요?", verdict: "good", reaction: "3시요! 시계는 저도 없어서 폰 봤어요." },
+      { id: "t6-have-time", line: "Do you have time?", meaning: "시간 있으세요?", verdict: "bad", trap: "misread", reaction: "시간…? 저 지금 작업 걸리는 건가요?" },
+      { id: "t6-now", line: "Excuse me, what time is it now, please?", meaning: "실례합니다, 지금 몇 시입니까?", verdict: "meh", trap: "textbook", reaction: "오후 3시입니다. (안내 방송인 줄)" },
+    ],
+  },
+  {
+    id: "t7",
+    title: "텅 빈 벤치",
+    partnerName: "Kong",
+    partnerLine: "Do you mind if I sit here?",
+    intent: "네, 앉으세요! 하고 허락하고 싶다.",
+    choices: [
+      { id: "t7-seated", line: "Certainly. You may be seated.", meaning: "물론입니다. 착석하십시오.", verdict: "meh", trap: "formal", reaction: "…재판 시작하나요?" },
+      { id: "t7-yes", line: "Yes, please sit.", meaning: "네, 앉으세요.", verdict: "bad", trap: "answer", reaction: "싫다는 거야, 앉으라는 거야?" },
+      { id: "t7-go-ahead", line: "Not at all, go ahead.", meaning: "전혀요, 앉으세요.", verdict: "good", reaction: "고마워요! 벤치 친구 해요." },
+    ],
+  },
+  {
+    id: "t8",
+    title: "카페 직원의 스몰토크",
+    partnerName: "Barista",
+    partnerLine: "How's your day going?",
+    intent: "그럭저럭 괜찮아요 하고 가볍게 답하고 싶다.",
+    choices: [
+      { id: "t8-fine", line: "I'm fine, thank you. And you?", meaning: "저는 좋습니다, 감사합니다. 당신은요?", verdict: "meh", trap: "textbook", reaction: "…교과서 읽는 줄 알았어요." },
+      { id: "t8-complain", line: "Can't complain.", meaning: "그럭저럭 괜찮아요.", verdict: "good", reaction: "좋네요! 라테 나왔어요." },
+      { id: "t8-boss", line: "Not good. My boss yelled at me.", meaning: "별로요. 상사가 소리 질렀어요.", verdict: "meh", trap: "culture", reaction: "헉… 커피 드릴까요, 상담 드릴까요?" },
+    ],
+  },
 ];
 
-function toQuestion(scene: Scene, step: Step): TestQuestion {
-  const s = shuffleChoices(scene)[step];
-  return {
-    sceneId: scene.id,
-    sceneNumber: scene.number,
-    sceneTitle: scene.title,
-    step,
-    partnerName: scene.partnerName,
-    partnerLine: s.partnerLine,
-    intent: s.intent,
-    choices: s.choices.map(({ id, line, meaning, verdict, trap, reaction }) => ({ id, line, meaning, verdict, trap, reaction })),
-  };
-}
-
-// 자연스러운 답이 하나 있고 함정이 있는 상황만 문제로 쓴다
-const usable = (q: TestQuestion) => q.choices.length >= 2 && q.choices.some((c) => c.verdict === "good") && q.choices.some((c) => c.trap);
-const typesOf = (q: TestQuestion) => new Set<TypeId>(q.choices.flatMap((c) => (c.trap ? [TRAP_TYPE[c.trap]] : [])));
-
-export async function getTestQuestions(): Promise<TestQuestion[]> {
-  const summaries = await getScenes();
-  const byId = new Map(summaries.map((s) => [s.id, s]));
-  const picked: TestQuestion[] = [];
-  for (const { scene: id, step } of TEST_QUESTIONS) {
-    const scene = byId.has(id) ? await getScene(id) : null;
-    if (!scene) continue;
-    const q = toQuestion(scene, step);
-    if (usable(q)) picked.push(q);
-  }
-  if (picked.length >= QUESTION_COUNT) return picked.slice(0, QUESTION_COUNT);
-
-  // 모자란 자리는 아직 안 나온 유형을 가장 많이 담은 상황부터 채운다. 같은 장면에서 두 번 내지 않고, 동점이면 상대 말이 짧은 쪽(빨리 읽히는 쪽)
-  const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
-  const pool = scenes.flatMap((scene) => (["base", "followUp"] as const).map((step) => toQuestion(scene, step))).filter(usable);
-  const seen = new Set<TypeId>(picked.flatMap((q) => [...typesOf(q)]));
-  while (picked.length < QUESTION_COUNT) {
-    const left = pool.filter((q) => !picked.some((p) => p.sceneId === q.sceneId));
-    if (left.length === 0) break;
-    const gain = (q: TestQuestion) => [...typesOf(q)].filter((t) => !seen.has(t)).length;
-    const next = left.reduce((a, b) => (gain(b) > gain(a) || (gain(b) === gain(a) && b.partnerLine.length < a.partnerLine.length) ? b : a));
-    picked.push(next);
-    typesOf(next).forEach((t) => seen.add(t));
-  }
-  return picked;
+export function getTestQuestions(): TestQuestion[] {
+  return TEST_QUESTIONS;
 }
