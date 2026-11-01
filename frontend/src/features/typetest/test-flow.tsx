@@ -16,7 +16,7 @@ import { scoreType, TYPE_IDS, TYPES, type Answer } from "./types";
 
 type Picked = { choice: TestChoice | null; ms: number };
 
-// 영어 사고 유형 테스트: 소개 → 순발력 5문제 → '분석 중' → 결과 주소로 이동
+// 영어 사고 유형 테스트: 소개 → 순발력 문제 → '분석 중' → 결과 주소로 이동
 export function TestFlow({ questions, version }: { questions: TestQuestion[]; version: string }) {
   const [stage, setStage] = useState<"intro" | "play" | "analyze">("intro");
   const [relaxed, setRelaxed] = useState(false);
@@ -123,7 +123,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
   );
 }
 
-// 문제 줄 위의 다섯 칸. 푼 문제에는 O·△·X·시계 도장이 찍힌다
+// 문제 줄 위의 칸. 푼 문제에는 O·△·X·시계 도장이 찍힌다
 export function StampRow({ kinds, total, size = 28 }: { kinds: StampKind[]; total: number; size?: number }) {
   return (
     <ol className="flex gap-1.5" aria-label={`${kinds.length}/${total}문제`}>
@@ -169,7 +169,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
     setShown(p);
     if (choice) sfx[choice.verdict]();
     else sfx.meh();
-    trackTest("test_answered", { sceneId: q.sceneId, step: q.step, choiceId: choice?.id });
+    trackTest("test_answered", { choiceId: choice?.id ?? `${q.id}-timeout` });
     // 웃긴 반응을 읽을 시간은 주되 순발력 흐름이 끊기지 않게: 자연스러운 답은 짧게, 사고는 조금 길게
     const wait = reduced ? 900 : choice?.verdict === "good" ? 1100 : 1700;
     window.setTimeout(() => {
@@ -194,7 +194,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
       <div key={`q-${index}`} className="mt-5 animate-[rise_220ms_var(--ease-snap)_both]">
         <p className="flex items-center gap-2 font-pixel text-[15px] text-paper-subtle">
           <SpeakerTag>{q.partnerName}</SpeakerTag>
-          {q.sceneTitle}
+          {q.title}
         </p>
         <div className="blk-frame mt-2">
           <p className="blk bg-card px-4 py-3 font-line text-[24px] leading-snug text-ink">{q.partnerLine}</p>

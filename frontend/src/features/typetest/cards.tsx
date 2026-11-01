@@ -51,7 +51,7 @@ export function typeCard(type: TypeId) {
             <Tail />
           </Block>
         </div>
-        <Cta>너는 무슨 유형? 5문제 →</Cta>
+        <Cta>너는 무슨 유형? 8문제 →</Cta>
       </div>
     </>,
   );
@@ -64,7 +64,7 @@ export function testCard() {
     <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 1072 }}>
       <Lockup />
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", fontSize: 30, color: SUBTLE }}>5문제 · 문제당 10초</div>
+        <div style={{ display: "flex", fontSize: 30, color: SUBTLE }}>8문제 · 문제당 10초</div>
         <div style={{ display: "flex", marginTop: 10, fontSize: 72 }}>
           영어 <Marker style={{ marginLeft: 28, marginRight: 28 }}>사고</Marker> 유형 테스트
         </div>
