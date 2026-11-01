@@ -3,29 +3,25 @@ import type { Answer } from "./types";
 
 // 서버(문제 고르기)와 브라우저(테스트·결과 화면)가 같이 쓰는 테스트 데이터 모양과 답 기록 읽고 쓰기
 
-export type Step = "base" | "followUp";
-
 export type TestChoice = { id: string; line: string; meaning: string; verdict: Verdict; trap?: Trap; reaction: string };
 
 export type TestQuestion = {
-  sceneId: string;
-  sceneNumber: number;
-  sceneTitle: string;
-  step: Step;
+  id: string;
+  title: string;
   partnerName: string;
   partnerLine: string;
   intent: string;
   choices: TestChoice[];
 };
 
-export const QUESTION_COUNT = 5;
+export const QUESTION_COUNT = 8;
 // 순발력 테스트라 문제마다 시간이 있다. '느긋하게 풀기'를 켜면 없앤다
 export const QUESTION_MS = 10_000;
 
 // 문제 묶음이 바뀌면 예전 공유 링크의 답 기록을 잘못 읽지 않도록, 문제와 선택지 순서로 짧은 버전 값을 만든다
 export function questionsVersion(questions: TestQuestion[]) {
   let h = 2166136261;
-  const text = questions.map((q) => `${q.sceneId}:${q.step}:${q.choices.map((c) => c.id).join(",")}`).join("|");
+  const text = questions.map((q) => `${q.id}:${q.choices.map((c) => c.id).join(",")}`).join("|");
   for (let i = 0; i < text.length; i++) {
     h ^= text.charCodeAt(i);
     h = Math.imul(h, 16777619);

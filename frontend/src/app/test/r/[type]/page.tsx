@@ -17,9 +17,9 @@ export async function generateMetadata({ params }: PageProps<"/test/r/[type]">):
   const title = `${t.name} · 영어 사고 유형 테스트`;
   return {
     title: `${title} · nuanci`,
-    description: `${t.tagline}. 너는 영어로 무슨 사고를 칠까? 5문제로 알아보세요.`,
+    description: `${t.tagline}. 너는 영어로 무슨 사고를 칠까? 8문제로 알아보세요.`,
     alternates: { canonical: `/test/r/${type}` },
-    openGraph: { url: `/test/r/${type}`, title, description: `"${t.tagline}" 너는 무슨 유형? 5문제 · 문제당 10초` },
+    openGraph: { url: `/test/r/${type}`, title, description: `"${t.tagline}" 너는 무슨 유형? 8문제 · 문제당 10초` },
   };
 }
 
