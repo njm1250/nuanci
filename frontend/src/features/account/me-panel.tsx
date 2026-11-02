@@ -31,15 +31,13 @@ function Arrow() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-2 text-[16px] font-bold text-paper">{title}</h2>
-      <Panel>
-        <div className="divide-y-2 divide-ink/10 px-4">{children}</div>
-      </Panel>
+      <h2 className="mb-1 text-[14px] font-semibold text-paper-muted">{title}</h2>
+      <div className="divide-y divide-line/40 border-y border-line/40">{children}</div>
     </section>
   );
 }
 
-const rowClass = "flex min-h-12 w-full items-center justify-between gap-3 text-left text-[16px]";
+const rowClass = "flex min-h-11 w-full items-center justify-between gap-3 text-left text-[15px]";
 
 function Stat({ href, label, value }: { href: string; label: string; value: string }) {
   return (
@@ -200,24 +198,24 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
         <div className={rowClass}>
           <span id="sound-label">효과음</span>
           <button type="button" role="switch" aria-checked={sound} aria-labelledby="sound-label" onClick={toggleSound} className="grid min-h-11 place-items-center">
-            <span className={`flex h-6 w-11 items-center p-0.5 ${sound ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
-              <span className="size-5 bg-ink" />
+            <span className={`flex h-6 w-11 items-center p-0.5 ${sound ? "justify-end bg-gold" : "justify-start bg-paper/20"}`}>
+              <span className={`size-5 ${sound ? "bg-ink" : "bg-paper"}`} />
             </span>
           </button>
         </div>
         <div className={rowClass}>
           <span id="translation-label">대사 번역</span>
           <button type="button" role="switch" aria-checked={translate} aria-labelledby="translation-label" onClick={toggleTranslation} className="grid min-h-11 place-items-center">
-            <span className={`flex h-6 w-11 items-center p-0.5 ${translate ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
-              <span className="size-5 bg-ink" />
+            <span className={`flex h-6 w-11 items-center p-0.5 ${translate ? "justify-end bg-gold" : "justify-start bg-paper/20"}`}>
+              <span className={`size-5 ${translate ? "bg-ink" : "bg-paper"}`} />
             </span>
           </button>
         </div>
         <div className={rowClass}>
           <span id="theme-label">밤 화면</span>
           <button type="button" role="switch" aria-checked={dark} aria-labelledby="theme-label" onClick={() => setTheme(dark ? "light" : "dark")} className="grid min-h-11 place-items-center">
-            <span className={`flex h-6 w-11 items-center p-0.5 ${dark ? "justify-end bg-gold" : "justify-start bg-ink/20"}`}>
-              <span className="size-5 bg-ink" />
+            <span className={`flex h-6 w-11 items-center p-0.5 ${dark ? "justify-end bg-gold" : "justify-start bg-paper/20"}`}>
+              <span className={`size-5 ${dark ? "bg-ink" : "bg-paper"}`} />
             </span>
           </button>
         </div>

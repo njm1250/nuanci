@@ -170,8 +170,56 @@ function SceneCard({
   );
 }
 
+// 전체 장면 목록의 한 줄. 썸네일은 남기고 카드 틀을 덜어서, 블록은 다음에 할 장면에만 쓴다
+function SceneRow({
+  scene,
+  done,
+  fresh = false,
+  label,
+}: {
+  scene: ShelfScene;
+  done: boolean;
+  fresh?: boolean;
+  label: string;
+}) {
+  return (
+    <EntryLink
+      href={`/scenes/${scene.number}`}
+      entry="home"
+      className="flex items-center gap-3 py-2.5"
+    >
+      <span className="relative shrink-0">
+        <SceneThumb
+          stage={scene.stage}
+          className="aspect-[4/3] w-[72px] border border-line"
+        />
+        {done && (
+          <span
+            aria-label="해 본 장면"
+            className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-gold"
+          >
+            <Check />
+          </span>
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-pixel text-[15px] leading-none text-paper-subtle">
+          {label}
+        </span>
+        <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
+          {scene.title}
+        </span>
+        <span className="block truncate text-[13px] text-paper-subtle">
+          {scene.relation} · {scene.place}
+        </span>
+      </span>
+      {fresh && <NewChip />}
+    </EntryLink>
+  );
+}
+
 // 아직 열리지 않은 장면. 제목은 보여 줘서 궁금하게 하되 누를 수는 없다
-function LockedSceneCard({
+function LockedSceneRow({
   scene,
   label,
 }: {
@@ -179,26 +227,28 @@ function LockedSceneCard({
   label: string;
 }) {
   return (
-    <div aria-disabled="true" className="blk-frame h-full opacity-50">
-      <span className="blk flex h-full items-center gap-3 bg-cream p-2 pr-3 text-ink">
-        <span className="grid aspect-[4/3] w-[84px] shrink-0 place-items-center border-2 border-dashed border-ink/40 font-pixel text-[15px] text-ink-subtle">
-          잠김
+    <div aria-disabled="true" className="flex items-center gap-3 py-2.5">
+      <span className="grid aspect-[4/3] w-[72px] shrink-0 place-items-center border border-dashed border-line font-pixel text-[15px] text-paper-subtle">
+        잠김
+      </span>
+      <span className="min-w-0 flex-1 text-paper-subtle">
+        <span className="block font-pixel text-[15px] leading-none">
+          {label}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">
-            {label}
-          </span>
-          <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
-            {scene.title}
-          </span>
-          <span className="block truncate text-[14px] text-ink-subtle">
-            {scene.relation} · {scene.place}
-          </span>
+        <span className="mt-1 block truncate text-[16px] leading-snug">
+          {scene.title}
+        </span>
+        <span className="block truncate text-[13px]">
+          {scene.relation} · {scene.place}
         </span>
       </span>
     </div>
   );
 }
+
+const SCENE_ROWS_CLASS =
+  "mt-3 grid grid-cols-1 border-t-2 border-paper md:grid-cols-2 md:gap-x-8 lg:grid-cols-3";
+const SCENE_ROW_ITEM_CLASS = "border-b border-line/40";
 
 type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
 
@@ -524,13 +574,13 @@ function SceneList({
   labelOf: (s: ShelfScene) => string;
 }) {
   return (
-    <ul className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <ul className={SCENE_ROWS_CLASS}>
       {scenes.map((s) => (
-        <li key={s.id}>
+        <li key={s.id} className={SCENE_ROW_ITEM_CLASS}>
           {lockedIn.has(s.id) ? (
-            <LockedSceneCard scene={s} label={labelOf(s)} />
+            <LockedSceneRow scene={s} label={labelOf(s)} />
           ) : (
-            <SceneCard
+            <SceneRow
               scene={s}
               done={cleared.includes(s.id)}
               fresh={fresh.includes(s.id)}
@@ -584,7 +634,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
       {view === "order" ? (
         <>
           {opened.map((x) => (
-            <section key={x.start} className="mt-6">
+            <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
                 <span className="font-pixel-title text-[24px]">
                   {blockTitle(x)}
@@ -593,23 +643,32 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                   {x.scenes.length}화 중 {x.done}화
                 </span>
               </h2>
-              <ol className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <ol className={SCENE_ROWS_CLASS}>
                 {x.scenes.map((s, i) => (
-                  <li key={s.id}>
-                    <SceneCard
-                      scene={s}
-                      done={cleared.includes(s.id)}
-                      fresh={fresh.includes(s.id)}
-                      label={`${x.start + i}화`}
-                      next={s.id === next?.id}
-                    />
+                  <li key={s.id} className={s.id === next?.id ? "py-2" : SCENE_ROW_ITEM_CLASS}>
+                    {s.id === next?.id ? (
+                      <SceneCard
+                        scene={s}
+                        done={cleared.includes(s.id)}
+                        fresh={fresh.includes(s.id)}
+                        label={`${x.start + i}화`}
+                        next
+                      />
+                    ) : (
+                      <SceneRow
+                        scene={s}
+                        done={cleared.includes(s.id)}
+                        fresh={fresh.includes(s.id)}
+                        label={`${x.start + i}화`}
+                      />
+                    )}
                   </li>
                 ))}
               </ol>
             </section>
           ))}
           {locked.map((x, k) => (
-            <section key={x.start} className="mt-8">
+            <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
                 <span className="font-pixel-title text-[24px] text-paper-subtle">
                   {blockTitle(x)}
@@ -618,13 +677,13 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                   장면 {progress.left + k * BLOCK_SIZE}개 더 하면 열려요
                 </span>
               </h2>
-              <ol className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <ol className={SCENE_ROWS_CLASS}>
                 {x.scenes.map((s, i) => (
-                  <li key={s.id}>
+                  <li key={s.id} className={SCENE_ROW_ITEM_CLASS}>
                     {lockedIn.has(s.id) ? (
-                      <LockedSceneCard scene={s} label={`${x.start + i}화`} />
+                      <LockedSceneRow scene={s} label={`${x.start + i}화`} />
                     ) : (
-                      <SceneCard
+                      <SceneRow
                         scene={s}
                         done
                         fresh={false}
@@ -658,7 +717,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
             ))}
           </div>
           {shown.map((g) => (
-            <section key={g.label} className="mt-6">
+            <section key={g.label} className="mt-10">
               <h2 className="flex items-baseline gap-2">
                 <span className="font-pixel-title text-[24px]">{g.label}</span>
                 <span className="text-[14px] text-paper-subtle">
