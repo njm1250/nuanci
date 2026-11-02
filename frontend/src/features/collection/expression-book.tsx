@@ -5,7 +5,7 @@ import { useState } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { TRAP_LABELS, type Trap } from "@/features/scene/types";
-import type { BookEntry, ExpressionPair } from "./pairs";
+import { spoken, type BookEntry, type ExpressionPair } from "./pairs";
 
 export function Mark({ good }: { good: boolean }) {
   return (
@@ -27,39 +27,37 @@ function Arrow() {
 // 영어 가리기를 켜면 자연스러운 말을 가려 두고 눌러야 보여준다. 스스로 떠올려 본 뒤 확인하면 더 오래 기억한다. 출처는 맨 아래 한 줄로 작게 둔다
 function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boolean; onReveal: () => void }) {
   return (
-    <li className="py-3">
-      <p className="text-[12px] text-ink-subtle">
-        {pair.who} · {pair.when}
-      </p>
-      <p className="mt-0.5 text-[14px] text-ink">{pair.intent}</p>
-      <div className="mt-2 flex items-start gap-2">
+    <li className="px-3 py-4">
+      <p className="text-[16px] font-semibold leading-snug text-paper">{spoken(pair.intent)}</p>
+      <div className="mt-2.5 flex items-start gap-2">
         <span className="mt-1">
           <Mark good />
         </span>
         {hidden ? (
-          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border-2 border-dashed border-ink/30 px-2 text-left font-pixel text-[15px] text-ink-subtle">
+          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border border-dashed border-line px-2 text-left font-pixel text-[15px] text-paper-subtle">
             눌러서 보기
           </button>
         ) : (
           <div className="min-w-0">
             <p className="font-line text-[20px] leading-snug">{pair.right}</p>
             {pair.alts.map((a) => (
-              <p key={a} className="font-line text-[16px] leading-snug text-ink-muted">
-                <span className="font-sans text-[12px] text-ink-subtle">또는 </span>
+              <p key={a} className="font-line text-[16px] leading-snug text-paper-muted">
+                <span className="font-sans text-[12px] text-paper-subtle">또는 </span>
                 {a}
               </p>
             ))}
           </div>
         )}
       </div>
-      <p className="mt-1.5 flex items-center gap-2 text-[14px] text-ink-subtle">
+      <p className="mt-2 flex items-center gap-2 text-[13px] text-paper-subtle">
         <Mark good={false} />
         <s className="min-w-0">{pair.wrong}</s>
         {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
       </p>
-      {!hidden && pair.sources && pair.sources.length > 0 && (
-        <p className="mt-2 text-[12px] leading-relaxed text-ink-subtle">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
-      )}
+      <p className="mt-3 text-[12px] leading-relaxed text-paper-subtle">
+        {pair.who} · {pair.when}
+        {!hidden && pair.sources && pair.sources.length > 0 && <span className="block">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</span>}
+      </p>
     </li>
   );
 }
@@ -78,16 +76,14 @@ function EmptyBook({ entries }: { entries: BookEntry[] }) {
         </BlockLink>
       )}
       {peek.length > 0 && (
-        <div className="blk-frame mt-8" aria-hidden>
-          <ul className="blk divide-y-2 divide-ink/10 bg-cream px-4 text-ink">
-            {peek.map((p) => (
-              <li key={`${p.who}:${p.right}`} className="py-3">
-                <p className="text-[14px] text-ink-muted">{p.intent}</p>
-                <p className="mt-1 select-none font-line text-[20px] leading-snug blur-[6px]">{p.right}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="mt-8 divide-y divide-line/40 border-t-2 border-paper" aria-hidden>
+          {peek.map((p) => (
+            <li key={`${p.who}:${p.right}`} className="py-3">
+              <p className="text-[14px] text-paper-muted">{p.intent}</p>
+              <p className="mt-1 select-none font-line text-[20px] leading-snug blur-[6px]">{p.right}</p>
+            </li>
+          ))}
+        </ul>
       )}
     </>
   );
@@ -134,55 +130,49 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="표현 찾기"
               aria-label="표현 찾기"
-              className="blk min-h-11 min-w-0 flex-1 bg-cream px-3 text-[16px] text-ink placeholder:text-ink-subtle"
+              className="min-h-11 min-w-0 flex-1 border border-line bg-night-deep px-3 text-[16px] text-paper placeholder:text-paper-subtle light:bg-cream"
             />
-            <button
-              type="button"
-              onClick={toggleHide}
-              aria-pressed={hide}
-              className={`blk min-h-11 shrink-0 px-3 font-pixel text-[15px] ${hide ? "bg-gold text-ink" : "bg-slate-block text-paper"}`}
-            >
-              영어 가리기
-            </button>
+            {traps.length > 1 && (
+              <select
+                value={trap ?? ""}
+                onChange={(e) => setTrap((e.target.value || null) as Trap | null)}
+                aria-label="틀리는 이유"
+                className="min-h-11 w-[120px] shrink-0 border border-line bg-night-deep px-2 text-[14px] text-paper light:bg-cream [color-scheme:dark] light:[color-scheme:light]"
+              >
+                <option value="">이유 전체</option>
+                {traps.map((t) => (
+                  <option key={t} value={t}>
+                    {TRAP_LABELS[t]}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          {traps.length > 1 && (
-            <div role="group" aria-label="틀리는 이유" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
-              {[null, ...traps].map((t) => (
-                <button
-                  key={t ?? "all"}
-                  type="button"
-                  onClick={() => setTrap(t)}
-                  aria-pressed={trap === t}
-                  className={`min-h-9 shrink-0 border-2 px-3 font-pixel text-[15px] ${trap === t ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
-                >
-                  {t ? TRAP_LABELS[t] : "전체"}
-                </button>
-              ))}
-            </div>
-          )}
+          <label className="mt-1 flex min-h-11 items-center gap-2 text-[14px] text-paper-muted">
+            <input type="checkbox" checked={hide} onChange={toggleHide} className="size-[18px] accent-gold [color-scheme:dark] light:[color-scheme:light]" />
+            영어 가리기
+          </label>
 
           {shown.length === 0 ? (
             <p className="mt-6 text-[14px] text-paper-muted">찾는 표현이 없어요.</p>
           ) : (
-            <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
               {shown.map(({ entry, pairs }) => (
                 <section key={entry.id}>
-                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2 bg-slate-block pl-3 pr-2">
                     <h2 className="min-w-0 truncate font-pixel text-[15px] text-paper">{entry.title}</h2>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="-mr-1 flex min-h-9 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-subtle hover:text-paper">
+                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
                       다시 하기
                       <Arrow />
                     </EntryLink>
                   </div>
-                  <div className="blk-frame">
-                    <ul className="blk divide-y-2 divide-ink/10 bg-cream px-4 text-ink">
-                      {pairs.map((p) => {
-                        const key = `${entry.id}:${p.right}`;
-                        return <PairRow key={key} pair={p} hidden={hide && !revealed.includes(key)} onReveal={() => setRevealed((r) => [...r, key])} />;
-                      })}
-                    </ul>
-                  </div>
+                  <ul className="divide-y divide-line/40">
+                    {pairs.map((p) => {
+                      const key = `${entry.id}:${p.right}`;
+                      return <PairRow key={key} pair={p} hidden={hide && !revealed.includes(key)} onReveal={() => setRevealed((r) => [...r, key])} />;
+                    })}
+                  </ul>
                 </section>
               ))}
             </div>
