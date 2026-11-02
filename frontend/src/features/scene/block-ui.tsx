@@ -19,7 +19,7 @@ export function BlockButton({
 } & Pick<React.AriaAttributes, "aria-pressed" | "aria-expanded" | "aria-label">) {
   return (
     <button type="button" onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`} {...aria}>
-      <span className={`blk block px-3 py-2.5 ${primary ? "bg-cta text-cta-text" : "bg-cream"} ${faceClassName}`}>{children}</span>
+      <span className={`blk block px-3 py-2.5 ${primary ? "bg-cta font-poster text-[20px] text-cta-text" : "bg-cream"} ${faceClassName}`}>{children}</span>
     </button>
   );
 }
@@ -43,17 +43,20 @@ export function BlockLink({
   className = "",
   entry,
   onClick,
+  reading = false,
 }: {
   href: string;
   children: React.ReactNode;
   primary?: boolean;
   className?: string;
+  // 문장처럼 읽어야 하는 긴 라벨이면 포스터 글꼴 대신 본문 글꼴을 쓴다
+  reading?: boolean;
   entry?: "home" | "next";
   onClick?: (e: React.MouseEvent) => void;
 }) {
   return (
     <EntryLink href={href} entry={entry} onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`}>
-      <span className={`blk block px-3 py-3.5 text-center font-pixel text-[15px] ${primary ? "bg-cta text-cta-text" : "bg-cream text-ink"}`}>{children}</span>
+      <span className={`blk block px-3 py-3.5 text-center ${primary ? `bg-cta text-cta-text ${reading ? "text-[16px] font-bold" : "font-poster text-[20px]"}` : "bg-cream font-pixel text-[15px] text-ink"}`}>{children}</span>
     </EntryLink>
   );
 }

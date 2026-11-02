@@ -77,7 +77,7 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
     >
       <div className="blk-frame">
         <div className="blk max-h-[calc(100dvh-3rem)] overflow-y-auto bg-card p-5">
-          <h2 id="inquiry-title" className="font-pixel-title text-[24px] leading-[1.25]">
+          <h2 id="inquiry-title" className="font-poster text-[24px] leading-[1.25]">
             문의 / 오류 제보
           </h2>
 

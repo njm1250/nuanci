@@ -365,7 +365,7 @@ function FeaturedScene({
           </span>
         </span>
         <span className="block md:flex md:flex-col md:justify-center">
-          <span className="mt-3 block px-2 font-pixel-title text-[24px] leading-[1.25] md:mt-0">
+          <span className="mt-3 block px-2 font-poster text-[24px] leading-[1.25] md:mt-0">
             {scene.title}
           </span>
           <span className="mt-1.5 block px-2 text-[14px] text-ink-subtle">
@@ -550,7 +550,7 @@ function ViewSwitch({ view }: { view: "group" | "order" }) {
           role="radio"
           aria-checked={view === o.value}
           onClick={() => setSceneView(o.value)}
-          className={`min-h-10 px-4 font-pixel text-[15px] ${view === o.value ? "bg-gold text-ink" : "text-paper-muted"}`}
+          className={`min-h-10 px-4 font-pixel text-[15px] ${view === o.value ? "bg-paper text-night" : "text-paper-muted"}`}
         >
           {o.label}
         </button>
@@ -636,7 +636,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {opened.map((x) => (
             <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px]">
+                <span className="font-poster text-[32px] md:text-[44px]">
                   {blockTitle(x)}
                 </span>
                 <span className="text-[14px] text-paper-subtle">
@@ -670,7 +670,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {locked.map((x, k) => (
             <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px] text-paper-subtle">
+                <span className="font-poster text-[32px] text-paper-subtle md:text-[44px]">
                   {blockTitle(x)}
                 </span>
                 <span className="text-[14px] text-paper-subtle">
@@ -710,7 +710,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                 type="button"
                 onClick={() => setOnly(label)}
                 aria-pressed={only === label}
-                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[15px] ${only === label ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
+                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[15px] ${only === label ? "border-paper bg-paper text-night" : "border-paper-subtle/40 text-paper-muted"}`}
               >
                 {label ?? "전체"}
               </button>
@@ -719,7 +719,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {shown.map((g) => (
             <section key={g.label} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px]">{g.label}</span>
+                <span className="font-poster text-[32px] md:text-[44px]">{g.label}</span>
                 <span className="text-[14px] text-paper-subtle">
                   {g.scenes.length}개 중{" "}
                   {g.scenes.filter((s) => cleared.includes(s.id)).length}개

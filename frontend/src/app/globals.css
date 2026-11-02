@@ -4,8 +4,8 @@
  * 글자색은 배경마다 3단계만 쓴다. 가장 흐린 단계도 대비 4.5:1 이상.
  * 어두운 배경(night·ink): paper > paper-muted > paper-subtle
  * 밝은 배경(paper·cream): ink > ink-muted > ink-subtle
- * 픽셀 폰트는 원래 크기 배수로만 쓴다: font-pixel 15px, font-pixel-title 12px·24px
- * 픽셀 폰트는 제목·버튼·짧은 라벨처럼 한 줄짜리 '게임 목소리'에만 쓰고, 두 줄 넘게 읽는 글은 Pretendard 16px로 쓴다
+ * 라벨은 font-pixel(굵은 본문 글꼴) 15px, 작은 뱃지는 font-pixel-title 12px로 쓰고, 두 줄 넘게 읽는 글은 16px로 쓴다
+ * 페이지 제목과 결과 같은 순간만 포스터 글꼴(font-poster)로 크게 쓰고, 낙서 글꼴(font-scrawl)은 화면마다 많아야 하나만 기울여 얹는다
  * 영어 대사(선택지·말풍선·모은 표현)는 손글씨 글꼴 font-line으로 써서 사람이 한 말처럼 보이게 한다
  *
  * 글자 위계 (SEED 크기 단계를 따른다). 한 카드 안에서는 위계가 한 단계씩 내려갈 때마다 크기·굵기·색 중 둘 이상을 바꾼다
@@ -33,7 +33,7 @@
   /* 기본 카드 바탕. 밝은 화면에서도 글자색(paper)과 따로 바꾸려고 나눠 둔다 */
   --color-card: #f6f4ee;
   --color-gold: #c8f031;
-  /* 주요 버튼. 밤 화면에서는 형광 연두, 종이 화면에서는 먹색 버튼에 연두 형광펜 밑단을 쓴다 */
+  /* 주요 버튼은 화면마다 하나만 두고 어느 바탕에서나 연두로 쓴다. 검은 면이 늘어나지 않게 먹색 버튼은 쓰지 않는다 */
   --color-cta: #c8f031;
   --color-cta-text: #141317;
   --color-rust: #d4265f;
@@ -50,10 +50,15 @@
   --color-line: #5c5a65;
   --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* 픽셀 글꼴은 흔한 글자(core)를 먼저 쓰고, 없는 글자만 Rest 파일에서 받는다. 변수는 app/fonts.ts의 next/font가 html에 붙인다 */
-  --font-pixel: var(--font-galmuri14), var(--font-galmuri14-rest), monospace;
-  --font-pixel-title: var(--font-galmuri11-bold), var(--font-galmuri11-bold-rest), var(--font-galmuri14), var(--font-galmuri14-rest), monospace;
+  /* 버튼·라벨 글꼴. 픽셀 글꼴은 로고와 무대 말풍선에만 남긴다 */
+  --font-pixel: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-pixel-title: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-logo: var(--font-galmuri14), var(--font-galmuri14-rest), monospace;
   /* 영어 대사 전용 손글씨 글꼴. 한글이 없어서 한글은 Pretendard로 넘어간다 */
   --font-line: var(--font-pangolin), "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  /* 페이지 제목과 결과 같은 순간에만 쓴다. 읽어야 하는 내용에는 쓰지 않는다 */
+  --font-poster: var(--font-black-han-sans), "Pretendard Variable", Pretendard, sans-serif;
+  --font-scrawl: var(--font-nanum-pen), "Pretendard Variable", Pretendard, sans-serif;
   /* SEED 반응형 기준점에 맞춘다 */
   --breakpoint-sm: 30rem;
   --breakpoint-md: 48rem;
@@ -77,8 +82,6 @@
   --color-card: #ffffff;
   --color-line: #8a8d84;
   --color-rust-light: #c01f55;
-  --color-cta: #141317;
-  --color-cta-text: #f6f4ee;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 /* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */
@@ -106,10 +109,25 @@ body {
   font-family: var(--font-sans);
   letter-spacing: -0.01em;
 }
-/* 픽셀 글꼴은 글자 사이가 정수 픽셀이어야 획이 고르게 보여서, 본문의 소수 자간을 물려받지 않는다 */
-.font-pixel,
+.font-pixel {
+  font-weight: 500;
+}
 .font-pixel-title {
+  font-weight: 800;
+}
+/* 로고는 무대와 같은 픽셀 글꼴로 남겨 서비스의 표시로 쓴다 */
+.logo {
+  padding: 2px 8px;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  font-family: var(--font-logo);
+  font-size: 15px;
+  line-height: 1.3;
   letter-spacing: 0;
+}
+/* 검은 면 안에서는 포커스 표시를 밝게 쓴다 */
+.bg-ink :focus-visible {
+  outline-color: #f6f4ee;
 }
 :root {
   /* 등장 애니메이션 곡선. 기본 ease-out보다 처음에 빨리 나왔다가 부드럽게 멈춘다 */
@@ -122,19 +140,13 @@ body {
   scrollbar-color: var(--color-slate-block) transparent;
 }
 
-/* 계단식 모서리를 가진 픽셀 블록 */
+/* 카드와 버튼. 네모난 면에 1px 선만 두른다. 말풍선처럼 무대 위 작은 블록만 계단 모서리를 쓴다 */
 :root {
   --blk-shape: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
 }
-
-.blk {
+.blk-frame-sm .blk {
   clip-path: var(--blk-shape);
 }
-
-/*
- * 블록 둘레의 3px 테두리. drop-shadow 필터 대신 한 겹 큰 계단 모양을 블록 뒤에 깔아서 그린다.
- * 필터는 화면을 다시 그릴 때마다 화면 밖에서 여러 번 더 그려서, 카드가 많은 화면에서 누른 뒤 반응이 늦어진다
- */
 .blk-frame,
 .blk-btn {
   position: relative;
@@ -144,69 +156,31 @@ body {
 .blk-btn::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: -1px;
   z-index: -1;
   background: var(--frame, var(--color-line));
-  /* 블록을 사방으로 3px 키운 칸에 같은 계단 모양을 씌우면, 필터 테두리와 같은 모양이 된다 */
-  clip-path: var(--blk-shape);
   pointer-events: none;
 }
-
-/* 무대, 지금 고를 보기, 다음 장면, 주요 버튼처럼 지금 봐야 할 블록만 먹색 테두리를 쓴다 */
+/* 무대, 지금 고른 보기, 다음 장면, 주요 버튼처럼 지금 봐야 할 곳만 진한 선을 쓴다 */
 .blk-strong,
 .blk-btn-primary {
-  --frame: var(--color-ink);
+  --frame: var(--color-paper);
 }
-
-/* 말풍선처럼 작은 블록은 몇 개 없어서 2px 필터 테두리를 그대로 쓴다 */
 .blk-frame-sm {
   filter: drop-shadow(2px 0 0 var(--color-ink)) drop-shadow(-2px 0 0 var(--color-ink)) drop-shadow(0 2px 0 var(--color-ink)) drop-shadow(0 -2px 0 var(--color-ink));
 }
-
-/* 밑단 두께도 버튼 면과 같이 움직이게 애니메이션되는 값으로 등록한다 */
-@property --lift {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 4px;
-}
-/* 아래쪽 두께가 있어서 누르면 블록처럼 내려가는 버튼. 마우스는 올리면 반쯤, 누르면 끝까지 내려간다. 두께(--lift)만큼 밑단 색 블록을 아래로 내려 깔고, 테두리도 그만큼 길게 그린다 */
 .blk-btn {
-  --edge: #c6c8c1;
-  --lift: 4px;
-  transition:
-    transform 80ms var(--ease-snap),
-    --lift 80ms var(--ease-snap);
-}
-.blk-btn::before {
-  bottom: calc(-3px - var(--lift));
-}
-.blk-btn::after {
-  content: "";
-  position: absolute;
-  inset: var(--lift) 0 calc(-1 * var(--lift)) 0;
-  z-index: -1;
-  background: var(--edge);
-  clip-path: var(--blk-shape);
-  pointer-events: none;
+  transition: transform 120ms var(--ease-snap);
 }
 .blk-btn:active {
-  transform: translateY(4px);
-  --lift: 0px;
+  transform: scale(0.985);
 }
+/* 데스크톱에서 누를 수 있는 곳임을 선 색으로도 알려 준다 */
 @media (hover: hover) and (pointer: fine) {
   .blk-btn:hover:not(:active) {
-    transform: translateY(2px);
-    --lift: 2px;
+    --frame: var(--color-paper);
+    transform: translateY(-1px);
   }
-}
-/* 형광 연두 면 버튼(관리자 화면 등) */
-.blk-btn-gold,
-.blk-btn-primary {
-  --edge: #7e9a12;
-}
-/* 종이 화면의 먹색 버튼은 밑단을 형광펜처럼 연두로 칠한다 */
-:root[data-theme="light"] .blk-btn-primary {
-  --edge: var(--color-gold);
 }
 
 /* 형광펜. 연두는 넓은 면 대신 글자 밑에 긋는 데만 쓴다. 밤 화면에서는 글자 뒤를 다 칠하고 글자를 먹색으로 바꾼다 */
@@ -456,6 +430,44 @@ body {
 }
 
 /* 움직임 줄이기: 다 끄면 판정 색 번짐처럼 뜻이 있는 변화까지 사라져서, 모든 움직임을 0.15초 한 번으로 줄인다 */
+/* 페이지 제목. 크기 차이로 화면의 위계를 만들고 색과 장식은 더하지 않는다 */
+.poster-h1 {
+  font-size: clamp(44px, 8vw, 96px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+/* 홈 첫 화면 제목은 한 줄이 화면 너비를 채운다. 높이가 낮은 화면에서는 무대가 보이도록 줄인다 */
+.poster-home {
+  font-size: min(12vw, 18dvh, 168px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+.poster-rise {
+  animation: poster-rise 1s cubic-bezier(0, 0.33, 0.07, 1.03) both;
+}
+@keyframes poster-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14%);
+  }
+}
+/* 낙서는 펜으로 쓰듯 왼쪽부터 드러난다 */
+.poster-scrawl {
+  transform: rotate(var(--lean, -3deg));
+  transform-origin: right bottom;
+  animation: poster-write 700ms linear 350ms both;
+}
+@keyframes poster-write {
+  from {
+    clip-path: inset(-20% 100% -20% -5%);
+  }
+  to {
+    clip-path: inset(-20% -5% -20% -5%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

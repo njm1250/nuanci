@@ -1,5 +1,6 @@
 "use client";
 
+import { SiteHeader } from "@/features/site/site-header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -36,14 +37,9 @@ export function TestFlow({ questions, version }: { questions: TestQuestion[]; ve
   };
 
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
-      <main className="flex min-h-dvh w-full max-w-[480px] flex-col bg-night px-4 pb-8">
-        <header className="flex h-12 shrink-0 items-center gap-2 font-pixel text-[15px]">
-          <Link href="/" className="-ml-2 flex h-11 items-center px-2">
-            <span className="hl">nuanci</span>
-          </Link>
-          <span className="text-paper-muted">영어 사고 유형 테스트</span>
-        </header>
+    <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
+      <SiteHeader left={<span className="truncate font-pixel text-[15px] text-paper-muted">유형 테스트</span>} />
+      <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-4 pb-8">
         {stage === "intro" && <Intro friend={friend} mine={mine} relaxed={relaxed} onRelaxed={setRelaxed} onStart={start} count={questions.length} />}
         {stage === "play" && (
           <Play
@@ -66,7 +62,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
       <p className="font-pixel text-[15px] text-paper-subtle">
         {count}문제 · 문제당 {QUESTION_MS / 1000}초
       </p>
-      <h1 className="mt-2 font-pixel-title text-[24px] leading-[1.35]">
+      <h1 className="poster-rise mt-2 font-poster text-[36px] leading-[1.15] md:text-[60px]">
         영어로 말할 때 나는
         <br />
         <span className="hl">어떤 사고</span>를 칠까?
@@ -106,7 +102,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
       </ul>
 
       <div className="mt-auto pt-6">
-        <BlockButton primary onClick={onStart} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+        <BlockButton primary onClick={onStart} className="w-full" faceClassName="py-3.5 text-center">
           {friend ? "나도 테스트하기" : "테스트 시작"}
         </BlockButton>
         <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[14px] text-paper-muted">
@@ -299,7 +295,7 @@ function Analyze({ questions, picked, version, friend }: { questions: TestQuesti
     <section className="flex flex-1 flex-col items-center justify-center pb-16 text-center" aria-live="polite">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`data:image/svg+xml;base64,${btoa(mochiSvg())}`} width={96} height={102} alt="" className="animate-[bob_0.5s_steps(2,jump-none)_infinite] [image-rendering:pixelated]" />
-      <p className="mt-4 font-pixel-title text-[24px]">사고 기록 분석 중…</p>
+      <p className="mt-4 font-poster text-[24px]">사고 기록 분석 중…</p>
       <ul className="mt-5 space-y-2 text-left font-pixel text-[15px]">
         {CHECKS.map((c, i) => (
           <li key={c} className={i < done ? "text-paper" : "text-paper-subtle"}>

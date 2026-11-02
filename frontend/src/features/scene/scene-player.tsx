@@ -294,7 +294,7 @@ function WrapUp({
         <Mascot scale={3} className="shrink-0" />
         <div className="pb-1">
           <p className="font-pixel text-[15px] text-gold">장면 완료!</p>
-          <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{scene.title}</p>
+          <p className="mt-1 font-poster text-[24px] leading-[1.25] text-paper">{scene.title}</p>
         </div>
       </div>
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
@@ -331,7 +331,7 @@ function WrapUp({
           <p className="font-pixel text-[15px] text-paper">친구는 맞힐까?</p>
           <p className="text-[14px] text-paper-subtle">이 장면을 문제로 보내 보세요</p>
         </div>
-        <BlockButton primary onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px]">
+        <BlockButton onClick={share} className="shrink-0" faceClassName="font-pixel text-[15px] text-ink">
           {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
         </BlockButton>
       </div>
@@ -600,12 +600,14 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep break-keep text-ink md:items-center md:bg-night">
+    <div className="flex min-h-dvh justify-center overflow-x-clip bg-night break-keep text-ink">
       {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_480px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:h-[min(100dvh,820px)] md:gap-x-10 md:px-8">
-        <header className="flex h-12 shrink-0 items-center gap-2 px-4 font-pixel text-[15px] md:col-span-2 md:h-16 md:px-0">
+      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8">
+        {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
+        <div className="shrink-0 md:contents">
+        <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-pixel text-[15px] text-paper md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
           <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2">
-            <span className="hl">{preview ? "검수" : "nuanci"}</span>
+            <span className="logo">{preview ? "검수" : "nuanci"}</span>
           </Link>
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
@@ -619,9 +621,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
           </div>
         </header>
 
-        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 px-4 md:row-span-2 md:px-0 md:pb-8">
-          <Panel className="blk-strong">
-            <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-8rem)]">
+        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:row-span-2 md:bg-transparent md:pb-8 md:pt-6">
+          <Panel>
+            <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-10rem)]">
               <Stage
                 spec={spec}
                 reduced={reduced}
@@ -677,7 +679,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <span
                   key={`burst-${stageKey}`}
                   aria-hidden
-                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(4,end)_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
+                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(4,end)_70ms_both] font-poster text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
                   {burst.text}
                 </span>
@@ -688,18 +690,19 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             </div>
           </Panel>
         </div>
+        </div>
 
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
-        <section ref={scroller} className="scroll-area min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2 md:pl-1 md:pr-3 md:pt-2 md:[scrollbar-gutter:stable] md:[mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_calc(100%-32px),transparent)]">
+        <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2">
           {phase === "transition" && timeCue ? (
-            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-pixel-title text-[24px] text-paper">
+            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-poster text-[24px] text-paper">
               {timeCue}…
             </p>
           ) : phase === "transition" ? (
             <Panel key="transition" className="animate-[rise_220ms_var(--ease-snap)]">
               <div className="p-5">
                 <p className="font-pixel text-[15px] text-rust">만약에…</p>
-                <p className="mt-1.5 font-pixel-title text-[24px] leading-[1.25]">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
+                <p className="mt-1.5 text-[20px] font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
                 <p className="mt-3 text-[14px] text-ink-subtle">
                   <s>{scene.followUp.from}</s> → <span className="text-ink">{scene.followUp.to}</span>
                 </p>
@@ -811,7 +814,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         </section>
 
         {(choice || leading || (phase === "transition" && !timeCue)) && (
-          <footer className="relative shrink-0 border-t-[3px] border-night-deep px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
+          <footer className="relative shrink-0 border-t border-line/40 bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
             {/* 대사가 저절로 넘어간다는 걸 알 수 있게 위 테두리를 남은 시간만큼 채운다 */}
             {beat && !reduced && (
               <span
@@ -824,7 +827,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
             {leading ? (
               // 대사는 저절로 넘어가고, 메인 버튼(과 무대)을 누르면 바로 다음 줄로, 이미 본 장면이면 옆의 건너뛰기로 바로 질문에 간다
               <div className="flex items-center gap-2">
-                <BlockButton primary onClick={nextBeat} className="flex-1" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+                <BlockButton primary onClick={nextBeat} className="flex-1" faceClassName="py-3.5 text-center">
                   다음
                 </BlockButton>
                 <button type="button" onClick={skipLead} className="min-h-11 shrink-0 px-3 font-pixel text-[15px] text-paper-muted hover:text-paper">
@@ -832,18 +835,18 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 </button>
               </div>
             ) : phase === "transition" ? (
-              <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+              <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center">
                 이번엔 뭐라고 할까?
               </BlockButton>
             ) : f.done && preview ? (
               <BlockLink href={`/admin/scenes/${scene.id}`}>편집 화면으로</BlockLink>
             ) : f.done && !wrapped ? (
-              <BlockButton primary onClick={wrapUp} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+              <BlockButton primary onClick={wrapUp} className="w-full" faceClassName="py-3.5 text-center">
                 다 봤어요
               </BlockButton>
             ) : f.done ? (
               next ? (
-                <BlockLink href={`/scenes/${next.number}`} entry="next" primary onClick={goNext}>
+                <BlockLink href={`/scenes/${next.number}`} entry="next" primary reading={Boolean(teaser)} onClick={goNext}>
                   {teaser ?? "다음 장면"}
                 </BlockLink>
               ) : (
@@ -861,7 +864,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                   f.startTransition();
                 }}
                 className="w-full"
-                faceClassName="py-3.5 text-center font-pixel text-[15px]"
+                faceClassName="py-3.5 text-center"
               >
                 {timeCue ? "이어서 보기" : "만약에 상황이 바뀐다면?"}
               </BlockButton>
