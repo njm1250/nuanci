@@ -33,7 +33,7 @@
   /* 기본 카드 바탕. 밝은 화면에서도 글자색(paper)과 따로 바꾸려고 나눠 둔다 */
   --color-card: #f6f4ee;
   --color-gold: #c8f031;
-  /* 주요 버튼. 밤 화면에서는 형광 연두, 종이 화면에서는 먹색 버튼에 연두 형광펜 밑단을 쓴다 */
+  /* 주요 버튼은 화면마다 하나만 두고 어느 바탕에서나 연두로 쓴다. 검은 면이 늘어나지 않게 먹색 버튼은 쓰지 않는다 */
   --color-cta: #c8f031;
   --color-cta-text: #141317;
   --color-rust: #d4265f;
@@ -82,8 +82,6 @@
   --color-card: #ffffff;
   --color-line: #8a8d84;
   --color-rust-light: #c01f55;
-  --color-cta: #141317;
-  --color-cta-text: #f6f4ee;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 /* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */
@@ -127,11 +125,7 @@ body {
   line-height: 1.3;
   letter-spacing: 0;
 }
-/* 검은 띠 안에서는 주요 버튼을 연두로, 포커스 표시를 밝게 쓴다 */
-.bg-ink {
-  --color-cta: #c8f031;
-  --color-cta-text: #141317;
-}
+/* 검은 면 안에서는 포커스 표시를 밝게 쓴다 */
 .bg-ink :focus-visible {
   outline-color: #f6f4ee;
 }
@@ -181,8 +175,10 @@ body {
 .blk-btn:active {
   transform: scale(0.985);
 }
+/* 데스크톱에서 누를 수 있는 곳임을 선 색으로도 알려 준다 */
 @media (hover: hover) and (pointer: fine) {
   .blk-btn:hover:not(:active) {
+    --frame: var(--color-paper);
     transform: translateY(-1px);
   }
 }
