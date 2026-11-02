@@ -294,7 +294,7 @@ function WrapUp({
         <Mascot scale={3} className="shrink-0" />
         <div className="pb-1">
           <p className="font-pixel text-[15px] text-gold">장면 완료!</p>
-          <p className="mt-1 font-pixel-title text-[24px] leading-[1.25] text-paper">{scene.title}</p>
+          <p className="mt-1 font-poster text-[24px] leading-[1.25] text-paper">{scene.title}</p>
         </div>
       </div>
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
@@ -677,7 +677,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <span
                   key={`burst-${stageKey}`}
                   aria-hidden
-                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(4,end)_70ms_both] font-pixel-title text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
+                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(4,end)_70ms_both] font-poster text-[24px] leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
                   {burst.text}
                 </span>
@@ -692,14 +692,14 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
         <section ref={scroller} className="scroll-area min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2 md:pl-1 md:pr-3 md:pt-2 md:[scrollbar-gutter:stable] md:[mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_calc(100%-32px),transparent)]">
           {phase === "transition" && timeCue ? (
-            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-pixel-title text-[24px] text-paper">
+            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-poster text-[24px] text-paper">
               {timeCue}…
             </p>
           ) : phase === "transition" ? (
             <Panel key="transition" className="animate-[rise_220ms_var(--ease-snap)]">
               <div className="p-5">
                 <p className="font-pixel text-[15px] text-rust">만약에…</p>
-                <p className="mt-1.5 font-pixel-title text-[24px] leading-[1.25]">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
+                <p className="mt-1.5 text-[20px] font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
                 <p className="mt-3 text-[14px] text-ink-subtle">
                   <s>{scene.followUp.from}</s> → <span className="text-ink">{scene.followUp.to}</span>
                 </p>

@@ -54,6 +54,9 @@
   --font-pixel-title: var(--font-galmuri11-bold), var(--font-galmuri11-bold-rest), var(--font-galmuri14), var(--font-galmuri14-rest), monospace;
   /* 영어 대사 전용 손글씨 글꼴. 한글이 없어서 한글은 Pretendard로 넘어간다 */
   --font-line: var(--font-pangolin), "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  /* 페이지 제목과 결과 같은 순간에만 쓴다. 읽어야 하는 내용에는 쓰지 않는다 */
+  --font-poster: var(--font-black-han-sans), "Pretendard Variable", Pretendard, sans-serif;
+  --font-scrawl: var(--font-nanum-pen), "Pretendard Variable", Pretendard, sans-serif;
   /* SEED 반응형 기준점에 맞춘다 */
   --breakpoint-sm: 30rem;
   --breakpoint-md: 48rem;
@@ -456,6 +459,44 @@ body {
 }
 
 /* 움직임 줄이기: 다 끄면 판정 색 번짐처럼 뜻이 있는 변화까지 사라져서, 모든 움직임을 0.15초 한 번으로 줄인다 */
+/* 페이지 제목. 크기 차이로 화면의 위계를 만들고 색과 장식은 더하지 않는다 */
+.poster-h1 {
+  font-size: clamp(44px, 8vw, 96px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+/* 홈 첫 화면 제목은 한 줄이 화면 너비를 채운다. 높이가 낮은 화면에서는 무대가 보이도록 줄인다 */
+.poster-home {
+  font-size: min(12vw, 18dvh, 168px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+.poster-rise {
+  animation: poster-rise 1s cubic-bezier(0, 0.33, 0.07, 1.03) both;
+}
+@keyframes poster-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14%);
+  }
+}
+/* 낙서는 펜으로 쓰듯 왼쪽부터 드러난다 */
+.poster-scrawl {
+  transform: rotate(var(--lean, -3deg));
+  transform-origin: right bottom;
+  animation: poster-write 700ms linear 350ms both;
+}
+@keyframes poster-write {
+  from {
+    clip-path: inset(-20% 100% -20% -5%);
+  }
+  to {
+    clip-path: inset(-20% -5% -20% -5%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

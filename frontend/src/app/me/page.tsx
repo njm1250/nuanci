@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MePanel } from "@/features/account/me-panel";
 import { BackButton } from "@/features/collection/back-button";
 import { getRanks } from "@/features/progression/api";
+import { PageTitle } from "@/features/site/page-title";
 
 export const metadata: Metadata = { title: "내 정보 · nuanci" };
 
@@ -17,7 +18,9 @@ export default async function MePage() {
           </Link>
           <BackButton />
         </header>
-        <h1 className="mb-4 font-pixel-title text-[24px]">내 정보</h1>
+        <div className="mb-6">
+          <PageTitle>내 정보</PageTitle>
+        </div>
         <MePanel ranks={ranks} />
       </main>
     </div>

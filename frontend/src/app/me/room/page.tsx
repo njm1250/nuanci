@@ -1,3 +1,4 @@
+import { PageTitle } from "@/features/site/page-title";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RoomView } from "@/features/account/room-view";
@@ -26,7 +27,9 @@ export default async function RoomPage() {
           </Link>
           <BackButton fallback="/me" />
         </header>
-        <h1 className="mb-4 font-pixel-title text-[24px]">아지트</h1>
+        <div className="mb-6">
+          <PageTitle>아지트</PageTitle>
+        </div>
         <RoomView memories={memories} />
       </main>
     </div>

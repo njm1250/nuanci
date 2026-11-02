@@ -161,7 +161,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={characterDataUrl(type)} width={192} height={192} alt={`${t.name} 캐릭터`} className="[image-rendering:pixelated]" />
         </div>
-        <h1 className="mt-3 font-pixel-title text-[24px] leading-tight">
+        <h1 className="mt-3 font-poster text-[40px] leading-tight md:text-[52px]">
           <span className="hl">{t.name}</span>
         </h1>
         <p className="mt-1.5 text-[16px] leading-snug text-ink-subtle">{t.tagline}</p>
@@ -184,7 +184,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
 function Ingredients({ mix, name }: { mix: ReturnType<typeof ingredients>; name: string }) {
   return (
     <div className="mt-5 border-[3px] border-ink bg-card px-3.5 pb-2 pt-2.5 text-ink">
-      <p className="font-pixel-title text-[24px] leading-none">사고 성분표</p>
+      <p className="font-poster text-[24px] leading-none">사고 성분표</p>
       <p className="mt-1 border-b-[6px] border-ink pb-1.5 text-[12px]">1회 제공량 5문장 · {name}</p>
       <ul>
         {mix.map((m) => (

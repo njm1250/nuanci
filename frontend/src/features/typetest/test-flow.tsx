@@ -66,7 +66,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
       <p className="font-pixel text-[15px] text-paper-subtle">
         {count}문제 · 문제당 {QUESTION_MS / 1000}초
       </p>
-      <h1 className="mt-2 font-pixel-title text-[24px] leading-[1.35]">
+      <h1 className="poster-rise mt-2 font-poster text-[36px] leading-[1.15] md:text-[60px]">
         영어로 말할 때 나는
         <br />
         <span className="hl">어떤 사고</span>를 칠까?
@@ -299,7 +299,7 @@ function Analyze({ questions, picked, version, friend }: { questions: TestQuesti
     <section className="flex flex-1 flex-col items-center justify-center pb-16 text-center" aria-live="polite">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`data:image/svg+xml;base64,${btoa(mochiSvg())}`} width={96} height={102} alt="" className="animate-[bob_0.5s_steps(2,jump-none)_infinite] [image-rendering:pixelated]" />
-      <p className="mt-4 font-pixel-title text-[24px]">사고 기록 분석 중…</p>
+      <p className="mt-4 font-poster text-[24px]">사고 기록 분석 중…</p>
       <ul className="mt-5 space-y-2 text-left font-pixel text-[15px]">
         {CHECKS.map((c, i) => (
           <li key={c} className={i < done ? "text-paper" : "text-paper-subtle"}>

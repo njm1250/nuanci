@@ -1,3 +1,4 @@
+import { Black_Han_Sans, Nanum_Pen_Script } from "next/font/google";
 import localFont from "next/font/local";
 
 // 글꼴 파일은 scripts/subset-fonts.py로 만든다.
@@ -10,4 +11,8 @@ export const galmuri11Bold = localFont({ src: "./fonts/galmuri11-bold-core.woff2
 export const galmuri11BoldRest = localFont({ src: "./fonts/galmuri11-bold-rest.woff2", weight: "700", display: "swap", variable: "--font-galmuri11-bold-rest", preload: false, adjustFontFallback: false });
 export const pangolin = localFont({ src: "./fonts/pangolin-line.woff2", weight: "400", display: "swap", variable: "--font-pangolin", preload: false, adjustFontFallback: false });
 
-export const fontVariables = [galmuri14, galmuri14Rest, galmuri11Bold, galmuri11BoldRest, pangolin].map((f) => f.variable).join(" ");
+// 큰 제목과 결과 같은 순간에만 쓰는 포스터 글꼴과 낙서 글꼴. 본문이 먼저 뜨도록 미리 받지 않는다
+export const blackHanSans = Black_Han_Sans({ weight: "400", display: "swap", variable: "--font-black-han-sans", preload: false });
+export const nanumPen = Nanum_Pen_Script({ weight: "400", display: "swap", variable: "--font-nanum-pen", preload: false });
+
+export const fontVariables = [galmuri14, galmuri14Rest, galmuri11Bold, galmuri11BoldRest, pangolin, blackHanSans, nanumPen].map((f) => f.variable).join(" ");

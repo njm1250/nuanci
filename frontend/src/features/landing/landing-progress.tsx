@@ -365,7 +365,7 @@ function FeaturedScene({
           </span>
         </span>
         <span className="block md:flex md:flex-col md:justify-center">
-          <span className="mt-3 block px-2 font-pixel-title text-[24px] leading-[1.25] md:mt-0">
+          <span className="mt-3 block px-2 font-poster text-[24px] leading-[1.25] md:mt-0">
             {scene.title}
           </span>
           <span className="mt-1.5 block px-2 text-[14px] text-ink-subtle">
@@ -636,7 +636,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {opened.map((x) => (
             <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px]">
+                <span className="font-poster text-[32px] md:text-[44px]">
                   {blockTitle(x)}
                 </span>
                 <span className="text-[14px] text-paper-subtle">
@@ -670,7 +670,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {locked.map((x, k) => (
             <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px] text-paper-subtle">
+                <span className="font-poster text-[32px] text-paper-subtle md:text-[44px]">
                   {blockTitle(x)}
                 </span>
                 <span className="text-[14px] text-paper-subtle">
@@ -719,7 +719,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {shown.map((g) => (
             <section key={g.label} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-pixel-title text-[24px]">{g.label}</span>
+                <span className="font-poster text-[32px] md:text-[44px]">{g.label}</span>
                 <span className="text-[14px] text-paper-subtle">
                   {g.scenes.length}개 중{" "}
                   {g.scenes.filter((s) => cleared.includes(s.id)).length}개
