@@ -112,7 +112,7 @@ body {
   letter-spacing: -0.01em;
 }
 .font-pixel {
-  font-weight: 600;
+  font-weight: 500;
 }
 .font-pixel-title {
   font-weight: 800;
@@ -164,8 +164,13 @@ body {
   position: absolute;
   inset: -1px;
   z-index: -1;
-  background: var(--frame, var(--color-paper));
+  background: var(--frame, var(--color-line));
   pointer-events: none;
+}
+/* 무대, 지금 고른 보기, 다음 장면, 주요 버튼처럼 지금 봐야 할 곳만 진한 선을 쓴다 */
+.blk-strong,
+.blk-btn-primary {
+  --frame: var(--color-paper);
 }
 .blk-frame-sm {
   filter: drop-shadow(2px 0 0 var(--color-ink)) drop-shadow(-2px 0 0 var(--color-ink)) drop-shadow(0 2px 0 var(--color-ink)) drop-shadow(0 -2px 0 var(--color-ink));
