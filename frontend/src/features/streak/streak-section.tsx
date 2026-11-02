@@ -33,7 +33,7 @@ export function StreakSection({ member }: { member: boolean }) {
           <div className="flex items-center gap-3 py-4">
             <Flame lit={Boolean(streak?.today)} size={36} />
             <div className="min-w-0 flex-1">
-              <p className="font-pixel-title text-[24px] leading-none">{current}일 연속</p>
+              <p className="font-poster text-[24px] leading-none">{current}일 연속</p>
               <p className="mt-1.5 text-[14px] text-ink-subtle">최고 {streak?.best ?? 0}일</p>
             </div>
           </div>

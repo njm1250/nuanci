@@ -114,16 +114,12 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
 
   return (
     <>
-      <div className="flex items-baseline justify-between">
-        <h1 className="font-pixel-title text-[24px]">표현 모음</h1>
-        {count > 0 && <p className="shrink-0 font-pixel text-[15px] text-paper-subtle">{count}개</p>}
-      </div>
 
       {count === 0 ? (
         <EmptyBook entries={entries} />
       ) : (
         <>
-          <div className="mt-4 flex gap-2">
+          <div className="flex gap-2">
             <input
               type="search"
               value={query}
@@ -149,10 +145,13 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
             )}
           </div>
 
-          <label className="mt-1 flex min-h-11 items-center gap-2 text-[14px] text-paper-muted">
-            <input type="checkbox" checked={hide} onChange={toggleHide} className="size-[18px] accent-gold [color-scheme:dark] light:[color-scheme:light]" />
-            영어 가리기
-          </label>
+          <div className="mt-1 flex min-h-11 items-center justify-between gap-3">
+            <label className="flex min-h-11 items-center gap-2 text-[14px] text-paper-muted">
+              <input type="checkbox" checked={hide} onChange={toggleHide} className="size-[18px] accent-gold [color-scheme:dark] light:[color-scheme:light]" />
+              영어 가리기
+            </label>
+            <p className="text-[14px] text-paper-subtle">{count}개</p>
+          </div>
 
           {shown.length === 0 ? (
             <p className="mt-6 text-[14px] text-paper-muted">찾는 표현이 없어요.</p>

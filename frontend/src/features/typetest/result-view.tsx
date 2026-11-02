@@ -1,5 +1,6 @@
 "use client";
 
+import { SiteHeader } from "@/features/site/site-header";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -57,16 +58,9 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
   const friendInStore = mode === "mine" ? <FriendCompare me={type} myPicks={picks} /> : null;
 
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
-      <main className="w-full max-w-[480px] bg-night px-4 pb-12">
-        <header className="flex h-12 items-center gap-2 font-pixel text-[15px]">
-          <Link href="/" className="-ml-2 flex h-11 items-center px-2">
-            <span className="hl">nuanci</span>
-          </Link>
-          <Link href="/test" className="text-paper-muted">
-            영어 사고 유형 테스트
-          </Link>
-        </header>
+    <div className="min-h-dvh bg-night text-paper break-keep">
+      <SiteHeader left={<Link href="/test" className="truncate font-pixel text-[15px] text-paper-muted">유형 테스트</Link>} />
+      <main className="mx-auto w-full max-w-[560px] px-4 pb-12">
 
         <p className="mt-2 font-pixel text-[15px] text-paper-subtle">{mode === "mine" ? "나의 영어 사고 유형" : mode === "friend" ? "친구의 영어 사고 유형" : "영어 사고 유형"}</p>
         <TypeCard type={type} kinds={answers?.map((a) => stampKind(a.verdict)) ?? null} avg={avg} rarity={rarity} pop={fresh} className="mt-2" />
@@ -161,7 +155,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={characterDataUrl(type)} width={192} height={192} alt={`${t.name} 캐릭터`} className="[image-rendering:pixelated]" />
         </div>
-        <h1 className="mt-3 font-pixel-title text-[24px] leading-tight">
+        <h1 className="mt-3 font-poster text-[40px] leading-tight md:text-[52px]">
           <span className="hl">{t.name}</span>
         </h1>
         <p className="mt-1.5 text-[16px] leading-snug text-ink-subtle">{t.tagline}</p>
@@ -184,7 +178,7 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
 function Ingredients({ mix, name }: { mix: ReturnType<typeof ingredients>; name: string }) {
   return (
     <div className="mt-5 border-[3px] border-ink bg-card px-3.5 pb-2 pt-2.5 text-ink">
-      <p className="font-pixel-title text-[24px] leading-none">사고 성분표</p>
+      <p className="font-poster text-[24px] leading-none">사고 성분표</p>
       <p className="mt-1 border-b-[6px] border-ink pb-1.5 text-[12px]">1회 제공량 5문장 · {name}</p>
       <ul>
         {mix.map((m) => (
@@ -259,7 +253,7 @@ function Share({ type }: { type: TypeId }) {
     <section className="mt-5">
       <p className="font-pixel text-[15px] text-paper-subtle">친구는 무슨 유형일까?</p>
       <div className="mt-2 space-y-3">
-        <BlockButton primary onClick={share} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+        <BlockButton primary onClick={share} className="w-full" faceClassName="py-3.5 text-center">
           {state === "copied" ? "복사했어요! 친구에게 붙여 넣어 주세요" : "친구에게 보내기"}
         </BlockButton>
         <div className="grid grid-cols-2 gap-3">

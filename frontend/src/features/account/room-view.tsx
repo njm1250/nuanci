@@ -276,7 +276,7 @@ function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; 
       onClick={onPress}
       aria-label={label}
       aria-pressed={usable ? on : undefined}
-      className={`blk relative flex aspect-square w-full flex-col items-center justify-center gap-1 px-1 ${on ? "bg-gold text-ink" : usable ? "bg-cream text-ink" : "bg-slate-block text-paper-subtle"} ${selected ? "outline outline-[3px] outline-offset-2 outline-paper" : ""}`}
+      className={`blk relative flex aspect-square w-full flex-col items-center justify-center gap-1 px-1 ${on ? "bg-paper text-night" : usable ? "bg-cream text-ink" : "bg-slate-block text-paper-subtle"} ${selected ? "outline outline-[3px] outline-offset-2 outline-paper" : ""}`}
     >
       {/* 못 얻은 물건은 그림자만 보여주고 얻는 조건을 적는다. 열지 않은 상자는 무엇이 들었는지 감춘다 */}
       <RewardIcon
@@ -345,7 +345,7 @@ function Detail({
           type="button"
           onClick={() => setOn(!on)}
           aria-pressed={on}
-          className={`blk flex min-h-11 items-center gap-1.5 px-3 font-pixel text-[15px] ${on ? "bg-gold text-ink" : "bg-slate-block text-paper"}`}
+          className={`blk flex min-h-11 items-center gap-1.5 px-3 font-pixel text-[15px] ${on ? "bg-paper text-night" : "bg-slate-block text-paper"}`}
         >
           {item.kind === "wear" ? "쓰기" : "두기"}
           {on && <Check size={12} />}
