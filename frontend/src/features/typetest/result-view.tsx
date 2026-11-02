@@ -1,5 +1,6 @@
 "use client";
 
+import { SiteHeader } from "@/features/site/site-header";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -57,16 +58,9 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
   const friendInStore = mode === "mine" ? <FriendCompare me={type} myPicks={picks} /> : null;
 
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
-      <main className="w-full max-w-[480px] bg-night px-4 pb-12">
-        <header className="flex h-12 items-center gap-2 font-pixel text-[15px]">
-          <Link href="/" className="-ml-2 flex h-11 items-center px-2">
-            <span className="hl">nuanci</span>
-          </Link>
-          <Link href="/test" className="text-paper-muted">
-            영어 사고 유형 테스트
-          </Link>
-        </header>
+    <div className="min-h-dvh bg-night text-paper break-keep">
+      <SiteHeader left={<Link href="/test" className="truncate font-pixel text-[15px] text-paper-muted">유형 테스트</Link>} />
+      <main className="mx-auto w-full max-w-[560px] px-4 pb-12">
 
         <p className="mt-2 font-pixel text-[15px] text-paper-subtle">{mode === "mine" ? "나의 영어 사고 유형" : mode === "friend" ? "친구의 영어 사고 유형" : "영어 사고 유형"}</p>
         <TypeCard type={type} kinds={answers?.map((a) => stampKind(a.verdict)) ?? null} avg={avg} rarity={rarity} pop={fresh} className="mt-2" />
@@ -259,7 +253,7 @@ function Share({ type }: { type: TypeId }) {
     <section className="mt-5">
       <p className="font-pixel text-[15px] text-paper-subtle">친구는 무슨 유형일까?</p>
       <div className="mt-2 space-y-3">
-        <BlockButton primary onClick={share} className="w-full" faceClassName="py-3.5 text-center font-pixel text-[15px]">
+        <BlockButton primary onClick={share} className="w-full" faceClassName="py-3.5 text-center">
           {state === "copied" ? "복사했어요! 친구에게 붙여 넣어 주세요" : "친구에게 보내기"}
         </BlockButton>
         <div className="grid grid-cols-2 gap-3">

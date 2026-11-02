@@ -19,7 +19,7 @@ export function BlockButton({
 } & Pick<React.AriaAttributes, "aria-pressed" | "aria-expanded" | "aria-label">) {
   return (
     <button type="button" onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`} {...aria}>
-      <span className={`blk block px-3 py-2.5 ${primary ? "bg-cta text-cta-text" : "bg-cream"} ${faceClassName}`}>{children}</span>
+      <span className={`blk block px-3 py-2.5 ${primary ? "bg-cta font-poster text-[20px] text-cta-text" : "bg-cream"} ${faceClassName}`}>{children}</span>
     </button>
   );
 }
@@ -53,7 +53,7 @@ export function BlockLink({
 }) {
   return (
     <EntryLink href={href} entry={entry} onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`}>
-      <span className={`blk block px-3 py-3.5 text-center font-pixel text-[15px] ${primary ? "bg-cta text-cta-text" : "bg-cream text-ink"}`}>{children}</span>
+      <span className={`blk block px-3 py-3.5 text-center ${primary ? "bg-cta font-poster text-[20px] text-cta-text" : "bg-cream font-pixel text-[15px] text-ink"}`}>{children}</span>
     </EntryLink>
   );
 }

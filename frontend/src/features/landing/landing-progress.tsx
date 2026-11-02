@@ -550,7 +550,7 @@ function ViewSwitch({ view }: { view: "group" | "order" }) {
           role="radio"
           aria-checked={view === o.value}
           onClick={() => setSceneView(o.value)}
-          className={`min-h-10 px-4 font-pixel text-[15px] ${view === o.value ? "bg-gold text-ink" : "text-paper-muted"}`}
+          className={`min-h-10 px-4 font-pixel text-[15px] ${view === o.value ? "bg-paper text-night" : "text-paper-muted"}`}
         >
           {o.label}
         </button>
@@ -710,7 +710,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                 type="button"
                 onClick={() => setOnly(label)}
                 aria-pressed={only === label}
-                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[15px] ${only === label ? "border-gold bg-gold text-ink" : "border-paper-subtle/40 text-paper-muted"}`}
+                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[15px] ${only === label ? "border-paper bg-paper text-night" : "border-paper-subtle/40 text-paper-muted"}`}
               >
                 {label ?? "전체"}
               </button>

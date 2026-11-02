@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
-import { PageTitle } from "@/features/site/page-title";
 import { TRAP_LABELS, type Trap } from "@/features/scene/types";
 import { spoken, type BookEntry, type ExpressionPair } from "./pairs";
 
@@ -115,13 +114,12 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
 
   return (
     <>
-      <PageTitle note="이럴 땐 이렇게">표현 모음</PageTitle>
 
       {count === 0 ? (
         <EmptyBook entries={entries} />
       ) : (
         <>
-          <div className="mt-6 flex gap-2">
+          <div className="flex gap-2">
             <input
               type="search"
               value={query}
