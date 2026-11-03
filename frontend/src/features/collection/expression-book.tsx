@@ -51,7 +51,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
       </div>
       <p className="mt-2 flex items-center gap-2 text-[13px] text-paper-subtle">
         <Mark good={false} />
-        <s className="min-w-0">{pair.wrong}</s>
+        <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
         {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
       </p>
       <p className="mt-3 text-[12px] leading-relaxed text-paper-subtle">
@@ -159,9 +159,10 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
             <div className="mt-4 grid items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
               {shown.map(({ entry, pairs }) => (
                 <section key={entry.id}>
-                  <div className="flex items-center justify-between gap-2 bg-slate-block pl-3 pr-2">
-                    <h2 className="min-w-0 truncate font-pixel text-[15px] text-paper">{entry.title}</h2>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
+                  {/* 장면 묶음 머리는 단어장 인덱스 탭처럼, 굵은 줄 위에 제목 탭을 올린다 */}
+                  <div className="flex items-end justify-between gap-2 border-b-2 border-paper">
+                    <h2 className="min-w-0 truncate bg-paper px-3 py-2 font-pixel text-[15px] text-night">{entry.title}</h2>
+                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-10 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
                       다시 하기
                       <Arrow />
                     </EntryLink>

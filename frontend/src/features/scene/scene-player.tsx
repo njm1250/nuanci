@@ -33,8 +33,15 @@ import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 preloadStage();
 
 // 선택지 번호. 평소에는 테두리만 두고, 지금 고른 줄에만 먹색을 칠해 화면에서 먹색이 한 곳에만 남게 한다
-function Num({ n, dark = false }: { n: number; dark?: boolean }) {
-  return <span className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] ${dark ? "bg-ink text-paper" : "border-2 border-ink/20 text-ink-muted"}`}>{n}</span>;
+// 고르기 전 보기에서는 손을 올리면 번호 칸이 먹색으로 뒤집히며 살짝 기운다
+function Num({ n, dark = false, hover = false }: { n: number; dark?: boolean; hover?: boolean }) {
+  return (
+    <span
+      className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] transition-transform duration-150 ${dark ? "bg-ink text-paper" : "border-2 border-ink/20 text-ink-muted"} ${hover ? "group-hover:-rotate-6 group-hover:border-ink group-hover:bg-ink group-hover:text-[#f6f4ee]" : ""}`}
+    >
+      {n}
+    </span>
+  );
 }
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
@@ -96,10 +103,11 @@ function SoundToggle() {
 function Question({ name, line, intent, className = "" }: { name: string; line: string; intent: string; className?: string }) {
   return (
     <div className={`grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2 ${className}`}>
+      {/* 상대 대사는 대본처럼 굵은 세로줄로, 내 속마음은 점선 칸으로 둬서 "들은 영어"와 "머릿속 한국어"가 바로 갈린다 */}
       <SpeakerTag>{name}</SpeakerTag>
-      <p className="font-line text-[20px] leading-snug text-paper md:text-[24px]">{line}</p>
+      <p className="border-l-[3px] border-paper pl-3 font-line text-[20px] leading-snug text-paper md:text-[24px]">{line}</p>
       <SpeakerTag me>나</SpeakerTag>
-      <p className="text-[16px] font-semibold leading-snug text-paper">{intent}</p>
+      <p className="justify-self-start border border-dashed border-paper-subtle px-2.5 py-1.5 text-[16px] font-semibold leading-snug text-paper">{intent}</p>
     </div>
   );
 }
@@ -280,7 +288,7 @@ function WrapUp({
               <li key={p.right}>
                 <p className="font-line text-[20px] leading-snug">{p.right}</p>
                 <p className="text-[14px] text-ink-subtle">
-                  {spoken(p.intent)} · <s>{p.wrong}</s>
+                  {spoken(p.intent)} · <s className="decoration-rust decoration-2">{p.wrong}</s>
                 </p>
               </li>
             ))}
@@ -691,7 +699,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                 <p className="font-pixel text-[15px] text-rust">만약에…</p>
                 <p className="mt-1.5 text-[20px] font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
                 <p className="mt-3 text-[14px] text-ink-subtle">
-                  <s>{scene.followUp.from}</s> → <span className="text-ink">{scene.followUp.to}</span>
+                  <s className="decoration-rust decoration-2">{scene.followUp.from}</s> → <span className="text-ink">{scene.followUp.to}</span>
                 </p>
               </div>
             </Panel>
@@ -729,8 +737,8 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
-                    <BlockButton onClick={() => play(c)} className="blk-strong w-full text-left" faceClassName="flex items-center gap-3">
-                      <Num n={i + 1} />
+                    <BlockButton onClick={() => play(c)} className="group w-full text-left" faceClassName="flex items-center gap-3">
+                      <Num n={i + 1} hover />
                       <span className="min-w-0 flex-1">
                         <span className="block font-line text-[20px] leading-snug">{c.line}</span>
                         {showMeaning && <span className="mt-0.5 block text-[14px] text-ink-subtle">{c.meaning}</span>}
