@@ -1,7 +1,7 @@
 """실제로 쓰는 글자만 담아 글꼴 파일을 만든다. 페이지마다 조각을 여러 개 받는 대신, 작은 파일 하나로 모든 화면을 처리한다.
 
 - 본문(Pretendard), 제목(Black Han Sans): 코드의 한글과 운영 장면의 한글 전부
-- 낙서(Nanum Pen Script): 정해진 문구 / 로고(Galmuri14): 로고 글자 / 영어 대사(Pangolin): 대사에 쓰는 글자
+- 낙서(Nanum Pen Script): 정해진 문구 / 영어 대사(Pangolin): 대사에 쓰는 글자. 로고는 글꼴이 아니라 site/logo.ts의 도트 그림이다
 
 빠진 글자는 layout의 Pretendard 조각 CSS가 대신 보여 주므로 깨지지 않는다. 장면을 많이 올린 뒤 다시 실행하면 된다.
 @font-face는 src/app/fonts.ts의 next/font/local이 만든다.
@@ -72,14 +72,10 @@ def main():
         # 쓰는 굵기(400~800)만 남겨 가변 글꼴을 줄인다
         text = instancer.instantiateVariableFont(TTFont(FRONT / "node_modules/pretendard/dist/public/variable/PretendardVariable.ttf"), {"wght": (400, 800)})
         text.save(tmp / "text.ttf")
-        logo = TTFont(FRONT / "node_modules/galmuri/dist/Galmuri14.woff2")
-        logo.flavor = None
-        logo.save(tmp / "logo.ttf")
 
         save(tmp / "text.ttf", everything, "text.woff2")
         save(tmp / "black-han.ttf", everything, "poster.woff2")
         save(tmp / "nanum-pen.ttf", set(SCRAWL), "scrawl.woff2")
-        save(tmp / "logo.ttf", set("nuanci검수"), "logo.woff2")
     save(FRONT / "node_modules/@fontsource/pangolin/files/pangolin-latin-400-normal.woff2", ascii_chars | set(LINE_EXTRA), "pangolin-line.woff2")
 
 

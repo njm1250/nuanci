@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { CSSProperties, ReactNode } from "react";
 import { ImageResponse } from "next/og";
 import { MOCHI_SIZE, mochiSvg } from "@/features/mascot/mochi";
-import { LOGO_SIZE, logoDataUrl } from "@/features/site/logo";
+import { LOGO_SIZE, logoDataUrl, WORDMARK_SIZE, wordmarkDataUrl } from "@/features/site/logo";
 
 export const CARD_SIZE = { width: 1200, height: 630 };
 
@@ -20,6 +20,7 @@ export const BAD = "#ff6b6b";
 const CELL = 6;
 
 const logo = logoDataUrl();
+const wordmark = wordmarkDataUrl(INK);
 const mochi = `data:image/svg+xml;base64,${Buffer.from(mochiSvg()).toString("base64")}`;
 
 // 한글은 픽셀 글꼴 굵게 하나만, 영어 대사는 화면처럼 손글씨로 쓴다
@@ -84,7 +85,8 @@ export function Lockup() {
     <div style={{ display: "flex", alignItems: "center" }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={logo} width={LOGO_SIZE.w * 4} height={LOGO_SIZE.h * 4} alt="" style={{ marginTop: 4 }} />
-      <Marker style={{ marginLeft: 24, fontSize: 44 }}>nuanci</Marker>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={wordmark} width={WORDMARK_SIZE.w * 4} height={WORDMARK_SIZE.h * 4} alt="nuanci" style={{ marginLeft: 22, marginTop: 8 }} />
     </div>
   );
 }

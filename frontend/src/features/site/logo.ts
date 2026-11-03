@@ -44,3 +44,43 @@ export function logoSvg() {
 export function logoDataUrl() {
   return `data:image/svg+xml;base64,${Buffer.from(logoSvg()).toString("base64")}`;
 }
+
+// 글자 로고 "nuanci". 마크와 같은 도트 격자에 직접 그려서 획 두께가 마크 외곽선과 맞는다. 글꼴 파일 없이 SVG로 그린다
+// x-높이 7칸, 획 2칸, 글자 사이 1칸. i의 점은 위로 2칸 띄워 올린다
+const GLYPHS: Record<string, string[]> = {
+  n: ["xxxxx.", "xxxxxx", "xx..xx", "xx..xx", "xx..xx", "xx..xx", "xx..xx"],
+  u: ["xx..xx", "xx..xx", "xx..xx", "xx..xx", "xx..xx", "xxxxxx", ".xxxxx"],
+  a: [".xxxx.", "....xx", ".xxxxx", "xx..xx", "xx..xx", "xxxxxx", ".xxxxx"],
+  c: [".xxxxx", "xxxxxx", "xx....", "xx....", "xx....", "xxxxxx", ".xxxxx"],
+  i: ["xx", "xx", "xx", "xx", "xx", "xx", "xx"],
+};
+const DOT = 2;
+const TOP = DOT + 1;
+const WORD = (() => {
+  let x = 0;
+  let d = "";
+  for (const ch of "nuanci") {
+    const g = GLYPHS[ch];
+    g.forEach((row, y) => {
+      for (let c = 0; c < row.length; ) {
+        let n = 0;
+        while (row[c + n] === "x") n++;
+        if (n) d += `M${x + c} ${TOP + y}h${n}v1h-${n}z`;
+        c += n || 1;
+      }
+    });
+    if (ch === "i") d += `M${x} 0h2v${DOT}h-2z`;
+    x += g[0].length + 1;
+  }
+  return { d, w: x - 1, h: TOP + GLYPHS.n.length };
+})();
+
+export const WORDMARK_SIZE = { w: WORD.w, h: WORD.h };
+
+export function wordmarkSvg(color = PALETTE.o) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WORD.w} ${WORD.h}" shape-rendering="crispEdges"><path fill="${color}" d="${WORD.d}"/></svg>`;
+}
+
+export function wordmarkDataUrl(color?: string) {
+  return `data:image/svg+xml;base64,${Buffer.from(wordmarkSvg(color)).toString("base64")}`;
+}
