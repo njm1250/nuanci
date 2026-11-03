@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "영어 상황별 대화 게임 전�
 export default async function ScenesPage() {
   const shelf = (await getCatalog()).map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
   return (
-    <PageShell title="전체 장면" note="룸메부터 팀장님까지" back={false}>
+    <PageShell title="전체 장면" note="룸메부터 팀장님까지" backFallback="/">
       <SceneGrid scenes={shelf} />
     </PageShell>
   );
