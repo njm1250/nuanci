@@ -65,7 +65,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
       <h1 className="poster-rise mt-2 font-poster text-[36px] leading-[1.15] md:text-[60px]">
         영어로 말할 때 나는
         <br />
-        <span className="hl">어떤 사고</span>를 칠까?
+        어떤 사고를 칠까?
       </h1>
       <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">상대가 한 말에 바로 대답해 보세요. 고른 답에 숨은 함정으로 9가지 사고 유형 중 하나가 나와요.</p>
 
@@ -103,7 +103,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
 
       <div className="mt-auto pt-6">
         <BlockButton primary onClick={onStart} className="w-full" faceClassName="py-3.5 text-center">
-          {friend ? "나도 테스트하기" : "테스트 시작"}
+          {friend ? "나도 풀어 보기" : "1번 문제 풀기"}
         </BlockButton>
         <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[14px] text-paper-muted">
           <input type="checkbox" checked={relaxed} onChange={(e) => onRelaxed(e.target.checked)} className="size-4 accent-current" />

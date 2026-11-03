@@ -29,7 +29,7 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
       <SiteHeader
         left={
-          // 테스트 입구는 머리줄에 작게 둔다. 첫 화면에서 '첫 장면 시작하기'와 시선을 나눠 갖지 않게 한다
+          // 테스트 입구는 머리줄에 작게 둔다. 첫 화면에서 첫 장면 버튼과 시선을 나눠 갖지 않게 한다
           <Link href="/test" className="flex h-11 items-center truncate font-pixel text-[15px] text-paper-muted hover:text-paper">
             유형 테스트
           </Link>
@@ -69,7 +69,7 @@ export default async function Home() {
             <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-[60px] leading-none text-paper [--lean:-4deg] min-[960px]:block">
               골라 보면 알아요
             </p>
-            <p className="text-[16px] leading-relaxed text-paper-muted">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
+            <p className="text-[16px] leading-relaxed text-paper-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
           </div>
 
           <div className="order-4 sticky bottom-0 z-10 max-w-none border-t border-paper/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 min-[960px]:static min-[960px]:col-start-2 min-[960px]:row-start-2 min-[960px]:max-w-[440px] min-[960px]:self-start min-[960px]:border-0 min-[960px]:px-0 min-[960px]:pb-0 min-[960px]:pt-6">
