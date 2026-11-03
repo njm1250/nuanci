@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "영어 상황별 대화 게임 전�
 export default async function ScenesPage() {
   const summaries = await getScenes();
   const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
-  const shelf = scenes.map(({ id, number, title, relation, place, base }) => ({ id, number, title, relation, place, stage: base.stage }));
+  const shelf = scenes.map(({ id, number, title, relation, place, base, category }) => ({ id, number, title, relation, place, stage: base.stage, category }));
   return (
     <PageShell title="전체 장면" note="어디서부터 해 볼까요" back={false}>
       <SceneGrid scenes={shelf} />

@@ -128,7 +128,7 @@ export function RewardCard({
   // 완료 화면에서는 그 장면의 발견이 중심이라 차분한 색과 작은 크기로 덧붙인다. 아지트에서는 크게 보여준다
   const tone = compact
     ? { card: "bg-slate-block text-paper", muted: "text-paper-subtle", ring: "border-paper", box: "size-12", icon: 34, name: "text-[16px]" }
-    : { card: "bg-gold text-ink", muted: "text-ink-muted", ring: "border-ink", box: "size-16", icon: 44, name: "text-[20px]" };
+    : { card: "bg-card text-ink", muted: "text-ink-muted", ring: "border-ink", box: "size-16", icon: 44, name: "text-[20px]" };
 
   if (isUnopened(item)) {
     return (
@@ -145,7 +145,7 @@ export function RewardCard({
             <p className="font-pixel text-[15px]">깜짝 상자</p>
             <p className={`mt-0.5 text-[14px] ${tone.muted}`}>아지트에 둘 물건 하나</p>
           </div>
-          <button type="button" onClick={open} disabled={shaking} className="blk min-h-11 shrink-0 bg-ink px-4 font-pixel text-[15px] text-gold">
+          <button type="button" onClick={open} disabled={shaking} className="blk min-h-11 shrink-0 bg-cta px-4 font-pixel text-[15px] text-cta-text">
             열기
           </button>
         </div>

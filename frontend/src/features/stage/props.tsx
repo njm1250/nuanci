@@ -87,6 +87,53 @@ export function HeldProp({ id }: { id: PropId }) {
           <Box size={[0.04, 0.21, 0.21]} at={[0, -0.72, 0.1]} color={C.mustard} />
         </>
       );
+    case "bill":
+      return (
+        <>
+          <Box size={[0.42, 0.86, 0.015]} at={[0, -0.98, 0.08]} color={C.paper} />
+          <Box size={[0.34, 0.06, 0.005]} at={[0, -0.66, 0.09]} color={C.ink} />
+          {[-0.8, -0.88, -0.96, -1.04].map((y) => (
+            <Box key={y} size={[0.34, 0.025, 0.005]} at={[0, y, 0.09]} color="#9a9a98" />
+          ))}
+          <Box size={[0.34, 0.12, 0.005]} at={[0, -1.26, 0.09]} color={C.rust} />
+        </>
+      );
+    case "cheque":
+      return (
+        <>
+          <Box size={[1.25, 0.6, 0.02]} at={[0, -0.82, 0.08]} color="#f6f1dc" />
+          <Box size={[1.15, 0.07, 0.005]} at={[0, -0.6, 0.095]} color={C.teal} />
+          <Box size={[0.66, 0.15, 0.005]} at={[-0.2, -0.82, 0.095]} color="#e8b931" />
+          <Box size={[0.3, 0.035, 0.005]} at={[0.36, -1.0, 0.095]} color={C.ink} />
+        </>
+      );
+    case "clipboard":
+      return (
+        <>
+          <Box size={[0.38, 0.52, 0.025]} at={[0, -0.8, 0.08]} color={C.woodDark} />
+          <Box size={[0.32, 0.42, 0.005]} at={[0, -0.82, 0.096]} color={C.paper} />
+          <Box size={[0.14, 0.05, 0.015]} at={[0, -0.57, 0.1]} color={C.metal} />
+        </>
+      );
+    case "pillow":
+      return (
+        <>
+          <Box size={[0.62, 0.36, 0.18]} at={[0, -0.8, 0.1]} color="#f4f1e6" />
+          <Box size={[0.5, 0.05, 0.19]} at={[0, -0.7, 0.1]} color="#cfd8ee" />
+        </>
+      );
+    case "alarm":
+      return (
+        <>
+          <Cyl r={0.16} h={0.08} at={[0, -0.78, 0.1]} color={C.rust} rot={[Math.PI / 2, 0, 0]} sides={10} />
+          <Cyl r={0.12} h={0.01} at={[0, -0.78, 0.145]} color={C.paper} rot={[Math.PI / 2, 0, 0]} sides={10} />
+          <Box size={[0.02, 0.09, 0.01]} at={[0, -0.74, 0.155]} color={C.ink} />
+          <Box size={[0.07, 0.02, 0.01]} at={[0.03, -0.78, 0.155]} color={C.ink} />
+          {[-0.09, 0.09].map((x) => (
+            <Gem key={x} r={0.05} at={[x, -0.6, 0.1]} color={C.mustard} />
+          ))}
+        </>
+      );
     case "trophy":
       return (
         <>

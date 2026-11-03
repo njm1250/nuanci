@@ -79,11 +79,8 @@ export function nextUncleared<T extends { id: string }>(order: T[], cleared: str
   return rest.find((s) => s.id !== after && !cleared.includes(s.id)) ?? null;
 }
 
-// 장면을 끝낸 뒤 갈 곳. 안 해 본 장면이 있으면 그쪽으로, 모두 해 봤다면(다시 하기 중) 순서대로 다음 장면으로 간다.
-// 마지막 장면까지 다시 해 봤으면 null
-export function nextScene<T extends { id: string }>(order: T[], cleared: string[], current: string) {
-  const uncleared = nextUncleared(order, cleared, current);
-  if (uncleared) return uncleared;
+// 장면을 끝낸 뒤 갈 곳. 전체 장면 목록의 바로 다음 장면이다. 연속 장면이 끊기지 않게 이미 해 본 장면도 건너뛰지 않는다. 마지막 장면이면 null
+export function nextScene<T extends { id: string }>(order: T[], current: string) {
   const i = order.findIndex((s) => s.id === current);
   return i >= 0 && i < order.length - 1 ? order[i + 1] : null;
 }

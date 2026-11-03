@@ -95,7 +95,7 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
       </div>
       <div aria-hidden className="flex h-9 items-stretch gap-[2px] px-4 py-2">
         {BARCODE.map((w, i) => (
-          <span key={i} className="bg-ink" style={{ width: w * 2 }} />
+          <span key={i} className="bg-current" style={{ width: w * 2 }} />
         ))}
         <span className="ml-auto self-end font-pixel text-[15px] leading-none text-ink-subtle">{me?.email ? "" : "GUEST"}</span>
       </div>
