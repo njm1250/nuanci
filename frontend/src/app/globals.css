@@ -49,12 +49,12 @@
   --color-slate-block: #34323b;
   /* 블록 테두리의 기본색. 먹색은 지금 봐야 할 곳(.blk-strong)에만 쓴다 */
   --color-line: #5c5a65;
-  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-sans: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* 픽셀 글꼴은 흔한 글자(core)를 먼저 쓰고, 없는 글자만 Rest 파일에서 받는다. 변수는 app/fonts.ts의 next/font가 html에 붙인다 */
   /* 버튼·라벨 글꼴. 픽셀 글꼴은 로고와 무대 말풍선에만 남긴다 */
-  --font-pixel: "Pretendard Variable", Pretendard, system-ui, sans-serif;
-  --font-pixel-title: "Pretendard Variable", Pretendard, system-ui, sans-serif;
-  --font-logo: var(--font-galmuri14), var(--font-galmuri14-rest), monospace;
+  --font-pixel: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-pixel-title: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-logo: var(--font-logo-file), monospace;
   /* 영어 대사 전용 손글씨 글꼴. 한글이 없어서 한글은 Pretendard로 넘어간다 */
   --font-line: var(--font-pangolin), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* 페이지 제목과 결과 같은 순간에만 쓴다. 읽어야 하는 내용에는 쓰지 않는다 */
@@ -466,6 +466,11 @@ body {
   }
 }
 /* 지나간 대사는 내려놓고 지금 말하는 줄만 진하게 둔다 */
+/* 긴 목록은 화면 밖 행의 그리기를 미룬다 */
+.list-row-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 86px;
+}
 .beat-past {
   opacity: 0.55;
 }

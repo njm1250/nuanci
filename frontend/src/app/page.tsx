@@ -4,11 +4,9 @@ import { SiteHeader } from "@/features/site/site-header";
 import { StreakChip } from "@/features/streak/streak-chip";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/features/site/metadata";
 import { Panel } from "@/features/scene/block-ui";
-import { getScene, getScenes } from "@/features/scene/api";
-import type { Scene } from "@/features/scene/types";
+import { getCatalog, getReel } from "@/features/scene/api";
 import { AttractReel } from "@/features/landing/attract-reel";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
-import { reelBeats } from "@/features/landing/reel";
 import { SiteFooter } from "@/features/landing/site-footer";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
@@ -24,10 +22,8 @@ const website = {
 };
 
 export default async function Home() {
-  const summaries = await getScenes();
-  const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
-  const beats = reelBeats(scenes);
-  const shelf = scenes.map(({ id, number, title, relation, place, base }) => ({ id, number, title, relation, place, stage: base.stage }));
+  const [catalog, beats] = await Promise.all([getCatalog(), getReel()]);
+  const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
