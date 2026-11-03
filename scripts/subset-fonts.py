@@ -26,7 +26,7 @@ GOOGLE = "https://github.com/google/fonts/raw/main/ofl"
 SYMBOLS = "…·→←「」『』“”‘’—–×~%°"
 LINE_EXTRA = "…‘’“”—–·é"
 # 낙서 글꼴은 정해진 몇 문구에만 쓴다. 문구를 추가하면 여기에도 넣는다
-SCRAWL = "골라 보면 알아요 어디서부터 해 볼까요 이럴 땐 이렇게"
+SCRAWL = "골라 보면 알아요 룸메부터 팀장님까지 이럴 땐 이렇게"
 
 
 def hangul(text):
