@@ -41,7 +41,10 @@ class ContentApiTest {
 	@Autowired lateinit var emf: EntityManagerFactory
 
 	@BeforeEach
-	fun seed() = store.loadFixtures(mapper)
+	fun seed() {
+		catalog.forget()
+		store.loadFixtures(mapper)
+	}
 
 	private fun json(url: String): JsonNode = mapper.readTree(mvc.get(url).andReturn().response.contentAsString)
 
@@ -101,6 +104,21 @@ class ContentApiTest {
 		val leaked = jdbc.sql("select count(*) from published_content where content like '%never-published%'").query(Int::class.java).single()
 		assertEquals(0, leaked)
 		assertTrue(hashes(current()).keys.none { it == "never-published" })
+	}
+
+	@Test
+	fun `화면별 데이터는 장면 본문 없이 표현 한 쌍씩만 담고, 결과가 그대로면 주소도 그대로다`() {
+		val manifest = json("/api/content/manifests/${current()}")
+		val book = json("/api/content/views/${manifest.path("views").path("book").asString()}")
+		val pudding = book.first { it.path("id").asString() == "pudding" }
+		val pair = pudding.path("pairs")[0]
+		assertEquals("good", json("/api/content/objects/${hashes(current()).getValue("pudding")}").path("base").path("choices").first { it.path("line").asString() == pair.path("right").asString() }.path("verdict").asString())
+		assertTrue(pudding.path("pairs")[0].path("wrong").asString().isNotBlank())
+		// 표현 모음에 나오지 않는 내용(다른 장면의 엔딩 등)만 바꾸면 표현 모음 주소는 그대로다
+		val before = manifest.path("views").path("book").asString()
+		val scene = mapper.readTree(Files.readString(CONTENT_DIR.resolve("pudding.json"))) as ObjectNode
+		store.save(scene.put("discovery", "${scene.path("discovery").asString()} 바뀜."))
+		assertEquals(before, json("/api/content/manifests/${current()}").path("views").path("book").asString())
 	}
 
 	@Test

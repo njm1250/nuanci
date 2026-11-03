@@ -20,7 +20,7 @@ data class CatalogEntry(
 )
 
 // 공개 장면 묶음 하나. 목차(manifest)와 장면 본문(objects)을 모두 내용 해시로 부른다
-class Catalog(val hash: String, val manifest: String, val objects: Map<String, String>)
+class Catalog(val hash: String, val manifest: String, val objects: Map<String, String>, val views: Map<String, String>)
 
 // 공개 장면을 해시 주소로 내보낸다. 내용이 같으면 주소도 같아서, 받는 쪽은 받은 목차와 장면을 무효화 없이 캐시해도 된다.
 // 무엇이 지금 목차인지는 current 하나만 짧게 묻는다. 목차는 공개 장면의 (id, 버전, 번호) 목록이 바뀔 때만 다시 만든다.
@@ -42,16 +42,23 @@ class SceneCatalog(
 		return build(published).also { cached.set(fingerprint to it) }
 	}
 
+	// 메모리의 목차를 버린다. 운영에서는 버전 번호가 계속 올라가 지문이 겹치지 않지만, 테스트는 트랜잭션을 되돌려 같은 지문이 다시 나온다
+	fun forget() = cached.set(null)
+
 	fun manifest(hash: String): String? = current().takeIf { it.hash == hash }?.manifest ?: stored(hash, "manifest")
 
 	fun scene(hash: String): String? = current().objects[hash] ?: stored(hash, "scene")
+
+	fun view(hash: String): String? = current().views[hash] ?: stored(hash, "view")
 
 	private fun stored(hash: String, kind: String): String? =
 		jdbc.sql("select content from published_content where hash = :hash and kind = :kind").param("hash", hash).param("kind", kind).query(String::class.java).optional().orElse(null)
 
 	// 새로 생긴 주소만 한 번의 쿼리로 남긴다. 이미 있는 주소는 내용이 같으므로 건너뛴다
 	private fun keep(catalog: Catalog) {
-		val rows = catalog.objects.map { (hash, json) -> Triple(hash, "scene", json) } + Triple(catalog.hash, "manifest", catalog.manifest)
+		val rows = catalog.objects.map { (hash, json) -> Triple(hash, "scene", json) } +
+			catalog.views.map { (hash, json) -> Triple(hash, "view", json) } +
+			Triple(catalog.hash, "manifest", catalog.manifest)
 		jdbc.sql(
 			"""
 			insert into published_content (hash, kind, content)
@@ -64,8 +71,8 @@ class SceneCatalog(
 	private fun build(published: List<Scene>): Catalog {
 		val byId = versions.findCurrentByStatus(SceneStatus.PUBLISHED).associateBy { it.sceneId }
 		val objects = linkedMapOf<String, String>()
-		val entries = published.map { scene ->
-			val content = store.read(byId.getValue(scene.id))
+		val contents = published.map { store.read(byId.getValue(it.id)) }
+		val entries = published.zip(contents) { scene, content ->
 			// 저장할 때의 해시가 아니라 내보내는 그대로의 해시를 쓴다. 읽을 때 형식을 바꿔 주는 코드가 달라져도 주소와 내용이 어긋나지 않는다
 			val json = mapper.writeValueAsString(content)
 			val hash = sha256(json)
@@ -82,8 +89,11 @@ class SceneCatalog(
 				hash = hash,
 			)
 		}
-		val manifest = mapper.writeValueAsString(mapOf("scenes" to entries))
-		return Catalog(sha256(manifest), manifest, objects).also(::keep)
+		// 화면별 데이터도 내용 해시로 부른다. 장면 하나를 고쳐도 그 화면의 결과가 그대로면 주소도 그대로다
+		val views = mapOf("book" to SceneViews.book(mapper, contents), "reel" to SceneViews.reel(mapper, contents)).mapValues { mapper.writeValueAsString(it.value) }
+		val viewHashes = views.mapValues { sha256(it.value) }
+		val manifest = mapper.writeValueAsString(mapOf("scenes" to entries, "views" to viewHashes))
+		return Catalog(sha256(manifest), manifest, objects, views.entries.associate { (name, json) -> viewHashes.getValue(name) to json }).also(::keep)
 	}
 
 	private fun sha256(text: String): String =

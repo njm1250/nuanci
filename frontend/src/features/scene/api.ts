@@ -1,4 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
+import type { BookEntry } from "@/features/collection/pairs";
+import type { ReelBeat } from "@/features/landing/reel";
 import type { StageSpec } from "@/features/stage/types";
 import type { Scene, SceneSummary } from "./types";
 
@@ -21,12 +23,24 @@ async function currentManifest(): Promise<string> {
 }
 
 // 목차와 장면 본문은 내용 해시로 부르므로 한 번 받으면 바뀌지 않는다. 그래서 무효화 없이 계속 캐시한다
-async function manifest(hash: string): Promise<CatalogEntry[]> {
+// 화면별로 미리 만든 데이터의 이름. 백엔드 SceneViews와 같다
+type ViewName = "book" | "reel";
+type Manifest = { scenes: CatalogEntry[]; views: Record<ViewName, string> };
+
+async function manifest(hash: string): Promise<Manifest> {
   "use cache";
   cacheLife("max");
   const res = await fetch(`${BACKEND}/api/content/manifests/${hash}`);
   if (!res.ok) throw new Error(`장면 목차를 불러오지 못했어요 (${res.status})`);
-  return (await res.json()).scenes;
+  return res.json();
+}
+
+async function view(hash: string): Promise<unknown> {
+  "use cache";
+  cacheLife("max");
+  const res = await fetch(`${BACKEND}/api/content/views/${hash}`);
+  if (!res.ok) throw new Error(`화면 데이터를 불러오지 못했어요 (${res.status})`);
+  return res.json();
 }
 
 async function sceneObject(hash: string): Promise<Scene> {
@@ -38,7 +52,17 @@ async function sceneObject(hash: string): Promise<Scene> {
 }
 
 export async function getCatalog(): Promise<CatalogEntry[]> {
-  return manifest(await currentManifest());
+  return (await manifest(await currentManifest())).scenes;
+}
+
+// 표현 모음과 아지트가 쓰는 장면별 표현 한 쌍. 장면 본문 전체를 받지 않고 발행할 때 만든 결과를 받는다
+export async function getBook(): Promise<BookEntry[]> {
+  return (await view((await manifest(await currentManifest())).views.book)) as BookEntry[];
+}
+
+// 첫 방문자에게 보여 줄 홈 데모
+export async function getReel(): Promise<ReelBeat[]> {
+  return (await view((await manifest(await currentManifest())).views.reel)) as ReelBeat[];
 }
 
 export async function getScenes(): Promise<SceneSummary[]> {

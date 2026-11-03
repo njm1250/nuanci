@@ -33,6 +33,10 @@ class ContentController(private val catalog: SceneCatalog) {
 	fun scene(@PathVariable hash: String): ResponseEntity<String> =
 		catalog.scene(hash)?.let(::immutable) ?: ResponseEntity.notFound().build()
 
+	@GetMapping("/views/{hash}")
+	fun view(@PathVariable hash: String): ResponseEntity<String> =
+		catalog.view(hash)?.let(::immutable) ?: ResponseEntity.notFound().build()
+
 	private fun immutable(json: String) =
 		ResponseEntity.ok().cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable()).contentType(MediaType.APPLICATION_JSON).body(json)
 }
