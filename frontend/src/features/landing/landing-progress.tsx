@@ -43,6 +43,7 @@ export type ShelfScene = {
   relation: string;
   place: string;
   stage?: StageSpec;
+  category?: "meme";
 };
 
 const noop = () => () => {};
@@ -617,7 +618,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   const groups = [...SCENE_GROUPS.map((g) => g.label), OTHER_GROUP]
     .map((label) => ({
       label,
-      scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set) === label),
+      scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set, s.category) === label),
     }))
     .filter((g) => g.scenes.length > 0);
   const shown = only ? groups.filter((g) => g.label === only) : groups;

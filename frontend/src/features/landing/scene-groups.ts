@@ -7,7 +7,9 @@ type SceneGroup = { label: string; words: string[]; sets: SetId[] };
 
 // 전체 장면을 누구와, 어디서 말하는지로 묶는다. 같은 말도 상대와 자리에 따라 뉘앙스가 달라져서 이 기준으로 고르는 게 쉽다.
 // 화면에는 이 순서대로 보인다
+export const MEME_GROUP = "밈 스토리";
 export const SCENE_GROUPS: SceneGroup[] = [
+  { label: MEME_GROUP, words: [], sets: [] },
   { label: "친구랑", words: ["친구", "동기"], sets: [] },
   // '형'은 '계획형'처럼 다른 낱말에도 들어 있어서 넣지 않는다
   { label: "같이 사는 사이", words: ["룸메이트", "가족", "엄마", "아빠", "동생", "언니", "누나", "오빠"], sets: [] },
@@ -27,7 +29,8 @@ const MATCH_ORDER = ["학교·학원에서", "여행·이동 중", "병원·약�
 );
 
 // 관계 글의 낱말로 먼저 찾고, 맞는 게 없으면 무대 세트로 정한다
-export function groupOf(relation: string, set?: SetId) {
+export function groupOf(relation: string, set?: SetId, category?: "meme") {
+  if (category === "meme") return MEME_GROUP;
   return (
     MATCH_ORDER.find((g) => g.words.some((w) => relation.includes(w)))?.label ??
     (set && MATCH_ORDER.find((g) => g.sets.includes(set))?.label) ??
