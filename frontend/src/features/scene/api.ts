@@ -10,9 +10,17 @@ export const BACKEND = process.env.BACKEND_URL ?? "http://localhost:8080";
 const CONTENT = process.env.CONTENT_URL;
 
 type ContentKind = "manifests" | "scenes" | "views";
-function contentUrl(kind: ContentKind | "current", hash = "") {
-  if (CONTENT) return kind === "current" ? `${CONTENT}/current.json` : `${CONTENT}/${kind}/${hash}.json`;
+function backendUrl(kind: ContentKind | "current", hash: string) {
   return kind === "current" ? `${BACKEND}/api/content/current` : `${BACKEND}/api/content/${kind === "scenes" ? "objects" : kind}/${hash}`;
+}
+
+// CDN에 아직 없으면(첫 발행 전, 발행이 늦을 때) 같은 내용을 주는 백엔드에서 읽는다. 주소가 해시라 어느 쪽에서 받아도 내용이 같다
+async function fetchContent(kind: ContentKind | "current", hash = ""): Promise<Response> {
+  if (CONTENT) {
+    const res = await fetch(kind === "current" ? `${CONTENT}/current.json` : `${CONTENT}/${kind}/${hash}.json`).catch(() => null);
+    if (res?.ok) return res;
+  }
+  return fetch(backendUrl(kind, hash));
 }
 
 // 관리자가 장면을 저장하거나 공개 상태를 바꾸면 이 태그로 캐시를 바로 비운다
@@ -26,7 +34,7 @@ async function currentManifest(): Promise<string> {
   "use cache";
   cacheLife({ stale: 60, revalidate: 30, expire: 60 * 60 * 24 * 30 });
   cacheTag(SCENES_TAG);
-  const res = await fetch(contentUrl("current"));
+  const res = await fetchContent("current");
   if (!res.ok) throw new Error(`장면 목차를 확인하지 못했어요 (${res.status})`);
   return (await res.json()).manifest;
 }
@@ -39,7 +47,7 @@ type Manifest = { scenes: CatalogEntry[]; views: Record<ViewName, string> };
 async function manifest(hash: string): Promise<Manifest> {
   "use cache";
   cacheLife("max");
-  const res = await fetch(contentUrl("manifests", hash));
+  const res = await fetchContent("manifests", hash);
   if (!res.ok) throw new Error(`장면 목차를 불러오지 못했어요 (${res.status})`);
   return res.json();
 }
@@ -47,7 +55,7 @@ async function manifest(hash: string): Promise<Manifest> {
 async function view(hash: string): Promise<unknown> {
   "use cache";
   cacheLife("max");
-  const res = await fetch(contentUrl("views", hash));
+  const res = await fetchContent("views", hash);
   if (!res.ok) throw new Error(`화면 데이터를 불러오지 못했어요 (${res.status})`);
   return res.json();
 }
@@ -55,7 +63,7 @@ async function view(hash: string): Promise<unknown> {
 async function sceneObject(hash: string): Promise<Scene> {
   "use cache";
   cacheLife("max");
-  const res = await fetch(contentUrl("scenes", hash));
+  const res = await fetchContent("scenes", hash);
   if (!res.ok) throw new Error(`장면을 불러오지 못했어요 (${res.status})`);
   return res.json();
 }
