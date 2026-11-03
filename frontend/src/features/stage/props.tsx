@@ -115,6 +115,25 @@ export function HeldProp({ id }: { id: PropId }) {
           <Box size={[0.14, 0.05, 0.015]} at={[0, -0.57, 0.1]} color={C.metal} />
         </>
       );
+    case "pillow":
+      return (
+        <>
+          <Box size={[0.62, 0.36, 0.18]} at={[0, -0.8, 0.1]} color="#f4f1e6" />
+          <Box size={[0.5, 0.05, 0.19]} at={[0, -0.7, 0.1]} color="#cfd8ee" />
+        </>
+      );
+    case "alarm":
+      return (
+        <>
+          <Cyl r={0.16} h={0.08} at={[0, -0.78, 0.1]} color={C.rust} rot={[Math.PI / 2, 0, 0]} sides={10} />
+          <Cyl r={0.12} h={0.01} at={[0, -0.78, 0.145]} color={C.paper} rot={[Math.PI / 2, 0, 0]} sides={10} />
+          <Box size={[0.02, 0.09, 0.01]} at={[0, -0.74, 0.155]} color={C.ink} />
+          <Box size={[0.07, 0.02, 0.01]} at={[0.03, -0.78, 0.155]} color={C.ink} />
+          {[-0.09, 0.09].map((x) => (
+            <Gem key={x} r={0.05} at={[x, -0.6, 0.1]} color={C.mustard} />
+          ))}
+        </>
+      );
     case "trophy":
       return (
         <>

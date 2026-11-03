@@ -25,7 +25,7 @@ import { ReactionFace } from "./reaction-face";
 import { primeAudio, sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { TRAP_LABELS, type Beat, type Choice, type Expression, type Scene, type Verdict } from "./types";
-import { markCleared, nextScene, useCleared } from "./progress";
+import { markCleared, nextScene } from "./progress";
 import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 
@@ -410,8 +410,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     }
     track({ ...e, sceneId: scene.id, sceneVersion: scene.version, attemptId });
   };
-  const cleared = useCleared();
-  const next = nextScene(order, cleared, scene.id);
+  const next = nextScene(order, scene.id);
   const teaser = useNextTeaser(next?.id, preview);
   const viewedSent = useRef(false);
   useEffect(() => {

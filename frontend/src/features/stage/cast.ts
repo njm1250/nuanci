@@ -13,6 +13,7 @@ export const CAST: Record<CastId, Look & { name: string }> = {
   kong: { name: "Kong", shirt: "#ffc24b", hair: "#e8d3b0", hairStyle: "none", animal: { kind: "dog", fur: "#e8d3b0", inner: "#a8743f" } },
   max: { name: "Max", shirt: "#2f3440", hair: "#d9b04a", hairStyle: "short", muscle: true },
   mc: { name: "MC", shirt: "#3a2f6b", hair: "#1f1a18", hairStyle: "short", tie: "#e8b931" },
+  snoozy: { name: "Snoozy", shirt: "#8fa3d6", hair: "#2f3a6b", hairStyle: "cap", tie: "#f2d34a" },
   mom: { name: "Mom", shirt: "#b07fb5", hair: "#6b5a4f", hairStyle: "bun", apron: "#f2c6c6" },
   bori: { name: "Bori", shirt: "#5fb7a0", hair: "#7a4a2a", hairStyle: "none", animal: { kind: "bear", fur: "#7a4a2a", inner: "#f0d2ad" } },
 };

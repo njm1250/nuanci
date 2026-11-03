@@ -1,7 +1,7 @@
-export type SetId = "dining" | "office" | "cafe" | "living" | "street" | "park" | "elevator" | "store" | "karaoke" | "gym" | "freezer" | "room" | "plane" | "subway" | "classroom" | "clinic" | "pharmacy" | "bunsik" | "salon" | "boutique";
-export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag" | "mic" | "flowers" | "umbrella" | "coffee" | "cake" | "fish" | "gift" | "trophy" | "bill" | "cheque" | "clipboard";
+export type SetId = "dining" | "office" | "cafe" | "living" | "street" | "park" | "elevator" | "store" | "karaoke" | "gym" | "freezer" | "sleephall" | "room" | "plane" | "subway" | "classroom" | "clinic" | "pharmacy" | "bunsik" | "salon" | "boutique";
+export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag" | "mic" | "flowers" | "umbrella" | "coffee" | "cake" | "fish" | "gift" | "trophy" | "bill" | "cheque" | "clipboard" | "pillow" | "alarm";
 export type Time = "day" | "evening";
-export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong" | "max" | "mc" | "mom";
+export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong" | "max" | "mc" | "mom" | "snoozy";
 
 // 주인공. 사용자가 아지트에서 고른 모습으로 모든 장면에 나온다
 export type Hero = "boy" | "girl";

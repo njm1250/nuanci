@@ -358,6 +358,44 @@ export const SETS: Record<SetId, SetDef> = {
     decor: [{ id: "fan", x: 1.45 }],
   },
 
+  sleephall: {
+    label: "수면 대회장",
+    wall: SET_WALLS.sleephall,
+    floor: "#2c3460",
+    me: { x: -0.75, facing: R, posture: "stand" },
+    partner: { x: 0.75, facing: -R, posture: "stand" },
+    // siren은 빨간 경광등과 대형 스피커가 켜진 방해 작전 중인 모습이다
+    Scenery: ({ flags }) => (
+      <>
+        <Box size={[30, 0.02, 2.4]} at={[0, 0.01, 0]} color="#39437a" />
+        <Flat size={[3.1, 0.5]} at={[0, 2.95, WALL_Z + 0.02]} color="#191f45" />
+        <PixelText text="$1000000" at={[0, 2.95, WALL_Z + 0.03]} px={0.05} color="#e8b931" />
+        <Gem r={0.32} at={[-2.3, 2.45, WALL_Z + 0.1]} color="#f5e9b0" />
+        <Gem r={0.25} at={[-2.14, 2.54, WALL_Z + 0.25]} color={flags.has("siren") ? "#2a3058" : "#3f4a7a"} />
+        {[[-1.3, 2.3], [-0.5, 2.0], [0.7, 2.35], [1.5, 2.05], [2.5, 2.45]].map(([x, y]) => (
+          <Flat key={x} size={[0.05, 0.05]} at={[x, y, WALL_Z + 0.02]} color="#f6f4ee" />
+        ))}
+        {[-2.35, 2.35].map((x) => (
+          <group key={x}>
+            <Box size={[1.35, 0.3, 0.72]} at={[x, 0.2, -0.65]} color={C.woodDark} />
+            <Box size={[1.25, 0.14, 0.68]} at={[x, 0.4, -0.65]} color="#e9e6f5" />
+            <Box size={[0.3, 0.1, 0.4]} at={[x + 0.42, 0.52, -0.65]} color="#f7f5ec" />
+            <Box size={[0.8, 0.17, 0.7]} at={[x - 0.2, 0.43, -0.64]} color="#7f8fd0" />
+          </group>
+        ))}
+        {flags.has("siren") && (
+          <>
+            <Box size={[0.3, 0.2, 0.2]} at={[-1.05, 2.45, WALL_Z + 0.1]} color="#e03131" />
+            <Box size={[0.3, 0.2, 0.2]} at={[1.05, 2.45, WALL_Z + 0.1]} color="#e03131" />
+            <Box size={[0.5, 0.82, 0.32]} at={[0.05, 0.42, -0.85]} color={C.ink} />
+            <Cyl r={0.18} h={0.03} at={[0.05, 0.56, -0.68]} color="#6b6b70" rot={[Math.PI / 2, 0, 0]} sides={10} />
+            <Cyl r={0.11} h={0.03} at={[0.05, 0.2, -0.68]} color="#6b6b70" rot={[Math.PI / 2, 0, 0]} sides={10} />
+          </>
+        )}
+      </>
+    ),
+  },
+
   freezer: {
     label: "냉동 대회장",
     wall: SET_WALLS.freezer,

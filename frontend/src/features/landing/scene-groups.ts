@@ -7,7 +7,7 @@ type SceneGroup = { label: string; words: string[]; sets: SetId[] };
 
 // 전체 장면을 누구와, 어디서 말하는지로 묶는다. 같은 말도 상대와 자리에 따라 뉘앙스가 달라져서 이 기준으로 고르는 게 쉽다.
 // 화면에는 이 순서대로 보인다
-export const MEME_GROUP = "밈 스토리";
+export const MEME_GROUP = "병맛 대회";
 export const SCENE_GROUPS: SceneGroup[] = [
   { label: MEME_GROUP, words: [], sets: [] },
   { label: "친구랑", words: ["친구", "동기"], sets: [] },
