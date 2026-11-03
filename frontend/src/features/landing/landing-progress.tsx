@@ -249,7 +249,7 @@ function LockedSceneRow({
 
 const SCENE_ROWS_CLASS =
   "mt-3 grid grid-cols-1 border-t-2 border-paper md:grid-cols-2 md:gap-x-8 lg:grid-cols-3";
-const SCENE_ROW_ITEM_CLASS = "border-b border-line/40";
+const SCENE_ROW_ITEM_CLASS = "list-row-lazy border-b border-line/40";
 
 type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
 
