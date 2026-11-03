@@ -60,34 +60,68 @@ export function primeAudio() {
   };
 }
 
-// 실로폰처럼 맑게 울리도록 기본음에 배음을 얹고 빠르게 사라지게 한다. 단순한 삐 소리보다 악기 음색이 더 잘 알아들어진다
-function bell(freq: number, at = 0, dur = 0.45, vol = 0.12) {
+// 고역을 한 번 깎아 귀를 찌르는 쇳소리를 막는다. 판정음·보상음은 모두 이 필터를 거친다
+let tone: BiquadFilterNode | null = null;
+function toneOut(c: AudioContext) {
+  if (!tone) {
+    tone = c.createBiquadFilter();
+    tone.type = "lowpass";
+    tone.frequency.value = 4200;
+    tone.Q.value = 0.5;
+    tone.connect(master!);
+  }
+  return tone;
+}
+
+let click: AudioBuffer | null = null;
+function clickBuffer(c: AudioContext) {
+  if (!click) {
+    click = c.createBuffer(1, Math.ceil(c.sampleRate * 0.03), c.sampleRate);
+    const data = click.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+  return click;
+}
+
+// 나무 건반(마림바)처럼: 채가 닿는 짧은 '톡'과 둥근 몸통음. 배음은 금방 사라지고 기본음만 남는다.
+// 사인파에 정수배 배음만 얹으면 휴대폰 알림음처럼 들려서, 배음을 건반처럼 어긋나게 두고 칠 때마다 높이를 아주 조금 흔든다
+function mallet(freq: number, at = 0, dur = 0.5, vol = 0.16) {
   const c = audio();
   if (!c || !master) return;
+  const out = toneOut(c);
   const t = c.currentTime + at;
-  const out = c.createGain();
-  out.gain.setValueAtTime(0.0001, t);
-  out.gain.exponentialRampToValueAtTime(vol, t + 0.005);
-  out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  out.connect(master);
-  for (const [ratio, level] of [
-    [1, 1],
-    [2, 0.35],
-    [4.01, 0.12],
+  const f = freq * (0.996 + Math.random() * 0.008);
+  for (const [ratio, level, life] of [
+    [1, 1, dur],
+    [3.93, 0.22, dur * 0.18],
+    [9.2, 0.05, 0.04],
   ]) {
     const osc = c.createOscillator();
     const g = c.createGain();
     osc.type = "sine";
-    osc.frequency.value = freq * ratio;
-    g.gain.value = level;
+    osc.frequency.value = f * ratio;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol * level, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + life);
     osc.connect(g).connect(out);
     osc.start(t);
-    osc.stop(t + dur + 0.05);
+    osc.stop(t + life + 0.05);
   }
+  const src = c.createBufferSource();
+  const band = c.createBiquadFilter();
+  const g = c.createGain();
+  src.buffer = clickBuffer(c);
+  band.type = "bandpass";
+  band.frequency.value = Math.min(f * 2, 3000);
+  band.Q.value = 2;
+  g.gain.setValueAtTime(vol * 0.5, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+  src.connect(band).connect(g).connect(out);
+  src.start(t);
 }
 
-// 틀렸을 때 쓰는 낮고 둥근 음. 거친 버저 대신 고역을 깎은 삼각파로 부드럽게 낸다
-function low(freq: number, at = 0, dur = 0.2, vol = 0.14) {
+// 틀렸을 때: 아래로 미끄러지는 둥근 "뿌웅". 음이 살짝 처져서 버저보다 우스꽝스럽다
+function droop(from: number, to: number, at = 0, dur = 0.28, vol = 0.15) {
   const c = audio();
   if (!c || !master) return;
   const t = c.currentTime + at;
@@ -95,15 +129,34 @@ function low(freq: number, at = 0, dur = 0.2, vol = 0.14) {
   const filter = c.createBiquadFilter();
   const gain = c.createGain();
   osc.type = "triangle";
-  osc.frequency.value = freq;
+  osc.frequency.setValueAtTime(from, t);
+  osc.frequency.exponentialRampToValueAtTime(to, t + dur);
   filter.type = "lowpass";
-  filter.frequency.value = 1200;
+  filter.frequency.value = 900;
   gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+  gain.gain.exponentialRampToValueAtTime(vol, t + 0.015);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  osc.connect(filter).connect(gain).connect(master);
+  osc.connect(filter).connect(gain).connect(toneOut(c));
   osc.start(t);
   osc.stop(t + dur + 0.05);
+}
+
+// 상자·펀치용 낮은 북 "툭": 음이 빠르게 떨어지는 사인. 휴대폰 스피커가 150Hz 아래를 거의 못 내서 그보다 높게 친다
+function thump(freq: number, at = 0, vol = 0.22) {
+  const c = audio();
+  if (!c || !master) return;
+  const t = c.currentTime + at;
+  const osc = c.createOscillator();
+  const gain = c.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(freq * 1.8, t);
+  osc.frequency.exponentialRampToValueAtTime(freq, t + 0.05);
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(vol, t + 0.004);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+  osc.connect(gain).connect(toneOut(c));
+  osc.start(t);
+  osc.stop(t + 0.2);
 }
 
 function whooshNoise() {
@@ -152,47 +205,44 @@ function blip(kind: keyof typeof BLIP_PITCH) {
 }
 
 const FANFARES = [
-  [1047, 1319, 1568, 2093],
-  [784, 1047, 1319, 1568, 2093],
-  [1319, 1175, 1319, 1568, 2093],
-  [1047, 1568, 1319, 2093],
+  [523, 659, 784, 1047],
+  [392, 523, 659, 784, 1047],
+  [659, 587, 659, 784, 1047],
+  [523, 784, 659, 1047],
 ];
 
 export const sfx = {
-  // O: 위로 올라가는 맑은 두 음 "띠링"
+  // O: 위로 올라가는 두 음 "또롱"
   good: () => {
-    bell(1319, 0.02, 0.35);
-    bell(1976, 0.11, 0.5);
+    mallet(659, 0.02, 0.35);
+    mallet(988, 0.11, 0.55);
   },
   // △: 중간 높이 한 음 "통"
-  meh: () => bell(880, 0.02, 0.4, 0.1),
-  // X: 아래로 내려가는 부드러운 두 음 "뚜둥"
-  bad: () => {
-    low(392, 0.02, 0.16);
-    low(311, 0.17, 0.3);
-  },
+  meh: () => mallet(523, 0.02, 0.4, 0.13),
+  // X: 아래로 처지는 "뿌웅"
+  bad: () => droop(392, 233, 0.02, 0.36),
   whoosh: whooshNoise,
   blip,
-  // 새 물건을 얻을 때 반짝이며 올라가는 네 음. 팡파르 뒤에 이어지도록 at으로 늦출 수 있다
+  // 새 물건을 얻을 때 올라가는 네 음. 팡파르 뒤에 이어지도록 at으로 늦출 수 있다
   reward: (at = 0) => {
-    [1568, 2093, 2637, 3136].forEach((f, i) => bell(f, at + i * 0.07, i === 3 ? 0.7 : 0.25, 0.08));
+    [784, 1047, 1319, 1568].forEach((f, i) => mallet(f, at + i * 0.07, i === 3 ? 0.7 : 0.25, 0.12));
   },
   // 연속 기록이 이어질 때: 짧게 올라가는 두 음
   streak: (at = 0) => {
-    bell(988, at, 0.25, 0.08);
-    bell(1480, at + 0.09, 0.45, 0.08);
+    mallet(494, at, 0.25, 0.12);
+    mallet(740, at + 0.09, 0.45, 0.12);
   },
   // 엔딩 펀치라인 뒤 개그 마무리 "두둥 탁"
   punch: () => {
-    low(196, 0, 0.1, 0.12);
-    low(147, 0.12, 0.12, 0.12);
-    bell(3136, 0.3, 0.22, 0.05);
+    thump(196, 0);
+    thump(147, 0.12);
+    mallet(1568, 0.3, 0.25, 0.06);
   },
   // 깜짝 상자가 열리는 소리: 낮게 툭 한 번
-  boxOpen: () => low(220, 0, 0.12, 0.16),
+  boxOpen: () => thump(220, 0),
   // 장면을 끝내면 정답 여부와 상관없이 판정음 뒤에 팡파르가 울린다. 매번 같은 소리에 무뎌지지 않게 멜로디는 무작위로 고른다
   clear: () => {
     const melody = FANFARES[Math.floor(Math.random() * FANFARES.length)];
-    melody.forEach((f, i) => bell(f, 0.75 + i * 0.08, i === melody.length - 1 ? 0.7 : 0.3, 0.09));
+    melody.forEach((f, i) => mallet(f, 0.75 + i * 0.08, i === melody.length - 1 ? 0.7 : 0.3, 0.12));
   },
 };
