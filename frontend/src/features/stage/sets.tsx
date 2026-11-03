@@ -841,6 +841,85 @@ export const SETS: Record<SetId, SetDef> = {
     decor: [{ id: "mochi", x: 0.35, z: -0.6 }],
   },
 
+  market: {
+    label: "플리마켓 · 노점",
+    wall: SET_WALLS.market,
+    me: { x: -0.95, facing: R, posture: "stand" },
+    partner: { x: 1.0, z: -0.65, facing: -R, posture: "stand" },
+    // 줄무늬 천막 아래 접이식 탁자에 잡동사니가 놓인 노점. 저녁이면 줄 전구가 켜지고, sold는 탁자에 SOLD 팻말을 세운다
+    Scenery: ({ evening, flags }) => (
+      <>
+        <Box size={[30, 0.02, 2.4]} at={[0, 0.01, 0]} color="#8d8880" />
+        <Box size={[2.2, 1.6, 0.1]} at={[-2.3, 0.97, -1.05]} color="#5f9e96" />
+        {[-3.0, -2.6, -2.2, -1.8].map((x, i) => (
+          <Box key={x} size={[0.4, 0.14, 0.5]} at={[x + 0.2, 1.7, -0.9]} color={i % 2 ? C.paper : C.teal} />
+        ))}
+        {[-0.3, 2.3].map((x) => (
+          <Cyl key={x} r={0.03} h={2.3} at={[x, 1.15, -0.4]} color={C.metal} />
+        ))}
+        {[-0.3, 0.07, 0.44, 0.81, 1.18, 1.55, 1.92].map((x, i) => (
+          <Box key={x} size={[0.37, 0.12, 1.0]} at={[x + 0.185, 2.32, -0.4]} color={i % 2 ? C.paper : "#d9483b"} rot={[0.12, 0, 0]} />
+        ))}
+        {[0, 0.37, 0.74, 1.11, 1.48, 1.85].map((x, i) => (
+          <Box key={x} size={[0.37, 0.16, 0.02]} at={[x + 0.185 - 0.3, 2.18, 0.1]} color={i % 2 ? "#d9483b" : C.paper} />
+        ))}
+        {[-2.6, -1.9, -1.2, -0.5, 0.2, 0.9, 1.6, 2.3].map((x) => (
+          <Gem key={x} r={0.045} at={[x, 2.75 - Math.abs(Math.sin(x * 2)) * 0.12, -0.95]} color={evening ? C.lampOn : C.lampOff} />
+        ))}
+        <Box size={[2.0, 0.05, 0.7]} at={[1.0, 0.95, 0]} color="#e9e5dc" />
+        <Box size={[2.0, 0.9, 0.01]} at={[1.0, 0.48, 0.35]} color="#3f6f8f" />
+        {[0.02, 1.98].map((x) => (
+          <Box key={x} size={[0.01, 0.9, 0.7]} at={[x, 0.48, 0]} color="#36607c" />
+        ))}
+        <Cyl r={[0.04, 0.12]} h={0.2} at={[0.35, 1.08, -0.05]} color={C.mustard} />
+        <Cyl r={0.015} h={0.16} at={[0.35, 1.26, -0.05]} color={C.ink} />
+        <Box size={[0.3, 0.2, 0.22]} at={[0.8, 1.07, 0.05]} color={C.navy} />
+        <Box size={[0.22, 0.05, 0.3]} at={[1.25, 1.00, 0.05]} color={C.rust} />
+        <Box size={[0.22, 0.05, 0.3]} at={[1.27, 1.05, 0.05]} color={C.mustard} />
+        <Cyl r={[0.06, 0.09]} h={0.26} at={[1.7, 1.11, 0]} color="#7fc8b8" sides={8} />
+        {[0.55, 1.05, 1.5].map((x) => (
+          <Box key={x} size={[0.1, 0.06, 0.005]} at={[x, 0.82, 0.36]} color={C.mustard} />
+        ))}
+        {flags.has("sold") && (
+          <>
+            <Box size={[0.62, 0.3, 0.02]} at={[1.0, 1.22, 0.3]} color={C.paper} rot={[-0.15, 0, 0]} />
+            <PixelText text="SOLD" at={[1.0, 1.22, 0.315]} px={0.024} color="#c92a2a" />
+          </>
+        )}
+      </>
+    ),
+    decor: [{ id: "junk-box", x: 2.5, z: 0.2 }],
+  },
+  studio: {
+    label: "크리에이터 방 · 촬영 중",
+    wall: SET_WALLS.studio,
+    me: { x: -0.7, facing: R, posture: "stand" },
+    partner: { x: 0.7, facing: -R, posture: "stand" },
+    // 흡음재 벽, ON AIR 간판, 모니터 책상이 있는 촬영 방. live면 간판이 빨갛게 켜진다
+    Scenery: ({ evening, flags }) => (
+      <>
+        {[-2.7, -2.25, -1.8, 1.8, 2.25, 2.7].flatMap((x) =>
+          [1.2, 1.65, 2.1, 2.55].map((y) => <Flat key={`${x}-${y}`} size={[0.4, 0.4]} at={[x, y, WALL_Z + 0.01]} color={(x + y) % 0.9 > 0.45 ? "#3b3550" : "#4a4362"} />),
+        )}
+        <Flat size={[1.4, 0.42]} at={[0, 2.7, WALL_Z + 0.02]} color={flags.has("live") ? "#c92a2a" : "#5a5268"} />
+        <PixelText text="ON AIR" at={[0, 2.7, WALL_Z + 0.03]} px={0.035} color={flags.has("live") ? "#fff0f0" : "#8d86a0"} />
+        <Box size={[1.6, 0.06, 0.6]} at={[0, 0.78, -0.85]} color={C.woodDark} />
+        {[-0.75, 0.75].map((x) => (
+          <Box key={x} size={[0.05, 0.76, 0.5]} at={[x, 0.38, -0.85]} color={C.ink} />
+        ))}
+        <Box size={[0.9, 0.52, 0.05]} at={[0.25, 1.17, -1.0]} color={C.ink} />
+        <Flat size={[0.82, 0.44]} at={[0.25, 1.17, -0.97]} color={evening ? "#5a8fb0" : "#9fd3e8"} />
+        <Box size={[0.08, 0.14, 0.08]} at={[0.25, 0.88, -1.0]} color={C.ink} />
+        <Cyl r={0.025} h={0.45} at={[-0.5, 1.0, -0.9]} color={C.ink} rot={[0, 0, 0.5]} />
+        <Cyl r={[0.06, 0.05]} h={0.16} at={[-0.38, 1.22, -0.85]} color="#3a3a38" />
+        <Box size={[0.5, 0.06, 0.3]} at={[-0.2, 0.84, -0.75]} color="#2b2b2a" />
+      </>
+    ),
+    decor: [
+      { id: "ring-light", x: -2.3 },
+      { id: "tripod-cam", x: 2.3 },
+    ],
+  },
   street: {
     label: "거리 · 헤어질 때",
     wall: SET_WALLS.street,

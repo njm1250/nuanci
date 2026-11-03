@@ -46,6 +46,13 @@ const DEFAULTS: Record<DecorId, { y: number; z: number }> = {
   "ice-block": { y: 0, z: -0.55 },
   "snow-pile": { y: 0, z: -0.3 },
   thermometer: { y: 2.0, z: WALL },
+  "tripod-cam": { y: 0, z: 0.25 },
+  "ring-light": { y: 0, z: -0.5 },
+  "massage-chair": { y: 0, z: -0.55 },
+  scooter: { y: 0, z: -0.45 },
+  "junk-box": { y: 0, z: 0.15 },
+  "sale-sign": { y: 0, z: 0.3 },
+  "trade-sign": { y: 0, z: 0.3 },
 };
 
 function Fridge({ x, y, z }: At) {
@@ -445,6 +452,114 @@ function Pudding({ x, y, z }: At) {
   );
 }
 
+// 삼각대에 올린 촬영 카메라. 렌즈는 무대 가운데를 보고, 위에 빨간 녹화 램프가 있다
+function TripodCam({ x, y, z }: At) {
+  const dir = x > 0 ? -1 : 1;
+  return (
+    <>
+      {[-0.22, 0, 0.22].map((tilt, i) => (
+        <Box key={i} size={[0.03, 1.2, 0.03]} at={[x + tilt * 0.6, y + 0.58, z + (i === 1 ? -0.14 : 0.07)]} color={C.ink} rot={[i === 1 ? -0.22 : 0.12, 0, tilt]} />
+      ))}
+      <Box size={[0.1, 0.06, 0.1]} at={[x, y + 1.2, z]} color={C.ink} />
+      <Box size={[0.34, 0.24, 0.2]} at={[x, y + 1.36, z]} color="#2b2b2a" />
+      <Cyl r={0.09} h={0.16} at={[x + dir * 0.24, y + 1.36, z]} color="#3a3a38" rot={[0, 0, Math.PI / 2]} sides={10} />
+      <Cyl r={0.06} h={0.01} at={[x + dir * 0.325, y + 1.36, z]} color="#5a8fb0" rot={[0, 0, Math.PI / 2]} sides={10} />
+      <Gem r={0.03} at={[x - dir * 0.1, y + 1.51, z]} color="#e03131" />
+    </>
+  );
+}
+
+// 링 조명. 가운데에 휴대폰 거치대가 있다
+function RingLight({ x, y, z }: At) {
+  return (
+    <>
+      <Cyl r={[0.16, 0.2]} h={0.04} at={[x, y + 0.02, z]} color={C.ink} sides={8} />
+      <Cyl r={0.025} h={1.55} at={[x, y + 0.8, z]} color={C.ink} />
+      {Array.from({ length: 14 }, (_, i) => {
+        const a = (i / 14) * Math.PI * 2;
+        return <Gem key={i} r={0.05} at={[x + Math.cos(a) * 0.3, y + 1.85 + Math.sin(a) * 0.3, z]} color="#fff6dc" />;
+      })}
+      <Box size={[0.09, 0.16, 0.02]} at={[x, y + 1.85, z + 0.02]} color={C.ink} />
+    </>
+  );
+}
+
+// 안마의자. 정면에서는 의자로 안 읽혀서 옆으로 돌려 둔다. 뒤로 누운 등받이, 머리 덮개, 앞으로 뻗은 다리 받침이 보인다
+function MassageChair({ x, y, z }: At) {
+  const shell = "#e4dccd";
+  const pad = "#3a2f2a";
+  return (
+    <group position={[x, y, z]} rotation={[0, x > 0 ? -1.1 : 1.1, 0]}>
+      <Box size={[0.7, 0.34, 0.66]} at={[0, 0.17, 0]} color={pad} />
+      <Box size={[0.58, 0.1, 0.6]} at={[0, 0.39, 0.02]} color="#5a4a42" />
+      <Box size={[0.62, 1.05, 0.24]} at={[0, 0.86, -0.42]} color={pad} rot={[-0.5, 0, 0]} />
+      <Box size={[0.72, 0.42, 0.42]} at={[0, 1.36, -0.66]} color={shell} rot={[-0.5, 0, 0]} />
+      {[-0.4, 0.4].map((d) => (
+        <group key={d}>
+          <Box size={[0.16, 0.5, 0.78]} at={[d, 0.6, -0.02]} color={shell} />
+          <Box size={[0.17, 0.07, 0.5]} at={[d, 0.86, 0.04]} color={C.metal} />
+        </group>
+      ))}
+      <Box size={[0.46, 0.16, 0.62]} at={[0, 0.3, 0.56]} color={shell} rot={[-0.55, 0, 0]} />
+      <Box size={[0.46, 0.1, 0.16]} at={[0, 0.1, 0.86]} color={pad} />
+      <Box size={[0.14, 0.05, 0.3]} at={[0.4, 0.92, 0.22]} color={C.ink} />
+      <Gem r={0.025} at={[0.4, 0.95, 0.3]} color="#4fd1c5" />
+    </group>
+  );
+}
+
+// 둥근 중고 스쿠터. 바퀴 둘, 발판, 핸들, 앞 전조등
+function Scooter({ x, y, z }: At) {
+  const body = "#7fc8b8";
+  return (
+    <>
+      {[-0.42, 0.42].map((d) => (
+        <group key={d}>
+          <Cyl r={0.17} h={0.09} at={[x + d, y + 0.17, z]} color={C.ink} rot={[Math.PI / 2, 0, 0]} sides={12} />
+          <Cyl r={0.07} h={0.1} at={[x + d, y + 0.17, z]} color={C.metal} rot={[Math.PI / 2, 0, 0]} sides={8} />
+        </group>
+      ))}
+      <Box size={[0.62, 0.08, 0.3]} at={[x, y + 0.3, z]} color="#5b5b58" />
+      <Box size={[0.42, 0.36, 0.36]} at={[x - 0.36, y + 0.48, z]} color={body} />
+      <Box size={[0.38, 0.08, 0.32]} at={[x - 0.32, y + 0.7, z]} color="#3a2f2a" />
+      <Box size={[0.16, 0.6, 0.3]} at={[x + 0.4, y + 0.56, z]} color={body} rot={[0, 0, -0.18]} />
+      <Cyl r={0.025} h={0.36} at={[x + 0.47, y + 1.0, z]} color={C.metal} />
+      <Box size={[0.06, 0.04, 0.5]} at={[x + 0.47, y + 1.18, z]} color={C.ink} />
+      <Gem r={0.055} at={[x + 0.52, y + 1.05, z + 0.02]} color="#fff2b0" />
+      <Box size={[0.3, 0.05, 0.31]} at={[x + 0.42, y + 0.36, z]} color={body} />
+    </>
+  );
+}
+
+// 뚜껑이 열린 잡동사니 상자. 램프·책·공 같은 게 삐져나와 있다
+function JunkBox({ x, y, z }: At) {
+  return (
+    <>
+      <Box size={[0.56, 0.36, 0.4]} at={[x, y + 0.18, z]} color="#c8955a" />
+      <Box size={[0.56, 0.02, 0.16]} at={[x, y + 0.42, z - 0.24]} color="#b9824a" rot={[-0.9, 0, 0]} />
+      <Box size={[0.2, 0.02, 0.4]} at={[x - 0.36, y + 0.42, z]} color="#b9824a" rot={[0, 0, 0.9]} />
+      <Box size={[0.22, 0.08, 0.16]} at={[x - 0.1, y + 0.4, z]} color={C.navy} rot={[0, 0, 0.2]} />
+      <Cyl r={[0.04, 0.1]} h={0.16} at={[x + 0.12, y + 0.48, z - 0.04]} color={C.mustard} />
+      <Gem r={0.08} at={[x + 0.02, y + 0.42, z + 0.1]} color={C.rust} />
+      <Box size={[0.03, 0.3, 0.03]} at={[x + 0.2, y + 0.45, z + 0.08]} color={C.woodDark} rot={[0, 0, -0.3]} />
+    </>
+  );
+}
+
+// 막대에 꽂아 땅에 세운 골판지 팻말. 글자는 도트 글자로 찍는다
+function CardboardSign({ x, y, z, text, ink }: At & { text: string; ink: string }) {
+  const w = Math.max(0.62, text.length * 0.13 + 0.14);
+  return (
+    <>
+      <Box size={[0.04, 0.7, 0.04]} at={[x, y + 0.35, z - 0.02]} color={C.woodDark} />
+      <Box size={[w, 0.34, 0.02]} at={[x, y + 0.82, z]} color="#d2a66b" rot={[0, 0, 0.04]} />
+      <PixelText text={text} at={[x, y + 0.82, z + 0.012]} px={0.022} color={ink} />
+    </>
+  );
+}
+const SaleSign = (p: At) => <CardboardSign {...p} text="SALE" ink="#c92a2a" />;
+const TradeSign = (p: At) => <CardboardSign {...p} text="WILL TRADE" ink={C.ink} />;
+
 const PIECES: Record<DecorId, (p: At) => React.ReactNode> = {
   fridge: Fridge,
   postit: PostIt,
@@ -476,6 +591,13 @@ const PIECES: Record<DecorId, (p: At) => React.ReactNode> = {
   "ice-block": IceBlock,
   "snow-pile": SnowPile,
   thermometer: Thermometer,
+  "tripod-cam": TripodCam,
+  "ring-light": RingLight,
+  "massage-chair": MassageChair,
+  scooter: Scooter,
+  "junk-box": JunkBox,
+  "sale-sign": SaleSign,
+  "trade-sign": TradeSign,
 };
 
 // 알 수 없는 id는 건너뛴다. 장면 JSON에 오타가 있어도 무대가 깨지지 않게 한다

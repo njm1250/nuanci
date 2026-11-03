@@ -23,4 +23,6 @@ export const SET_WALLS: Record<SetId, { day: string; evening: string }> = {
   bunsik: { day: "#f0dcc0", evening: "#a8906f" },
   salon: { day: "#e9dfe4", evening: "#a3949c" },
   boutique: { day: "#efe6dc", evening: "#a69a8d" },
+  market: { day: "#cfe3ea", evening: "#2b3350" },
+  studio: { day: "#d6d0e3", evening: "#4b4662" },
 };

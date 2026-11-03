@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { bookEntry, spoken } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
+import { wordmarkSvg } from "@/features/site/logo";
 import { Mascot } from "@/features/mascot/mascot";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { RewardIcon } from "@/features/rewards/reward-icon";
@@ -583,7 +584,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         <div className="shrink-0 md:contents">
         <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-pixel text-[15px] text-paper md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
           <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2">
-            <span className="logo">{preview ? "검수" : "nuanci"}</span>
+            {preview ? <span className="logo">검수</span> : <span aria-label="nuanci" className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />}
           </Link>
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
