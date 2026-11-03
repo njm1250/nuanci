@@ -6,6 +6,15 @@ import type { Scene, SceneSummary } from "./types";
 
 export const BACKEND = process.env.BACKEND_URL ?? "http://localhost:8080";
 
+// 발행된 장면 파일을 내보내는 CDN 주소(예: https://….cloudfront.net/prod). 비어 있으면 백엔드 API에서 같은 내용을 읽는다
+const CONTENT = process.env.CONTENT_URL;
+
+type ContentKind = "manifests" | "scenes" | "views";
+function contentUrl(kind: ContentKind | "current", hash = "") {
+  if (CONTENT) return kind === "current" ? `${CONTENT}/current.json` : `${CONTENT}/${kind}/${hash}.json`;
+  return kind === "current" ? `${BACKEND}/api/content/current` : `${BACKEND}/api/content/${kind === "scenes" ? "objects" : kind}/${hash}`;
+}
+
 // 관리자가 장면을 저장하거나 공개 상태를 바꾸면 이 태그로 캐시를 바로 비운다
 export const SCENES_TAG = "scenes";
 
@@ -17,7 +26,7 @@ async function currentManifest(): Promise<string> {
   "use cache";
   cacheLife({ stale: 60, revalidate: 30, expire: 60 * 60 * 24 * 30 });
   cacheTag(SCENES_TAG);
-  const res = await fetch(`${BACKEND}/api/content/current`);
+  const res = await fetch(contentUrl("current"));
   if (!res.ok) throw new Error(`장면 목차를 확인하지 못했어요 (${res.status})`);
   return (await res.json()).manifest;
 }
@@ -30,7 +39,7 @@ type Manifest = { scenes: CatalogEntry[]; views: Record<ViewName, string> };
 async function manifest(hash: string): Promise<Manifest> {
   "use cache";
   cacheLife("max");
-  const res = await fetch(`${BACKEND}/api/content/manifests/${hash}`);
+  const res = await fetch(contentUrl("manifests", hash));
   if (!res.ok) throw new Error(`장면 목차를 불러오지 못했어요 (${res.status})`);
   return res.json();
 }
@@ -38,7 +47,7 @@ async function manifest(hash: string): Promise<Manifest> {
 async function view(hash: string): Promise<unknown> {
   "use cache";
   cacheLife("max");
-  const res = await fetch(`${BACKEND}/api/content/views/${hash}`);
+  const res = await fetch(contentUrl("views", hash));
   if (!res.ok) throw new Error(`화면 데이터를 불러오지 못했어요 (${res.status})`);
   return res.json();
 }
@@ -46,7 +55,7 @@ async function view(hash: string): Promise<unknown> {
 async function sceneObject(hash: string): Promise<Scene> {
   "use cache";
   cacheLife("max");
-  const res = await fetch(`${BACKEND}/api/content/objects/${hash}`);
+  const res = await fetch(contentUrl("scenes", hash));
   if (!res.ok) throw new Error(`장면을 불러오지 못했어요 (${res.status})`);
   return res.json();
 }

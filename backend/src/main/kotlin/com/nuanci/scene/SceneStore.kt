@@ -1,5 +1,6 @@
 package com.nuanci.scene
 
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.JsonNode
@@ -17,6 +18,7 @@ class SceneStore(
 	private val mapper: JsonMapper,
 	private val scenes: SceneRepository,
 	private val versions: SceneVersionRepository,
+	private val jdbc: JdbcClient,
 ) {
 	@Transactional
 	fun save(node: JsonNode, dryRun: Boolean = false): SaveResult {
@@ -40,6 +42,7 @@ class SceneStore(
 		scene.updatedAt = now
 		scenes.saveAndFlush(scene)
 		if (changed) versions.save(SceneVersion(id, version, hash, json, now))
+		if (changed || existing == null) enqueuePublish()
 		return result
 	}
 
@@ -49,6 +52,7 @@ class SceneStore(
 		val scene = scenes.findById(id).orElseThrow { NoSuchElementException(id) }
 		scene.status = status
 		scene.updatedAt = Instant.now()
+		enqueuePublish()
 	}
 
 	// 장면 전체의 목록 순서를 주어진 id 순서대로 다시 매긴다. 빠지거나 겹친 장면이 있으면 거부한다
@@ -58,6 +62,12 @@ class SceneStore(
 		require(ids.size == ids.toSet().size) { "같은 장면이 두 번 들어 있어요" }
 		require(ids.toSet() == all.keys) { "모든 장면의 순서를 한 번에 보내야 해요" }
 		ids.forEachIndexed { i, id -> all.getValue(id).sortOrder = i + 1 }
+		enqueuePublish()
+	}
+
+	// 바꾼 내용과 같은 트랜잭션에 발행 작업을 남긴다(서버 쪽 outbox). 저장만 되고 발행이 빠지는 일을 막는다
+	private fun enqueuePublish() {
+		jdbc.sql("insert into content_publish_job default values").update()
 	}
 
 	fun content(scene: Scene): ObjectNode = read(latest(scene)).put("status", scene.status).put("order", scene.sortOrder)
