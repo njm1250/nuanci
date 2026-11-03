@@ -94,7 +94,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const target = next ?? scenes[0];
   if (!target || returning) return null;
   const label = !returning
-    ? "첫 장면 시작하기"
+    ? `${target.title}부터 하기`
     : next
       ? "다음 장면 해 보기"
       : "처음부터 다시 하기";
