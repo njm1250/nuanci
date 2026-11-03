@@ -136,8 +136,8 @@ function SceneCard({
       entry="home"
       className="blk-btn block h-full"
     >
-      <span className={`blk flex h-full items-center gap-3 bg-cream pr-3 text-ink ${inRow ? "p-1.5" : "p-2"}`}>
-        {inRow && <span className="w-8 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums">{tocNumber(label)}</span>}
+      <span className={`blk flex h-full items-center bg-cream text-ink ${inRow ? "gap-2 p-1.5 pr-2" : "gap-3 p-2 pr-3"}`}>
+        {inRow && <span className="w-7 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums">{tocNumber(label)}</span>}
         <span className="relative shrink-0">
           <SceneThumb
             stage={scene.stage}
@@ -166,7 +166,7 @@ function SceneCard({
           </span>
         </span>
         {next ? (
-          <span className="shrink-0 border-2 border-ink px-1.5 py-0.5 font-pixel text-[15px] leading-none">
+          <span className={`shrink-0 border-2 border-ink py-0.5 font-pixel text-[15px] leading-none ${inRow ? "px-1" : "px-1.5"}`}>
             다음
           </span>
         ) : (

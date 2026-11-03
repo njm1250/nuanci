@@ -180,6 +180,10 @@ body {
 .blk-btn-primary {
   --frame: var(--color-paper);
 }
+/* 지금 보는 결과 카드가 아직 안 누른 버튼(2px 먹선)보다 약해 보이지 않게 같은 굵기로 둔다 */
+.blk-frame.blk-strong::before {
+  inset: -2px;
+}
 .blk-frame-sm {
   filter: drop-shadow(2px 0 0 var(--color-ink)) drop-shadow(-2px 0 0 var(--color-ink)) drop-shadow(0 2px 0 var(--color-ink)) drop-shadow(0 -2px 0 var(--color-ink));
 }
