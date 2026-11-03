@@ -381,7 +381,7 @@ function FeaturedScene({
           <span className="mt-3 block px-2 font-poster text-[24px] leading-[1.25] md:mt-0">
             {scene.title}
           </span>
-          <span className="mt-1.5 block px-2 text-[14px] text-ink-subtle">
+          <span className="mt-1.5 block px-2 text-[13px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
           <span className="mx-2 mt-4 flex items-center justify-between border border-ink bg-gold px-3 py-2.5 font-pixel text-[15px] text-ink">
@@ -516,8 +516,8 @@ export function SceneShelf({
               className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
             >
               <span>
-                <span className="block font-pixel text-[15px]">표현 모음</span>
-                <span className="block text-[14px] text-ink-subtle">
+                <span className="block text-[16px] font-semibold">표현 모음</span>
+                <span className="mt-0.5 block text-[12px] text-ink-subtle">
                   모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
                 </span>
               </span>
@@ -530,8 +530,8 @@ export function SceneShelf({
               className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
             >
               <span>
-                <span className="block font-pixel text-[15px]">전체 장면</span>
-                <span className="block text-[14px] text-ink-subtle">
+                <span className="block text-[16px] font-semibold">전체 장면</span>
+                <span className="mt-0.5 block text-[12px] text-ink-subtle">
                   {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
                 </span>
               </span>

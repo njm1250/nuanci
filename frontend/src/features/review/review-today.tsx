@@ -48,7 +48,7 @@ export function ReviewToday() {
     <section className="mb-7 animate-[fade-in_200ms]">
       <div className="flex items-baseline justify-between">
         <h2 className="text-[16px] font-bold">오늘의 1분 복습</h2>
-        <p className="text-[14px] text-paper-subtle">
+        <p className="text-[12px] text-paper-subtle">
           지난번 헷갈린 말 {at + 1}/{total}
         </p>
       </div>
@@ -59,7 +59,7 @@ export function ReviewToday() {
             <SpeakerTag>{card.partnerName}</SpeakerTag>
             <p className="font-line text-[20px] leading-snug">{card.partnerLine}</p>
             <SpeakerTag me>나</SpeakerTag>
-            <p className="font-pixel text-[15px] leading-snug">{card.intent}</p>
+            <p className="justify-self-start border border-dashed border-paper-subtle px-2.5 py-1.5 text-[16px] font-semibold leading-snug">{card.intent}</p>
           </div>
           {!revealed ? (
             <>
@@ -78,15 +78,15 @@ export function ReviewToday() {
                 </span>
                 <span className="min-w-0">
                   <span className="block font-line text-[20px] leading-snug">{card.right.line}</span>
-                  <span className="block text-[14px] text-ink-subtle">{card.right.meaning}</span>
+                  <span className="mt-0.5 block text-[13px] text-ink-subtle">{card.right.meaning}</span>
                 </span>
               </p>
-              <p className="mt-2 flex items-center gap-2 text-[14px] text-ink-subtle">
+              <p className="mt-1.5 flex items-center gap-2 text-[13px] text-ink-subtle">
                 <Mark good={false} />
                 <span className="shrink-0">지난번 내가 고른 말</span>
-                <s className="min-w-0 truncate">{card.mine.line}</s>
+                <s className="min-w-0 truncate decoration-rust decoration-2">{card.mine.line}</s>
               </p>
-              <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">{card.why}</p>
+              <p className="mt-3.5 text-[14px] leading-relaxed text-ink-muted">{card.why}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <BlockButton onClick={() => next(false)} faceClassName="py-3 text-center font-pixel text-[15px]">
                   몰랐어요

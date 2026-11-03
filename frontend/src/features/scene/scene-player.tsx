@@ -290,18 +290,18 @@ function WrapUp({
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-5">
         <div className="blk bg-cream px-4 py-4 text-ink">
-          <p className="text-[16px] font-semibold leading-relaxed">{scene.discovery}</p>
-          <ul className="mt-3 space-y-3 border-t-2 border-dashed border-ink/20 pt-3">
+          <p className="text-[15px] leading-[1.6]">{scene.discovery}</p>
+          <ul className="mt-3.5 space-y-3.5 border-t-2 border-dashed border-ink/20 pt-3">
             {pairs.map((p) => (
               <li key={p.right}>
                 <p className="font-line text-[20px] leading-snug">{p.right}</p>
-                <p className="text-[14px] text-ink-subtle">
+                <p className="mt-0.5 text-[13px] leading-snug text-ink-subtle">
                   {spoken(p.intent)} · <s className="decoration-rust decoration-2">{p.wrong}</s>
                 </p>
               </li>
             ))}
           </ul>
-          <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-ink-muted hover:text-ink">
+          <Link href="/expressions" className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 text-[13px] text-ink-subtle hover:text-ink">
             표현 모음에 담았어요
             <Arrow />
           </Link>
