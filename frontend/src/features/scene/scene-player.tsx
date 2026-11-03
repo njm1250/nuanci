@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { bookEntry, spoken } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
-import { wordmarkSvg } from "@/features/site/logo";
+import { logoSvg, wordmarkSvg } from "@/features/site/logo";
 import { Mascot } from "@/features/mascot/mascot";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { RewardIcon } from "@/features/rewards/reward-icon";
@@ -579,12 +579,20 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   return (
     <div className="flex min-h-dvh justify-center overflow-x-clip bg-night break-keep text-ink">
       {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8">
+      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
         {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
         <div className="shrink-0 md:contents">
         <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-pixel text-[15px] text-paper md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
-          <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2">
-            {preview ? <span className="logo">검수</span> : <span aria-label="nuanci" className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />}
+          <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} aria-label={preview ? undefined : "nuanci"} className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
+            {/* 다른 화면 머리줄과 같은 마크+글자 로고. 제목 자리가 좁아서 조금 작게 둔다 */}
+            {preview ? (
+              <span className="logo">검수</span>
+            ) : (
+              <>
+                <span aria-hidden className="block size-6 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
+                <span aria-hidden className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
+              </>
+            )}
           </Link>
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
@@ -598,7 +606,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
           </div>
         </header>
 
-        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:row-span-2 md:bg-transparent md:pb-8 md:pt-6">
+        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:self-start md:bg-transparent md:pb-8 md:pt-6">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-10rem)]">
               <Stage
@@ -669,8 +677,10 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         </div>
         </div>
 
+        {/* 데스크톱 오른쪽 칸은 내용만큼만 길어지고, 짧으면 버튼을 무대 아래 끝선에 맞춘다. 화면보다 길어질 때만 글 영역이 스크롤된다 */}
+        <div className="contents md:col-start-2 md:row-start-2 md:flex md:min-h-0 md:flex-col">
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
-        <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2">
+        <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:flex-initial">
           {phase === "transition" && timeCue ? (
             <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-poster text-[24px] text-paper">
               {timeCue}…
@@ -791,7 +801,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         </section>
 
         {(choice || leading || (phase === "transition" && !timeCue)) && (
-          <footer className="relative shrink-0 border-t border-line/40 bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
+          <footer className="relative shrink-0 border-t border-line/40 bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:mt-auto md:px-1 md:pb-8">
             {/* 대사가 저절로 넘어간다는 걸 알 수 있게 위 테두리를 남은 시간만큼 채운다 */}
             {beat && !reduced && !autoPaused && (
               <span
@@ -851,6 +861,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             )}
           </footer>
         )}
+        </div>
       </main>
     </div>
   );

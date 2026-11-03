@@ -120,12 +120,15 @@ function SceneCard({
   fresh = false,
   label,
   next = false,
+  inRow = false,
 }: {
   scene: ShelfScene;
   done: boolean;
   fresh?: boolean;
   label: string;
   next?: boolean;
+  // 전체 장면 목록 안에 들어갈 때는 옆 줄과 높이를 맞추려고 썸네일과 여백을 줄과 같게 줄인다
+  inRow?: boolean;
 }) {
   return (
     <EntryLink
@@ -133,11 +136,11 @@ function SceneCard({
       entry="home"
       className="blk-btn block h-full"
     >
-      <span className="blk flex h-full items-center gap-3 bg-cream p-2 pr-3 text-ink">
+      <span className={`blk flex h-full items-center gap-3 bg-cream pr-3 text-ink ${inRow ? "p-1.5" : "p-2"}`}>
         <span className="relative shrink-0">
           <SceneThumb
             stage={scene.stage}
-            className="aspect-[4/3] w-[84px] border-2 border-line"
+            className={`aspect-[4/3] border-2 border-line ${inRow ? "w-[72px]" : "w-[84px]"}`}
           />
           {done && (
             <span
@@ -354,7 +357,7 @@ function FeaturedScene({
       entry="home"
       className="blk-btn blk-strong mt-4 block"
     >
-      <span className="blk block bg-cream p-2 pb-4 text-ink md:grid md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-6 md:p-3">
+      <span className="blk block bg-cream p-2 pb-4 text-ink md:grid md:grid-cols-2 md:gap-8 md:p-3">
         <span className="relative block">
           <SceneThumb
             stage={scene.stage}
@@ -372,7 +375,7 @@ function FeaturedScene({
           <span className="mt-1.5 block px-2 text-[14px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
-          <span className="mx-2 mt-4 flex items-center justify-between bg-ink px-3 py-2.5 font-pixel text-[15px] text-paper">
+          <span className="mx-2 mt-4 flex items-center justify-between border border-ink bg-gold px-3 py-2.5 font-pixel text-[15px] text-ink">
             다음 장면 해 보기
             <Arrow />
           </span>
@@ -646,7 +649,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
               </h2>
               <ol className={SCENE_ROWS_CLASS}>
                 {x.scenes.map((s, i) => (
-                  <li key={s.id} className={s.id === next?.id ? "py-2" : SCENE_ROW_ITEM_CLASS}>
+                  <li key={s.id} className={s.id === next?.id ? `${SCENE_ROW_ITEM_CLASS} py-1` : SCENE_ROW_ITEM_CLASS}>
                     {s.id === next?.id ? (
                       <SceneCard
                         scene={s}
@@ -654,6 +657,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                         fresh={fresh.includes(s.id)}
                         label={`${x.start + i}화`}
                         next
+                        inRow
                       />
                     ) : (
                       <SceneRow

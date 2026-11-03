@@ -71,7 +71,7 @@ function EmptyBook({ entries }: { entries: BookEntry[] }) {
     <>
       <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">장면을 해 보면 &lsquo;이럴 땐 영어로 이렇게&rsquo;가 여기 모여요.</p>
       {first && (
-        <BlockLink href={`/scenes/${first.number}`} entry="home" primary className="mt-5">
+        <BlockLink href={`/scenes/${first.number}`} entry="home" primary className="mt-5 md:max-w-[400px]">
           {first.title}부터 하기
         </BlockLink>
       )}

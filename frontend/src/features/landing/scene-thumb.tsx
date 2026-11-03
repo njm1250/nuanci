@@ -42,6 +42,14 @@ export function SceneThumb({ stage, className = "" }: { stage?: StageSpec; class
   return (
     <span ref={box} aria-hidden className={`relative block overflow-hidden ${className}`} style={{ background: wall }}>
       <span className="absolute inset-x-0 bottom-0 h-[18%]" style={{ background: C.floor }} />
+      {/* 그림이 차례를 기다리는 동안 빈 벽만 있으면 깨진 그림처럼 보여서, 무대 말풍선과 같은 점 세 개로 그리는 중임을 알린다 */}
+      {!url && stage && (
+        <span className="absolute inset-0 flex items-center justify-center gap-[3px] pb-[18%] motion-safe:animate-pulse">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="size-[4px] bg-ink/35" />
+          ))}
+        </span>
+      )}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {url && <img src={url} alt="" className="absolute inset-0 size-full animate-[fade-in_200ms] object-cover [image-rendering:pixelated]" />}
     </span>
