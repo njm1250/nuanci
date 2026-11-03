@@ -204,7 +204,7 @@ function ResultBody({
           </span>
         </span>
         {revealed ? (
-          <span className={`flex items-start gap-2 leading-snug ${active ? "mt-2 text-[16px] font-semibold text-ink" : "mt-1.5 text-[14px] text-ink-muted"}`}>
+          <span key={verdictKey} className={`flex items-start gap-2 leading-snug ${active ? "mt-2 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-[16px] font-semibold text-ink" : "mt-1.5 text-[14px] text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -214,7 +214,7 @@ function ResultBody({
           <HiddenReaction />
         )}
         {/* 왜 어색한지가 이 카드에서 배울 내용이라 흐리게 두지 않고 본문 색으로 쓴다 */}
-        {active && <span className="mt-2 block text-[16px] leading-[1.6] text-ink">{choice.why}</span>}
+        {active && <span key={`why-${verdictKey}`} className="mt-2 block animate-[fade-in_240ms_ease-out_680ms_both] text-[16px] leading-[1.6] text-ink">{choice.why}</span>}
         {revealed && (mine || share !== undefined) && (
           <span className={`flex flex-wrap items-center gap-x-1.5 text-[12px] tabular-nums text-ink-subtle ${active ? "mt-3" : "mt-1.5"}`}>
             {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
@@ -372,7 +372,7 @@ function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName
     <div>
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2.5">
         {beats.map((b, i) => (
-          <div key={i} className="col-span-2 grid animate-[rise_200ms_var(--ease-snap)_both] grid-cols-subgrid items-baseline">
+          <div key={i} className={`col-span-2 grid animate-[rise_200ms_var(--ease-snap)_both] grid-cols-subgrid items-baseline ${i < beats.length - 1 ? "beat-past" : ""}`}>
             <SpeakerTag me={b.who === "me"}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</SpeakerTag>
             {b.line === "……" ? (
               <p className="min-w-0 text-[16px] leading-snug text-paper-muted">{b.meaning}</p>
@@ -450,6 +450,8 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
   const lead = step === "followUp" && recover ? [recover, ...(situation.lead ?? [])] : (situation.lead ?? []);
   const [leadAt, setLeadAt] = useState({ base: 0, followUp: 0 });
   const leadIdx = leadAt[step];
+  // 영어와 번역을 천천히 읽고 싶은 사람은 자동 넘김을 멈추고 직접 넘길 수 있다
+  const [autoPaused, setAutoPaused] = useState(false);
   const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
   const beat = leading ? lead[leadIdx] : null;
   const played = phase === "transition" ? [] : lead.slice(0, leading ? leadIdx + 1 : lead.length);
@@ -468,14 +470,16 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     setLeadAt((a) => ({ ...a, [step]: lead.length }));
   };
   useEffect(() => {
-    if (!beat) return;
-    sfx.blip(beat.line === "……" ? "narration" : beat.who);
+    if (beat) sfx.blip(beat.line === "……" ? "narration" : beat.who);
+  }, [beat]);
+  useEffect(() => {
+    if (!beat || autoPaused) return;
     const t = window.setTimeout(() => {
       if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
       setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
     }, beatMs(beat));
     return () => clearTimeout(t);
-  }, [beat, step, lastBeat, preview, scene.id, scene.version, attemptId]);
+  }, [beat, autoPaused, step, lastBeat, preview, scene.id, scene.version, attemptId]);
   // 데스크톱에서는 키보드로도 넘긴다. 버튼에 포커스가 있으면 버튼이 받으니 한 번에 두 줄 넘어가지 않게 비켜 준다
   useEffect(() => {
     if (!leading) return;
@@ -816,7 +820,7 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
         {(choice || leading || (phase === "transition" && !timeCue)) && (
           <footer className="relative shrink-0 border-t border-line/40 bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
             {/* 대사가 저절로 넘어간다는 걸 알 수 있게 위 테두리를 남은 시간만큼 채운다 */}
-            {beat && !reduced && (
+            {beat && !reduced && !autoPaused && (
               <span
                 key={`fill-${step}-${leadIdx}`}
                 aria-hidden
@@ -830,6 +834,9 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
                 <BlockButton primary onClick={nextBeat} className="flex-1" faceClassName="py-3.5 text-center">
                   다음
                 </BlockButton>
+                <button type="button" onClick={() => setAutoPaused((v) => !v)} aria-pressed={autoPaused} className="min-h-11 shrink-0 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
+                  {autoPaused ? "자동 켜기" : "자동 멈춤"}
+                </button>
                 <button type="button" onClick={skipLead} className="min-h-11 shrink-0 px-3 font-pixel text-[15px] text-paper-muted hover:text-paper">
                   건너뛰기
                 </button>

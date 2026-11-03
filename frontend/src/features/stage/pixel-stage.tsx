@@ -236,12 +236,15 @@ export function PixelStage({
   spec,
   state,
   reduced = false,
+  paused = false,
   onSnapshot,
   snapshotKey,
 }: {
   spec: StageSpec;
   state?: StageState;
   reduced?: boolean;
+  // 켜면 그리기를 멈춰 캐릭터 움직임까지 정지한다
+  paused?: boolean;
   onSnapshot?: (url: string) => void;
   snapshotKey?: string;
 }) {
@@ -296,10 +299,10 @@ export function PixelStage({
   );
 
   return (
-    <div ref={box} className="absolute inset-0 overflow-hidden" style={{ background: wall }}>
+    <div ref={box} className={`absolute inset-0 overflow-hidden ${paused ? "[&_*]:[animation-play-state:paused]" : ""}`} style={{ background: wall }}>
       <Canvas
         flat
-        frameloop="demand"
+        frameloop={paused ? "never" : "demand"}
         orthographic
         dpr={dpr}
         camera={{ position: [0, 1.6, 10], zoom: 70, near: 0.1, far: 50 }}
@@ -308,7 +311,7 @@ export function PixelStage({
       >
         <Rig />
         {onSnapshot && <Snapshot key={snapshotKey} onSnapshot={onSnapshot} />}
-        {busy && <Ticker />}
+        {busy && !paused && <Ticker />}
         {state && <Anchors targets={targets} slots={slots} widths={widths} heights={heights} observer={observer} />}
         <ambientLight intensity={evening ? 1.7 : 2.1} />
         <directionalLight position={[-3, 4, 6]} intensity={evening ? 0.9 : 1.2} />

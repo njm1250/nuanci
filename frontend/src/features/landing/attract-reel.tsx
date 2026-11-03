@@ -49,6 +49,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
         <Stage
           spec={{ ...beat.stage, hero: look.hero, wear: look.wear }}
           reduced={reduced}
+          paused={paused}
           state={{
             partnerMotion: said ? beat.motion : beat.partnerIdle,
             partnerKey: step.n,

@@ -5,7 +5,8 @@
  * 어두운 배경(night·ink): paper > paper-muted > paper-subtle
  * 밝은 배경(paper·cream): ink > ink-muted > ink-subtle
  * 라벨은 font-pixel(굵은 본문 글꼴) 15px, 작은 뱃지는 font-pixel-title 12px로 쓰고, 두 줄 넘게 읽는 글은 16px로 쓴다
- * 페이지 제목과 결과 같은 순간만 포스터 글꼴(font-poster)로 크게 쓰고, 낙서 글꼴(font-scrawl)은 화면마다 많아야 하나만 기울여 얹는다
+ * 글꼴 역할: 본문·라벨은 Pretendard, 영어 대사는 font-line, 페이지 제목과 결과 같은 순간은 font-poster, 로고와 무대 말풍선은 픽셀 글꼴
+ * 낙서 글꼴(font-scrawl)은 누가 옆에 적어 둔 한마디에만 쓴다. 제목 옆이나 메뉴 옆처럼 읽지 않아도 되는 자리에만 두고, 읽어야 하는 내용에는 쓰지 않는다
  * 영어 대사(선택지·말풍선·모은 표현)는 손글씨 글꼴 font-line으로 써서 사람이 한 말처럼 보이게 한다
  *
  * 글자 위계 (SEED 크기 단계를 따른다). 한 카드 안에서는 위계가 한 단계씩 내려갈 때마다 크기·굵기·색 중 둘 이상을 바꾼다
@@ -29,9 +30,9 @@
   --color-paper: #f6f4ee;
   --color-paper-muted: #cbc8bf;
   --color-paper-subtle: #a5a29b;
-  --color-cream: #ffffff;
-  /* 기본 카드 바탕. 밝은 화면에서도 글자색(paper)과 따로 바꾸려고 나눠 둔다 */
-  --color-card: #f6f4ee;
+  --color-cream: #2e2d34;
+  /* 기본 카드 바탕. 밤 화면에서 눈부시지 않게 어두운 면을 쓰고, 밝은 화면에서는 흰색으로 바꾼다 */
+  --color-card: #26252b;
   --color-gold: #c8f031;
   /* 주요 버튼은 화면마다 하나만 두고 어느 바탕에서나 연두로 쓴다. 검은 면이 늘어나지 않게 먹색 버튼은 쓰지 않는다 */
   --color-cta: #c8f031;
@@ -80,8 +81,22 @@
   --color-paper-muted: #4b505a;
   --color-paper-subtle: #646872;
   --color-card: #ffffff;
+  --color-cream: #ffffff;
   --color-line: #8a8d84;
   --color-rust-light: #c01f55;
+}
+/* 밤 화면의 어두운 카드 안에서는 먹색 글자를 밝게 바꾸고, 연두·판정색·먹색 칸 안에서만 다시 먹색으로 둔다 */
+:root:not([data-theme="light"]) :is(.bg-card, .bg-cream) {
+  --color-ink: #f6f4ee;
+  --color-ink-muted: #cbc8bf;
+  --color-ink-subtle: #a5a29b;
+  color: var(--color-ink);
+}
+/* 무대 말풍선은 밤 화면에서도 흰 바탕이라 먹색 글자를 그대로 쓴다 */
+:root:not([data-theme="light"]) :is(.bg-card, .bg-cream) :is(.bg-gold, .bg-good, .bg-bad, .bg-warn, .bg-ink, .bg-cta, .hl, .logo, .blk-frame-sm) {
+  --color-ink: #141317;
+  --color-ink-muted: #4b505a;
+  --color-ink-subtle: #646872;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 /* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */
@@ -443,6 +458,30 @@ body {
   font-weight: 400;
   line-height: 1.02;
   letter-spacing: -0.01em;
+}
+/* 넓은 화면에서는 제목을 한 줄로 줄여 무대가 첫 화면의 주인공이 되게 한다 */
+@media (min-width: 60rem) {
+  .poster-home {
+    font-size: min(7.6vw, 13dvh, 118px);
+  }
+}
+/* 지나간 대사는 내려놓고 지금 말하는 줄만 진하게 둔다 */
+.beat-past {
+  opacity: 0.55;
+}
+/* 메뉴 옆 한마디. 평소에는 숨겨 두고 다가갔을 때 펜으로 쓰듯 드러난다 */
+.menu-note {
+  clip-path: inset(-20% 100% -20% -5%);
+  transition: clip-path 280ms linear;
+}
+.menu-row:hover .menu-note,
+.menu-row:focus-visible .menu-note {
+  clip-path: inset(-20% -5% -20% -5%);
+}
+@media (hover: none) {
+  .menu-note-touch {
+    clip-path: inset(-20% -5% -20% -5%);
+  }
 }
 .poster-rise {
   animation: poster-rise 1s cubic-bezier(0, 0.33, 0.07, 1.03) both;
