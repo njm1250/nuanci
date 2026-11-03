@@ -25,8 +25,8 @@
 
 @theme {
   --color-ink: #141317;
-  --color-ink-muted: #4b505a;
-  --color-ink-subtle: #646872;
+  --color-ink-muted: #5d626c;
+  --color-ink-subtle: #6b6f78;
   --color-paper: #f6f4ee;
   --color-paper-muted: #cbc8bf;
   --color-paper-subtle: #a5a29b;
@@ -77,8 +77,8 @@
   --color-slate-block: #dfe1da;
   /* SEED의 글자색 3단계(neutral·muted·subtle)처럼 단계마다 밝기 차이를 크게 벌려서, 중요한 글과 덜 중요한 글이 색만으로도 갈린다 */
   --color-paper: #1a1c20;
-  --color-paper-muted: #4b505a;
-  --color-paper-subtle: #646872;
+  --color-paper-muted: #5d626c;
+  --color-paper-subtle: #6b6f78;
   --color-card: #ffffff;
   --color-cream: #ffffff;
   --color-line: #8a8d84;
@@ -94,8 +94,8 @@
 /* 무대 말풍선은 밤 화면에서도 흰 바탕이라 먹색 글자를 그대로 쓴다 */
 :root:not([data-theme="light"]) :is(.bg-card, .bg-cream) :is(.bg-gold, .bg-good, .bg-bad, .bg-warn, .bg-ink, .bg-cta, .hl, .logo, .blk-frame-sm) {
   --color-ink: #141317;
-  --color-ink-muted: #4b505a;
-  --color-ink-subtle: #646872;
+  --color-ink-muted: #5d626c;
+  --color-ink-subtle: #6b6f78;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 /* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */
@@ -180,20 +180,55 @@ body {
 .blk-btn-primary {
   --frame: var(--color-paper);
 }
+/* 지금 보는 결과 카드가 아직 안 누른 버튼(2px 먹선)보다 약해 보이지 않게 같은 굵기로 둔다 */
+.blk-frame.blk-strong::before {
+  inset: -2px;
+}
 .blk-frame-sm {
   filter: drop-shadow(2px 0 0 var(--color-ink)) drop-shadow(-2px 0 0 var(--color-ink)) drop-shadow(0 2px 0 var(--color-ink)) drop-shadow(0 -2px 0 var(--color-ink));
 }
+/* 누를 수 있는 블록은 만화 컷처럼 2px 먹선에 어긋난 그림자를 둔다. 누르면 그림자만큼 내려앉아 눌린 손맛이 난다 */
 .blk-btn {
   transition: transform 120ms var(--ease-snap);
 }
-.blk-btn:active {
-  transform: scale(0.985);
+.blk-btn::before {
+  inset: -2px;
+  background: var(--color-paper);
+  box-shadow: 3px 3px 0 var(--color-paper);
+  transition: box-shadow 120ms var(--ease-snap);
 }
-/* 데스크톱에서 누를 수 있는 곳임을 선 색으로도 알려 준다 */
+.blk-btn:active {
+  transform: translate(3px, 3px);
+}
+.blk-btn:active::before {
+  box-shadow: 0 0 0 var(--color-paper);
+}
 @media (hover: hover) and (pointer: fine) {
   .blk-btn:hover:not(:active) {
-    --frame: var(--color-paper);
-    transform: translateY(-1px);
+    transform: translate(-1px, -1px);
+  }
+  .blk-btn:hover:not(:active)::before {
+    box-shadow: 4px 4px 0 var(--color-paper);
+  }
+}
+
+/* 종이 바탕에 아주 옅은 인쇄 알갱이를 깐다. 포스터 글꼴·낙서·도장이 매끈한 화면 위에 떠 보이지 않게 한다 */
+.bg-night {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.12 0 0 0 -0.04'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* 장면 제목이 필름 띠처럼 흐르는 줄. 두 벌을 이어 붙여 절반만큼 흘리면 끊김 없이 돈다 */
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.ticker {
+  animation: ticker 60s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker {
+    animation: none;
   }
 }
 

@@ -120,12 +120,15 @@ function SceneCard({
   fresh = false,
   label,
   next = false,
+  inRow = false,
 }: {
   scene: ShelfScene;
   done: boolean;
   fresh?: boolean;
   label: string;
   next?: boolean;
+  // 전체 장면 목록 안에 들어갈 때는 옆 줄과 높이를 맞추려고 썸네일과 여백을 줄과 같게 줄인다
+  inRow?: boolean;
 }) {
   return (
     <EntryLink
@@ -133,11 +136,12 @@ function SceneCard({
       entry="home"
       className="blk-btn block h-full"
     >
-      <span className="blk flex h-full items-center gap-3 bg-cream p-2 pr-3 text-ink">
+      <span className={`blk flex h-full items-center bg-cream text-ink ${inRow ? "gap-2 p-1.5 pr-2" : "gap-3 p-2 pr-3"}`}>
+        {inRow && <span className="w-7 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums">{tocNumber(label)}</span>}
         <span className="relative shrink-0">
           <SceneThumb
             stage={scene.stage}
-            className="aspect-[4/3] w-[84px] border-2 border-line"
+            className={`aspect-[4/3] border-2 border-line ${inRow ? "w-[72px]" : "w-[84px]"}`}
           />
           {done && (
             <span
@@ -149,18 +153,20 @@ function SceneCard({
           )}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-pixel text-[15px] leading-none text-ink-subtle">
-            {label}
-          </span>
-          <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
+          {!inRow && (
+            <span className="mb-1 block text-[12px] font-medium leading-none text-ink-subtle">
+              {label}
+            </span>
+          )}
+          <span className="block truncate text-[16px] font-bold leading-snug">
             {scene.title}
           </span>
-          <span className="block truncate text-[14px] text-ink-subtle">
+          <span className="mt-0.5 block truncate text-[12px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
         </span>
         {next ? (
-          <span className="shrink-0 border-2 border-ink px-1.5 py-0.5 font-pixel text-[15px] leading-none">
+          <span className={`shrink-0 border-2 border-ink py-0.5 font-pixel text-[15px] leading-none ${inRow ? "px-1" : "px-1.5"}`}>
             다음
           </span>
         ) : (
@@ -169,6 +175,12 @@ function SceneCard({
       </span>
     </EntryLink>
   );
+}
+
+// "7화"는 목차 숫자 "07"로 바꾼다. 화수가 아닌 이름표는 그대로 쓴다
+function tocNumber(label: string) {
+  const m = /^(\d+)화$/.exec(label);
+  return m ? m[1].padStart(2, "0") : label;
 }
 
 // 전체 장면 목록의 한 줄. 썸네일은 남기고 카드 틀을 덜어서, 블록은 다음에 할 장면에만 쓴다
@@ -187,8 +199,10 @@ function SceneRow({
     <EntryLink
       href={`/scenes/${scene.number}`}
       entry="home"
-      className="flex items-center gap-3 py-2.5"
+      className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors duration-150 hover:bg-paper hover:text-night"
     >
+      {/* 목차처럼 화수를 굵은 숫자로 왼쪽에 세운다 */}
+      <span className="w-8 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums">{tocNumber(label)}</span>
       <span className="relative shrink-0">
         <SceneThumb
           stage={scene.stage}
@@ -204,17 +218,17 @@ function SceneRow({
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-pixel text-[15px] leading-none text-paper-subtle">
-          {label}
-        </span>
-        <span className="mt-1 block truncate text-[16px] font-semibold leading-snug">
+        <span className="block truncate text-[16px] font-bold leading-snug">
           {scene.title}
         </span>
-        <span className="block truncate text-[13px] text-paper-subtle">
+        <span className="mt-0.5 block truncate text-[12px] text-paper-subtle group-hover:text-night/70">
           {scene.relation} · {scene.place}
         </span>
       </span>
       {fresh && <NewChip />}
+      <span aria-hidden className="shrink-0 -translate-x-1 opacity-0 transition duration-150 group-hover:translate-x-0 group-hover:opacity-100">
+        <Arrow />
+      </span>
     </EntryLink>
   );
 }
@@ -229,17 +243,15 @@ function LockedSceneRow({
 }) {
   return (
     <div aria-disabled="true" className="flex items-center gap-3 py-2.5">
+      <span className="w-8 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums text-paper-subtle">{tocNumber(label)}</span>
       <span className="grid aspect-[4/3] w-[72px] shrink-0 place-items-center border border-dashed border-line font-pixel text-[15px] text-paper-subtle">
         잠김
       </span>
       <span className="min-w-0 flex-1 text-paper-subtle">
-        <span className="block font-pixel text-[15px] leading-none">
-          {label}
-        </span>
-        <span className="mt-1 block truncate text-[16px] leading-snug">
+        <span className="block truncate text-[16px] leading-snug">
           {scene.title}
         </span>
-        <span className="block truncate text-[13px]">
+        <span className="mt-0.5 block truncate text-[12px]">
           {scene.relation} · {scene.place}
         </span>
       </span>
@@ -354,7 +366,7 @@ function FeaturedScene({
       entry="home"
       className="blk-btn blk-strong mt-4 block"
     >
-      <span className="blk block bg-cream p-2 pb-4 text-ink md:grid md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-6 md:p-3">
+      <span className="blk block bg-cream p-2 pb-4 text-ink md:grid md:grid-cols-2 md:gap-8 md:p-3">
         <span className="relative block">
           <SceneThumb
             stage={scene.stage}
@@ -369,10 +381,10 @@ function FeaturedScene({
           <span className="mt-3 block px-2 font-poster text-[24px] leading-[1.25] md:mt-0">
             {scene.title}
           </span>
-          <span className="mt-1.5 block px-2 text-[14px] text-ink-subtle">
+          <span className="mt-1.5 block px-2 text-[13px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
-          <span className="mx-2 mt-4 flex items-center justify-between bg-ink px-3 py-2.5 font-pixel text-[15px] text-paper">
+          <span className="mx-2 mt-4 flex items-center justify-between border border-ink bg-gold px-3 py-2.5 font-pixel text-[15px] text-ink">
             다음 장면 해 보기
             <Arrow />
           </span>
@@ -504,8 +516,8 @@ export function SceneShelf({
               className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
             >
               <span>
-                <span className="block font-pixel text-[15px]">표현 모음</span>
-                <span className="block text-[14px] text-ink-subtle">
+                <span className="block text-[16px] font-semibold">표현 모음</span>
+                <span className="mt-0.5 block text-[12px] text-ink-subtle">
                   모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
                 </span>
               </span>
@@ -518,8 +530,8 @@ export function SceneShelf({
               className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
             >
               <span>
-                <span className="block font-pixel text-[15px]">전체 장면</span>
-                <span className="block text-[14px] text-ink-subtle">
+                <span className="block text-[16px] font-semibold">전체 장면</span>
+                <span className="mt-0.5 block text-[12px] text-ink-subtle">
                   {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
                 </span>
               </span>
@@ -646,7 +658,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
               </h2>
               <ol className={SCENE_ROWS_CLASS}>
                 {x.scenes.map((s, i) => (
-                  <li key={s.id} className={s.id === next?.id ? "py-2" : SCENE_ROW_ITEM_CLASS}>
+                  <li key={s.id} className={s.id === next?.id ? `${SCENE_ROW_ITEM_CLASS} py-1` : SCENE_ROW_ITEM_CLASS}>
                     {s.id === next?.id ? (
                       <SceneCard
                         scene={s}
@@ -654,6 +666,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                         fresh={fresh.includes(s.id)}
                         label={`${x.start + i}화`}
                         next
+                        inRow
                       />
                     ) : (
                       <SceneRow

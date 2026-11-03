@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { bookEntry, spoken } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
-import { wordmarkSvg } from "@/features/site/logo";
+import { logoSvg, wordmarkSvg } from "@/features/site/logo";
 import { Mascot } from "@/features/mascot/mascot";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { RewardIcon } from "@/features/rewards/reward-icon";
@@ -33,8 +33,15 @@ import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 preloadStage();
 
 // 선택지 번호. 평소에는 테두리만 두고, 지금 고른 줄에만 먹색을 칠해 화면에서 먹색이 한 곳에만 남게 한다
-function Num({ n, dark = false }: { n: number; dark?: boolean }) {
-  return <span className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] ${dark ? "bg-ink text-paper" : "border-2 border-ink/20 text-ink-muted"}`}>{n}</span>;
+// 고르기 전 보기에서는 손을 올리면 번호 칸이 먹색으로 뒤집히며 살짝 기운다
+function Num({ n, dark = false, hover = false }: { n: number; dark?: boolean; hover?: boolean }) {
+  return (
+    <span
+      className={`grid size-6 shrink-0 place-items-center font-pixel text-[15px] transition-transform duration-150 ${dark ? "bg-ink text-paper" : "border-2 border-ink/20 text-ink-muted"} ${hover ? "group-hover:-rotate-6 group-hover:border-ink group-hover:bg-ink group-hover:text-[#f6f4ee]" : ""}`}
+    >
+      {n}
+    </span>
+  );
 }
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
@@ -96,10 +103,11 @@ function SoundToggle() {
 function Question({ name, line, intent, className = "" }: { name: string; line: string; intent: string; className?: string }) {
   return (
     <div className={`grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2 ${className}`}>
+      {/* 상대 대사는 대본처럼 굵은 세로줄로, 내 속마음은 점선 칸으로 둬서 "들은 영어"와 "머릿속 한국어"가 바로 갈린다 */}
       <SpeakerTag>{name}</SpeakerTag>
-      <p className="font-line text-[20px] leading-snug text-paper md:text-[24px]">{line}</p>
+      <p className="border-l-[3px] border-paper pl-3 font-line text-[20px] leading-snug text-paper md:text-[24px]">{line}</p>
       <SpeakerTag me>나</SpeakerTag>
-      <p className="text-[16px] font-semibold leading-snug text-paper">{intent}</p>
+      <p className="justify-self-start border border-dashed border-paper-subtle px-2.5 py-1.5 text-[16px] font-semibold leading-snug text-paper">{intent}</p>
     </div>
   );
 }
@@ -156,7 +164,10 @@ function ResultBody({
   revealed,
   verdictKey,
   share,
+  meta = true,
 }: {
+  // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
+  meta?: boolean;
   choice: Choice;
   n: number;
   mine: boolean;
@@ -178,7 +189,7 @@ function ResultBody({
           </span>
         </span>
         {revealed ? (
-          <span key={verdictKey} className={`flex items-start gap-2 leading-snug ${active ? "mt-2 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-[16px] font-semibold text-ink" : "mt-1.5 text-[14px] text-ink-muted"}`}>
+          <span key={verdictKey} className={`flex items-start gap-2 leading-snug ${active ? "mt-1.5 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-[16px] font-bold text-ink" : "mt-1 text-[14px] text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -187,15 +198,20 @@ function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {/* 왜 어색한지가 이 카드에서 배울 내용이라 흐리게 두지 않고 본문 색으로 쓴다 */}
-        {active && <span key={`why-${verdictKey}`} className="mt-2 block animate-[fade-in_240ms_ease-out_680ms_both] text-[16px] leading-[1.6] text-ink">{choice.why}</span>}
-        {revealed && (mine || share !== undefined) && (
-          <span className={`flex flex-wrap items-center gap-x-1.5 text-[12px] tabular-nums text-ink-subtle ${active ? "mt-3" : "mt-1.5"}`}>
-            {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
-            {share !== undefined && <span>첫 답으로 {share}%가 골랐어요</span>}
-          </span>
-        )}
+        {/* 대사+반응을 한 덩어리로 진하게 묶고, 이유는 한 칸 떼어 한 톤 낮춘다 */}
+        {active && <span key={`why-${verdictKey}`} className="mt-3 block animate-[fade-in_240ms_ease-out_680ms_both] text-[15px] leading-[1.6] text-ink-muted">{choice.why}</span>}
+        {meta && revealed && (mine || share !== undefined) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
       </span>
+    </span>
+  );
+}
+
+// 내가 고른 보기인지, 첫 답으로 몇 %가 골랐는지. 본문보다 두 단계 작고 흐리게 둔다
+function PickMeta({ mine, share, className = "" }: { mine: boolean; share?: number; className?: string }) {
+  return (
+    <span className={`flex flex-wrap items-center gap-x-1.5 text-[12px] tabular-nums text-ink-subtle ${className}`}>
+      {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
+      {share !== undefined && <span>첫 답으로 {share}%가 골랐어요</span>}
     </span>
   );
 }
@@ -274,18 +290,18 @@ function WrapUp({
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-5">
         <div className="blk bg-cream px-4 py-4 text-ink">
-          <p className="text-[16px] font-semibold leading-relaxed">{scene.discovery}</p>
-          <ul className="mt-3 space-y-3 border-t-2 border-dashed border-ink/20 pt-3">
+          <p className="text-[15px] leading-[1.6]">{scene.discovery}</p>
+          <ul className="mt-3.5 space-y-3.5 border-t-2 border-dashed border-ink/20 pt-3">
             {pairs.map((p) => (
               <li key={p.right}>
                 <p className="font-line text-[20px] leading-snug">{p.right}</p>
-                <p className="text-[14px] text-ink-subtle">
-                  {spoken(p.intent)} · <s>{p.wrong}</s>
+                <p className="mt-0.5 text-[13px] leading-snug text-ink-subtle">
+                  {spoken(p.intent)} · <s className="decoration-rust decoration-2">{p.wrong}</s>
                 </p>
               </li>
             ))}
           </ul>
-          <Link href="/expressions" className="-mx-1 mt-1 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-ink-muted hover:text-ink">
+          <Link href="/expressions" className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 text-[13px] text-ink-subtle hover:text-ink">
             표현 모음에 담았어요
             <Arrow />
           </Link>
@@ -579,12 +595,20 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   return (
     <div className="flex min-h-dvh justify-center overflow-x-clip bg-night break-keep text-ink">
       {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:px-8">
+      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
         {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
         <div className="shrink-0 md:contents">
         <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-pixel text-[15px] text-paper md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
-          <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} className="-ml-2 flex h-11 items-center px-2">
-            {preview ? <span className="logo">검수</span> : <span aria-label="nuanci" className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />}
+          <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} aria-label={preview ? undefined : "nuanci"} className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
+            {/* 다른 화면 머리줄과 같은 마크+글자 로고. 제목 자리가 좁아서 조금 작게 둔다 */}
+            {preview ? (
+              <span className="logo">검수</span>
+            ) : (
+              <>
+                <span aria-hidden className="block size-6 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
+                <span aria-hidden className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
+              </>
+            )}
           </Link>
           <p className="min-w-0 truncate text-paper">{scene.title}</p>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
@@ -598,7 +622,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
           </div>
         </header>
 
-        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:row-span-2 md:bg-transparent md:pb-8 md:pt-6">
+        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:self-start md:bg-transparent md:pb-8 md:pt-6">
           <Panel>
             <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-10rem)]">
               <Stage
@@ -669,8 +693,10 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         </div>
         </div>
 
+        {/* 데스크톱 오른쪽 칸은 내용만큼만 길어지고, 짧으면 버튼을 무대 아래 끝선에 맞춘다. 화면보다 길어질 때만 글 영역이 스크롤된다 */}
+        <div className="contents md:col-start-2 md:row-start-2 md:flex md:min-h-0 md:flex-col">
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
-        <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:col-start-2 md:row-start-2">
+        <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:flex-initial">
           {phase === "transition" && timeCue ? (
             <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-poster text-[24px] text-paper">
               {timeCue}…
@@ -681,7 +707,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                 <p className="font-pixel text-[15px] text-rust">만약에…</p>
                 <p className="mt-1.5 text-[20px] font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
                 <p className="mt-3 text-[14px] text-ink-subtle">
-                  <s>{scene.followUp.from}</s> → <span className="text-ink">{scene.followUp.to}</span>
+                  <s className="decoration-rust decoration-2">{scene.followUp.from}</s> → <span className="text-ink">{scene.followUp.to}</span>
                 </p>
               </div>
             </Panel>
@@ -719,8 +745,8 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
-                    <BlockButton onClick={() => play(c)} className="blk-strong w-full text-left" faceClassName="flex items-center gap-3">
-                      <Num n={i + 1} />
+                    <BlockButton onClick={() => play(c)} className="group w-full text-left" faceClassName="flex items-center gap-3">
+                      <Num n={i + 1} hover />
                       <span className="min-w-0 flex-1">
                         <span className="block font-line text-[20px] leading-snug">{c.line}</span>
                         {showMeaning && <span className="mt-0.5 block text-[14px] text-ink-subtle">{c.meaning}</span>}
@@ -752,18 +778,22 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                             <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.verdict].color}`} />
                           )}
                           <span className="relative block">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} />
-                            <span className="mt-3 block border-t border-ink/10 pl-9">
-                              {detailOpen && <span className="mt-3 block animate-[fade-in_150ms] text-[16px] leading-[1.6] text-ink-muted">{c.detail}</span>}
-                              <button
-                                type="button"
-                                onClick={() => setDetailOpen((v) => !v)}
-                                aria-expanded={detailOpen}
-                                className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-[14px] font-semibold text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink"
-                              >
-                                {detailOpen ? "접기" : "왜 그런지 더 보기"}
-                                <Caret open={detailOpen} />
-                              </button>
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} />
+                            {/* 더 보기와 메타는 카드 맨 아래 한 줄의 양 끝에 두고 힘을 뺀다 */}
+                            <span className="mt-3.5 block border-t border-ink/10 pl-9">
+                              {detailOpen && <span className="mt-3 block animate-[fade-in_150ms] text-[15px] leading-[1.6] text-ink-muted">{c.detail}</span>}
+                              <span className="flex items-center justify-between gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => setDetailOpen((v) => !v)}
+                                  aria-expanded={detailOpen}
+                                  className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-[13px] text-ink-subtle underline decoration-ink/25 underline-offset-4 hover:text-ink hover:decoration-ink"
+                                >
+                                  {detailOpen ? "접기" : "왜 그런지 더 보기"}
+                                  <Caret open={detailOpen} />
+                                </button>
+                                {(c.id === pickedId || shareOf(c) !== undefined) && <PickMeta mine={c.id === pickedId} share={shareOf(c)} className="justify-end" />}
+                              </span>
                             </span>
                           </span>
                         </div>
@@ -791,7 +821,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         </section>
 
         {(choice || leading || (phase === "transition" && !timeCue)) && (
-          <footer className="relative shrink-0 border-t border-line/40 bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:px-1 md:pb-8">
+          <footer className="relative shrink-0 border-t border-line/40 bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:mt-auto md:px-1 md:pb-8">
             {/* 대사가 저절로 넘어간다는 걸 알 수 있게 위 테두리를 남은 시간만큼 채운다 */}
             {beat && !reduced && !autoPaused && (
               <span
@@ -851,6 +881,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             )}
           </footer>
         )}
+        </div>
       </main>
     </div>
   );

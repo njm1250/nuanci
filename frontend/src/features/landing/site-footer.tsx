@@ -14,8 +14,8 @@ export function SiteFooter() {
       <button type="button" onClick={() => openInquiry("scene")} className="blk-btn mb-3 hidden w-full text-left returning:block">
         <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
           <span>
-            <span className="block font-pixel text-[15px]">이상한 영어를 발견했나요?</span>
-            <span className="block text-[14px] text-paper-subtle">알려 주시면 바로 고칠게요</span>
+            <span className="block text-[16px] font-semibold">이상한 영어를 발견했나요?</span>
+            <span className="mt-0.5 block text-[12px] text-paper-subtle">알려 주시면 바로 고칠게요</span>
           </span>
           <span className="shrink-0 font-pixel text-[15px] text-gold">알려 주기 ›</span>
         </span>

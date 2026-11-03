@@ -254,8 +254,8 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
         {!member && account.status !== "loading" && (
           <Panel className="mt-6">
             <div className="p-4">
-              <p className="font-pixel text-[15px]">로그인하고 계정에 남기기</p>
-              <p className="mt-1 text-[14px] leading-relaxed text-ink-muted">꾸민 모습과 모은 물건이 다른 기기에서도 그대로예요.</p>
+              <p className="text-[16px] font-bold">로그인하고 계정에 남기기</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-ink-subtle">꾸민 모습과 모은 물건이 다른 기기에서도 그대로예요.</p>
               <GoogleButton next="/me/room" enabled={account.google} />
             </div>
           </Panel>

@@ -84,7 +84,11 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
       )}
 
       {/* 9가지 유형이 모두 이 고양이(Mochi)의 변신이라는 걸 먼저 보여줘서 결과 캐릭터를 기대하게 만든다 */}
-      <ul className="mt-6 grid grid-cols-3 gap-2" aria-label="9가지 사고 유형">
+      {/* 결과 카드와 같은 모눈종이 도감 틀에 넣어서 인트로부터 결과까지 한 세계로 이어진다 */}
+      <ul
+        className="mt-6 grid grid-cols-3 gap-2 border-[3px] border-ink bg-[linear-gradient(var(--color-night-deep)_2px,transparent_2px),linear-gradient(90deg,var(--color-night-deep)_2px,transparent_2px)] bg-[length:24px_24px] px-2 py-4 light:bg-[linear-gradient(#e4dfd3_2px,transparent_2px),linear-gradient(90deg,#e4dfd3_2px,transparent_2px)]"
+        aria-label="9가지 사고 유형"
+      >
         {TYPE_IDS.map((id, i) => (
           <li key={id} className="flex flex-col items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}

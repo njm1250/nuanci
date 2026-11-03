@@ -287,24 +287,34 @@ function Review({ questions, picks }: { questions: TestQuestion[]; picks: number
           return (
             <li key={q.id}>
               <Panel>
-                <div className="px-3.5 py-3 text-[16px] leading-snug">
+                {/* 상대 말과 내 답은 한 톤 낮추고, 배울 말(자연스러운 말) 하나만 크게 둔다. 맞힌 문제는 내 답이 곧 배울 말이다 */}
+                <div className="px-3.5 py-3 leading-snug">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-pixel text-ink-subtle">
+                    <span className="text-[12px] text-ink-subtle">
                       {i + 1}. {q.partnerName}
                     </span>
                     <StampRow kinds={[stampKind(c?.verdict ?? null)]} total={1} size={22} />
                   </div>
-                  <p className="mt-1 font-line text-[20px]">{q.partnerLine}</p>
-                  <p className="mt-2">
-                    <span className="text-ink-subtle">내 답 </span>
-                    {c ? <span className="font-line text-[20px]">{c.line}</span> : "시간 초과"}
-                  </p>
-                  {c && c.verdict !== "good" && <p className="mt-0.5 text-ink-subtle">→ {c.reaction}</p>}
-                  {good && c?.id !== good.id && (
-                    <p className="mt-2">
-                      <span className="text-ink-subtle">자연스러운 말 </span>
-                      <span className="font-line text-[20px]">{good.line}</span>
+                  <p className="mt-0.5 font-line text-[16px] text-ink-muted">{q.partnerLine}</p>
+                  {c && c.id === good?.id ? (
+                    <p className="mt-3">
+                      <span className="block text-[12px] text-ink-subtle">내 답</span>
+                      <span className="font-line text-[20px] text-ink">{c.line}</span>
                     </p>
+                  ) : (
+                    <>
+                      <p className="mt-2 text-[14px] text-ink-muted">
+                        <span className="text-[12px] text-ink-subtle">내 답 </span>
+                        {c ? <span className="font-line text-[16px]">{c.line}</span> : "시간 초과"}
+                        {c && c.verdict !== "good" && <span className="block text-[13px] text-ink-subtle">→ {c.reaction}</span>}
+                      </p>
+                      {good && (
+                        <p className="mt-3">
+                          <span className="block text-[12px] text-ink-subtle">자연스러운 말</span>
+                          <span className="font-line text-[20px] text-ink">{good.line}</span>
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </Panel>
