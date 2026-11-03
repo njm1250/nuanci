@@ -1,20 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Mascot } from "@/features/mascot/mascot";
 
+const ASK = "어디로 갈까?";
 const ITEMS = [
-  { href: "/scenes", title: "전체 장면", note: "오늘은 또 무슨 사고?", desc: "순서대로 · 상황별로 고르기" },
-  { href: "/expressions", title: "표현 모음", note: "이 말, 써먹어야지", desc: "해 본 장면의 표현 복습" },
-  { href: "/test", title: "유형 테스트", note: "넌 무슨 유형이려나", desc: "내 영어 사고 유형 찾기" },
-  { href: "/me/room", title: "아지트", note: "내 방도 꾸며야지", desc: "옷 입히기 · 방 꾸미기" },
-  { href: "/me", title: "내 정보", note: "오늘도 출근 완료", desc: "사원증 · 연속 기록 · 설정" },
+  { href: "/scenes", title: "전체 장면", desc: "순서대로 · 상황별로 고르기", reply: "오늘은 또 무슨 사고 치게?" },
+  { href: "/expressions", title: "표현 모음", desc: "해 본 장면의 표현 복습", reply: "그 말, 이번엔 써먹어 봐" },
+  { href: "/test", title: "유형 테스트", desc: "내 영어 사고 유형 찾기", reply: "넌 무슨 유형이려나~" },
+  { href: "/me/room", title: "아지트", desc: "옷 입히기 · 방 꾸미기", reply: "내 자리도 하나 만들어 줘" },
+  { href: "/me", title: "내 정보", desc: "사원증 · 연속 기록 · 설정", reply: "오늘도 출근 도장 찍자" },
 ];
 
-// 전체 메뉴. 메뉴 이름은 항상 또렷하게 두고, 마우스나 키보드로 다가갔을 때만 옆에 적어 둔 듯한 한마디가 나타난다. 호버가 없는 터치 화면에서는 첫 줄의 한마디만 보여 준다
+// 전체 메뉴. 장면처럼 Mochi가 묻고 선택지를 고르게 해서, 다가가면 말풍선이 반응한다. 말풍선은 없어도 되는 재미라 메뉴 이름과 설명만으로 쓸 수 있게 한다
 function MenuDialog({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [near, setNear] = useState<number | null>(null);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
@@ -25,38 +31,71 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
       document.body.style.overflow = overflow;
     };
   }, []);
+  const close = () => ref.current?.close();
+  // 장면의 선택지처럼 숫자 키로도 고른다
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const item = ITEMS[Number(e.key) - 1];
+    if (!item || e.metaKey || e.ctrlKey || e.altKey) return;
+    close();
+    router.push(item.href);
+  };
+  const reply = near === null ? ASK : ITEMS[near].reply;
   return (
-    <dialog ref={ref} onClose={onClose} aria-label="메뉴" className="m-0 h-dvh max-h-none w-screen max-w-none animate-[fade-in_160ms] overflow-y-auto bg-slate-block text-paper break-keep">
-      <div className="mx-auto w-full max-w-[1200px] px-4 pb-10 md:px-8">
-        <div className="flex h-14 items-center justify-end md:h-16">
-          <button type="button" onClick={() => ref.current?.close()} className="flex h-11 items-center px-1 font-pixel text-[15px]">
-            닫기
-          </button>
-        </div>
-        <ol className="space-y-5 md:space-y-8">
-          {ITEMS.map((item, i) => (
-            <li key={item.href}>
-              <Link href={item.href} onClick={() => ref.current?.close()} className="menu-row grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-4 md:gap-x-8">
-                <span aria-hidden className="font-poster text-[52px] leading-none md:text-[88px]">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="min-w-0">
-                  <span className="flex items-end justify-end gap-2 border-b border-paper pb-1.5 md:gap-3 md:pb-2">
-                    <span aria-hidden className={`menu-note flex min-w-0 items-end gap-1 font-scrawl text-[24px] leading-none text-rust-light md:text-[42px] ${i === 0 ? "menu-note-touch" : ""}`}>
-                      <span className="truncate pb-0.5">{item.note}</span>
-                      <svg width="34" height="16" viewBox="0 0 34 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="mb-1 hidden shrink-0 md:block">
-                        <path d="M2 4c6 9 17 10 29 5M25 3l6 6-8 4" />
-                      </svg>
-                    </span>
-                    <span className="shrink-0 font-poster text-[28px] leading-none md:text-[52px]">{item.title}</span>
-                  </span>
-                  <span className="mt-1.5 block text-right text-[14px] text-paper-muted md:text-[18px]">{item.desc}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ol>
+    <dialog
+      ref={ref}
+      onClose={onClose}
+      onKeyDown={onKeyDown}
+      onClick={(e) => e.target === ref.current && close()}
+      aria-label="메뉴"
+      className="m-0 ml-auto h-dvh max-h-none w-full max-w-[440px] animate-[fade-in_160ms] overflow-y-auto bg-night text-paper break-keep backdrop:bg-[#141317]/50"
+    >
+      <div className="flex h-14 items-center justify-end px-4 md:h-16">
+        <button type="button" onClick={close} className="flex h-11 items-center px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
+          닫기
+        </button>
       </div>
+
+      <div aria-hidden className="flex items-end gap-3 border-b-4 border-[#5e5a54] px-4">
+        <Mascot scale={3} className="shrink-0" />
+        <div className="blk-frame-sm mb-5 min-w-0">
+          <p key={reply} className="blk animate-[fade-in_160ms] bg-white px-3 py-2 text-[15px] font-semibold leading-snug text-[#141317]">
+            {reply}
+          </p>
+        </div>
+      </div>
+
+      <nav aria-label="전체 메뉴">
+        <ol className="space-y-3 px-4 pb-8 pt-5">
+          {ITEMS.map((item, i) => {
+            const here = pathname === item.href;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={close}
+                  aria-current={here ? "page" : undefined}
+                  onMouseEnter={() => setNear(i)}
+                  onMouseLeave={() => setNear(null)}
+                  onFocus={() => setNear(i)}
+                  onBlur={() => setNear(null)}
+                  className={`blk-btn block ${here ? "blk-strong" : ""}`}
+                >
+                  <span className="blk flex items-start gap-3 bg-cream px-3 py-3 text-ink">
+                    <span aria-hidden className="grid size-6 shrink-0 place-items-center border-2 border-ink/20 font-pixel text-[15px] text-ink-muted">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-poster text-[22px] leading-tight">{item.title}</span>
+                      <span className="mt-0.5 block text-[14px] text-ink-muted">{item.desc}</span>
+                    </span>
+                    {here && <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink bg-gold px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">지금 여기</span>}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
     </dialog>
   );
 }

@@ -6,7 +6,7 @@
  * 밝은 배경(paper·cream): ink > ink-muted > ink-subtle
  * 라벨은 font-pixel(굵은 본문 글꼴) 15px, 작은 뱃지는 font-pixel-title 12px로 쓰고, 두 줄 넘게 읽는 글은 16px로 쓴다
  * 글꼴 역할: 본문·라벨은 Pretendard, 영어 대사는 font-line, 페이지 제목과 결과 같은 순간은 font-poster, 로고와 무대 말풍선은 픽셀 글꼴
- * 낙서 글꼴(font-scrawl)은 누가 옆에 적어 둔 한마디에만 쓴다. 제목 옆이나 메뉴 옆처럼 읽지 않아도 되는 자리에만 두고, 읽어야 하는 내용에는 쓰지 않는다
+ * 낙서 글꼴(font-scrawl)은 제목 옆에 적어 둔 한마디에만 쓴다. 읽지 않아도 되는 자리에만 두고, 읽어야 하는 내용에는 쓰지 않는다
  * 영어 대사(선택지·말풍선·모은 표현)는 손글씨 글꼴 font-line으로 써서 사람이 한 말처럼 보이게 한다
  *
  * 글자 위계 (SEED 크기 단계를 따른다). 한 카드 안에서는 위계가 한 단계씩 내려갈 때마다 크기·굵기·색 중 둘 이상을 바꾼다
@@ -468,20 +468,6 @@ body {
 /* 지나간 대사는 내려놓고 지금 말하는 줄만 진하게 둔다 */
 .beat-past {
   opacity: 0.55;
-}
-/* 메뉴 옆 한마디. 평소에는 숨겨 두고 다가갔을 때 펜으로 쓰듯 드러난다 */
-.menu-note {
-  clip-path: inset(-20% 100% -20% -5%);
-  transition: clip-path 280ms linear;
-}
-.menu-row:hover .menu-note,
-.menu-row:focus-visible .menu-note {
-  clip-path: inset(-20% -5% -20% -5%);
-}
-@media (hover: none) {
-  .menu-note-touch {
-    clip-path: inset(-20% -5% -20% -5%);
-  }
 }
 .poster-rise {
   animation: poster-rise 1s cubic-bezier(0, 0.33, 0.07, 1.03) both;
