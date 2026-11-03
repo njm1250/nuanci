@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.TimeUnit
 
-// 해시 주소로 공개 장면을 내보내는 읽기 전용 API. 목차와 장면은 내용이 바뀌면 주소가 바뀌므로 영구 캐시로 내보내고, current만 매번 확인하게 한다
+// 해시 주소로 공개 장면을 내보내는 읽기 전용 API. 목차와 장면은 내용이 바뀌면 주소가 바뀌므로 1년 캐시로 내보내고, current만 매번 확인하게 한다.
+// 한 번 공개한 주소는 목록에서 빠져도 계속 읽힌다. 이미 퍼진 캐시를 원본에서 회수할 수 없어서, 회수는 따로 다룬다
 @RestController
 @RequestMapping("/api/content")
 class ContentController(private val catalog: SceneCatalog) {
@@ -25,14 +26,12 @@ class ContentController(private val catalog: SceneCatalog) {
 	}
 
 	@GetMapping("/manifests/{hash}")
-	fun manifest(@PathVariable hash: String): ResponseEntity<String> {
-		val current = catalog.current()
-		return if (current.hash == hash) immutable(current.manifest) else ResponseEntity.notFound().build()
-	}
+	fun manifest(@PathVariable hash: String): ResponseEntity<String> =
+		catalog.manifest(hash)?.let(::immutable) ?: ResponseEntity.notFound().build()
 
 	@GetMapping("/objects/{hash}")
 	fun scene(@PathVariable hash: String): ResponseEntity<String> =
-		catalog.current().objects[hash]?.let(::immutable) ?: ResponseEntity.notFound().build()
+		catalog.scene(hash)?.let(::immutable) ?: ResponseEntity.notFound().build()
 
 	private fun immutable(json: String) =
 		ResponseEntity.ok().cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable()).contentType(MediaType.APPLICATION_JSON).body(json)
