@@ -4,7 +4,7 @@ import { SiteHeader } from "@/features/site/site-header";
 import { StreakChip } from "@/features/streak/streak-chip";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/features/site/metadata";
 import { Panel } from "@/features/scene/block-ui";
-import { getScene, getScenes } from "@/features/scene/api";
+import { getCatalog, getScene } from "@/features/scene/api";
 import type { Scene } from "@/features/scene/types";
 import { AttractReel } from "@/features/landing/attract-reel";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
@@ -24,10 +24,10 @@ const website = {
 };
 
 export default async function Home() {
-  const summaries = await getScenes();
-  const scenes = (await Promise.all(summaries.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
+  const catalog = await getCatalog();
+  const scenes = (await Promise.all(catalog.map((s) => getScene(s.id)))).filter((s): s is Scene => s !== null);
   const beats = reelBeats(scenes);
-  const shelf = scenes.map(({ id, number, title, relation, place, base }) => ({ id, number, title, relation, place, stage: base.stage }));
+  const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
