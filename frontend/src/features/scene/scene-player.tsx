@@ -145,34 +145,6 @@ function usePickStats(sceneId: string, preview: boolean) {
   return stats;
 }
 
-// 다음 장면을 미리 불러와 끝난 화면의 버튼에 예고로 쓴다("다음: 「이건 서비스예요!」 영어로?").
-// 장면 하나를 끝낸 멈춤 지점에서, 모르는 게 하나 보여야 이어서 누를 호기심이 생긴다.
-// 하고 싶은 말에서 따옴표로 뽑을 말이 있으면 그 말, 없으면 첫 질문 보기의 한국어 뜻, 둘 다 길면 장면 제목을 쓴다
-const TEASER_MAX = 16;
-function teaserOf(s: Scene) {
-  if (s.teaser) return s.teaser;
-  const fit = (t: string | undefined) => (t && t.length <= TEASER_MAX ? t : null);
-  const said = s.base.intent.match(/^(.+?)\s하고\s/)?.[1].trim();
-  const meaning = s.base.choices.find((c) => c.verdict !== "good")?.meaning.replace(/\s*\(.*?\)/g, "").trim();
-  const line = fit(said) ?? fit(meaning);
-  return line ? `다음: 「${line}」 영어로?` : `다음: ${s.title}`;
-}
-
-function useNextTeaser(nextId: string | undefined, preview: boolean) {
-  const [teaser, setTeaser] = useState<string | null>(null);
-  useEffect(() => {
-    if (!nextId || preview) return;
-    let alive = true;
-    fetch(`/api/scenes/${encodeURIComponent(nextId)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((s: Scene | null) => alive && s && setTeaser(teaserOf(s)))
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [nextId, preview]);
-  return teaser;
-}
 
 function ResultBody({
   choice,
@@ -390,7 +362,8 @@ function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName
   );
 }
 
-type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; preview?: boolean };
+// teaser는 다음 장면 예고. 페이지가 서버에서 만들어 넘겨서 브라우저가 다음 장면 본문을 받지 않는다
+type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; teaser?: string | null; preview?: boolean };
 
 // Next.js는 떠난 페이지를 숨겨 두기만 해서 상태가 남는다. 링크로 새로 들어오면 처음부터, 뒤로 가기로 돌아오면 하던 곳부터 보여준다
 export function ScenePlayer(props: PlayerProps) {
@@ -399,7 +372,7 @@ export function ScenePlayer(props: PlayerProps) {
 }
 
 // 장면 하나를 처음 질문부터 정리까지 진행하는 화면. 검수 미리보기에서는 이벤트를 보내지 않고 함정 유형을 보여준다
-function SceneRun({ scene: original, order = [], preview = false }: PlayerProps) {
+function SceneRun({ scene: original, order = [], teaser = null, preview = false }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
   const send = (e: Omit<TrackEvent, "sceneId" | "sceneVersion" | "attemptId">) => {
@@ -411,7 +384,6 @@ function SceneRun({ scene: original, order = [], preview = false }: PlayerProps)
     track({ ...e, sceneId: scene.id, sceneVersion: scene.version, attemptId });
   };
   const next = nextScene(order, scene.id);
-  const teaser = useNextTeaser(next?.id, preview);
   const viewedSent = useRef(false);
   useEffect(() => {
     if (preview || viewedSent.current) return;

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getSceneByNumber, getScenes } from "@/features/scene/api";
+import { getScene, getSceneByNumber, getScenes } from "@/features/scene/api";
 import { ScenePlayer } from "@/features/scene/scene-player";
+import { teaserOf } from "@/features/scene/teaser";
 
 export async function generateStaticParams() {
   return (await getScenes()).map((s) => ({ number: String(s.number) }));
@@ -19,7 +20,10 @@ async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">
   const { number } = await params;
   const [scene, scenes] = await Promise.all([getSceneByNumber(number), getScenes()]);
   if (!scene) notFound();
-  return <ScenePlayer key={scene.id} scene={scene} order={scenes.map(({ id, number }) => ({ id, number }))} />;
+  // 끝난 화면의 다음 장면 예고. 다음 장면은 목록의 바로 다음이고(progress.nextScene과 같은 규칙), 본문은 해시 주소로 캐시돼 있다
+  const nextId = scenes[scenes.findIndex((s) => s.id === scene.id) + 1]?.id;
+  const next = nextId ? await getScene(nextId) : null;
+  return <ScenePlayer key={scene.id} scene={scene} order={scenes.map(({ id, number }) => ({ id, number }))} teaser={next && teaserOf(next)} />;
 }
 
 export default function ScenePage({ params }: PageProps<"/scenes/[number]">) {
