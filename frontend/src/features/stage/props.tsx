@@ -87,6 +87,34 @@ export function HeldProp({ id }: { id: PropId }) {
           <Box size={[0.04, 0.21, 0.21]} at={[0, -0.72, 0.1]} color={C.mustard} />
         </>
       );
+    case "bill":
+      return (
+        <>
+          <Box size={[0.42, 0.86, 0.015]} at={[0, -0.98, 0.08]} color={C.paper} />
+          <Box size={[0.34, 0.06, 0.005]} at={[0, -0.66, 0.09]} color={C.ink} />
+          {[-0.8, -0.88, -0.96, -1.04].map((y) => (
+            <Box key={y} size={[0.34, 0.025, 0.005]} at={[0, y, 0.09]} color="#9a9a98" />
+          ))}
+          <Box size={[0.34, 0.12, 0.005]} at={[0, -1.26, 0.09]} color={C.rust} />
+        </>
+      );
+    case "cheque":
+      return (
+        <>
+          <Box size={[1.25, 0.6, 0.02]} at={[0, -0.82, 0.08]} color="#f6f1dc" />
+          <Box size={[1.15, 0.07, 0.005]} at={[0, -0.6, 0.095]} color={C.teal} />
+          <Box size={[0.66, 0.15, 0.005]} at={[-0.2, -0.82, 0.095]} color="#e8b931" />
+          <Box size={[0.3, 0.035, 0.005]} at={[0.36, -1.0, 0.095]} color={C.ink} />
+        </>
+      );
+    case "clipboard":
+      return (
+        <>
+          <Box size={[0.38, 0.52, 0.025]} at={[0, -0.8, 0.08]} color={C.woodDark} />
+          <Box size={[0.32, 0.42, 0.005]} at={[0, -0.82, 0.096]} color={C.paper} />
+          <Box size={[0.14, 0.05, 0.015]} at={[0, -0.57, 0.1]} color={C.metal} />
+        </>
+      );
     case "trophy":
       return (
         <>

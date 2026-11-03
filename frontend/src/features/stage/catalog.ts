@@ -2,8 +2,8 @@ import type { Expression, Motion } from "@/features/scene/types";
 import type { AccessoryId, CastId, DecorId, PropId, SetId } from "./types";
 
 // 장면 JSON에 쓸 수 있는 무대 값 목록. 관리자 에셋 화면에서 미리 보고 고를 때 쓴다
-export const SET_IDS = ["dining", "office", "cafe", "living", "street", "park", "elevator", "store", "karaoke", "gym", "room", "plane", "subway", "classroom", "clinic", "pharmacy", "bunsik", "salon", "boutique"] as const satisfies readonly SetId[];
-export const PARTNER_IDS = ["sam", "alex", "barista", "jordan", "mochi", "bori", "boss", "kong"] as const satisfies readonly CastId[];
+export const SET_IDS = ["dining", "office", "cafe", "living", "street", "park", "elevator", "store", "karaoke", "gym", "freezer", "room", "plane", "subway", "classroom", "clinic", "pharmacy", "bunsik", "salon", "boutique"] as const satisfies readonly SetId[];
+export const PARTNER_IDS = ["sam", "alex", "barista", "jordan", "mochi", "bori", "boss", "kong", "max", "mc", "mom"] as const satisfies readonly CastId[];
 export const ACCESSORY_IDS = ["hair-1", "hair-2", "hair-3", "hair-4", "hair-5", "hair-6", "cap", "glasses", "headphones", "crown", "beanie", "cat-ears", "flower", "sunglasses", "scarf", "bowtie", "badge"] as const satisfies readonly AccessoryId[];
 export const DECOR_IDS = [
   "fridge",
@@ -31,8 +31,13 @@ export const DECOR_IDS = [
   "tambourine",
   "mochi",
   "pudding",
+  "contest-poster",
+  "bill-pile",
+  "ice-block",
+  "snow-pile",
+  "thermometer",
 ] as const satisfies readonly DecorId[];
-export const PROP_IDS = ["blaster", "phone", "card", "pudding", "bag", "mic", "flowers", "umbrella", "coffee", "cake", "fish", "gift", "trophy"] as const satisfies readonly PropId[];
+export const PROP_IDS = ["blaster", "phone", "card", "pudding", "bag", "mic", "flowers", "umbrella", "coffee", "cake", "fish", "gift", "trophy", "bill", "cheque", "clipboard"] as const satisfies readonly PropId[];
 export const EXPRESSIONS = ["neutral", "happy", "delighted", "puzzled", "awkward", "stuffed", "dizzy", "love", "angry", "shocked", "sleepy", "crying"] as const satisfies readonly Expression[];
 export const MOTIONS = [
   "idle",

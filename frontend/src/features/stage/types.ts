@@ -1,7 +1,7 @@
-export type SetId = "dining" | "office" | "cafe" | "living" | "street" | "park" | "elevator" | "store" | "karaoke" | "gym" | "room" | "plane" | "subway" | "classroom" | "clinic" | "pharmacy" | "bunsik" | "salon" | "boutique";
-export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag" | "mic" | "flowers" | "umbrella" | "coffee" | "cake" | "fish" | "gift" | "trophy";
+export type SetId = "dining" | "office" | "cafe" | "living" | "street" | "park" | "elevator" | "store" | "karaoke" | "gym" | "freezer" | "room" | "plane" | "subway" | "classroom" | "clinic" | "pharmacy" | "bunsik" | "salon" | "boutique";
+export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag" | "mic" | "flowers" | "umbrella" | "coffee" | "cake" | "fish" | "gift" | "trophy" | "bill" | "cheque" | "clipboard";
 export type Time = "day" | "evening";
-export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong";
+export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong" | "max" | "mc" | "mom";
 
 // 주인공. 사용자가 아지트에서 고른 모습으로 모든 장면에 나온다
 export type Hero = "boy" | "girl";
@@ -55,7 +55,12 @@ export type DecorId =
   | "slippers"
   | "tambourine"
   | "mochi"
-  | "pudding";
+  | "pudding"
+  | "contest-poster"
+  | "bill-pile"
+  | "ice-block"
+  | "snow-pile"
+  | "thermometer";
 
 export type Decor = { id: DecorId; x: number; y?: number; z?: number };
 
@@ -86,6 +91,8 @@ export type Look = {
   glasses?: boolean;
   apron?: string;
   tie?: string;
+  // 어깨와 팔이 큰 몸짱 체형. 소매 없는 옷이라 팔은 피부색으로 그린다
+  muscle?: boolean;
   wear?: Worn[];
   // 동물 캐릭터: 털색이 피부를 대신하고, 귀·꼬리·볼터치가 붙고, 머리가 커서 더 귀엽게 보인다
   animal?: { kind: "cat" | "bear" | "dog"; fur: string; inner: string };

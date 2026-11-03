@@ -1,7 +1,7 @@
 "use client";
 
 import { C } from "./palette";
-import { Box, Cyl, Flat, Gem, Glow } from "./primitives";
+import { Box, Cyl, Flat, Gem, Glow, PixelText } from "./primitives";
 import type { Decor, Placement, SetId } from "./types";
 import { SET_WALLS } from "./walls";
 
@@ -10,6 +10,8 @@ type SceneryProps = { evening: boolean; flags: Set<string> };
 export type SetDef = {
   label: string;
   wall: { day: string; evening: string };
+  // 앞쪽 바닥 색. 없으면 공통 바닥 색을 쓴다
+  floor?: string;
   me: Placement;
   partner: Placement;
   Scenery: (p: SceneryProps) => React.ReactNode;
@@ -354,6 +356,46 @@ export const SETS: Record<SetId, SetDef> = {
       </>
     ),
     decor: [{ id: "fan", x: 1.45 }],
+  },
+
+  freezer: {
+    label: "냉동 대회장",
+    wall: SET_WALLS.freezer,
+    floor: "#e4f3fa",
+    me: { x: -0.75, facing: R, posture: "stand" },
+    partner: { x: 0.75, facing: -R, posture: "stand" },
+    // blizzard는 눈보라, locked는 빨간 잠금 램프, frozen은 벽까지 얼어붙은 모습이다
+    Scenery: ({ flags }) => (
+      <>
+        <Box size={[30, 0.02, 2.4]} at={[0, 0.01, 0]} color="#d8eef7" />
+        {[-1.3, 0, 1.3].map((x) => (
+          <Flat key={x} size={[1.2, 3.2]} at={[x, 1.8, WALL_Z + 0.005]} color="#a9cfe2" />
+        ))}
+        <Flat size={[3.1, 0.5]} at={[0, 2.95, WALL_Z + 0.02]} color="#1f4f7a" />
+        <PixelText text="$1000000" at={[0, 2.95, WALL_Z + 0.03]} px={0.05} color="#e8b931" />
+        {[-2.75, -2.35, -1.95, 1.95, 2.35, 2.75].map((x, i) => (
+          <Cyl key={x} r={[0.07, 0.008]} h={i % 2 ? 0.34 : 0.5} at={[x, 3.12 - (i % 2 ? 0.17 : 0.25), WALL_Z + 0.12]} color="#e6f7ff" sides={4} rot={[Math.PI, 0, 0]} />
+        ))}
+        <Box size={[0.9, 1.75, 0.1]} at={[-2.4, 0.88, WALL_Z + 0.08]} color="#7f9fb2" />
+        <Box size={[0.08, 0.34, 0.08]} at={[-2.1, 0.95, WALL_Z + 0.16]} color={C.ink} />
+        <Glow size={[0.16, 0.16, 0.05]} at={[-2.4, 1.95, WALL_Z + 0.1]} on={!flags.has("locked")} />
+        {flags.has("locked") && <Box size={[0.2, 0.2, 0.06]} at={[-2.4, 1.95, WALL_Z + 0.12]} color="#e03131" />}
+        {flags.has("frozen") &&
+          [0.9, 0.6, 1.1, 0.7, 1.3, 0.5, 0.8, 1.2, 0.6, 1.0, 0.7, 1.4, 0.6, 0.9, 1.1].map((h, i) => (
+            <Flat key={i} size={[0.42, h]} at={[-2.94 + i * 0.42, h / 2 + 0.05, WALL_Z + 0.03]} color="#eef9fe" />
+          ))}
+        {flags.has("blizzard") &&
+          [
+            [-2.4, 2.4, 0.5], [-1.9, 1.5, 0.2], [-1.4, 2.6, 0.7], [-0.8, 1.2, 0.4], [-0.3, 2.2, 0.8],
+            [0.3, 1.0, 0.6], [0.8, 2.5, 0.3], [1.3, 1.5, 0.8], [1.9, 2.3, 0.5], [2.4, 1.1, 0.3],
+          ].map(([x, y, z]) => <Gem key={`${x}-${y}`} r={0.05} at={[x, y, z]} color="#ffffff" />)}
+      </>
+    ),
+    decor: [
+      { id: "thermometer", x: 2.4 },
+      { id: "snow-pile", x: -1.7 },
+      { id: "snow-pile", x: 1.9 },
+    ],
   },
 
   room: {

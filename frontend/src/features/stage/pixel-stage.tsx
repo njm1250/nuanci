@@ -178,7 +178,7 @@ function TypingDots() {
   );
 }
 
-function Backdrop({ wall }: { wall: string }) {
+function Backdrop({ wall, floor = C.floor }: { wall: string; floor?: string }) {
   return (
     <>
       <mesh position={[0, 1.5, -1.2]}>
@@ -187,7 +187,7 @@ function Backdrop({ wall }: { wall: string }) {
       </mesh>
       <mesh position={[0, -1.5, 0]}>
         <boxGeometry args={[30, 3, 2.4]} />
-        <meshBasicMaterial color={C.floor} />
+        <meshBasicMaterial color={floor} />
       </mesh>
     </>
   );
@@ -270,7 +270,7 @@ export function PixelStage({
   const scenery = useMemo(
     () => (
       <>
-        <Backdrop wall={wall} />
+        <Backdrop wall={wall} floor={set.floor} />
         <set.Scenery evening={evening} flags={flags} />
         <DecorPieces items={decor} />
       </>

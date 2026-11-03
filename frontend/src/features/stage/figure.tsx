@@ -467,11 +467,18 @@ export function Figure({
     });
 
     const arm = (side: 1 | -1, ref: React.RefObject<THREE.Group>) => (
-        <group ref={ref} position={[(0.165) * side, torsoH - 0.06, 0.007]}>
-            {/* 통통한 치비 소매 */}
-            <PixRect w={0.09} h={armLen} at={[0, -armLen / 2, 0]} color={look.shirt} outlineZ={-0.05} />
+        <group ref={ref} position={[(look.muscle ? 0.36 : 0.165) * side, torsoH - 0.06, 0.007]}>
+            {/* 통통한 치비 소매. 몸짱은 소매 없이 굵은 팔과 어깨 근육을 그린다 */}
+            {look.muscle ? (
+                <>
+                    <PixOval rx={0.14} ry={0.12} at={[0, 0.0, 0]} color={skin} outlineZ={-0.05} />
+                    <PixRect w={0.21} h={armLen + 0.08} at={[0, -armLen / 2 - 0.04, 0]} color={skin} outlineZ={-0.05} />
+                </>
+            ) : (
+                <PixRect w={0.09} h={armLen} at={[0, -armLen / 2, 0]} color={look.shirt} outlineZ={-0.05} />
+            )}
             {/* 동글동글한 만두 손 */}
-            <PixOval rx={0.05} ry={0.05} at={[0, -armLen - 0.02, 0.005]} color={skin} outlineZ={-0.055} />
+            <PixOval rx={look.muscle ? 0.1 : 0.05} ry={look.muscle ? 0.09 : 0.05} at={[0, -armLen - (look.muscle ? 0.1 : 0.02), 0.005]} color={skin} outlineZ={-0.055} />
             {side === dir && prop && (
                 <group position={[0.03 * dir, 0.37, 0.08]} rotation={[0, dir * 0.9, 0]} scale={0.8}>
                     <HeldProp id={prop} />
@@ -510,8 +517,15 @@ export function Figure({
                         )}
 
                         {/* 몸통 메인 실루엣 */}
-                        <PixOval rx={0.175} ry={torsoH * 0.54} at={[0, torsoH * 0.48, 0]} color={look.shirt} />
-                        <PixRect w={0.33} h={0.13} at={[0, 0.07, 0.002]} color={look.shirt} />
+                        <PixOval rx={look.muscle ? 0.34 : 0.175} ry={torsoH * 0.54} at={[0, torsoH * 0.48, 0]} color={look.shirt} />
+                        <PixRect w={look.muscle ? 0.56 : 0.33} h={0.13} at={[0, 0.07, 0.002]} color={look.shirt} />
+                        {look.muscle && (
+                            <>
+                                <PixOval rx={0.13} ry={0.075} at={[-0.13, torsoH * 0.62, 0.008]} color={skin} />
+                                <PixOval rx={0.13} ry={0.075} at={[0.13, torsoH * 0.62, 0.008]} color={skin} />
+                                <PixRect w={0.2} h={0.015} at={[0, 0.08, 0.01]} color={shirtShade} outline={false} />
+                            </>
+                        )}
                         {/* 하단 도트 셀 명암 */}
                         <PixRect w={0.32} h={0.05} at={[0, 0.03, 0.005]} color={shirtShade} outline={false} />
                         {/* 귀여운 V넥/카라 포인트 */}
