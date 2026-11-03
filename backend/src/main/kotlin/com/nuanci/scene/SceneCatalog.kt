@@ -74,7 +74,8 @@ class SceneCatalog(
 		val contents = published.map { store.read(byId.getValue(it.id)) }
 		val entries = published.zip(contents) { scene, content ->
 			// 저장할 때의 해시가 아니라 내보내는 그대로의 해시를 쓴다. 읽을 때 형식을 바꿔 주는 코드가 달라져도 주소와 내용이 어긋나지 않는다
-			val json = mapper.writeValueAsString(content)
+			// 버전은 목차에만 둔다. 본문에 넣으면 같은 내용으로 되돌려도 주소가 새로 생긴다
+			val json = mapper.writeValueAsString(content.deepCopy().apply { remove("version") })
 			val hash = sha256(json)
 			objects[hash] = json
 			CatalogEntry(

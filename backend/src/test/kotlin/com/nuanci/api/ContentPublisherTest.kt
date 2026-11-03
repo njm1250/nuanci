@@ -89,6 +89,23 @@ class ContentPublisherTest {
 
 	private fun pendingJobs() = jdbc.sql("select count(*) from content_publish_job where done_at is null").query(Int::class.java).single()
 
+	private fun sceneHash(id: String) =
+		mapper.readTree(catalog.current().manifest).path("scenes").first { it.path("id").asString() == id }.path("hash").asString()
+
+	@Test
+	fun revertKeepsSceneAddress() {
+		// 고친 장면을 되돌리면 버전은 올라가도 예전 본문 주소를 다시 쓴다
+		val original = sceneHash("pudding")
+		publisher.publishPending()
+		edit("pudding", "잠깐.")
+		store.save(mapper.readTree(Files.readString(CONTENT_DIR.resolve("pudding.json"))) as ObjectNode)
+		fake.puts.clear()
+		publisher.publishPending()
+
+		assertEquals(original, sceneHash("pudding"))
+		assertTrue(fake.puts.none { it.startsWith("scenes/") })
+	}
+
 	@Test
 	fun `장면을 저장하면 같은 트랜잭션에 발행 작업이 남고, 발행하면 파일을 올린 뒤 마지막에 포인터를 바꾼다`() {
 		assertTrue(pendingJobs() > 0)

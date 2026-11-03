@@ -80,7 +80,8 @@ export async function getScenes(): Promise<SceneSummary[]> {
 
 export async function getScene(id: string): Promise<Scene | null> {
   const entry = (await getCatalog()).find((s) => s.id === id);
-  return entry ? sceneObject(entry.hash) : null;
+  // 버전은 본문 주소에 넣지 않고 목차에서 붙인다. 내용을 되돌리면 예전 주소를 다시 쓴다
+  return entry ? { ...(await sceneObject(entry.hash)), version: entry.version } : null;
 }
 
 // 공개 주소는 장면 번호를 쓰고, 내부 id는 콘텐츠와 지표에서만 쓴다
