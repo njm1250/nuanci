@@ -111,6 +111,8 @@ export type Scene = {
   followUp: Situation & { prompt: string; from: string; to: string; time?: string };
   discovery: string;
   ending?: Ending;
+  // 연속극 장면에서 앞 화 완료 버튼에 띄울 다음 화 예고. 없으면 대사에서 뽑는다
+  teaser?: string;
 };
 
 export type SceneSummary = {

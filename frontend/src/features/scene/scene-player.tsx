@@ -150,6 +150,7 @@ function usePickStats(sceneId: string, preview: boolean) {
 // 하고 싶은 말에서 따옴표로 뽑을 말이 있으면 그 말, 없으면 첫 질문 보기의 한국어 뜻, 둘 다 길면 장면 제목을 쓴다
 const TEASER_MAX = 16;
 function teaserOf(s: Scene) {
+  if (s.teaser) return s.teaser;
   const fit = (t: string | undefined) => (t && t.length <= TEASER_MAX ? t : null);
   const said = s.base.intent.match(/^(.+?)\s하고\s/)?.[1].trim();
   const meaning = s.base.choices.find((c) => c.verdict !== "good")?.meaning.replace(/\s*\(.*?\)/g, "").trim();
