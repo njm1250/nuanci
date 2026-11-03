@@ -111,6 +111,10 @@ export type Scene = {
   followUp: Situation & { prompt: string; from: string; to: string; time?: string };
   discovery: string;
   ending?: Ending;
+  // 연속극 장면에서 앞 화 완료 버튼에 띄울 다음 화 예고. 없으면 대사에서 뽑는다
+  teaser?: string;
+  // 상황별 보기에서 관계·장소와 상관없이 따로 묶을 장면. 병맛 대회처럼 현실 상황이 아닌 연속극에 쓴다
+  category?: "meme";
 };
 
 export type SceneSummary = {

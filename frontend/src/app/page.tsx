@@ -38,22 +38,15 @@ export default async function Home() {
             유형 테스트
           </Link>
         }
-        right={
-          <>
-            <StreakChip />
-            <Link href="/me" className="flex h-11 items-center truncate pl-2 font-pixel text-[15px] text-paper-muted hover:text-paper">
-              내 정보
-            </Link>
-          </>
-        }
+        right={<StreakChip />}
       />
       <div>
-        <div className="relative mx-auto max-w-[1440px] px-4 pb-6 pt-3 md:px-8 md:pb-10 returning:hidden">
+        <div className="relative mx-auto max-w-[1440px] px-4 pb-6 pt-3 md:px-8 min-[960px]:pb-6 returning:hidden">
           <h1 className="poster-home font-poster">
-            <span className="poster-rise block">직역하면</span>
-            <span className="poster-rise block [animation-delay:90ms]">사고 나는 순간들</span>
+            <span className="poster-rise block min-[960px]:inline-block">직역하면</span>{" "}
+            <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block">사고 나는 순간들</span>
           </h1>
-          <p aria-hidden className="poster-scrawl absolute right-4 top-3 font-scrawl text-[clamp(32px,6vw,84px)] leading-none text-paper [--lean:-4deg] md:right-8">
+          <p aria-hidden className="poster-scrawl absolute right-4 top-3 font-scrawl text-[clamp(32px,6vw,60px)] leading-none text-paper [--lean:-4deg] md:right-8 min-[960px]:hidden">
             골라 보면 알아요
           </p>
         </div>
@@ -64,21 +57,26 @@ export default async function Home() {
         <SceneShelf scenes={shelf} />
       </div>
 
-      <main className="bg-ink pb-0 pt-6 md:pb-14 returning:hidden md:pt-10">
-        <div className="mx-auto flex max-w-[1440px] flex-col md:grid md:grid-cols-[max(420px,min(640px,calc((100dvh-540px)*4/3)))_minmax(320px,1fr)] md:grid-rows-[auto_auto] md:gap-x-12 md:px-8">
+      <main className="bg-ink pb-0 pt-6 min-[960px]:pb-10 returning:hidden min-[960px]:pt-8">
+        <div className="mx-auto flex max-w-[1440px] flex-col min-[960px]:grid min-[960px]:grid-cols-[max(420px,min(860px,calc((100dvh-340px)*4/3)))_minmax(320px,1fr)] min-[960px]:grid-rows-[auto_auto] min-[960px]:gap-x-12 min-[960px]:px-8">
           {beats.length > 0 && (
-            <div className="order-1 px-4 md:col-start-1 md:row-span-2 md:row-start-1 md:px-0">
+            <div className="order-1 px-4 min-[960px]:col-start-1 min-[960px]:row-span-2 min-[960px]:row-start-1 min-[960px]:px-0">
               <Panel>
-                <div className="relative aspect-[4/3] max-h-[40dvh] w-full overflow-hidden md:max-h-none">
+                <div className="relative aspect-[4/3] max-h-[40dvh] w-full overflow-hidden min-[960px]:max-h-none">
                   <AttractReel beats={beats} />
                 </div>
               </Panel>
             </div>
           )}
 
-          <p className="order-2 max-w-[440px] px-4 pt-5 text-[16px] leading-relaxed text-paper-muted md:col-start-2 md:row-start-1 md:self-end md:px-0 md:pt-0">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
+          <div className="order-2 max-w-[440px] px-4 pt-5 min-[960px]:col-start-2 min-[960px]:row-start-1 min-[960px]:self-end min-[960px]:px-0 min-[960px]:pt-0">
+            <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-[60px] leading-none text-paper [--lean:-4deg] min-[960px]:block">
+              골라 보면 알아요
+            </p>
+            <p className="text-[16px] leading-relaxed text-paper-muted">황당한 상황 속 하고 싶은 그 한마디, 영어로는 어떻게 해야 딱 맞을까? 골라 보면 상대 속마음이 바로 보여요.</p>
+          </div>
 
-          <div className="order-4 sticky bottom-0 z-10 max-w-none border-t border-paper/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:static md:col-start-2 md:row-start-2 md:max-w-[440px] md:self-start md:border-0 md:px-0 md:pb-0 md:pt-6">
+          <div className="order-4 sticky bottom-0 z-10 max-w-none border-t border-paper/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 min-[960px]:static min-[960px]:col-start-2 min-[960px]:row-start-2 min-[960px]:max-w-[440px] min-[960px]:self-start min-[960px]:border-0 min-[960px]:px-0 min-[960px]:pb-0 min-[960px]:pt-6">
             <LandingCta scenes={shelf} />
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { C } from "./palette";
-import { Box, Cyl, Flat, Gem } from "./primitives";
+import { Box, Cyl, Flat, Gem, PixelText } from "./primitives";
 import type { Decor, DecorId } from "./types";
 import { PixOval, PixRect } from "./wear";
 
@@ -41,6 +41,11 @@ const DEFAULTS: Record<DecorId, { y: number; z: number }> = {
   tambourine: { y: 0, z: 0 },
   mochi: { y: 0, z: -0.5 },
   pudding: { y: 0, z: 0 },
+  "contest-poster": { y: 2.0, z: WALL },
+  "bill-pile": { y: 0, z: 0.1 },
+  "ice-block": { y: 0, z: -0.55 },
+  "snow-pile": { y: 0, z: -0.3 },
+  thermometer: { y: 2.0, z: WALL },
 };
 
 function Fridge({ x, y, z }: At) {
@@ -105,6 +110,76 @@ function Poster({ x, y, z }: At) {
       <Flat size={[0.14, 0.14]} at={[x, y + 0.08, z + 0.01]} color={C.rust} />
       <Flat size={[0.34, 0.05]} at={[x, y - 0.16, z + 0.005]} color={C.paper} />
       <Flat size={[0.22, 0.03]} at={[x, y - 0.23, z + 0.005]} color={C.paper} />
+    </>
+  );
+}
+
+// 추위 참기 대회 포스터. 글자 없이 눈 결정과 금색 띠로 상금을 보여 준다
+function ContestPoster({ x, y, z }: At) {
+  return (
+    <>
+      <Flat size={[0.7, 0.96]} at={[x, y, z]} color="#2c6fa8" />
+      <Flat size={[0.6, 0.2]} at={[x, y - 0.32, z + 0.005]} color="#e8b931" />
+      <PixelText text="$1M" at={[x, y - 0.32, z + 0.01]} px={0.03} color={C.ink} />
+      <Flat size={[0.06, 0.42]} at={[x, y + 0.14, z + 0.005]} color={C.paper} />
+      <Flat size={[0.42, 0.06]} at={[x, y + 0.14, z + 0.005]} color={C.paper} />
+      {[-0.13, 0.13].map((d) => (
+        <Flat key={d} size={[0.1, 0.1]} at={[x + d, y + 0.14 + d, z + 0.004]} color="#bfe3f5" />
+      ))}
+      {[-0.13, 0.13].map((d) => (
+        <Flat key={d} size={[0.1, 0.1]} at={[x + d, y + 0.14 - d, z + 0.004]} color="#bfe3f5" />
+      ))}
+    </>
+  );
+}
+
+// 쌓인 전기세 고지서 뭉치
+function BillPile({ x, y, z }: At) {
+  return (
+    <>
+      <Box size={[0.42, 0.14, 0.3]} at={[x, y + 0.07, z]} color={C.paper} />
+      <Box size={[0.36, 0.1, 0.26]} at={[x + 0.03, y + 0.19, z]} color="#e8e4d8" rot={[0, 0.25, 0]} />
+      <Box size={[0.2, 0.012, 0.1]} at={[x + 0.03, y + 0.245, z + 0.04]} color={C.rust} rot={[0, 0.25, 0]} />
+    </>
+  );
+}
+
+// 얼음 속에 갇혀 실려 나가기 직전의 참가자. 벽을 보고 선 작은 실루엣이다
+function IceBlock({ x, y, z }: At) {
+  return (
+    <>
+      <Gem r={0.19} at={[x, y + 0.72, z]} color="#f0d2b2" />
+      <Box size={[0.08, 0.04, 0.01]} at={[x, y + 0.72, z + 0.19]} color={C.ink} />
+      <Box size={[0.3, 0.42, 0.18]} at={[x, y + 0.34, z]} color={C.rust} />
+      <mesh position={[x, y + 0.52, z + 0.03]}>
+        <boxGeometry args={[0.7, 1.06, 0.56]} />
+        <meshLambertMaterial color="#9fdcf5" transparent opacity={0.55} flatShading />
+      </mesh>
+      <Box size={[0.08, 0.7, 0.01]} at={[x - 0.22, y + 0.6, z + 0.32]} color="#ffffff" />
+    </>
+  );
+}
+
+function SnowPile({ x, y, z }: At) {
+  return (
+    <>
+      <Gem r={0.26} at={[x, y + 0.06, z]} color="#f4fbff" scale={[1.5, 0.6, 1]} />
+      <Gem r={0.15} at={[x + 0.22, y + 0.03, z + 0.05]} color="#e3f2f9" scale={[1.3, 0.6, 1]} />
+    </>
+  );
+}
+
+// 대회장 벽의 큰 온도계. 수은이 거의 바닥에 있다
+function Thermometer({ x, y, z }: At) {
+  return (
+    <>
+      <Flat size={[0.3, 1.5]} at={[x, y, z]} color={C.paper} />
+      <Flat size={[0.1, 1.28]} at={[x, y + 0.06, z + 0.005]} color="#d7dde0" />
+      <Flat size={[0.1, 0.14]} at={[x, y - 0.5, z + 0.01]} color={C.rust} />
+      <Flat size={[0.2, 0.2]} at={[x, y - 0.62, z + 0.01]} color={C.rust} />
+      {[-0.3, -0.1, 0.1, 0.3, 0.5].map((d) => (
+        <Flat key={d} size={[0.06, 0.02]} at={[x + 0.1, y + d, z + 0.01]} color={C.ink} />
+      ))}
     </>
   );
 }
@@ -396,6 +471,11 @@ const PIECES: Record<DecorId, (p: At) => React.ReactNode> = {
   tambourine: Tambourine,
   mochi: MochiCameo,
   pudding: Pudding,
+  "contest-poster": ContestPoster,
+  "bill-pile": BillPile,
+  "ice-block": IceBlock,
+  "snow-pile": SnowPile,
+  thermometer: Thermometer,
 };
 
 // 알 수 없는 id는 건너뛴다. 장면 JSON에 오타가 있어도 무대가 깨지지 않게 한다

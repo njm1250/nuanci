@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { SiteMenu } from "./site-menu";
 
-// 모든 화면 공통 머리줄. 검은 띠 가운데에 로고를 두고, 양쪽에는 그 화면에서 필요한 이동만 둔다
+// 모든 화면 공통 머리줄. 검은 띠 가운데에 로고를 두고, 왼쪽에는 그 화면의 이동을, 오른쪽에는 전체 메뉴를 둔다
 export function SiteHeader({ left, right }: { left?: React.ReactNode; right?: React.ReactNode }) {
   return (
     <header className="bg-ink text-paper">
@@ -9,7 +10,10 @@ export function SiteHeader({ left, right }: { left?: React.ReactNode; right?: Re
         <Link href="/" className="flex h-11 items-center">
           <span className="logo">nuanci</span>
         </Link>
-        <div className="flex min-w-0 items-center justify-end">{right}</div>
+        <div className="flex min-w-0 items-center justify-end">
+          {right}
+          <SiteMenu />
+        </div>
       </div>
     </header>
   );
