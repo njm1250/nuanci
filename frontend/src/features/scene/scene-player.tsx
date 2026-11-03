@@ -164,7 +164,10 @@ function ResultBody({
   revealed,
   verdictKey,
   share,
+  meta = true,
 }: {
+  // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
+  meta?: boolean;
   choice: Choice;
   n: number;
   mine: boolean;
@@ -186,7 +189,7 @@ function ResultBody({
           </span>
         </span>
         {revealed ? (
-          <span key={verdictKey} className={`flex items-start gap-2 leading-snug ${active ? "mt-2 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-[16px] font-semibold text-ink" : "mt-1.5 text-[14px] text-ink-muted"}`}>
+          <span key={verdictKey} className={`flex items-start gap-2 leading-snug ${active ? "mt-1.5 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-[16px] font-bold text-ink" : "mt-1 text-[14px] text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -195,15 +198,20 @@ function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {/* 왜 어색한지가 이 카드에서 배울 내용이라 흐리게 두지 않고 본문 색으로 쓴다 */}
-        {active && <span key={`why-${verdictKey}`} className="mt-2 block animate-[fade-in_240ms_ease-out_680ms_both] text-[16px] leading-[1.6] text-ink">{choice.why}</span>}
-        {revealed && (mine || share !== undefined) && (
-          <span className={`flex flex-wrap items-center gap-x-1.5 text-[12px] tabular-nums text-ink-subtle ${active ? "mt-3" : "mt-1.5"}`}>
-            {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
-            {share !== undefined && <span>첫 답으로 {share}%가 골랐어요</span>}
-          </span>
-        )}
+        {/* 대사+반응을 한 덩어리로 진하게 묶고, 이유는 한 칸 떼어 한 톤 낮춘다 */}
+        {active && <span key={`why-${verdictKey}`} className="mt-3 block animate-[fade-in_240ms_ease-out_680ms_both] text-[15px] leading-[1.6] text-ink-muted">{choice.why}</span>}
+        {meta && revealed && (mine || share !== undefined) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
       </span>
+    </span>
+  );
+}
+
+// 내가 고른 보기인지, 첫 답으로 몇 %가 골랐는지. 본문보다 두 단계 작고 흐리게 둔다
+function PickMeta({ mine, share, className = "" }: { mine: boolean; share?: number; className?: string }) {
+  return (
+    <span className={`flex flex-wrap items-center gap-x-1.5 text-[12px] tabular-nums text-ink-subtle ${className}`}>
+      {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
+      {share !== undefined && <span>첫 답으로 {share}%가 골랐어요</span>}
     </span>
   );
 }
@@ -770,18 +778,22 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                             <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.verdict].color}`} />
                           )}
                           <span className="relative block">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} />
-                            <span className="mt-3 block border-t border-ink/10 pl-9">
-                              {detailOpen && <span className="mt-3 block animate-[fade-in_150ms] text-[16px] leading-[1.6] text-ink-muted">{c.detail}</span>}
-                              <button
-                                type="button"
-                                onClick={() => setDetailOpen((v) => !v)}
-                                aria-expanded={detailOpen}
-                                className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-[14px] font-semibold text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink"
-                              >
-                                {detailOpen ? "접기" : "왜 그런지 더 보기"}
-                                <Caret open={detailOpen} />
-                              </button>
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} />
+                            {/* 더 보기와 메타는 카드 맨 아래 한 줄의 양 끝에 두고 힘을 뺀다 */}
+                            <span className="mt-3.5 block border-t border-ink/10 pl-9">
+                              {detailOpen && <span className="mt-3 block animate-[fade-in_150ms] text-[15px] leading-[1.6] text-ink-muted">{c.detail}</span>}
+                              <span className="flex items-center justify-between gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => setDetailOpen((v) => !v)}
+                                  aria-expanded={detailOpen}
+                                  className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-[13px] text-ink-subtle underline decoration-ink/25 underline-offset-4 hover:text-ink hover:decoration-ink"
+                                >
+                                  {detailOpen ? "접기" : "왜 그런지 더 보기"}
+                                  <Caret open={detailOpen} />
+                                </button>
+                                {(c.id === pickedId || shareOf(c) !== undefined) && <PickMeta mine={c.id === pickedId} share={shareOf(c)} className="justify-end" />}
+                              </span>
                             </span>
                           </span>
                         </div>

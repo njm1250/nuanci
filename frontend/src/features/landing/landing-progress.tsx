@@ -154,14 +154,14 @@ function SceneCard({
         </span>
         <span className="min-w-0 flex-1">
           {!inRow && (
-            <span className="mb-1 block font-pixel text-[15px] leading-none text-ink-subtle">
+            <span className="mb-1 block text-[12px] font-medium leading-none text-ink-subtle">
               {label}
             </span>
           )}
-          <span className="block truncate text-[16px] font-semibold leading-snug">
+          <span className="block truncate text-[16px] font-bold leading-snug">
             {scene.title}
           </span>
-          <span className="block truncate text-[14px] text-ink-subtle">
+          <span className="mt-0.5 block truncate text-[12px] text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
         </span>
@@ -218,10 +218,10 @@ function SceneRow({
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[16px] font-semibold leading-snug">
+        <span className="block truncate text-[16px] font-bold leading-snug">
           {scene.title}
         </span>
-        <span className="block truncate text-[13px] text-paper-subtle group-hover:text-night/70">
+        <span className="mt-0.5 block truncate text-[12px] text-paper-subtle group-hover:text-night/70">
           {scene.relation} · {scene.place}
         </span>
       </span>
@@ -251,7 +251,7 @@ function LockedSceneRow({
         <span className="block truncate text-[16px] leading-snug">
           {scene.title}
         </span>
-        <span className="block truncate text-[13px]">
+        <span className="mt-0.5 block truncate text-[12px]">
           {scene.relation} · {scene.place}
         </span>
       </span>

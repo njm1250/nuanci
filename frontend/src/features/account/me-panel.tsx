@@ -43,7 +43,7 @@ function Stat({ href, label, value }: { href: string; label: string; value: stri
   return (
     <Link href={href} className="flex flex-col items-center justify-center py-3 text-center">
       <span className="font-poster text-[24px] leading-none">{value}</span>
-      <span className="mt-1.5 text-[14px] text-ink-subtle">{label}</span>
+      <span className="mt-1 text-[12px] text-ink-subtle">{label}</span>
     </Link>
   );
 }
@@ -79,13 +79,13 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
         )}
         <div className="min-w-0 flex-1">
           <p className="text-[12px] text-ink-subtle">이름</p>
-          <p className="flex min-w-0 items-center gap-2">
+          <p className="mt-0.5 flex min-w-0 items-center gap-2">
             <span className="truncate text-[16px] font-semibold">{me ? (me.name ?? "이름 없음") : "손님"}</span>
             {badge && <StreakBadge days={badge} />}
           </p>
-          <p className="mt-2 text-[12px] text-ink-subtle">직급</p>
-          <p className="break-all font-poster text-[24px] leading-none">{current.name}</p>
-          {next && <p className="mt-1.5 break-all text-[14px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
+          <p className="mt-3.5 text-[12px] text-ink-subtle">직급</p>
+          <p className="mt-0.5 break-all font-poster text-[24px] leading-none">{current.name}</p>
+          {next && <p className="mt-1 break-all text-[13px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
@@ -135,8 +135,8 @@ function GuestProfile({ notice, google }: { notice: string | null; google: boole
     <Panel>
       <div className="p-4">
         {notice === "failed" && <p className="mb-3 text-[14px] text-rust">로그인하지 못했어요. 다시 시도해 주세요.</p>}
-        <p className="font-poster text-[24px] leading-[1.25]">로그인하면</p>
-        <ul className="mt-3 space-y-2 text-[14px] leading-snug text-ink-muted">
+        <p className="text-[17px] font-bold leading-snug">로그인하면</p>
+        <ul className="mt-2 space-y-1.5 text-[14px] leading-snug text-ink-muted">
           <li className="flex gap-2">
             <span className="text-ink">·</span>기기를 바꿔도 기록이 이어져요
           </li>
@@ -180,8 +180,8 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
       <Link href="/me/room" className="blk-btn blk-strong block">
         <span className="blk flex items-center justify-between gap-3 bg-cream px-4 py-4 text-ink">
           <span>
-            <span className="block font-poster text-[24px] leading-tight">내 아지트</span>
-            <span className="mt-1 block text-[14px] text-ink-muted">받은 옷 입히기 · 방에 물건 두기</span>
+            <span className="block text-[18px] font-bold leading-tight">내 아지트</span>
+            <span className="mt-1 block text-[13px] text-ink-subtle">받은 옷 입히기 · 방에 물건 두기</span>
           </span>
           <Arrow />
         </span>

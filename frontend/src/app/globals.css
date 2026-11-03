@@ -25,8 +25,8 @@
 
 @theme {
   --color-ink: #141317;
-  --color-ink-muted: #4b505a;
-  --color-ink-subtle: #646872;
+  --color-ink-muted: #5d626c;
+  --color-ink-subtle: #6b6f78;
   --color-paper: #f6f4ee;
   --color-paper-muted: #cbc8bf;
   --color-paper-subtle: #a5a29b;
@@ -77,8 +77,8 @@
   --color-slate-block: #dfe1da;
   /* SEED의 글자색 3단계(neutral·muted·subtle)처럼 단계마다 밝기 차이를 크게 벌려서, 중요한 글과 덜 중요한 글이 색만으로도 갈린다 */
   --color-paper: #1a1c20;
-  --color-paper-muted: #4b505a;
-  --color-paper-subtle: #646872;
+  --color-paper-muted: #5d626c;
+  --color-paper-subtle: #6b6f78;
   --color-card: #ffffff;
   --color-cream: #ffffff;
   --color-line: #8a8d84;
@@ -94,8 +94,8 @@
 /* 무대 말풍선은 밤 화면에서도 흰 바탕이라 먹색 글자를 그대로 쓴다 */
 :root:not([data-theme="light"]) :is(.bg-card, .bg-cream) :is(.bg-gold, .bg-good, .bg-bad, .bg-warn, .bg-ink, .bg-cta, .hl, .logo, .blk-frame-sm) {
   --color-ink: #141317;
-  --color-ink-muted: #4b505a;
-  --color-ink-subtle: #646872;
+  --color-ink-muted: #5d626c;
+  --color-ink-subtle: #6b6f78;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 /* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */

@@ -28,8 +28,9 @@ function Arrow() {
 function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boolean; onReveal: () => void }) {
   return (
     <li className="px-3 py-4">
-      <p className="text-[16px] font-semibold leading-snug text-paper">{spoken(pair.intent)}</p>
-      <div className="mt-2.5 flex items-start gap-2">
+      {/* 하고 싶던 말은 정답 위에 바짝 붙는 보조 질문, 영어 정답이 주인공이다 */}
+      <p className="text-[14px] leading-snug text-paper-muted">{spoken(pair.intent)}</p>
+      <div className="mt-1 flex items-start gap-2">
         <span className="mt-1">
           <Mark good />
         </span>
@@ -39,7 +40,7 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
           </button>
         ) : (
           <div className="min-w-0">
-            <p className="font-line text-[20px] leading-snug">{pair.right}</p>
+            <p className="font-line text-[22px] leading-snug">{pair.right}</p>
             {pair.alts.map((a) => (
               <p key={a} className="font-line text-[16px] leading-snug text-paper-muted">
                 <span className="font-sans text-[12px] text-paper-subtle">또는 </span>
@@ -49,12 +50,12 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
           </div>
         )}
       </div>
-      <p className="mt-2 flex items-center gap-2 text-[13px] text-paper-subtle">
+      <p className="mt-1.5 flex items-center gap-2 text-[14px] text-paper-subtle">
         <Mark good={false} />
         <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
         {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
       </p>
-      <p className="mt-3 text-[12px] leading-relaxed text-paper-subtle">
+      <p className="mt-3.5 text-[12px] leading-relaxed text-paper-subtle">
         {pair.who} · {pair.when}
         {!hidden && pair.sources && pair.sources.length > 0 && <span className="block">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</span>}
       </p>
