@@ -58,7 +58,9 @@ function useVisitor(scenes: ShelfScene[] = []) {
   const played = useSyncExternalStore(noop, hasPlayed, () => false);
   const cleared = useCleared();
   const since = useSince();
-  const returning = played || cleared.length > 0;
+  // 푸터의 "nuanci 소개"(/?intro)로 오면 다시 온 사람도 첫 방문 화면을 본다
+  const intro = useSyncExternalStore(noop, () => new URLSearchParams(location.search).has("intro"), () => false);
+  const returning = !intro && (played || cleared.length > 0);
   useEffect(() => rememberSince(scenes), [scenes]);
   return { returning, cleared, fresh: newSceneIds(scenes, cleared, since) };
 }
@@ -482,6 +484,20 @@ function TodayGoals() {
   );
 }
 
+// 상황 타일마다 따로 꾸민 무대. 묶음의 첫 장면을 쓰면 거실·소파가 겹쳐 다 같아 보여서, 그 상황을 한눈에 알 만한 세트·상대·소품을 골라 둔다
+const GROUP_STAGES: Record<string, Omit<StageSpec, "hero" | "wear">> = {
+  "병맛 대회": { set: "freezer", time: "day", partner: "mc", flags: ["blizzard"], decor: [{ id: "contest-poster", x: 1.9 }] },
+  친구랑: { set: "karaoke", time: "evening", partner: "sam", flags: ["score", "mirrorball", "lights"] },
+  "같이 사는 사이": { set: "living", time: "evening", partner: "mom", decor: [{ id: "bill-pile", x: -1.9 }, { id: "slippers", x: 1.2 }] },
+  회사에서: { set: "office", time: "day", partner: "boss", decor: [{ id: "whiteboard", x: -1.6 }, { id: "papers", x: 1.5 }] },
+  "카페·식당에서": { set: "cafe", time: "day", partner: "barista", flags: ["coffee", "cup-ready"] },
+  가게에서: { set: "boutique", time: "day", partner: "alex", decor: [{ id: "sale-sign", x: 1.9 }] },
+  "여행·이동 중": { set: "plane", time: "day", partner: "jordan" },
+  "병원·약국에서": { set: "pharmacy", time: "day", partner: "max" },
+  "학교·학원에서": { set: "classroom", time: "day", partner: "kong" },
+  "처음 보는 사람": { set: "street", time: "evening", partner: "grandpa", decor: [{ id: "umbrella-stand", x: -1.8 }] },
+};
+
 // 상황별로 장면을 고르는 입구. 묶음마다 첫 장면 썸네일을 붙여 글자 대신 실제 무대로 어떤 상황인지 보여 준다
 function SituationTiles({ scenes }: { scenes: ShelfScene[] }) {
   const tiles = SCENE_GROUPS.map((g) => ({ label: g.label, scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set, s.category) === g.label) }))
@@ -495,9 +511,9 @@ function SituationTiles({ scenes }: { scenes: ShelfScene[] }) {
         {tiles.map((t) => (
           <li key={t.label} className="w-[148px] shrink-0 snap-start lg:w-auto">
             <Link href={`/scenes?group=${encodeURIComponent(t.label)}`} onClick={() => setSceneView("group")} className="group block">
-              <SceneThumb stage={t.scenes[0].stage} className="aspect-[4/3] w-full border-2 border-line transition-colors group-hover:border-ink" />
-              <span className="mt-1.5 block truncate text-[15px] font-semibold">{t.label}</span>
-              <span className="block text-[12px] text-paper-subtle">장면 {t.scenes.length}개</span>
+              <SceneThumb stage={GROUP_STAGES[t.label] ?? t.scenes[0].stage} className="aspect-[4/3] w-full border-2 border-line transition-colors group-hover:border-ink" />
+              <span className="mt-2 block truncate text-[15px] font-bold leading-[1.35]">{t.label}</span>
+              <span className="mt-0.5 block text-[12px] leading-[1.35] text-paper-subtle">장면 {t.scenes.length}개</span>
             </Link>
           </li>
         ))}
