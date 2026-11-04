@@ -335,6 +335,13 @@ body {
   animation: nudge 1.2s steps(1, end) infinite;
 }
 
+/* 누른 캐릭터가 제자리에서 한 번 콩 뛴다 */
+@keyframes hop {
+  40% {
+    transform: translateY(-6px);
+  }
+}
+
 /* 머리줄 고양이 마크에 손을 올리면 고개를 갸웃한다 */
 @keyframes wiggle {
   25% {

@@ -114,9 +114,13 @@ function Question({ name, line, intent, className = "" }: { name: string; line: 
 
 // Mochi가 옆에서 말을 거는 한 줄. 반말 안내가 서비스 말투가 아니라 고양이 말로 들리게 한다(메뉴의 "어디로 갈까?"와 같은 모양)
 function MochiAsk({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const [hop, setHop] = useState(0);
   return (
     <div className={`flex items-end gap-2 ${className}`}>
-      <Mascot scale={2} className="shrink-0" />
+      {/* 누르면 제자리에서 콩 뛴다. 그냥 장식이지만 눌러 보는 사람에게 작은 대답이 된다 */}
+      <button type="button" aria-label="Mochi" onClick={() => (setHop((n) => n + 1), sfx.tap())} className="-m-1 shrink-0 p-1">
+        <Mascot key={hop} scale={2} className={hop ? "animate-[hop_380ms_steps(3,end)]" : ""} />
+      </button>
       <div className="blk-frame-sm mb-2 min-w-0">
         <p className="blk bg-white px-2.5 py-1.5 text-[14px] font-bold leading-snug text-[#0b1a44]">{children}</p>
       </div>
