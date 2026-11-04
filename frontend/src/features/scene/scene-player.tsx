@@ -205,7 +205,7 @@ function ResultBody({
           </span>
         </span>
         {revealed ? (
-          <span key={verdictKey} className={`flex items-start gap-2 leading-snug ${active ? "mt-1.5 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-[16px] font-bold text-ink" : "mt-1 text-[14px] text-ink-muted"}`}>
+          <span key={verdictKey} className={`flex items-start gap-2 leading-[1.5] ${active ? "mt-1.5 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-[16px] font-bold text-ink" : "mt-1 text-[14px] text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -625,7 +625,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   return (
     <div className="flex min-h-dvh justify-center overflow-x-clip bg-night break-keep text-ink">
       {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
+      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] lg:max-w-[1360px] lg:grid-cols-[minmax(0,1.3fr)_minmax(440px,1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
         {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
         <div className="shrink-0 md:contents">
         <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-pixel text-[15px] text-paper md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">

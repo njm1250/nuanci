@@ -47,6 +47,7 @@ export function BlockLink({
   entry,
   onClick,
   reading = false,
+  pair = false,
 }: {
   href: string;
   children: React.ReactNode;
@@ -54,12 +55,14 @@ export function BlockLink({
   className?: string;
   // 문장처럼 읽어야 하는 긴 라벨이면 포스터 글꼴 대신 본문 글꼴을 쓴다
   reading?: boolean;
+  // 주 버튼 바로 아래 짝으로 놓는 보조 버튼. 같은 포스터 글꼴을 한 단계 작게 써서 둘이 한 묶음으로 보이게 한다
+  pair?: boolean;
   entry?: "home" | "next";
   onClick?: (e: React.MouseEvent) => void;
 }) {
   return (
     <EntryLink href={href} entry={entry} onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`}>
-      <span className={`blk block px-3 py-3.5 text-center ${primary ? `bg-cta text-cta-text ${reading ? "text-[16px] font-bold" : "font-poster text-[20px]"}` : "bg-cream font-pixel text-[15px] text-ink"}`}>{children}</span>
+      <span className={`blk block px-3 py-3.5 text-center ${primary ? `bg-cta text-cta-text ${reading ? "text-[16px] font-bold" : "font-poster text-[20px]"}` : `bg-cream text-ink ${pair ? "font-poster text-[17px]" : "font-pixel text-[15px]"}`}`}>{children}</span>
     </EntryLink>
   );
 }

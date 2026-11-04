@@ -5,6 +5,7 @@ import { Mark } from "@/features/collection/expression-book";
 import { BlockButton, SpeakerTag } from "@/features/scene/block-ui";
 import { sfx } from "@/features/scene/sfx";
 import { answerReview, loadReview, type ReviewToday as Today } from "./review";
+import { markReviewed } from "./reviewed";
 
 // 홈 맨 위의 오늘의 1분 복습. 지난번 처음 고른 답이 어색했던 질문을 다시 꺼내, 보기 없이 영어를 먼저 떠올려 보게 한 뒤 확인한다.
 // 정답을 알아보는 것보다 스스로 떠올리는 게 더 오래 남아서다. 알았는지는 스스로 고르고, 그에 따라 다음에 물을 날이 정해진다
@@ -21,6 +22,14 @@ export function ReviewToday({ className = "" }: { className?: string }) {
       alive = false;
     };
   }, []);
+
+  // 다 넘겼거나 오늘 물을 말이 없으면 오늘 복습은 끝난 것으로 남긴다
+  useEffect(() => {
+    if (today) {
+      if (today.cards.length === 0) markReviewed("none");
+      else if (at >= today.cards.length) markReviewed("done");
+    }
+  }, [today, at]);
 
   if (!today || today.cards.length === 0) return null;
   const card = today.cards[at];

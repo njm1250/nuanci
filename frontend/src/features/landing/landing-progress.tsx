@@ -13,6 +13,9 @@ import {
 import { hasPlayed, trackHome, visitorId, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
 import { ReviewToday } from "@/features/review/review-today";
+import { useReviewedToday } from "@/features/review/reviewed";
+import { useStreak } from "@/features/streak/streak";
+import { useIntroMode } from "./returning-sync";
 import { answerCta } from "@/features/scene/teaser";
 import {
   isUnopened,
@@ -56,7 +59,9 @@ function useVisitor(scenes: ShelfScene[] = []) {
   const played = useSyncExternalStore(noop, hasPlayed, () => false);
   const cleared = useCleared();
   const since = useSince();
-  const returning = played || cleared.length > 0;
+  // 푸터의 "nuanci 소개"(/?intro)로 오면 다시 온 사람도 첫 방문 화면을 본다. 주소가 바뀔 때마다 ReturningSync가 맞춘다
+  const intro = useIntroMode();
+  const returning = !intro && (played || cleared.length > 0);
   useEffect(() => rememberSince(scenes), [scenes]);
   return { returning, cleared, fresh: newSceneIds(scenes, cleared, since) };
 }
@@ -108,6 +113,11 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
     <>
       <BlockLink href={`/scenes/${target.number}`} entry="home" primary>
         {label}
+      </BlockLink>
+      {/* 장면 대신 가볍게 시작하고 싶은 사람을 위한 두 번째 입구. 주요 버튼과 같은 너비의 흰 버튼으로 한 단계 낮춘다 */}
+      {/* 모바일은 이 칸이 화면 아래에 붙어 있어서, 두 번째 버튼까지 두면 화면을 너무 많이 가린다. 모바일에서는 설명 아래 글자 링크로 둔다 */}
+      <BlockLink href="/test" className="mt-2.5 hidden min-[960px]:block" pair>
+        유형 테스트 먼저 해 보기
       </BlockLink>
       <p className="mt-3 text-center text-[14px] text-paper-subtle">{note}</p>
     </>
@@ -443,6 +453,83 @@ function NextGoal() {
   );
 }
 
+// 오늘 할 일 두 가지를 체크 목록으로 보여 준다. 연속 기록과 복습이 같은 하루 단위로 이어진다
+function TodayGoals() {
+  const streak = useStreak();
+  const reviewed = useReviewedToday();
+  // 오늘 물을 말이 없는 날은 복습을 목표에서 빼고 흐리게만 남긴다. 한 게 없는데 체크가 되어 있으면 거짓말이 된다
+  const goals = [
+    { label: "장면 하나 끝내기", done: Boolean(streak?.today), off: false },
+    { label: reviewed === "none" ? "오늘은 복습할 말 없음" : "오늘의 복습 끝내기", done: reviewed === "done", off: reviewed === "none" },
+  ];
+  const counted = goals.filter((g) => !g.off);
+  const done = counted.filter((g) => g.done).length;
+  return (
+    <div className="lg:border lg:border-line lg:bg-cream lg:p-4">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-[16px] font-bold">오늘의 목표</h2>
+        <span className="text-[12px] tabular-nums text-paper-subtle lg:text-ink-subtle">
+          {done}/{counted.length}
+        </span>
+      </div>
+      <ul className="mt-2 space-y-1.5">
+        {goals.map((g) => (
+          <li key={g.label} className={`flex items-center gap-2.5 text-[15px] ${g.off ? "text-paper-subtle lg:text-ink-subtle" : ""}`}>
+            <span aria-hidden className={`grid size-5 shrink-0 place-items-center border-2 ${g.done ? "border-ink bg-good" : g.off ? "border-dashed border-line" : "border-line"}`}>
+              {g.done && <Check />}
+            </span>
+            <span className={g.done ? "text-paper-subtle line-through decoration-2 lg:text-ink-subtle" : ""}>{g.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const openCount = (list: ShelfScene[], open: Set<string>) => list.filter((s) => open.has(s.id)).length;
+
+// 상황 타일마다 따로 꾸민 무대. 묶음의 첫 장면을 쓰면 거실·소파가 겹쳐 다 같아 보여서, 그 상황을 한눈에 알 만한 세트·상대·소품을 골라 둔다
+const GROUP_STAGES: Record<string, Omit<StageSpec, "hero" | "wear">> = {
+  "병맛 대회": { set: "freezer", time: "day", partner: "mc", flags: ["blizzard"], decor: [{ id: "contest-poster", x: 1.9 }] },
+  친구랑: { set: "karaoke", time: "evening", partner: "sam", flags: ["score", "mirrorball", "lights"] },
+  "같이 사는 사이": { set: "living", time: "evening", partner: "mom", decor: [{ id: "bill-pile", x: -1.9 }, { id: "slippers", x: 1.2 }] },
+  회사에서: { set: "office", time: "day", partner: "boss", decor: [{ id: "whiteboard", x: -1.6 }, { id: "papers", x: 1.5 }] },
+  "카페·식당에서": { set: "cafe", time: "day", partner: "barista", flags: ["coffee", "cup-ready"] },
+  가게에서: { set: "boutique", time: "day", partner: "alex", decor: [{ id: "sale-sign", x: 1.9 }] },
+  "여행·이동 중": { set: "plane", time: "day", partner: "jordan" },
+  "병원·약국에서": { set: "pharmacy", time: "day", partner: "max" },
+  "학교·학원에서": { set: "classroom", time: "day", partner: "kong" },
+  "처음 보는 사람": { set: "street", time: "evening", partner: "grandpa", decor: [{ id: "umbrella-stand", x: -1.8 }] },
+};
+
+// 상황별로 장면을 고르는 입구. 묶음마다 첫 장면 썸네일을 붙여 글자 대신 실제 무대로 어떤 상황인지 보여 준다
+function SituationTiles({ scenes, open }: { scenes: ShelfScene[]; open: Set<string> }) {
+  const tiles = SCENE_GROUPS.map((g) => ({ label: g.label, scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set, s.category) === g.label) }))
+    // 지금 열린 장면이 하나도 없는 상황은 눌러도 잠김뿐이라 빼고, 고를 상황이 둘도 안 되면 칸 자체를 숨긴다
+    .filter((g) => openCount(g.scenes, open) > 0)
+    .slice(0, 8);
+  if (tiles.length < 2) return null;
+  return (
+    <>
+      <p className="mt-8 text-[16px] font-bold">상황별로 고르기</p>
+      <ul className="-mx-4 mt-2 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
+        {tiles.map((t) => (
+          <li key={t.label} className="w-[148px] shrink-0 snap-start lg:w-auto">
+            <Link href={`/scenes?group=${encodeURIComponent(t.label)}`} onClick={() => setSceneView("group")} className="group block">
+              <SceneThumb stage={GROUP_STAGES[t.label] ?? t.scenes[0].stage} className="aspect-[4/3] w-full border-2 border-line transition-colors group-hover:border-ink" />
+              <span className="mt-2 block truncate text-[15px] font-bold leading-[1.35]">{t.label}</span>
+              {/* 눌러서 대부분 잠겨 있으면 실망하니, 지금 할 수 있는 개수를 같이 적는다 */}
+              <span className="mt-0.5 block text-[12px] leading-[1.35] text-paper-subtle">
+                {openCount(t.scenes, open) === t.scenes.length ? `장면 ${t.scenes.length}개` : `${t.scenes.length}개 중 ${openCount(t.scenes, open)}개 열림`}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 // 홈 순서 실험 묶음. 방문자 id 첫 글자(16진수)가 홀수면 복습을 장면 아래에 둔다. 같은 사람은 늘 같은 묶음이다
 const noSubscribe = () => () => {};
 function useReviewAfter() {
@@ -452,7 +539,7 @@ function useReviewAfter() {
 // 다시 온 방문자에게 진행도와 다음에 볼 장면 몇 개만 보여준다. 장면이 늘어도 메인이 길어지지 않게 전체 목록은 따로 둔다
 export function SceneShelf({
   scenes,
-  limit = 3,
+  limit = 5,
 }: {
   scenes: ShelfScene[];
   limit?: number;
@@ -473,95 +560,109 @@ export function SceneShelf({
     .filter((s) => open.has(s.id) && !cleared.includes(s.id))
     .slice(0, limit);
   return (
-    <section className="animate-[fade-in_200ms] px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10">
-      {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다 */}
-      {!reviewAfter && <ReviewToday className="mb-7" />}
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-[16px] font-bold">
-          {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
-        </h2>
-        <BlockCount progress={progress} />
+    // 데스크톱은 왼쪽 넓은 칸에 할 장면을, 오른쪽 좁은 칸에 진행도·복습·바로 가기를 둔다. 모바일은 같은 조각을 예전 순서대로 쌓는다
+    <section className="flex animate-[fade-in_200ms] flex-col px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
+      <div className="order-3 lg:order-none lg:col-start-1 lg:row-start-1">
+        {upNext.length > 0 ? (
+          <>
+            <FeaturedScene
+              scene={upNext[0]}
+              fresh={fresh.includes(upNext[0].id)}
+              label={label(upNext[0])}
+            />
+            {upNext.length > 1 && (
+              <>
+                <p className="mt-6 text-[16px] font-bold">
+                  다른 장면
+                </p>
+                <ul className="stagger mt-2 grid gap-3 md:grid-cols-2">
+                  {/* 모바일은 두 개만, 넓은 왼쪽 칸이 생기는 데스크톱은 네 개까지 보여 준다 */}
+                  {upNext.slice(1).map((s, i) => (
+                    <li key={s.id} className={i >= 2 ? "max-lg:hidden" : undefined}>
+                      <SceneCard
+                        scene={s}
+                        done={false}
+                        fresh={fresh.includes(s.id)}
+                        label={label(s)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-[14px] leading-relaxed text-paper">
+              새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.
+            </p>
+            <BlockLink
+              href={`/scenes/${scenes[0]?.number ?? 1}`}
+              entry="home"
+              primary
+              className="mt-4"
+            >
+              처음부터 다시 하기
+            </BlockLink>
+          </>
+        )}
+        <SituationTiles scenes={scenes} open={open} />
       </div>
-      <BlockBar progress={progress} />
-      <Unlocked progress={progress} />
-      <NextGoal />
-      {upNext.length > 0 ? (
-        <>
-          <FeaturedScene
-            scene={upNext[0]}
-            fresh={fresh.includes(upNext[0].id)}
-            label={label(upNext[0])}
-          />
-          {upNext.length > 1 && (
-            <>
-              <p className="mt-6 text-[16px] font-bold">
-                다른 장면
-              </p>
-              <ul className="stagger mt-2 grid gap-3 md:grid-cols-2">
-                {upNext.slice(1).map((s) => (
-                  <li key={s.id}>
-                    <SceneCard
-                      scene={s}
-                      done={false}
-                      fresh={fresh.includes(s.id)}
-                      label={label(s)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          <p className="mt-3 text-[14px] leading-relaxed text-paper">
-            새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.
-          </p>
-          <BlockLink
-            href={`/scenes/${scenes[0]?.number ?? 1}`}
-            entry="home"
-            primary
-            className="mt-4"
-          >
-            처음부터 다시 하기
-          </BlockLink>
-        </>
-      )}
+      {/* 오른쪽 칸. 모바일에서는 틀 없이 풀려서 장면 앞뒤 자리에 끼어든다 */}
+      <div className="contents lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-6">
+        {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다. 데스크톱은 오른쪽 칸의 위·아래로 나뉜다 */}
+        {!reviewAfter && <ReviewToday className="order-1 mb-7 lg:mb-0" />}
+        <div className="order-2 lg:border lg:border-line lg:bg-cream lg:p-4">
+        <div className="flex items-baseline justify-between">
+            <h2 className="text-[16px] font-bold">
+              {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
+            </h2>
+            <BlockCount progress={progress} />
+          </div>
+          <BlockBar progress={progress} />
+          <Unlocked progress={progress} />
+          <NextGoal />
+        </div>
+        <div className="order-2 mt-6 lg:mt-0">
+          <TodayGoals />
+        </div>
+        {reviewAfter && <ReviewToday className="order-4 mt-8 lg:mt-0" />}
+        <div className="order-5">
+        <div className="blk-frame mt-5 lg:mt-0">
+            <ul className="blk divide-y-2 divide-ink/10 bg-cream text-ink">
+              <li>
+                <Link
+                  href="/expressions"
+                  className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
+                >
+                  <span>
+                    <span className="block text-[16px] font-semibold">표현 모음</span>
+                    <span className="mt-0.5 block text-[12px] text-ink-subtle">
+                      모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
+                    </span>
+                  </span>
+                  <Arrow />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/scenes"
+                  className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
+                >
+                  <span>
+                    <span className="block text-[16px] font-semibold">전체 장면</span>
+                    <span className="mt-0.5 block text-[12px] text-ink-subtle">
+                      {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
+                    </span>
+                  </span>
+                  <Arrow />
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <ThumbStudio />
-      {/* 눌러서 들어가는 곳은 글자만 두지 않고, 화살표가 붙은 줄로 만들어 누를 수 있다는 게 보이게 한다 */}
-      {reviewAfter && <ReviewToday className="mt-8" />}
-      <div className="blk-frame mt-5">
-        <ul className="blk divide-y-2 divide-ink/10 bg-cream text-ink">
-          <li>
-            <Link
-              href="/expressions"
-              className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
-            >
-              <span>
-                <span className="block text-[16px] font-semibold">표현 모음</span>
-                <span className="mt-0.5 block text-[12px] text-ink-subtle">
-                  모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
-                </span>
-              </span>
-              <Arrow />
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/scenes"
-              className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
-            >
-              <span>
-                <span className="block text-[16px] font-semibold">전체 장면</span>
-                <span className="mt-0.5 block text-[12px] text-ink-subtle">
-                  {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
-                </span>
-              </span>
-              <Arrow />
-            </Link>
-          </li>
-        </ul>
-      </div>
     </section>
   );
 }
@@ -634,7 +735,10 @@ function SceneList({
 export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   const { cleared, fresh } = useVisitor(scenes);
   const view = useSceneView();
-  const [only, setOnly] = useState<string | null>(null);
+  // 홈의 상황별 칸에서 들어오면 주소의 group으로 그 상황만 먼저 보여 준다. 칩을 누르면 그 뒤로는 고른 쪽을 따른다
+  const linkedGroup = useSyncExternalStore(noSubscribe, () => new URLSearchParams(location.search).get("group"), () => null);
+  const [picked, setOnly] = useState<string | null | undefined>(undefined);
+  const only = picked === undefined ? linkedGroup : picked;
   const progress = blockProgress(scenes, cleared);
   const opened = progress.list.filter((x) => x.open);
   const locked = progress.list.filter((x) => !x.open);

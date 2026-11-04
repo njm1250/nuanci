@@ -22,6 +22,10 @@ export function SiteFooter() {
       </button>
       <div className="border-t border-slate-block pt-3 md:flex md:items-center md:justify-between md:gap-4 md:pt-4">
       <nav aria-label="서비스 안내" className="flex flex-wrap items-center justify-center text-paper-subtle md:-ml-2 md:justify-start">
+        <Link href="/?intro" className={linkClass}>
+          nuanci 소개
+        </Link>
+        <span aria-hidden="true" className="text-paper-subtle">·</span>
         <Link href="/terms" className={linkClass}>
           이용약관
         </Link>

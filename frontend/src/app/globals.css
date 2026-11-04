@@ -24,15 +24,16 @@
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 @theme {
-  --color-ink: #141317;
-  --color-ink-muted: #5d626c;
-  --color-ink-subtle: #6b6f78;
-  --color-paper: #f6f4ee;
-  --color-paper-muted: #cbc8bf;
-  --color-paper-subtle: #a5a29b;
-  --color-cream: #2e2d34;
+  /* 아래 값은 밤 화면 기준이다. 밤 화면도 브랜드 딥 블루에서 내려온 짙은 남색 바탕에 쓴다 */
+  --color-ink: #0b1a44;
+  --color-ink-muted: #425075;
+  --color-ink-subtle: #64719a;
+  --color-paper: #eef1fb;
+  --color-paper-muted: #b9c2de;
+  --color-paper-subtle: #8f9bc2;
+  --color-cream: #1a2550;
   /* 기본 카드 바탕. 밤 화면에서 눈부시지 않게 어두운 면을 쓰고, 밝은 화면에서는 흰색으로 바꾼다 */
-  --color-card: #26252b;
+  --color-card: #141e44;
   --color-gold: #fd91cc;
   /* 주요 버튼은 화면마다 하나만 두고 어느 바탕에서나 버블껌 핑크로 쓴다. 핑크 면은 누를 수 있는 곳(버튼·켜진 토글·고른 칸)과 진행 막대에만 써서 "핑크면 누른다"가 지켜지게 한다 */
   --color-cta: #fd91cc;
@@ -45,11 +46,11 @@
   --color-warn: #ffc24b;
   /* 사고 판정은 핑크기 없는 주홍으로 둬서 버블껌 핑크 버튼과 섞이지 않게 한다 */
   --color-bad: #ff5533;
-  --color-night: #18171c;
-  --color-night-deep: #0f0e12;
-  --color-slate-block: #34323b;
+  --color-night: #0b1430;
+  --color-night-deep: #070d22;
+  --color-slate-block: #1c2952;
   /* 블록 테두리의 기본색. 먹색은 지금 봐야 할 곳(.blk-strong)에만 쓴다 */
-  --color-line: #5c5a65;
+  --color-line: #3a4a7a;
   --font-sans: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* 픽셀 글꼴은 흔한 글자(core)를 먼저 쓰고, 없는 글자만 Rest 파일에서 받는다. 변수는 app/fonts.ts의 next/font가 html에 붙인다 */
   /* 버튼·라벨 글꼴. 픽셀 글꼴은 로고와 무대 말풍선에만 남긴다 */
@@ -84,6 +85,7 @@
   --pink-50: #fff0f8;
   --pink-400: #fd91cc;
   --pink-700: #b8336f;
+  --color-band: var(--blue-700);
 }
 :root[data-theme="light"] {
   color-scheme: light;
@@ -92,7 +94,6 @@
   --color-slate-block: var(--blue-100);
   /* 글자·테두리는 깊은 미드나잇 네이비로 누르고, 머리줄·무대 띠 같은 면만 브랜드 딥 블루(--color-band)로 칠한다 */
   --color-ink: var(--blue-900);
-  --color-band: var(--blue-700);
   --color-ink-muted: var(--blue-600);
   --color-ink-subtle: var(--blue-500);
   /* SEED의 글자색 3단계(neutral·muted·subtle)처럼 단계마다 밝기 차이를 크게 벌려서, 중요한 글과 덜 중요한 글이 색만으로도 갈린다 */
@@ -106,32 +107,32 @@
 }
 /* 밤 화면의 어두운 카드 안에서는 먹색 글자를 밝게 바꾸고, 핑크·판정색·딥 블루 칸 안에서만 다시 먹색으로 둔다 */
 :root:not([data-theme="light"]) :is(.bg-card, .bg-cream) {
-  --color-ink: #f6f4ee;
-  --color-ink-muted: #cbc8bf;
-  --color-ink-subtle: #a5a29b;
+  --color-ink: #eef1fb;
+  --color-ink-muted: #b9c2de;
+  --color-ink-subtle: #8f9bc2;
   color: var(--color-ink);
 }
 /* 무대 말풍선은 밤 화면에서도 흰 바탕이라 먹색 글자를 그대로 쓴다 */
 :root:not([data-theme="light"]) :is(.bg-card, .bg-cream) :is(.bg-gold, .bg-good, .bg-bad, .bg-warn, .bg-ink, .bg-cta, .hl, .logo, .blk-frame-sm) {
-  --color-ink: #141317;
-  --color-ink-muted: #5d626c;
-  --color-ink-subtle: #6b6f78;
+  --color-ink: #0b1a44;
+  --color-ink-muted: #425075;
+  --color-ink-subtle: #64719a;
 }
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 /* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */
 :root[data-theme="light"] :is(.bg-slate-block, .bg-night-deep) {
   --color-paper-subtle: #425075;
 }
-/* 먹색 면(.bg-ink)은 밝은 화면에서 브랜드 딥 블루로 칠한다. 데스크톱에서 면을 비우는 칸과 가상 요소로 칠하는 머리줄도 같은 규칙을 따르게 한다 */
-:root[data-theme="light"] [class*="before:bg-ink"]::before {
+/* 먹색 면(.bg-ink)은 밝은 화면과 밤 화면 모두 브랜드 딥 블루로 칠한다. 데스크톱에서 면을 비우는 칸과 가상 요소로 칠하는 머리줄도 같은 규칙을 따르게 한다 */
+:root [class*="before:bg-ink"]::before {
   background-color: var(--color-band);
 }
 @media (width >= 48rem) {
-  :root[data-theme="light"] .bg-ink[class*="md:bg-transparent"] {
+  :root .bg-ink[class*="md:bg-transparent"] {
     background-color: transparent;
   }
 }
-:root[data-theme="light"] .bg-ink {
+:root .bg-ink {
   background-color: var(--color-band);
   --color-paper: #ffffff;
   --color-paper-muted: var(--blue-200);
@@ -151,7 +152,21 @@
 body {
   background: var(--color-night-deep);
   font-family: var(--font-sans);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+}
+/* 글자 리듬. 토스(본문 14~16px 행간 1.6, 자간 -0.02em)와 당근 SEED(16px/24px, 26px/35px)를 재 보고 맞췄다.
+   한글 본문은 자간을 살짝 좁히고 행간을 넉넉히, 12px 이하 메타와 영어 손글씨·도트 글꼴은 자간을 그대로 둔다.
+   기본값이라 base 층에 둬서, 화면마다 leading-*·tracking-*을 쓰면 그쪽이 이긴다 */
+@layer base {
+  p {
+    line-height: 1.6;
+  }
+  :is(h1, h2, h3) {
+    line-height: 1.3;
+  }
+  :is(.text-\[10px\], .text-\[11px\], .text-\[12px\], .font-line, .font-pixel, .font-pixel-title, .font-scrawl) {
+    letter-spacing: 0;
+  }
 }
 .font-pixel {
   font-weight: 500;
@@ -253,8 +268,12 @@ body {
     transform: translateX(-50%);
   }
 }
+/* 첫 화면에는 무대 데모와 제목 등장이 같이 움직여서, 띠는 눈에 덜 걸리게 아주 천천히 흐르고 손을 올리면 멈춘다 */
 .ticker {
-  animation: ticker 60s linear infinite;
+  animation: ticker 120s linear infinite;
+}
+.ticker:hover {
+  animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
   .ticker {

@@ -8,6 +8,9 @@ import { getCatalog, getReel, getScene } from "@/features/scene/api";
 import { AttractReel } from "@/features/landing/attract-reel";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
 import { SiteFooter } from "@/features/landing/site-footer";
+import { FeatureRows } from "@/features/landing/feature-rows";
+import { ReturningSync } from "@/features/landing/returning-sync";
+import { Suspense } from "react";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
 
@@ -24,12 +27,16 @@ const website = {
 export default async function Home() {
   const [catalog, beats] = await Promise.all([getCatalog(), getReel()]);
   const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
-  // 첫 장면에서 사고가 나는 보기 하나를 골라, 데스크톱 오른쪽에 규칙을 한 컷으로 보여 주는 예시로 쓴다
+  // 첫 장면에서 사고가 나는 보기와 자연스러운 보기를 골라, 아래 기능 소개에 실제 화면 조각으로 쓴다
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
   const wrong = first?.base.choices.find((c) => c.verdict === "bad");
-  const sample = first && wrong ? { name: first.partnerName, heard: first.base.partnerLine, said: wrong.line } : null;
+  const right = first?.base.choices.find((c) => c.verdict === "good");
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
+      {/* 주소를 읽는 쪽은 Suspense 안에 둬야 홈 전체를 미리 만든 페이지로 유지할 수 있다 */}
+      <Suspense fallback={null}>
+        <ReturningSync />
+      </Suspense>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
       <SiteHeader
         left={
@@ -51,7 +58,7 @@ export default async function Home() {
           </p>
         </div>
         {/* 다시 온 방문자에게도 첫 화면의 포스터 제목을 작게 남겨서 두 화면의 인상이 이어진다 */}
-        <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 returning:block">
+        <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 lg:max-w-[1200px] returning:block">
           <p aria-hidden className="font-poster text-[28px] leading-none text-paper md:text-[36px]">
             직역하면 사고 나는 순간들
           </p>
@@ -59,7 +66,7 @@ export default async function Home() {
       </div>
 
       {/* 다시 온 방문자는 데모와 소개 대신 진행 상황과 다음 장면만 본다. 첫 방문자에게는 아무것도 그리지 않는다 */}
-      <div className="mx-auto w-full max-w-[1080px] md:px-8">
+      <div className="mx-auto w-full max-w-[1080px] md:px-8 lg:max-w-[1200px]">
         <SceneShelf scenes={shelf} />
       </div>
 
@@ -91,21 +98,13 @@ export default async function Home() {
           )}
 
           <div className="order-2 max-w-[440px] px-4 pt-5 min-[960px]:col-start-2 min-[960px]:row-start-1 min-[960px]:self-end min-[960px]:px-0 min-[960px]:pt-0">
-            {sample && (
-              // 오답 한 컷을 인쇄 스티커처럼 붙여서 글을 읽기 전에 "고르면 반응이 온다"는 규칙이 보이게 한다
-              <div aria-hidden className="mb-8 hidden w-fit max-w-full -rotate-2 border-2 border-[#ffffff] bg-[#ffffff] px-4 py-3 text-[#0b1a44] shadow-[4px_4px_0_var(--color-gold)] min-[960px]:block">
-                <p className="text-[13px] text-[#5a6482]">{sample.name}</p>
-                <p className="font-line text-[18px] leading-snug">{sample.heard}</p>
-                <p className="mt-2 flex items-center gap-3">
-                  <span className="font-line text-[18px] leading-snug">나: {sample.said}</span>
-                  <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-[#0b1a44] bg-bad px-1.5 py-1 font-pixel-title text-[12px] leading-none outline-2 outline-offset-1 outline-[#0b1a44]">사고 발생</span>
-                </p>
-              </div>
-            )}
             <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-[60px] leading-none text-paper [--lean:-4deg] min-[960px]:block">
               골라 보면 알아요
             </p>
             <p className="text-[16px] leading-relaxed text-paper-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
+            <Link href="/test" className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-[15px] font-semibold text-paper underline decoration-paper/30 underline-offset-4 min-[960px]:hidden">
+              유형 테스트 먼저 해 보기 →
+            </Link>
           </div>
 
           <div className="order-4 sticky bottom-0 z-10 max-w-none border-t border-paper/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 min-[960px]:static min-[960px]:col-start-2 min-[960px]:row-start-2 min-[960px]:max-w-[440px] min-[960px]:self-start min-[960px]:border-0 min-[960px]:px-0 min-[960px]:pb-0 min-[960px]:pt-6">
@@ -114,7 +113,9 @@ export default async function Home() {
         </div>
       </main>
 
-      <div className="mx-auto mt-auto w-full max-w-[1440px] pt-6 md:px-8 md:pb-10 returning:max-w-[1080px]">
+      {first && wrong && right && <FeatureRows partnerName={first.partnerName} partnerLine={first.base.partnerLine} intent={first.base.intent} wrong={wrong} right={right} />}
+
+      <div className="mx-auto mt-auto w-full max-w-[1440px] pt-6 md:px-8 md:pb-10 returning:max-w-[1080px] lg:returning:max-w-[1200px]">
         <SiteFooter />
       </div>
     </div>
