@@ -112,6 +112,18 @@ function Question({ name, line, intent, className = "" }: { name: string; line: 
   );
 }
 
+// Mochi가 옆에서 말을 거는 한 줄. 반말 안내가 서비스 말투가 아니라 고양이 말로 들리게 한다(메뉴의 "어디로 갈까?"와 같은 모양)
+function MochiAsk({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`flex items-end gap-2 ${className}`}>
+      <Mascot scale={2} className="shrink-0" />
+      <div className="blk-frame-sm mb-2 min-w-0">
+        <p className="blk bg-white px-2.5 py-1.5 text-[14px] font-bold leading-snug text-[#0b1a44]">{children}</p>
+      </div>
+    </div>
+  );
+}
+
 function Caret({ open }: { open: boolean }) {
   return (
     <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className={`fill-current transition-transform ${open ? "rotate-90" : ""}`}>
@@ -753,10 +765,8 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             <div key={`ask-${phase}`}>
               <p className="text-[14px] leading-normal text-paper-muted">{situation.context}</p>
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-[rise_220ms_var(--ease-snap)_both]" />
-              {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게 형광펜으로 묻는다 */}
-              <p className="mt-3.5 animate-[rise_220ms_var(--ease-snap)_both] font-pixel text-[15px] [animation-delay:200ms]">
-                <span className="hl">너라면 뭐라고 할래?</span>
-              </p>
+              {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게, 메뉴처럼 Mochi가 말풍선으로 묻는다 */}
+              <MochiAsk className="mt-3 animate-[rise_220ms_var(--ease-snap)_both] [animation-delay:200ms]">너라면 뭐라고 할래?</MochiAsk>
               <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
@@ -780,10 +790,8 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             <div key={`result-${phase}`}>
               {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} />
-              {/* 다른 보기의 반응을 비교해 보는 게 이 화면에서 배우는 방법이라, 고를 때와 같은 형광펜 질문으로 권한다 */}
-              <p className="mt-4 font-pixel text-[15px] text-paper">
-                <span className="hl">다른 말도 눌러 볼래?</span>
-              </p>
+              {/* 다른 보기의 반응을 비교해 보는 게 이 화면에서 배우는 방법이라, 고를 때처럼 Mochi가 권한다 */}
+              <MochiAsk className="mt-3">다른 말도 눌러 볼래?</MochiAsk>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_240ms_var(--ease-snap)_both]" style={{ animationDelay: `${i * 70}ms` }}>
