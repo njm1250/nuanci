@@ -8,6 +8,7 @@ import { getCatalog, getReel, getScene } from "@/features/scene/api";
 import { AttractReel } from "@/features/landing/attract-reel";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
 import { SiteFooter } from "@/features/landing/site-footer";
+import { FeatureRows } from "@/features/landing/feature-rows";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
 
@@ -28,6 +29,7 @@ export default async function Home() {
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
   const wrong = first?.base.choices.find((c) => c.verdict === "bad");
   const sample = first && wrong ? { name: first.partnerName, heard: first.base.partnerLine, said: wrong.line } : null;
+  const right = first?.base.choices.find((c) => c.verdict === "good");
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
@@ -113,6 +115,8 @@ export default async function Home() {
           </div>
         </div>
       </main>
+
+      {first && wrong && right && <FeatureRows partnerName={first.partnerName} partnerLine={first.base.partnerLine} intent={first.base.intent} wrong={wrong} right={right} />}
 
       <div className="mx-auto mt-auto w-full max-w-[1440px] pt-6 md:px-8 md:pb-10 returning:max-w-[1080px] lg:returning:max-w-[1200px]">
         <SiteFooter />
