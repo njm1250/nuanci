@@ -15,6 +15,7 @@ import { Mascot } from "@/features/mascot/mascot";
 import { ReviewToday } from "@/features/review/review-today";
 import { useReviewedToday } from "@/features/review/reviewed";
 import { useStreak } from "@/features/streak/streak";
+import { useIntroMode } from "./returning-sync";
 import { answerCta } from "@/features/scene/teaser";
 import {
   isUnopened,
@@ -58,8 +59,8 @@ function useVisitor(scenes: ShelfScene[] = []) {
   const played = useSyncExternalStore(noop, hasPlayed, () => false);
   const cleared = useCleared();
   const since = useSince();
-  // 푸터의 "nuanci 소개"(/?intro)로 오면 다시 온 사람도 첫 방문 화면을 본다
-  const intro = useSyncExternalStore(noop, () => new URLSearchParams(location.search).has("intro"), () => false);
+  // 푸터의 "nuanci 소개"(/?intro)로 오면 다시 온 사람도 첫 방문 화면을 본다. 주소가 바뀔 때마다 ReturningSync가 맞춘다
+  const intro = useIntroMode();
   const returning = !intro && (played || cleared.length > 0);
   useEffect(() => rememberSince(scenes), [scenes]);
   return { returning, cleared, fresh: newSceneIds(scenes, cleared, since) };

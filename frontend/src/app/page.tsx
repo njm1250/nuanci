@@ -9,6 +9,8 @@ import { AttractReel } from "@/features/landing/attract-reel";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
 import { SiteFooter } from "@/features/landing/site-footer";
 import { FeatureRows } from "@/features/landing/feature-rows";
+import { ReturningSync } from "@/features/landing/returning-sync";
+import { Suspense } from "react";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
 
@@ -32,6 +34,10 @@ export default async function Home() {
   const right = first?.base.choices.find((c) => c.verdict === "good");
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
+      {/* 주소를 읽는 쪽은 Suspense 안에 둬야 홈 전체를 미리 만든 페이지로 유지할 수 있다 */}
+      <Suspense fallback={null}>
+        <ReturningSync />
+      </Suspense>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, "\\u003c") }} />
       <SiteHeader
         left={
