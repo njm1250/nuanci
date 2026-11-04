@@ -27,10 +27,8 @@ const website = {
 export default async function Home() {
   const [catalog, beats] = await Promise.all([getCatalog(), getReel()]);
   const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
-  // 첫 장면에서 사고가 나는 보기와 자연스러운 보기를 골라, 아래 기능 소개에 실제 화면 조각으로 쓴다
+  // 첫 장면을 아래 기능 소개의 실제 화면 조각으로 쓴다
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
-  const wrong = first?.base.choices.find((c) => c.verdict === "bad");
-  const right = first?.base.choices.find((c) => c.verdict === "good");
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
       {/* 주소를 읽는 쪽은 Suspense 안에 둬야 홈 전체를 미리 만든 페이지로 유지할 수 있다 */}
@@ -116,7 +114,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {first && wrong && right && <FeatureRows partnerName={first.partnerName} partnerLine={first.base.partnerLine} intent={first.base.intent} wrong={wrong} right={right} />}
+      {first && <FeatureRows scene={first} />}
       </main>
 
       <div className="mx-auto mt-auto w-full max-w-[1440px] pt-6 md:px-8 md:pb-10 returning:max-w-[1080px] lg:returning:max-w-[1200px]">

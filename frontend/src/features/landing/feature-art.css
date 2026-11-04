@@ -1,0 +1,38 @@
+/* 기능 소개 그림의 무대. 무대 띠와 같은 딥 블루 면에 만화 컷처럼 2px 먹선과 어긋난 그림자를 두르고, 안의 카드는 아래로 잘려 나간다 */
+.feature-art .ss-stage {
+  --ss-font: var(--font-sans);
+  overflow: hidden;
+  background: var(--color-band);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+.feature-art .ss-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border: 2px solid var(--color-ink);
+  pointer-events: none;
+}
+.feature-art {
+  filter: drop-shadow(4px 4px 0 var(--color-ink));
+}
+
+/* 그림 속 보기 버튼. 진짜 보기처럼 2px 먹선과 3px 그림자를 두고, 눌리면 그림자만큼 내려앉는다 */
+.feature-art .art-btn {
+  will-change: transform;
+  border: 2px solid var(--color-ink);
+  box-shadow: 3px 3px 0 var(--color-ink);
+  transition:
+    transform 120ms var(--ease-snap),
+    box-shadow 120ms var(--ease-snap);
+}
+.feature-art .art-btn[data-pressed] {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--color-ink);
+}
+/* 고른 보기는 결과 카드가 되면서 그림자를 거두고 제자리로 돌아온다 */
+.feature-art .art-btn[data-result] {
+  transform: none;
+  box-shadow: 0 0 0 var(--color-ink);
+}
