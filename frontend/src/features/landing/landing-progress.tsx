@@ -116,7 +116,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
       </BlockLink>
       {/* 장면 대신 가볍게 시작하고 싶은 사람을 위한 두 번째 입구. 주요 버튼과 같은 너비의 흰 버튼으로 한 단계 낮춘다 */}
       {/* 모바일은 이 칸이 화면 아래에 붙어 있어서, 두 번째 버튼까지 두면 화면을 너무 많이 가린다. 모바일에서는 설명 아래 글자 링크로 둔다 */}
-      <BlockLink href="/test" className="mt-2.5 hidden min-[960px]:block" reading>
+      <BlockLink href="/test" className="mt-2.5 hidden min-[960px]:block" pair>
         유형 테스트 먼저 해 보기
       </BlockLink>
       <p className="mt-3 text-center text-[14px] text-paper-subtle">{note}</p>
