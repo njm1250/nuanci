@@ -328,7 +328,7 @@ body {
 /* 주요 카드의 화살표가 도트 한 칸씩 콕콕 앞으로 나간다. 부드럽게 미끄러지지 않고 픽셀처럼 끊어서 움직인다 */
 @keyframes nudge {
   50% {
-    transform: translateX(3px);
+    transform: translateX(6px);
   }
 }
 .nudge {

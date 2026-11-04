@@ -370,7 +370,7 @@ function FeaturedScene({
         <span className="relative block">
           <SceneThumb
             stage={scene.stage}
-            className="aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%] [&_img]:transition-transform [&_img]:duration-300 group-hover:[&_img]:scale-[1.04]"
+            className="aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
           />
           <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">
             {label}
@@ -396,9 +396,10 @@ function FeaturedScene({
           </span>
           <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-[20px] text-ink transition-transform duration-150 group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
             다음 장면 해 보기
-            <span className="nudge">
-              <Arrow />
-            </span>
+            {/* 주요 버튼 화살표는 몸통이 있는 도트 화살표로 크게 그려야 움직이는 게 보인다 */}
+            <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="nudge fill-current">
+              <path d="M0 3h4v2H0zM4 1h1v6H4zM5 2h1v4H5zM6 3h1v2H6z" />
+            </svg>
           </span>
         </span>
       </span>
