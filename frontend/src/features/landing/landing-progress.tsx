@@ -452,7 +452,7 @@ function useReviewAfter() {
 // 다시 온 방문자에게 진행도와 다음에 볼 장면 몇 개만 보여준다. 장면이 늘어도 메인이 길어지지 않게 전체 목록은 따로 둔다
 export function SceneShelf({
   scenes,
-  limit = 3,
+  limit = 5,
 }: {
   scenes: ShelfScene[];
   limit?: number;
@@ -473,95 +473,105 @@ export function SceneShelf({
     .filter((s) => open.has(s.id) && !cleared.includes(s.id))
     .slice(0, limit);
   return (
-    <section className="animate-[fade-in_200ms] px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10">
-      {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다 */}
-      {!reviewAfter && <ReviewToday className="mb-7" />}
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-[16px] font-bold">
-          {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
-        </h2>
-        <BlockCount progress={progress} />
+    // 데스크톱은 왼쪽 넓은 칸에 할 장면을, 오른쪽 좁은 칸에 진행도·복습·바로 가기를 둔다. 모바일은 같은 조각을 예전 순서대로 쌓는다
+    <section className="flex animate-[fade-in_200ms] flex-col px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
+      <div className="order-3 lg:order-none lg:col-start-1 lg:row-start-1">
+        {upNext.length > 0 ? (
+          <>
+            <FeaturedScene
+              scene={upNext[0]}
+              fresh={fresh.includes(upNext[0].id)}
+              label={label(upNext[0])}
+            />
+            {upNext.length > 1 && (
+              <>
+                <p className="mt-6 text-[16px] font-bold">
+                  다른 장면
+                </p>
+                <ul className="stagger mt-2 grid gap-3 md:grid-cols-2">
+                  {/* 모바일은 두 개만, 넓은 왼쪽 칸이 생기는 데스크톱은 네 개까지 보여 준다 */}
+                  {upNext.slice(1).map((s, i) => (
+                    <li key={s.id} className={i >= 2 ? "max-lg:hidden" : undefined}>
+                      <SceneCard
+                        scene={s}
+                        done={false}
+                        fresh={fresh.includes(s.id)}
+                        label={label(s)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-[14px] leading-relaxed text-paper">
+              새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.
+            </p>
+            <BlockLink
+              href={`/scenes/${scenes[0]?.number ?? 1}`}
+              entry="home"
+              primary
+              className="mt-4"
+            >
+              처음부터 다시 하기
+            </BlockLink>
+          </>
+        )}
       </div>
-      <BlockBar progress={progress} />
-      <Unlocked progress={progress} />
-      <NextGoal />
-      {upNext.length > 0 ? (
-        <>
-          <FeaturedScene
-            scene={upNext[0]}
-            fresh={fresh.includes(upNext[0].id)}
-            label={label(upNext[0])}
-          />
-          {upNext.length > 1 && (
-            <>
-              <p className="mt-6 text-[16px] font-bold">
-                다른 장면
-              </p>
-              <ul className="stagger mt-2 grid gap-3 md:grid-cols-2">
-                {upNext.slice(1).map((s) => (
-                  <li key={s.id}>
-                    <SceneCard
-                      scene={s}
-                      done={false}
-                      fresh={fresh.includes(s.id)}
-                      label={label(s)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          <p className="mt-3 text-[14px] leading-relaxed text-paper">
-            새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.
-          </p>
-          <BlockLink
-            href={`/scenes/${scenes[0]?.number ?? 1}`}
-            entry="home"
-            primary
-            className="mt-4"
-          >
-            처음부터 다시 하기
-          </BlockLink>
-        </>
-      )}
+      {/* 오른쪽 칸. 모바일에서는 틀 없이 풀려서 장면 앞뒤 자리에 끼어든다 */}
+      <div className="contents lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-6">
+        {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다. 데스크톱은 오른쪽 칸의 위·아래로 나뉜다 */}
+        {!reviewAfter && <ReviewToday className="order-1 mb-7 lg:mb-0" />}
+        <div className="order-2 lg:border lg:border-line lg:bg-cream lg:p-4">
+        <div className="flex items-baseline justify-between">
+            <h2 className="text-[16px] font-bold">
+              {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
+            </h2>
+            <BlockCount progress={progress} />
+          </div>
+          <BlockBar progress={progress} />
+          <Unlocked progress={progress} />
+          <NextGoal />
+        </div>
+        {reviewAfter && <ReviewToday className="order-4 mt-8 lg:mt-0" />}
+        <div className="order-5">
+        <div className="blk-frame mt-5 lg:mt-0">
+            <ul className="blk divide-y-2 divide-ink/10 bg-cream text-ink">
+              <li>
+                <Link
+                  href="/expressions"
+                  className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
+                >
+                  <span>
+                    <span className="block text-[16px] font-semibold">표현 모음</span>
+                    <span className="mt-0.5 block text-[12px] text-ink-subtle">
+                      모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
+                    </span>
+                  </span>
+                  <Arrow />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/scenes"
+                  className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
+                >
+                  <span>
+                    <span className="block text-[16px] font-semibold">전체 장면</span>
+                    <span className="mt-0.5 block text-[12px] text-ink-subtle">
+                      {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
+                    </span>
+                  </span>
+                  <Arrow />
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <ThumbStudio />
-      {/* 눌러서 들어가는 곳은 글자만 두지 않고, 화살표가 붙은 줄로 만들어 누를 수 있다는 게 보이게 한다 */}
-      {reviewAfter && <ReviewToday className="mt-8" />}
-      <div className="blk-frame mt-5">
-        <ul className="blk divide-y-2 divide-ink/10 bg-cream text-ink">
-          <li>
-            <Link
-              href="/expressions"
-              className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
-            >
-              <span>
-                <span className="block text-[16px] font-semibold">표현 모음</span>
-                <span className="mt-0.5 block text-[12px] text-ink-subtle">
-                  모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
-                </span>
-              </span>
-              <Arrow />
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/scenes"
-              className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
-            >
-              <span>
-                <span className="block text-[16px] font-semibold">전체 장면</span>
-                <span className="mt-0.5 block text-[12px] text-ink-subtle">
-                  {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
-                </span>
-              </span>
-              <Arrow />
-            </Link>
-          </li>
-        </ul>
-      </div>
     </section>
   );
 }

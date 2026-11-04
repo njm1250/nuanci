@@ -51,7 +51,7 @@ export default async function Home() {
           </p>
         </div>
         {/* 다시 온 방문자에게도 첫 화면의 포스터 제목을 작게 남겨서 두 화면의 인상이 이어진다 */}
-        <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 returning:block">
+        <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 lg:max-w-[1200px] returning:block">
           <p aria-hidden className="font-poster text-[28px] leading-none text-paper md:text-[36px]">
             직역하면 사고 나는 순간들
           </p>
@@ -59,7 +59,7 @@ export default async function Home() {
       </div>
 
       {/* 다시 온 방문자는 데모와 소개 대신 진행 상황과 다음 장면만 본다. 첫 방문자에게는 아무것도 그리지 않는다 */}
-      <div className="mx-auto w-full max-w-[1080px] md:px-8">
+      <div className="mx-auto w-full max-w-[1080px] md:px-8 lg:max-w-[1200px]">
         <SceneShelf scenes={shelf} />
       </div>
 
@@ -114,7 +114,7 @@ export default async function Home() {
         </div>
       </main>
 
-      <div className="mx-auto mt-auto w-full max-w-[1440px] pt-6 md:px-8 md:pb-10 returning:max-w-[1080px]">
+      <div className="mx-auto mt-auto w-full max-w-[1440px] pt-6 md:px-8 md:pb-10 returning:max-w-[1080px] lg:returning:max-w-[1200px]">
         <SiteFooter />
       </div>
     </div>
