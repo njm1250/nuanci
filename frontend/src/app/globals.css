@@ -189,6 +189,16 @@ body {
   outline-color: #f6f4ee;
 }
 :root {
+  /* 공통 머리줄 높이(h-14, md:h-16). 스크롤로 숨으면 --header-shown이 0이 된다 */
+  --header-h: 3.5rem;
+  --header-shown: var(--header-h);
+}
+@media (width >= 48rem) {
+  :root {
+    --header-h: 4rem;
+  }
+}
+:root {
   /* 등장 애니메이션 곡선. 기본 ease-out보다 처음에 빨리 나왔다가 부드럽게 멈춘다 */
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
 }
