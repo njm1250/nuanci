@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 밖에서 가져온 stageshow 무대 코드는 원본 그대로 둔다
+    "src/vendor/**",
   ]),
 ]);
 

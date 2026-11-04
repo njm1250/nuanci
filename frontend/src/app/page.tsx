@@ -27,10 +27,8 @@ const website = {
 export default async function Home() {
   const [catalog, beats] = await Promise.all([getCatalog(), getReel()]);
   const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
-  // 첫 장면에서 사고가 나는 보기와 자연스러운 보기를 골라, 아래 기능 소개에 실제 화면 조각으로 쓴다
+  // 첫 장면을 아래 기능 소개의 실제 화면 조각으로 쓴다
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
-  const wrong = first?.base.choices.find((c) => c.verdict === "bad");
-  const right = first?.base.choices.find((c) => c.verdict === "good");
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
       {/* 주소를 읽는 쪽은 Suspense 안에 둬야 홈 전체를 미리 만든 페이지로 유지할 수 있다 */}
@@ -47,6 +45,8 @@ export default async function Home() {
         }
         right={<StreakChip />}
       />
+      {/* 머리줄과 푸터 사이 전부가 이 화면의 본문이다. 스크린 리더가 "본문으로 건너뛰기"로 바로 올 수 있게 main 하나로 감싼다 */}
+      <main className="flex flex-col">
       <div>
         <div className="relative mx-auto max-w-[1440px] px-4 pb-6 pt-3 md:px-8 min-[960px]:pb-6 returning:hidden">
           <h1 className="poster-home font-poster">
@@ -59,9 +59,10 @@ export default async function Home() {
         </div>
         {/* 다시 온 방문자에게도 첫 화면의 포스터 제목을 작게 남겨서 두 화면의 인상이 이어진다 */}
         <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 lg:max-w-[1200px] returning:block">
-          <p aria-hidden className="font-poster text-[28px] leading-none text-paper md:text-[36px]">
+          {/* 첫 방문 제목이 숨는 재방문 화면의 h1. 둘 중 보이는 하나만 읽힌다 */}
+          <h1 className="font-poster text-[28px] leading-none text-paper md:text-[36px]">
             직역하면 사고 나는 순간들
-          </p>
+          </h1>
         </div>
       </div>
 
@@ -72,7 +73,7 @@ export default async function Home() {
 
       {/* 종이 면과 검은 무대 사이에 장면 제목이 필름 띠처럼 흐른다. 어떤 이야기들이 있는지 읽지 않아도 지나가며 보인다 */}
       <div aria-hidden className="overflow-hidden border-b border-paper/15 bg-ink py-2.5 returning:hidden">
-        <div className="ticker flex w-max whitespace-nowrap font-pixel text-[15px] text-[#ffffff]/55">
+        <div className="ticker flex w-max whitespace-nowrap font-pixel text-[15px] text-[#ffffff]/70">
           {[0, 1].map((k) => (
             <span key={k} className="flex">
               {shelf.slice(0, 15).map((x, i) => (
@@ -85,7 +86,7 @@ export default async function Home() {
         </div>
       </div>
 
-      <main className="bg-ink pb-0 pt-6 min-[960px]:pb-10 returning:hidden min-[960px]:pt-8">
+      <section className="bg-ink pb-0 pt-6 min-[960px]:pb-10 returning:hidden min-[960px]:pt-8">
         <div className="mx-auto flex max-w-[1440px] flex-col min-[960px]:grid min-[960px]:grid-cols-[max(420px,min(860px,calc((100dvh-340px)*4/3)))_minmax(320px,1fr)] min-[960px]:grid-rows-[auto_auto] min-[960px]:gap-x-12 min-[960px]:px-8">
           {beats.length > 0 && (
             <div className="order-1 px-4 min-[960px]:col-start-1 min-[960px]:row-span-2 min-[960px]:row-start-1 min-[960px]:px-0">
@@ -111,9 +112,10 @@ export default async function Home() {
             <LandingCta scenes={shelf} />
           </div>
         </div>
-      </main>
+      </section>
 
-      {first && wrong && right && <FeatureRows partnerName={first.partnerName} partnerLine={first.base.partnerLine} intent={first.base.intent} wrong={wrong} right={right} />}
+      {first && <FeatureRows scene={first} />}
+      </main>
 
       <div className="mx-auto mt-auto w-full max-w-[1440px] pt-6 md:px-8 md:pb-10 returning:max-w-[1080px] lg:returning:max-w-[1200px]">
         <SiteFooter />

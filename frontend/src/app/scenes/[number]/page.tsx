@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { getScene, getSceneByNumber, getScenes } from "@/features/scene/api";
 import { ScenePlayer } from "@/features/scene/scene-player";
 import { teaserOf } from "@/features/scene/teaser";
+import type { Scene } from "@/features/scene/types";
+import { SITE_URL } from "@/features/site/metadata";
 
 export async function generateStaticParams() {
   return (await getScenes()).map((s) => ({ number: String(s.number) }));
@@ -16,6 +18,35 @@ export async function generateMetadata({ params }: PageProps<"/scenes/[number]">
   return { title: `${scene.title} · nuanci`, description, alternates: { canonical: `/scenes/${scene.number}` }, openGraph: { url: `/scenes/${scene.number}`, title: `${scene.title} · nuanci`, description } };
 }
 
+// 검색 엔진이 이 주소를 "영어 표현을 배우는 무료 상호작용 학습 자료"로 알아보게 한다. 정답 표현은 장면 안에서만 알 수 있게 넣지 않는다
+function sceneLd(scene: Scene) {
+  const url = `${SITE_URL}/scenes/${scene.number}`;
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "LearningResource",
+      name: scene.title,
+      description: `${scene.base.context} ${scene.base.intent}`,
+      url,
+      inLanguage: ["ko", "en"],
+      learningResourceType: "interactive dialogue",
+      educationalUse: "practice",
+      isAccessibleForFree: true,
+      about: { "@type": "Thing", name: "영어 회화 뉘앙스" },
+      provider: { "@type": "Organization", name: "nuanci", url: SITE_URL },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "nuanci", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "전체 장면", item: `${SITE_URL}/scenes` },
+        { "@type": "ListItem", position: 3, name: scene.title, item: url },
+      ],
+    },
+  ];
+}
+
 async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">["params"] }) {
   const { number } = await params;
   const [scene, scenes] = await Promise.all([getSceneByNumber(number), getScenes()]);
@@ -23,7 +54,12 @@ async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">
   // 끝난 화면의 다음 장면 예고. 다음 장면은 목록의 바로 다음이고(progress.nextScene과 같은 규칙), 본문은 해시 주소로 캐시돼 있다
   const nextId = scenes[scenes.findIndex((s) => s.id === scene.id) + 1]?.id;
   const next = nextId ? await getScene(nextId) : null;
-  return <ScenePlayer key={scene.id} scene={scene} order={scenes.map(({ id, number }) => ({ id, number }))} teaser={next && teaserOf(next)} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(sceneLd(scene)).replace(/</g, "\\u003c") }} />
+      <ScenePlayer key={scene.id} scene={scene} order={scenes.map(({ id, number }) => ({ id, number }))} teaser={next && teaserOf(next)} />
+    </>
+  );
 }
 
 export default function ScenePage({ params }: PageProps<"/scenes/[number]">) {

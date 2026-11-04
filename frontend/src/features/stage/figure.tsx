@@ -156,9 +156,9 @@ export function Figure({
 
     const sit = placement.posture === "sit";
     const hip = HIP[placement.posture];
-    const torsoH = 0.26;
-    const armLen = 0.09;
-    const eyeX = 0.2;
+    const torsoH = 0.255;
+    const armLen = 0.085;
+    const eyeX = 0.185;
     const animal = look.animal;
     // 아지트에서 고른 머리 아이템이 있으면 기본 머리 대신 그 모양과 색으로 그린다
     const wornHair = look.wear?.find((w) => isHairItem(w.id));
@@ -452,10 +452,11 @@ export function Figure({
         const talkMouthOpen = isTalking && Math.sin(tt * 28) > -0.1;
         const wantShockMouth = showShock || showDizzy || expr === "crying";
         const wantOpenSmile = !wantShockMouth && (talkMouthOpen || expr === "delighted" || expr === "happy" || motion === "bounce" || motion === "dance");
+        const wantWobbleMouth = !wantShockMouth && !talkMouthOpen && (heard === "puzzled" || expr === "awkward");
         if (mouthShockRef.current) mouthShockRef.current.visible = wantShockMouth;
         if (mouthOpenRef.current) mouthOpenRef.current.visible = wantOpenSmile;
-        if (mouthFlatRef.current) mouthFlatRef.current.visible = !wantShockMouth && !talkMouthOpen && heard === "puzzled";
-        if (mouthClosedRef.current) mouthClosedRef.current.visible = !wantShockMouth && !wantOpenSmile && heard !== "puzzled";
+        if (mouthFlatRef.current) mouthFlatRef.current.visible = wantWobbleMouth;
+        if (mouthClosedRef.current) mouthClosedRef.current.visible = !wantShockMouth && !wantOpenSmile && !wantWobbleMouth;
         // 긴장하면 동물 귀가 접히고, 놀라면 바보털이 솟는다
         const tense = heard === "shocked" || heard === "puzzled" || heard === "awkward" ? 1 : 0;
         fold.current += (tense - fold.current) * Math.min(1, dt * 10);
@@ -467,18 +468,18 @@ export function Figure({
     });
 
     const arm = (side: 1 | -1, ref: React.RefObject<THREE.Group>) => (
-        <group ref={ref} position={[(look.muscle ? 0.36 : 0.165) * side, torsoH - 0.06, 0.007]}>
-            {/* 통통한 치비 소매. 몸짱은 소매 없이 굵은 팔과 어깨 근육을 그린다 */}
+        <group ref={ref} position={[(look.muscle ? 0.36 : 0.168) * side, torsoH - 0.055, 0.007]}>
+            {/* 말랑하고 짤막한 찹쌀떡 팔. 몸짱은 소매 없이 굵은 팔과 어깨 근육을 그린다 */}
             {look.muscle ? (
                 <>
                     <PixOval rx={0.14} ry={0.12} at={[0, 0.0, 0]} color={skin} outlineZ={-0.05} />
                     <PixRect w={0.21} h={armLen + 0.08} at={[0, -armLen / 2 - 0.04, 0]} color={skin} outlineZ={-0.05} />
                 </>
             ) : (
-                <PixRect w={0.09} h={armLen} at={[0, -armLen / 2, 0]} color={look.shirt} outlineZ={-0.05} />
+                <PixOval rx={0.054} ry={0.064} at={[0, -armLen * 0.45, 0]} color={look.shirt} outlineZ={-0.05} />
             )}
             {/* 동글동글한 만두 손 */}
-            <PixOval rx={look.muscle ? 0.1 : 0.05} ry={look.muscle ? 0.09 : 0.05} at={[0, -armLen - (look.muscle ? 0.1 : 0.02), 0.005]} color={skin} outlineZ={-0.055} />
+            <PixOval rx={look.muscle ? 0.1 : 0.054} ry={look.muscle ? 0.09 : 0.052} at={[0, -armLen - (look.muscle ? 0.1 : 0.014), 0.005]} color={skin} outlineZ={-0.055} />
             {side === dir && prop && (
                 <group position={[0.03 * dir, 0.37, 0.08]} rotation={[0, dir * 0.9, 0]} scale={0.8}>
                     <HeldProp id={prop} />
@@ -487,21 +488,21 @@ export function Figure({
         </group>
     );
 
-    const legH = 0.05;
+    const legH = 0.048;
 
     return (
         <group position={[placement.x, baseY, baseZ]}>
             <group ref={root}>
                 <group ref={scaleGroup}>
                     {/* 1. 하체: 앙증맞은 2등신 도트 다리 & 신발 */}
-                    <group ref={lLeg} position={[-0.088, hip, 0]}>
-                        <PixOval rx={0.066} ry={0.056} at={[0.008 * dir, -legH, 0]} color={animal ? animal.fur : FOOT} outlineZ={-0.02} />
+                    <group ref={lLeg} position={[-0.084, hip, 0]}>
+                        <PixOval rx={0.068} ry={0.056} at={[0.008 * dir, -legH, 0]} color={animal ? animal.fur : FOOT} outlineZ={-0.02} />
                     </group>
-                    <group ref={rLeg} position={[0.088, hip, 0]}>
-                        <PixOval rx={0.066} ry={0.056} at={[0.008 * dir, -legH, 0]} color={animal ? animal.fur : FOOT} outlineZ={-0.02} />
+                    <group ref={rLeg} position={[0.084, hip, 0]}>
+                        <PixOval rx={0.068} ry={0.056} at={[0.008 * dir, -legH, 0]} color={animal ? animal.fur : FOOT} outlineZ={-0.02} />
                     </group>
 
-                    {/* 2. 상체: 통통한 사다리꼴 도트 몸통 + 하단 명암 띠 + 카라 */}
+                    {/* 2. 상체: 말랑한 만두형 도트 몸통 + 하단 명암 띠 + 카라 */}
                     <group ref={torso} position={[0, hip, 0]}>
                         {/* 동물 꼬리 (몸통 뒤쪽 레이어) */}
                         {animal && (
@@ -517,8 +518,12 @@ export function Figure({
                         )}
 
                         {/* 몸통 메인 실루엣 */}
-                        <PixOval rx={look.muscle ? 0.34 : 0.175} ry={torsoH * 0.54} at={[0, torsoH * 0.48, 0]} color={look.shirt} />
-                        <PixRect w={look.muscle ? 0.56 : 0.33} h={0.13} at={[0, 0.07, 0.002]} color={look.shirt} />
+                        <PixOval rx={look.muscle ? 0.34 : 0.188} ry={torsoH * 0.56} at={[0, torsoH * 0.48, 0]} color={look.shirt} />
+                        {look.muscle ? (
+                            <PixRect w={0.56} h={0.13} at={[0, 0.07, 0.002]} color={look.shirt} />
+                        ) : (
+                            <PixOval rx={0.182} ry={0.082} at={[0, 0.075, 0.002]} color={look.shirt} />
+                        )}
                         {look.muscle && (
                             <>
                                 <PixOval rx={0.13} ry={0.075} at={[-0.13, torsoH * 0.62, 0.008]} color={skin} />
@@ -527,7 +532,7 @@ export function Figure({
                             </>
                         )}
                         {/* 하단 도트 셀 명암 */}
-                        <PixRect w={0.32} h={0.05} at={[0, 0.03, 0.005]} color={shirtShade} outline={false} />
+                        <PixRect w={0.3} h={0.045} at={[0, 0.028, 0.005]} color={shirtShade} outline={false} />
                         {/* 귀여운 V넥/카라 포인트 */}
                         <PixRect w={0.11} h={0.05} at={[0.02 * dir, torsoH - 0.03, 0.008]} color={C.paper} outline={false} />
 
@@ -542,7 +547,7 @@ export function Figure({
                             3. 머리 (2등신 찹쌀떡 도트 헤드):
                                모든 외곽선은 z = -0.035에 깔리고 얼굴·눈·머리카락은 앞쪽 평면에 선명하게 배치
                            ========================================================= */}
-                        <group ref={head} position={[0, torsoH + (0.33), 0.02]} scale={animal ? 1.12 : 1.08}>
+                        <group ref={head} position={[0, torsoH + (0.33), 0.02]} scale={animal ? 1.13 : 1.09}>
                             {/* 뒷머리 레이어 (얼굴 뒤쪽) */}
                             {(hairStyle === "long" || hairStyle === "ribbon") && (
                                 <>
@@ -550,11 +555,11 @@ export function Figure({
                                     <PixOval rx={0.39} ry={0.1} at={[0, -0.36, -0.02]} color={hair} outlineZ={-0.03} />
                                 </>
                             )}
-                            {hairStyle === "bob" && <PixOval rx={0.47} ry={0.43} at={[0, -0.04, -0.02]} color={hair} outlineZ={-0.03} />}
-                            {hairStyle === "mash" && <PixOval rx={0.455} ry={0.38} at={[0, 0.02, -0.02]} color={hair} outlineZ={-0.03} />}
+                            {hairStyle === "bob" && <PixOval rx={0.475} ry={0.43} at={[0, -0.04, -0.02]} color={hair} outlineZ={-0.03} />}
+                            {hairStyle === "mash" && <PixOval rx={0.46} ry={0.38} at={[0, 0.02, -0.02]} color={hair} outlineZ={-0.03} />}
                             {hairStyle === "wolf" && (
                                 <>
-                                    <PixOval rx={0.43} ry={0.32} at={[0, -0.08, -0.02]} color={hair} outlineZ={-0.03} />
+                                    <PixOval rx={0.435} ry={0.32} at={[0, -0.08, -0.02]} color={hair} outlineZ={-0.03} />
                                     {[-1, 1].map((s) => (
                                         <PixRect key={`wf${s}`} w={0.13} h={0.17} at={[0.36 * s, -0.3, -0.02]} color={hair} rot={0.12 * s} outlineZ={-0.03} />
                                     ))}
@@ -570,7 +575,7 @@ export function Figure({
                             {/* 정수리 뒤쪽 헤어 볼륨 (얼굴 피부 레이어 바로 뒤에 깔아 눈을 가리지 않게 한다) */}
                             {hairStyle !== "none" && (
                                 <PixOval
-                                    rx={hairStyle === "curly" ? 0.425 : hairStyle === "fluffy" ? 0.43 : 0.405}
+                                    rx={hairStyle === "curly" ? 0.425 : hairStyle === "fluffy" ? 0.43 : 0.41}
                                     ry={hairStyle === "curly" ? 0.27 : hairStyle === "fluffy" ? 0.285 : 0.24}
                                     at={[0, 0.14, -0.006]}
                                     color={hair}
@@ -581,19 +586,19 @@ export function Figure({
                             {/* 양쪽 귀 (외곽선은 머리 뒤쪽에 통합) */}
                             {!animal && !HAIR_OVER_EARS.has(hairStyle) &&
                                 [-1, 1].map((s) => (
-                                    <PixOval key={`ear${s}`} rx={0.065} ry={0.075} at={[0.355 * s, -0.045, -0.005]} color={skin} outlineZ={-0.035} />
+                                    <PixOval key={`ear${s}`} rx={0.07} ry={0.078} at={[0.365 * s, -0.04, -0.005]} color={skin} outlineZ={-0.035} />
                                 ))}
 
                             {/* 통통한 찹쌀떡 얼굴 본체 */}
-                            <PixOval rx={0.39} ry={0.325} at={[0, 0, 0]} rot={0.03} color={skin} outlineZ={-0.035} />
+                            <PixOval rx={0.408} ry={0.338} at={[0, -0.006, 0]} rot={0.02} color={skin} outlineZ={-0.035} />
                             
                             {/* 동물 캐릭터 귀 (후속 동작 포함) */}
                             {animal?.kind === "cat" && (
                                 <group ref={hairFollow}>
                                     {[-1, 1].map((s) => (
-                                        <group key={s} position={[0.24 * s, 0.28, -0.005]} rotation={[0, 0, -0.28 * s]}>
-                                            <PixRect w={0.16} h={0.19} at={[0, 0, 0]} color={animal.fur} outlineZ={-0.035} />
-                                            <PixRect w={0.08} h={0.1} at={[0, -0.01, 0.005]} color={animal.inner} outline={false} />
+                                        <group key={s} position={[0.25 * s, 0.295, -0.002]} rotation={[0, 0, -0.24 * s]}>
+                                            <PixOval rx={0.098} ry={0.118} at={[0, 0, 0]} color={animal.fur} outlineZ={-0.035} />
+                                            <PixOval rx={0.052} ry={0.065} at={[0, 0.005, 0.006]} color={animal.inner} outline={false} />
                                         </group>
                                     ))}
                                 </group>
@@ -794,9 +799,12 @@ export function Figure({
                                     </>
                                 )}
 
-                                {/* 눈 밑 바깥쪽에 무심하게 얹은 볼터치 */}
+                                {/* 통통한 핑크 볼터치 + 도트 홍조 포인트 */}
                                 {[-1, 1].map((s) => (
-                                    <PixOval key={`blush${s}`} rx={0.055} ry={0.032} at={[0.27 * s, -0.112, 0]} color="#ffb6c6" outline={false} />
+                                    <group key={`blush${s}`} position={[0.238 * s, -0.104, 0]}>
+                                        <PixOval rx={0.068} ry={0.04} at={[0, 0, 0]} color="#ff96b8" outline={false} />
+                                        <PixRect w={0.022} h={0.016} at={[0, 0, 0.002]} color="#ff6b9d" outline={false} />
+                                    </group>
                                 ))}
 
                                 {/* 감정 표현용 도트 눈썹 */}
@@ -811,13 +819,13 @@ export function Figure({
                                     </mesh>
                                 </group>
 
-                                {/* (A) 기본 초롱초롱 도트 눈 (숨쉬기 중에도 검은 눈 테두리 안에 안정적으로 자리잡는 화이트 안광) */}
+                                {/* (A) 기본 초롱초롱 왕방울 도트 눈 (상단 큰 하이라이트 + 하단 반짝이 안광) */}
                                 <group ref={normalEyesRef}>
                                     {[-1, 1].map((s) => (
-                                        <group key={`eye${s}`} position={[eyeX * s, -0.045, 0.005]}>
-                                            <PixOval rx={0.061} ry={0.066} at={[0, 0, 0]} color={INK} outline={false} />
-                                            <PixRect w={0.026} h={0.026} at={[-0.018, 0.022, 0.005]} color="#ffffff" outline={false} />
-                                            <PixRect w={0.013} h={0.013} at={[0.022, -0.024, 0.005]} color="#ffffff" outline={false} />
+                                        <group key={`eye${s}`} position={[eyeX * s, -0.046, 0.005]}>
+                                            <PixOval rx={0.068} ry={0.074} at={[0, 0, 0]} color={INK} outline={false} />
+                                            <PixRect w={0.034} h={0.034} at={[-0.018, 0.022, 0.005]} color="#ffffff" outline={false} />
+                                            <PixRect w={0.022} h={0.022} at={[0.02, -0.022, 0.005]} color="#ffffff" outline={false} />
                                         </group>
                                     ))}
                                 </group>
@@ -829,7 +837,7 @@ export function Figure({
                                             key={`blink${s}`}
                                             w={0.12}
                                             h={0.038}
-                                            at={[eyeX * s, -0.045, 0.005]}
+                                            at={[eyeX * s, -0.046, 0.005]}
                                             color={INK}
                                             outline={false}
                                         />
@@ -839,18 +847,21 @@ export function Figure({
                                 {/* (C) 기쁨 / 신남 도트 반달눈 (^ ^) */}
                                 <group ref={happyEyesRef} visible={false}>
                                     {[-1, 1].map((s) => (
-                                        <group key={`hap${s}`} position={[eyeX * s, -0.04, 0.005]}>
-                                            <PixRect w={0.085} h={0.038} at={[0, 0.028, 0]} color={INK} outline={false} />
+                                        <group key={`hap${s}`} position={[eyeX * s, -0.042, 0.005]}>
+                                            <PixRect w={0.088} h={0.038} at={[0, 0.028, 0]} color={INK} outline={false} />
                                             <PixRect w={0.038} h={0.05} at={[-0.042, -0.006, 0]} color={INK} outline={false} />
                                             <PixRect w={0.038} h={0.05} at={[0.042, -0.006, 0]} color={INK} outline={false} />
                                         </group>
                                     ))}
                                 </group>
 
-                                {/* (D) 충격 / 패닉 도트 눈 (흰자위 + 작은 동공 O O) */}
+                                {/* (D) 충격 / 어리둥절 하찮은 점눈 + 눈밑 떨림선 (O O) */}
                                 <group ref={blankEyesRef} visible={false}>
                                     {[-1, 1].map((s) => (
-                                        <PixOval key={`blank${s}`} rx={0.027} ry={0.03} at={[eyeX * s, -0.04, 0.005]} color={INK} outline={false} />
+                                        <group key={`blank${s}`} position={[eyeX * s, -0.042, 0.005]}>
+                                            <PixOval rx={0.032} ry={0.035} at={[0, 0, 0]} color={INK} outline={false} />
+                                            <PixRect w={0.052} h={0.016} at={[0, -0.055, 0]} color={INK} outline={false} />
+                                        </group>
                                     ))}
                                 </group>
 
@@ -864,12 +875,13 @@ export function Figure({
                                     ))}
                                 </group>
 
-                                {/* (F) 폭풍 눈물 도트 눈 (T T) */}
+                                {/* (F) 폭풍 눈물 글썽글썽 도트 눈 (T T) */}
                                 <group ref={cryEyesRef} visible={false}>
                                     {[-1, 1].map((s) => (
                                         <group key={`cry${s}`} position={[eyeX * s, -0.04, 0.005]}>
                                             <PixRect w={0.125} h={0.04} at={[0, 0.022, 0]} color={INK} outline={false} />
-                                            <PixRect w={0.052} h={0.16} at={[0, -0.07, -0.002]} color={TEAR} outline={false} />
+                                            <PixOval rx={0.042} ry={0.036} at={[0.02 * s, -0.015, 0.002]} color={TEAR} outline={false} />
+                                            <PixRect w={0.054} h={0.16} at={[0, -0.07, -0.002]} color={TEAR} outline={false} />
                                         </group>
                                     ))}
                                 </group>
@@ -892,32 +904,39 @@ export function Figure({
                                     <PixRect w={0.07} h={0.058} at={[0, -0.03, 0.002]} color={TEAR} outline={false} />
                                 </group>
 
-                                {/* 도트 입: 양 볼터치 바로 사이에 앙증맞게 배치 */}
-                                <mesh ref={mouthClosedRef} position={[0, -0.098, 0.01]}>
-                                    <boxGeometry args={[0.016, 0.016, 0.01]} />
+                                {/* 도트 입: 양 볼터치 바로 사이에 오밀조밀한 'ω' 고양이입과 분홍 혀 입 배치 */}
+                                <mesh ref={mouthClosedRef} position={[0, -0.086, 0.01]}>
+                                    <boxGeometry args={[0.018, 0.018, 0.01]} />
                                     <meshBasicMaterial color={INK} />
                                     {[-1, 1].map((s) => (
                                         <group key={`m${s}`}>
-                                            <mesh position={[0.016 * s, -0.012, 0]}>
-                                                <boxGeometry args={[0.016, 0.016, 0.01]} />
+                                            <mesh position={[0.017 * s, -0.013, 0]}>
+                                                <boxGeometry args={[0.02, 0.018, 0.01]} />
                                                 <meshBasicMaterial color={INK} />
                                             </mesh>
-                                            <mesh position={[0.032 * s, -0.002, 0]}>
-                                                <boxGeometry args={[0.016, 0.016, 0.01]} />
+                                            <mesh position={[0.033 * s, -0.002, 0]}>
+                                                <boxGeometry args={[0.018, 0.018, 0.01]} />
                                                 <meshBasicMaterial color={INK} />
                                             </mesh>
                                         </group>
                                     ))}
                                 </mesh>
-                                <group ref={mouthOpenRef} position={[0, -0.11, 0.01]} scale={0.6} visible={false}>
-                                    <PixRect w={0.095} h={0.065} at={[0, 0, 0]} color={MOUTH} outlineZ={-0.005} />
+                                <group ref={mouthOpenRef} position={[0, -0.102, 0.01]} scale={0.68} visible={false}>
+                                    <PixOval rx={0.055} ry={0.044} at={[0, 0, 0]} color={MOUTH} outlineZ={-0.005} />
+                                    <PixOval rx={0.036} ry={0.022} at={[0, -0.014, 0.004]} color="#ff96b8" outline={false} />
                                 </group>
-                                <mesh ref={mouthFlatRef} position={[0, -0.1, 0.01]} visible={false}>
-                                    <boxGeometry args={[0.04, 0.016, 0.01]} />
+                                <mesh ref={mouthFlatRef} position={[0, -0.088, 0.01]} visible={false}>
+                                    <boxGeometry args={[0.02, 0.018, 0.01]} />
                                     <meshBasicMaterial color={INK} />
+                                    {[-1, 1].map((s) => (
+                                        <mesh key={`mf${s}`} position={[0.018 * s, -0.013, 0]}>
+                                            <boxGeometry args={[0.02, 0.018, 0.01]} />
+                                            <meshBasicMaterial color={INK} />
+                                        </mesh>
+                                    ))}
                                 </mesh>
-                                <mesh ref={mouthShockRef} position={[0, -0.115, 0.01]} visible={false}>
-                                    <boxGeometry args={[0.062, 0.062, 0.01]} />
+                                <mesh ref={mouthShockRef} position={[0, -0.108, 0.01]} visible={false}>
+                                    <boxGeometry args={[0.058, 0.058, 0.01]} />
                                     <meshBasicMaterial color={INK} />
                                 </mesh>
 

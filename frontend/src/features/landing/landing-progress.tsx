@@ -406,9 +406,10 @@ function FeaturedScene({
             </span>
           </span>
           <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-[20px] text-ink transition-transform duration-150 group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
-            {answerCta(scene.relation)}
+            {/* 포스터 글꼴은 글자가 줄 상자 안에서 위로 치우쳐 그려져서, 줄 높이를 글자 크기에 맞추고 화살표를 3px 올려야 눈으로 본 가운데가 맞는다 */}
+            <span className="leading-none">{answerCta(scene.relation)}</span>
             {/* 주요 버튼 화살표는 몸통이 있는 도트 화살표로 크게 그려야 움직이는 게 보인다 */}
-            <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="nudge fill-current">
+            <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="nudge relative -top-[3px] shrink-0 fill-current">
               <path d="M0 3h4v2H0zM4 1h1v6H4zM5 2h1v4H5zM6 3h1v2H6z" />
             </svg>
           </span>
