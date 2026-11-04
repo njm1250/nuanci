@@ -8,11 +8,13 @@ import { LOGO_SIZE, logoDataUrl, WORDMARK_SIZE, wordmarkDataUrl } from "@/featur
 export const CARD_SIZE = { width: 1200, height: 630 };
 
 // 종이 화면과 같은 색. 테스트 결과 카드도 같은 색과 블록을 쓴다
-export const INK = "#09318d";
+// 글자·테두리는 네이비, 칠한 면(제목 띠·버튼)은 브랜드 딥 블루. 사이트의 --blue-900 / --blue-700과 같다
+export const INK = "#0b1a44";
+export const BAND = "#09318d";
 export const PAPER = "#ffffff";
 export const RULE = "#f1f4fa";
 export const CARD = "#ffffff";
-export const SUBTLE = "#5a6482";
+export const SUBTLE = "#425075";
 export const ACCENT = "#fd91cc";
 export const BAD = "#ff5533";
 
@@ -94,7 +96,7 @@ export function Lockup() {
 // 화면의 주 버튼처럼 딥 블루 바탕에 핑크 밑단
 export function Cta({ children }: { children: ReactNode }) {
   return (
-    <div style={{ display: "flex", alignSelf: "flex-start", background: INK, color: ACCENT, fontSize: 34, padding: "18px 30px", boxShadow: `0 ${CELL + 2}px 0 ${ACCENT}, 0 ${CELL + 2}px 0 ${CELL}px ${INK}` }}>{children}</div>
+    <div style={{ display: "flex", alignSelf: "flex-start", background: BAND, color: ACCENT, fontSize: 34, padding: "18px 30px", boxShadow: `0 ${CELL + 2}px 0 ${ACCENT}, 0 ${CELL + 2}px 0 ${CELL}px ${INK}` }}>{children}</div>
   );
 }
 
@@ -176,7 +178,7 @@ export function sceneCard({ title, partnerName, partnerLine, intent }: SceneCard
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: 1072 }}>
           <Lockup />
           <div style={{ display: "flex", alignItems: "center", fontSize: 28 }}>
-            <div style={{ display: "flex", background: INK, color: ACCENT, padding: "6px 12px 4px", maxWidth: 640 }}>{title}</div>
+            <div style={{ display: "flex", background: BAND, color: ACCENT, padding: "6px 12px 4px", maxWidth: 640 }}>{title}</div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", width: 790 }}>
