@@ -12,3 +12,10 @@ export function teaserOf(s: Scene) {
   const line = fit(said) ?? fit(meaning);
   return line ? `다음: 「${line}」 영어로?` : `다음: ${s.title}`;
 }
+
+// 장면 시작 버튼에 "장면 해 보기" 대신 이 장면에서 할 일을 적는다("엄마 말에 답하기"). 상대가 길면("동네 모임에서 알게 된 친구") 끝말만 쓴다
+const CTA_RELATION_MAX = 8;
+export function answerCta(relation: string) {
+  const who = relation.length <= CTA_RELATION_MAX ? relation : relation.split(" ").at(-1);
+  return who ? `${who} 말에 답하기` : "다음 장면 해 보기";
+}

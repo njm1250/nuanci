@@ -13,6 +13,7 @@ import {
 import { hasPlayed, trackHome, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
 import { ReviewToday } from "@/features/review/review-today";
+import { answerCta } from "@/features/scene/teaser";
 import {
   isUnopened,
   nextGoalParts,
@@ -94,7 +95,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const target = next ?? scenes[0];
   if (!target || returning) return null;
   const label = !returning
-    ? `${target.title}부터 하기`
+    ? answerCta(target.relation)
     : next
       ? "다음 장면 해 보기"
       : "처음부터 다시 하기";
@@ -347,13 +348,6 @@ function Arrow() {
       <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />
     </svg>
   );
-}
-
-// "다음 장면 해 보기" 대신 이 장면에서 할 일을 버튼에 적는다("엄마 말에 답하기"). 상대가 길면("동네 모임에서 알게 된 친구") 끝말만 쓴다
-const CTA_RELATION_MAX = 8;
-function answerCta(relation: string) {
-  const who = relation.length <= CTA_RELATION_MAX ? relation : relation.split(" ").at(-1);
-  return who ? `${who} 말에 답하기` : "다음 장면 해 보기";
 }
 
 // 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 한다.
