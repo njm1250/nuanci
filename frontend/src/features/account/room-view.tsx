@@ -160,7 +160,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
 
   return (
     <div className="md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10">
-      <div className="sticky top-0 z-10 -mx-4 bg-night px-4 pb-3 md:top-6 md:mx-0 md:bg-transparent md:px-0">
+      <div className="sticky top-[var(--header-shown)] z-10 -mx-4 bg-night px-4 pb-3 transition-[top] duration-200 ease-out md:top-[calc(var(--header-shown)+1.5rem)] md:mx-0 md:bg-transparent md:px-0">
         <Panel>
           <div className="relative aspect-[4/3] max-h-[32dvh] w-full overflow-hidden md:max-h-none">
             <Stage
