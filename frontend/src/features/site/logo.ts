@@ -1,8 +1,8 @@
-// 로고 마크: Mochi 귀가 달린 라임 말풍선. 파비콘, 앱 아이콘, 공유 카드가 같은 격자를 쓴다
+// 로고 마크: Mochi 귀가 달린 핑크 말풍선. 파비콘, 앱 아이콘, 공유 카드가 같은 격자를 쓴다
 const PALETTE: Record<string, string> = {
   k: "#141317",
-  o: "#c8f031",
-  b: "#f28fa5",
+  o: "#fd91cc",
+  b: "#e5509a",
 };
 
 const LOGO = [
