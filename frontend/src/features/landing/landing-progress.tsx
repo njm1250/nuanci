@@ -505,7 +505,8 @@ const GROUP_STAGES: Record<string, Omit<StageSpec, "hero" | "wear">> = {
 // 상황별로 장면을 고르는 입구. 묶음마다 첫 장면 썸네일을 붙여 글자 대신 실제 무대로 어떤 상황인지 보여 준다
 function SituationTiles({ scenes, open }: { scenes: ShelfScene[]; open: Set<string> }) {
   const tiles = SCENE_GROUPS.map((g) => ({ label: g.label, scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set, s.category) === g.label) }))
-    .filter((g) => g.scenes.length > 0)
+    // 지금 열린 장면이 하나도 없는 상황은 눌러도 잠김뿐이라 빼고, 고를 상황이 둘도 안 되면 칸 자체를 숨긴다
+    .filter((g) => openCount(g.scenes, open) > 0)
     .slice(0, 8);
   if (tiles.length < 2) return null;
   return (
