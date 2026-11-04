@@ -20,8 +20,10 @@ import {
 } from "@/features/rewards/rewards";
 import { EntryLink, Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
+import { sfx } from "@/features/scene/sfx";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
 import { Stage } from "@/features/stage/stage";
+import type { Motion } from "@/features/scene/types";
 import type { Hero } from "@/features/stage/types";
 import { useAccount } from "./account";
 import { GoogleButton } from "./google-button";
@@ -74,8 +76,30 @@ function memoryScene(item: RewardItem, cleared: string[]) {
   return null;
 }
 
+// 아지트 무대에서 캐릭터를 누를 때마다 차례로 돌아가며 하는 동작과 말. 계속 반복되는 동작(춤·손 흔들기)은 멈추지 않아서 한 번 하고 끝나는 것만 쓴다
+const ME_POKES: { motion: Motion; line: string }[] = [
+  { motion: "bounce", line: "간지러워!" },
+  { motion: "spin", line: "이 방 꽤 괜찮지?" },
+  { motion: "nod", line: "오늘도 사고 치러 가 볼까?" },
+  { motion: "tilt", line: "왜, 할 말 있어?" },
+  { motion: "clap", line: "새 물건 또 받고 싶다!" },
+];
+const MOCHI_POKES: { motion: Motion; line: string }[] = [
+  { motion: "bounce", line: "냥?" },
+  { motion: "tilt", line: "골골골…" },
+  { motion: "spin", line: "밥은?" },
+  { motion: "nod", line: "건드리지 마라냥" },
+];
+
 export function RoomView({ memories }: { memories: Record<string, SceneMemory> }) {
   const cleared = useCleared();
+  const [poke, setPoke] = useState<{ who: "me" | "partner"; n: number } | null>(null);
+  const pokeStage = (who: "me" | "partner") => {
+    sfx.tap();
+    setPoke((p) => ({ who, n: (p?.n ?? -1) + 1 }));
+  };
+  const mePoke = poke?.who === "me" ? ME_POKES[poke.n % ME_POKES.length] : null;
+  const mochiPoke = poke?.who === "partner" ? MOCHI_POKES[poke.n % MOCHI_POKES.length] : null;
   const account = useAccount();
   const rewards = useRewards();
   const look = useHeroLook();
@@ -141,7 +165,18 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
           <div className="relative aspect-[4/3] max-h-[32dvh] w-full overflow-hidden md:max-h-none">
             <Stage
               spec={{ set: "room", time: "day", partner: "mochi", hero: look.hero, wear: look.wear, flags: [`books-${cleared.length}`, ...look.placed] }}
-              state={{ partnerMotion: "idle", partnerKey: 0, talkKey: 0, reaction: null, meLine: "여기가 내 아지트야!" }}
+              state={{
+                meMotion: mePoke?.motion,
+                meKey: mePoke ? poke!.n : 0,
+                partnerMotion: mochiPoke?.motion ?? "idle",
+                partnerKey: mochiPoke ? poke!.n : 0,
+                talkKey: mePoke ? poke!.n : 0,
+                reaction: null,
+                // 누른 캐릭터만 말한다. 아무도 안 눌렀으면 주인공이 아지트를 소개한다
+                meLine: mochiPoke ? undefined : (mePoke?.line ?? "여기가 내 아지트야!"),
+                partnerLine: mochiPoke?.line,
+              }}
+              onPick={pokeStage}
             />
             {next && (
               <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">

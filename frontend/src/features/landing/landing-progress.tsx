@@ -10,7 +10,7 @@ import {
   useCleared,
   useSince,
 } from "@/features/scene/progress";
-import { hasPlayed, trackHome, watchEngagement } from "@/features/scene/track";
+import { hasPlayed, trackHome, visitorId, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
 import { ReviewToday } from "@/features/review/review-today";
 import { answerCta } from "@/features/scene/teaser";
@@ -381,7 +381,7 @@ function FeaturedScene({
         {/* 데스크톱은 제목을 위에, 버튼을 아래에 붙여 오른쪽 칸이 그림 높이를 꽉 채우게 한다. 가운데에 떠 있으면 위아래가 비어 보인다 */}
         <span className="block md:flex md:flex-col md:justify-between md:py-2">
           <span className="block">
-            <span className="mt-3 block px-2 font-poster text-[24px] leading-[1.25] md:mt-0 md:text-[34px] md:leading-[1.15]">
+            <span className="mt-3 block px-2 font-poster text-[22px] leading-[1.25] md:mt-0 md:text-[30px] md:leading-[1.15]">
               {scene.title}
             </span>
             <span className="mt-1.5 block px-2 text-[13px] text-ink-subtle md:hidden">
@@ -443,6 +443,12 @@ function NextGoal() {
   );
 }
 
+// 홈 순서 실험 묶음. 방문자 id 첫 글자(16진수)가 홀수면 복습을 장면 아래에 둔다. 같은 사람은 늘 같은 묶음이다
+const noSubscribe = () => () => {};
+function useReviewAfter() {
+  return useSyncExternalStore(noSubscribe, () => parseInt(visitorId()[0], 16) % 2 === 1, () => false);
+}
+
 // 다시 온 방문자에게 진행도와 다음에 볼 장면 몇 개만 보여준다. 장면이 늘어도 메인이 길어지지 않게 전체 목록은 따로 둔다
 export function SceneShelf({
   scenes,
@@ -452,6 +458,7 @@ export function SceneShelf({
   limit?: number;
 }) {
   const { returning, cleared, fresh } = useVisitor(scenes);
+  const reviewAfter = useReviewAfter();
   if (!returning) return null;
   const done = scenes.filter((s) => cleared.includes(s.id)).length;
   const progress = blockProgress(scenes, cleared);
@@ -467,8 +474,8 @@ export function SceneShelf({
     .slice(0, limit);
   return (
     <section className="animate-[fade-in_200ms] px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10">
-      {/* 다시 온 이유가 되도록 지난번 헷갈린 말을 맨 위에서 먼저 묻는다 */}
-      <ReviewToday />
+      {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다 */}
+      {!reviewAfter && <ReviewToday className="mb-7" />}
       <div className="flex items-baseline justify-between">
         <h2 className="text-[16px] font-bold">
           {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
@@ -522,6 +529,7 @@ export function SceneShelf({
       )}
       <ThumbStudio />
       {/* 눌러서 들어가는 곳은 글자만 두지 않고, 화살표가 붙은 줄로 만들어 누를 수 있다는 게 보이게 한다 */}
+      {reviewAfter && <ReviewToday className="mt-8" />}
       <div className="blk-frame mt-5">
         <ul className="blk divide-y-2 divide-ink/10 bg-cream text-ink">
           <li>

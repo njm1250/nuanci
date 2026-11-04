@@ -112,6 +112,22 @@ function Question({ name, line, intent, className = "" }: { name: string; line: 
   );
 }
 
+// Mochi가 옆에서 말을 거는 한 줄. 반말 안내가 서비스 말투가 아니라 고양이 말로 들리게 한다(메뉴의 "어디로 갈까?"와 같은 모양)
+function MochiAsk({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const [hop, setHop] = useState(0);
+  return (
+    <div className={`flex items-end gap-2 ${className}`}>
+      {/* 누르면 제자리에서 콩 뛴다. 그냥 장식이지만 눌러 보는 사람에게 작은 대답이 된다 */}
+      <button type="button" aria-label="Mochi" onClick={() => (setHop((n) => n + 1), sfx.tap())} className="-m-1 shrink-0 p-1">
+        <Mascot key={hop} scale={2} className={hop ? "animate-[hop_380ms_steps(3,end)]" : ""} />
+      </button>
+      <div className="blk-frame-sm mb-2 min-w-0">
+        <p className="blk bg-white px-2.5 py-1.5 text-[14px] font-bold leading-snug text-[#0b1a44]">{children}</p>
+      </div>
+    </div>
+  );
+}
+
 function Caret({ open }: { open: boolean }) {
   return (
     <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className={`fill-current transition-transform ${open ? "rotate-90" : ""}`}>
@@ -223,6 +239,10 @@ function Arrow() {
     </svg>
   );
 }
+
+// 고른 말을 들은 상대가 무대에서 반응을 말하기까지의 시간. 생각 말풍선은 650ms에 떠서 3050ms에 사라진다
+const REACT_AFTER = 1100;
+const REACT_AFTER_IMAGINE = 3100;
 
 // 완료 화면의 팡파르(0.75초부터 1.6초쯤까지)가 끝난 뒤 연속 기록 줄이 들어오고, 새 물건 카드는 그다음에 들어온다.
 // 축하 소리가 겹치지 않게 하나씩 차례로 울린다
@@ -507,6 +527,16 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   const endingOn = wrapped && ending !== undefined && endingStep !== "off";
   const partnerEnds = endingOn && ending.who === "partner";
   const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (beat ? 40 + leadIdx * 2 : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
+  // 고른 뒤 상대 말풍선을 질문에서 상대 반응으로 바꿔, 판정만이 아니라 "그래서 상대가 뭐래?"까지 무대에서 이어진다.
+  // 생각 말풍선(imagine)이 있으면 그게 사라진 뒤에 바꾼다. 같은 자리 근처라 겹치면 둘 다 안 읽힌다
+  const [reactedKey, setReactedKey] = useState<number | null>(null);
+  const reactWait = !stageChoice || endingOn || beat || wrapped ? null : stageChoice.imagine ? (reduced ? null : REACT_AFTER_IMAGINE) : reduced ? 0 : REACT_AFTER;
+  useEffect(() => {
+    if (reactWait === null) return;
+    const t = window.setTimeout(() => setReactedKey(stageKey), reactWait);
+    return () => clearTimeout(t);
+  }, [stageKey, reactWait]);
+  const partnerReacts = reactWait !== null && reactedKey === stageKey;
 
   // 팡파르(와 연속 기록 줄)가 끝나고 새 물건 카드가 들어올 때 주인공도 무대에서 그 물건을 받는다. 잠깐 보여준 뒤 엔딩으로 돌아간다
   const prize = stagePrize(granted);
@@ -659,6 +689,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                         phase === "transition" && scene.followUp.lead?.length
                         ? undefined
                         : stageSituation.partnerLine,
+                  partnerSays: partnerReacts ? stageChoice?.reaction : undefined,
                   meTurn: phase !== "transition" && !choice && !beat,
                 }}
               />
@@ -738,10 +769,8 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             <div key={`ask-${phase}`}>
               <p className="text-[14px] leading-normal text-paper-muted">{situation.context}</p>
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-[rise_220ms_var(--ease-snap)_both]" />
-              {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게 형광펜으로 묻는다 */}
-              <p className="mt-3.5 animate-[rise_220ms_var(--ease-snap)_both] font-pixel text-[15px] [animation-delay:200ms]">
-                <span className="hl">너라면 뭐라고 할래?</span>
-              </p>
+              {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게, 메뉴처럼 Mochi가 말풍선으로 묻는다 */}
+              <MochiAsk className="mt-3 animate-[rise_220ms_var(--ease-snap)_both] [animation-delay:200ms]">너라면 뭐라고 할래?</MochiAsk>
               <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
@@ -765,7 +794,8 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             <div key={`result-${phase}`}>
               {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} />
-              <p className="mt-4 text-[14px] text-paper-muted">다른 말도 눌러 보세요</p>
+              {/* 다른 보기의 반응을 비교해 보는 게 이 화면에서 배우는 방법이라, 고를 때처럼 Mochi가 권한다 */}
+              <MochiAsk className="mt-3">다른 말도 눌러 볼래?</MochiAsk>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-[rise_240ms_var(--ease-snap)_both]" style={{ animationDelay: `${i * 70}ms` }}>
@@ -834,7 +864,8 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             {leading ? (
               // 대사는 저절로 넘어가고, 메인 버튼(과 무대)을 누르면 바로 다음 줄로, 이미 본 장면이면 옆의 건너뛰기로 바로 질문에 간다
               <div className="flex items-center gap-2">
-                <BlockButton primary onClick={nextBeat} className="flex-1" faceClassName="py-3.5 text-center">
+                {/* 대사는 저절로 넘어가니 "다음"은 재촉하는 보조 버튼이다. 대사보다 눈에 띄지 않게 흰 칸으로 둔다 */}
+                <BlockButton onClick={nextBeat} reading className="flex-1" faceClassName="py-3 text-center text-[16px] font-bold">
                   다음
                 </BlockButton>
                 <button type="button" onClick={() => setAutoPaused((v) => !v)} aria-pressed={autoPaused} className="min-h-11 shrink-0 px-2 font-pixel text-[15px] text-paper-muted hover:text-paper">

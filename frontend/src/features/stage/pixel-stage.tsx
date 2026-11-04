@@ -207,6 +207,8 @@ export type StageState = {
   meNote?: React.ReactNode;
   meNoteKey?: string;
   partnerLine?: string;
+  // 고른 말을 들은 뒤 상대가 하는 반응. 있으면 반응 기호 대신 말풍선으로 띄운다
+  partnerSays?: string;
   meTurn?: boolean;
 };
 
@@ -232,6 +234,15 @@ function useBusy(spec: StageSpec, state: StageState | undefined, reduced: boolea
 
 // 세트·시간·등장인물 조합을 픽셀 무대로 그리고, 캐릭터 머리 위에 말풍선과 반응 기호를 붙인다
 // onSnapshot을 주면 snapshotKey가 바뀔 때마다 무대를 한 장 찍어 넘긴다(장면 목록 썸네일)
+function pickHandlers(onPick: ((who: "me" | "partner") => void) | undefined, who: "me" | "partner") {
+  if (!onPick) return {};
+  return {
+    onClick: (e: { stopPropagation: () => void }) => (e.stopPropagation(), onPick(who)),
+    onPointerOver: () => void (document.body.style.cursor = "pointer"),
+    onPointerOut: () => void (document.body.style.cursor = ""),
+  };
+}
+
 export function PixelStage({
   spec,
   state,
@@ -239,6 +250,7 @@ export function PixelStage({
   paused = false,
   onSnapshot,
   snapshotKey,
+  onPick,
 }: {
   spec: StageSpec;
   state?: StageState;
@@ -247,6 +259,8 @@ export function PixelStage({
   paused?: boolean;
   onSnapshot?: (url: string) => void;
   snapshotKey?: string;
+  // 주인공이나 상대를 누르면 누가 눌렸는지 알려 준다. 넘기면 그 캐릭터 위에서 손 모양 커서가 된다
+  onPick?: (who: "me" | "partner") => void;
 }) {
   const set = SETS[spec.set];
   const evening = spec.time === "evening";
@@ -317,6 +331,7 @@ export function PixelStage({
         <directionalLight position={[-3, 4, 6]} intensity={evening ? 0.9 : 1.2} />
 
         {scenery}
+        <group {...pickHandlers(onPick, "me")}>
         <Figure
           placement={set.me}
           look={{ ...CAST[HEROES[spec.hero ?? "girl"]], wear: spec.wear }}
@@ -326,6 +341,8 @@ export function PixelStage({
           reduced={reduced}
           prop={state?.meProp}
         />
+        </group>
+        <group {...pickHandlers(onPick, "partner")}>
         <Figure
           placement={set.partner}
           look={CAST[spec.partner]}
@@ -336,6 +353,7 @@ export function PixelStage({
           prop={state?.partnerProp}
           expression={state?.reaction}
         />
+        </group>
       </Canvas>
 
       {state && (
@@ -343,7 +361,9 @@ export function PixelStage({
           {state.meNote
             ? bubble("me", state.meNote, `note-${state.meNoteKey ?? ""}`)
             : bubble("me", state.meLine ?? (state.meTurn ? <TypingDots /> : null), state.meLine ?? "turn")}
-          {symbol ? (
+          {state.partnerSays ? (
+            bubble("partner", state.partnerSays, `says-${state.partnerKey}`)
+          ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
               <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-[pop_260ms_steps(3,end)]">
                 {symbol}
