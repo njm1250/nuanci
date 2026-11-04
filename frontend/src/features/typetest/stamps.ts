@@ -17,7 +17,7 @@ export function stampPath(kind: StampKind) {
   return ICONS[kind].flatMap((row, y) => [...row].flatMap((ch, x) => (ch === "k" ? [`M${x} ${y}h1v1h-1z`] : []))).join("");
 }
 
-export function stampSvg(kind: StampKind, ink = "#141317") {
+export function stampSvg(kind: StampKind, ink = "#0b1a44") {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="${ink}" d="${stampPath(kind)}"/></svg>`;
 }
 
