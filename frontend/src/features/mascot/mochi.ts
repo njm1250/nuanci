@@ -1,9 +1,10 @@
 // 마스코트 Mochi(치즈 고양이)를 픽셀 격자로 그린다. 무대 밖(공유 카드, 화면 장식)에서 같은 그림을 쓴다
 const PALETTE: Record<string, string> = {
   k: "#141317",
+  w: "#ffffff",
   o: "#f0a24a",
   c: "#ffd9b8",
-  b: "#f28fa5",
+  b: "#ff96b8",
   p: "#f08aa8",
   n: "#e86a88",
 };
@@ -14,7 +15,7 @@ const MOCHI = [
   ".kcok......kock.",
   ".koookkkkkkoook.",
   "kooooooooooooook",
-  "kookkooooookkook",
+  "koowkooooookwook",
   "kookkooooookkook",
   "kobbooonnooobbok",
   "koooookookoooook",
