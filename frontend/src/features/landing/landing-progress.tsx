@@ -115,7 +115,8 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
         {label}
       </BlockLink>
       {/* 장면 대신 가볍게 시작하고 싶은 사람을 위한 두 번째 입구. 주요 버튼과 같은 너비의 흰 버튼으로 한 단계 낮춘다 */}
-      <BlockLink href="/test" className="mt-2.5" reading>
+      {/* 모바일은 이 칸이 화면 아래에 붙어 있어서, 두 번째 버튼까지 두면 화면을 너무 많이 가린다. 모바일에서는 설명 아래 글자 링크로 둔다 */}
+      <BlockLink href="/test" className="mt-2.5 hidden min-[960px]:block" reading>
         유형 테스트 먼저 해 보기
       </BlockLink>
       <p className="mt-3 text-center text-[14px] text-paper-subtle">{note}</p>
@@ -485,6 +486,8 @@ function TodayGoals() {
   );
 }
 
+const openCount = (list: ShelfScene[], open: Set<string>) => list.filter((s) => open.has(s.id)).length;
+
 // 상황 타일마다 따로 꾸민 무대. 묶음의 첫 장면을 쓰면 거실·소파가 겹쳐 다 같아 보여서, 그 상황을 한눈에 알 만한 세트·상대·소품을 골라 둔다
 const GROUP_STAGES: Record<string, Omit<StageSpec, "hero" | "wear">> = {
   "병맛 대회": { set: "freezer", time: "day", partner: "mc", flags: ["blizzard"], decor: [{ id: "contest-poster", x: 1.9 }] },
@@ -500,7 +503,7 @@ const GROUP_STAGES: Record<string, Omit<StageSpec, "hero" | "wear">> = {
 };
 
 // 상황별로 장면을 고르는 입구. 묶음마다 첫 장면 썸네일을 붙여 글자 대신 실제 무대로 어떤 상황인지 보여 준다
-function SituationTiles({ scenes }: { scenes: ShelfScene[] }) {
+function SituationTiles({ scenes, open }: { scenes: ShelfScene[]; open: Set<string> }) {
   const tiles = SCENE_GROUPS.map((g) => ({ label: g.label, scenes: scenes.filter((s) => groupOf(s.relation, s.stage?.set, s.category) === g.label) }))
     .filter((g) => g.scenes.length > 0)
     .slice(0, 8);
@@ -514,7 +517,10 @@ function SituationTiles({ scenes }: { scenes: ShelfScene[] }) {
             <Link href={`/scenes?group=${encodeURIComponent(t.label)}`} onClick={() => setSceneView("group")} className="group block">
               <SceneThumb stage={GROUP_STAGES[t.label] ?? t.scenes[0].stage} className="aspect-[4/3] w-full border-2 border-line transition-colors group-hover:border-ink" />
               <span className="mt-2 block truncate text-[15px] font-bold leading-[1.35]">{t.label}</span>
-              <span className="mt-0.5 block text-[12px] leading-[1.35] text-paper-subtle">장면 {t.scenes.length}개</span>
+              {/* 눌러서 대부분 잠겨 있으면 실망하니, 지금 할 수 있는 개수를 같이 적는다 */}
+              <span className="mt-0.5 block text-[12px] leading-[1.35] text-paper-subtle">
+                {openCount(t.scenes, open) === t.scenes.length ? `장면 ${t.scenes.length}개` : `${t.scenes.length}개 중 ${openCount(t.scenes, open)}개 열림`}
+              </span>
             </Link>
           </li>
         ))}
@@ -599,7 +605,7 @@ export function SceneShelf({
             </BlockLink>
           </>
         )}
-        <SituationTiles scenes={scenes} />
+        <SituationTiles scenes={scenes} open={open} />
       </div>
       {/* 오른쪽 칸. 모바일에서는 틀 없이 풀려서 장면 앞뒤 자리에 끼어든다 */}
       <div className="contents lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-6">

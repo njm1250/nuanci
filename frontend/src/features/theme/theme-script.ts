@@ -1,6 +1,6 @@
 // 서버 레이아웃에서도 쓰는 값이라 "use client" 파일과 따로 둔다
 export const THEME_KEY = "nuanci.theme";
-export const THEME_COLORS = { dark: "#0f0e12", light: "#f1f4fa" } as const;
+export const THEME_COLORS = { dark: "#070d22", light: "#f1f4fa" } as const;
 
 // 기본은 종이색 밝은 화면이다. 색 값은 어두운 화면이 바탕이고 html의 data-theme="light"가 밝게 덮는다.
 // 첫 화면을 그리기 전에 실행해서, 밤 화면을 고르지 않은 사람에게는 밝은 화면을 먼저 붙인다.

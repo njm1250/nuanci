@@ -27,10 +27,9 @@ const website = {
 export default async function Home() {
   const [catalog, beats] = await Promise.all([getCatalog(), getReel()]);
   const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
-  // 첫 장면에서 사고가 나는 보기 하나를 골라, 데스크톱 오른쪽에 규칙을 한 컷으로 보여 주는 예시로 쓴다
+  // 첫 장면에서 사고가 나는 보기와 자연스러운 보기를 골라, 아래 기능 소개에 실제 화면 조각으로 쓴다
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
   const wrong = first?.base.choices.find((c) => c.verdict === "bad");
-  const sample = first && wrong ? { name: first.partnerName, heard: first.base.partnerLine, said: wrong.line } : null;
   const right = first?.base.choices.find((c) => c.verdict === "good");
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
@@ -99,21 +98,13 @@ export default async function Home() {
           )}
 
           <div className="order-2 max-w-[440px] px-4 pt-5 min-[960px]:col-start-2 min-[960px]:row-start-1 min-[960px]:self-end min-[960px]:px-0 min-[960px]:pt-0">
-            {sample && (
-              // 오답 한 컷을 인쇄 스티커처럼 붙여서 글을 읽기 전에 "고르면 반응이 온다"는 규칙이 보이게 한다
-              <div aria-hidden className="mb-8 hidden w-fit max-w-full -rotate-2 border-2 border-[#ffffff] bg-[#ffffff] px-4 py-3 text-[#0b1a44] shadow-[4px_4px_0_var(--color-gold)] min-[960px]:block">
-                <p className="text-[13px] text-[#5a6482]">{sample.name}</p>
-                <p className="font-line text-[18px] leading-snug">{sample.heard}</p>
-                <p className="mt-2 flex items-center gap-3">
-                  <span className="font-line text-[18px] leading-snug">나: {sample.said}</span>
-                  <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-[#0b1a44] bg-bad px-1.5 py-1 font-pixel-title text-[12px] leading-none outline-2 outline-offset-1 outline-[#0b1a44]">사고 발생</span>
-                </p>
-              </div>
-            )}
             <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-[60px] leading-none text-paper [--lean:-4deg] min-[960px]:block">
               골라 보면 알아요
             </p>
             <p className="text-[16px] leading-relaxed text-paper-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
+            <Link href="/test" className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-[15px] font-semibold text-paper underline decoration-paper/30 underline-offset-4 min-[960px]:hidden">
+              유형 테스트 먼저 해 보기 →
+            </Link>
           </div>
 
           <div className="order-4 sticky bottom-0 z-10 max-w-none border-t border-paper/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 min-[960px]:static min-[960px]:col-start-2 min-[960px]:row-start-2 min-[960px]:max-w-[440px] min-[960px]:self-start min-[960px]:border-0 min-[960px]:px-0 min-[960px]:pb-0 min-[960px]:pt-6">
