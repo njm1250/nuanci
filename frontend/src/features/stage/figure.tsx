@@ -583,10 +583,10 @@ export function Figure({
                                 />
                             )}
 
-                            {/* 양쪽 귀 (외곽선은 머리 뒤쪽에 통합) */}
+                            {/* 양쪽 귀 (외곽선은 머리 뒤쪽에 통합). 얼굴 옆으로 작게만 보이게 안쪽으로 붙인다. 크게 빼면 손잡이처럼 튀어나와 보인다 */}
                             {!animal && !HAIR_OVER_EARS.has(hairStyle) &&
                                 [-1, 1].map((s) => (
-                                    <PixOval key={`ear${s}`} rx={0.07} ry={0.078} at={[0.365 * s, -0.04, -0.005]} color={skin} outlineZ={-0.035} />
+                                    <PixOval key={`ear${s}`} rx={0.058} ry={0.07} at={[0.36 * s, -0.04, -0.005]} color={skin} outlineZ={-0.035} />
                                 ))}
 
                             {/* 통통한 찹쌀떡 얼굴 본체 */}
