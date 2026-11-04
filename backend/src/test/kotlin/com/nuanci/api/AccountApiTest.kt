@@ -64,6 +64,11 @@ class AccountApiTest {
 	}
 
 	@Test
+	fun `로그인하지 않은 방문자의 내 정보는 오류 없이 비어 있다`() {
+		mvc.get("/api/me").andExpect { status { isNoContent() } }
+	}
+
+	@Test
 	fun `구글로 로그인하면 이 기기의 기록을 계정에 합친다`() {
 		val session = login()
 		mvc.post("/api/me/sync") {
@@ -143,7 +148,7 @@ class AccountApiTest {
 	fun `state가 맞지 않거나 로그인하지 않으면 막는다`() {
 		mvc.get("/api/auth/google/callback?code=abc&state=forged") { cookie(Cookie("nuanci_oauth", "real|/")) }
 			.andExpect { redirectedUrl("https://nuanci.test/me?login=failed") }
-		mvc.get("/api/me").andExpect { status { isUnauthorized() } }
+		mvc.get("/api/me").andExpect { status { isNoContent() } }
 		mvc.get("/api/auth/google?next=//evil.example").andReturn().response.getCookie("nuanci_oauth")!!.value.let { assertTrue(it.endsWith("|/")) }
 	}
 
@@ -151,11 +156,11 @@ class AccountApiTest {
 	fun `로그아웃하거나 계정을 지우면 세션을 더 쓸 수 없다`() {
 		val session = login()
 		mvc.post("/api/auth/logout") { cookie(session) }.andExpect { status { isNoContent() } }
-		mvc.get("/api/me") { cookie(session) }.andExpect { status { isUnauthorized() } }
+		mvc.get("/api/me") { cookie(session) }.andExpect { status { isNoContent() } }
 
 		val again = login("other")
 		mvc.delete("/api/me") { cookie(again) }.andExpect { status { isNoContent() } }
-		mvc.get("/api/me") { cookie(again) }.andExpect { status { isUnauthorized() } }
+		mvc.get("/api/me") { cookie(again) }.andExpect { status { isNoContent() } }
 		mvc.get("/api/auth/providers").andExpect { jsonPath("$.google") { value(true) } }
 	}
 }

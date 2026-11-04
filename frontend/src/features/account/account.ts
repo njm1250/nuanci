@@ -39,7 +39,7 @@ export async function loadAccount() {
   started = true;
   const [providers, me] = await Promise.all([
     fetch("/api/auth/providers").then((r) => (r.ok ? r.json() : { google: false })).catch(() => ({ google: false })),
-    fetch("/api/me").then((r) => (r.ok ? (r.json() as Promise<Me>) : null)).catch(() => null),
+    fetch("/api/me").then((r) => (r.status === 200 ? (r.json() as Promise<Me>) : null)).catch(() => null),
   ]);
   if (!me) return set({ status: "guest", me: null, google: providers.google });
   mergeCleared(me.cleared);

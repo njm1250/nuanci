@@ -667,7 +667,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               </>
             )}
           </Link>
-          <p className="min-w-0 truncate text-paper">{scene.title}</p>
+          <h1 className="min-w-0 truncate text-paper">{scene.title}</h1>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && !leading && phase !== "transition" && (

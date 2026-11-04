@@ -7,6 +7,7 @@ import com.nuanci.reward.RewardStore
 import com.nuanci.streak.StreakStore
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseCookie
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -35,10 +36,11 @@ data class ClearedRequest(val sceneId: String = "")
 @RestController
 @RequestMapping("/api/me")
 class MeController(private val accounts: AccountStore, private val rewards: RewardStore, private val streaks: StreakStore, private val reviews: ReviewStore) {
+	// 로그인하지 않은 방문자는 오류가 아니라 "정보 없음"이라 204로 답한다. 401이면 모든 화면에서 브라우저 콘솔 오류로 남는다
 	@GetMapping
-	fun me(@CookieValue(SESSION_COOKIE, required = false) token: String?): MeResponse {
-		val account = require(token)
-		return response(account)
+	fun me(@CookieValue(SESSION_COOKIE, required = false) token: String?): ResponseEntity<MeResponse> {
+		val account = accounts.account(token) ?: return ResponseEntity.noContent().build()
+		return ResponseEntity.ok(response(account))
 	}
 
 	// 이 기기에서 끝낸 장면을 계정에 합치고, 합친 결과를 돌려준다
