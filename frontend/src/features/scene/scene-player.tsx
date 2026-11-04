@@ -362,8 +362,9 @@ function WrapUp({
 }
 
 // 대사 한 줄을 보여주는 시간. 영어 한 줄과 뜻을 읽을 수 있게 2~4초, 다 읽었으면 눌러서 바로 넘긴다
-// 영어 줄과 한국어 뜻을 둘 다 읽을 시간을 준다. 영어가 낯선 사람도 따라오게, 한국어 뜻을 영어보다 조금 더 천천히 읽는다고 본다
-const beatMs = (b: Beat) => Math.min(7000, Math.max(2800, 1600 + b.line.length * 45 + b.meaning.length * 60));
+// 한 줄에 2~4.5초. 속도를 늦추면 모두가 느려져서, 놓친 줄은 질문 화면의 "앞 대화 다시 보기"가 맡는다.
+// 한국어 뜻은 영어보다 글자당 조금 더 오래 읽는다고 봐서, 상황 설명처럼 뜻이 긴 줄만 그만큼 더 머문다
+const beatMs = (b: Beat) => Math.min(4500, Math.max(2000, 1400 + Math.max(b.line.length * 45, b.meaning.length * 55)));
 
 // 대사가 몇 줄 남았는지 보여주는 점
 function BeatDots({ total, at }: { total: number; at: number }) {
