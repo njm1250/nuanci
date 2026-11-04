@@ -136,17 +136,17 @@ export function RewardCard({
         <div className={`blk flex items-center gap-3 px-3 py-3 ${tone.card}`}>
           <div className={`relative shrink-0 ${tone.box}`}>
             {/* 남은 상자가 더 있으면 뒤에 한 장 더 겹쳐 그려서 쌓여 있는 것을 보여준다 */}
-            {stacked && <span aria-hidden className={`absolute -right-1.5 -top-1.5 bg-cream/60 ${tone.box}`} />}
-            <div className={`relative grid place-items-center bg-cream ${tone.box} ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
+            {stacked && <span aria-hidden className={`absolute -right-1.5 -top-1.5 border-2 border-ink bg-night-deep ${tone.box}`} />}
+            <div className={`relative grid place-items-center border-2 border-ink bg-night-deep ${tone.box} ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
               <RewardIcon id="box" size={tone.icon} />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-pixel text-[15px]">깜짝 상자</p>
+            <p className="text-[16px] font-bold">깜짝 상자</p>
             <p className={`mt-0.5 text-[12px] ${tone.muted}`}>아지트에 둘 물건 하나</p>
           </div>
-          <button type="button" onClick={open} disabled={shaking} className="blk min-h-11 shrink-0 bg-cta px-4 font-pixel text-[15px] text-cta-text">
-            열기
+          <button type="button" onClick={open} disabled={shaking} className="blk-btn shrink-0">
+            <span className="blk flex min-h-11 items-center bg-cta px-4 text-[16px] font-bold text-cta-text">열기</span>
           </button>
         </div>
       </div>
@@ -165,7 +165,7 @@ export function RewardCard({
                 style={{ animation: `rays 1400ms ease-out ${delay + POP_AFTER}ms both` }}
               />
             )}
-            <div className={`relative grid place-items-center bg-cream ${tone.box}`}>
+            <div className={`relative grid place-items-center border-2 border-ink bg-night-deep ${tone.box}`}>
               <span style={reduced ? undefined : { animation: `reward-pop 560ms ease-out ${delay + POP_AFTER}ms both` }}>
                 <RewardIcon id={item.id} color={owned.color} size={tone.icon} />
               </span>
@@ -200,10 +200,12 @@ export function RewardCard({
             type="button"
             onClick={toggle}
             aria-pressed={on}
-            className={`blk flex min-h-11 items-center gap-2 px-3 font-pixel text-[15px] ${on ? "bg-ink text-gold" : "bg-cream text-ink"}`}
+            className="blk-btn"
           >
-            {item.kind === "wear" ? "쓰기" : "방에 두기"}
-            {on && <Check />}
+            <span className={`blk flex min-h-11 items-center gap-2 px-3 text-[15px] font-bold ${on ? "bg-cta text-cta-text" : "bg-cream text-ink"}`}>
+              {item.kind === "wear" ? "쓰기" : "방에 두기"}
+              {on && <Check />}
+            </span>
           </button>
           {item.colors.length > 0 && (
             <div role="radiogroup" aria-label="색" className="flex">

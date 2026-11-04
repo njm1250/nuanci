@@ -9,6 +9,7 @@ export function BlockButton({
   primary = false,
   className = "",
   faceClassName = "",
+  reading = false,
   ...aria
 }: {
   children: React.ReactNode;
@@ -16,10 +17,12 @@ export function BlockButton({
   primary?: boolean;
   className?: string;
   faceClassName?: string;
+  // 둘을 나란히 두는 짧은 답 버튼처럼 포스터 글꼴이 과할 때 본문 글꼴로 쓴다
+  reading?: boolean;
 } & Pick<React.AriaAttributes, "aria-pressed" | "aria-expanded" | "aria-label">) {
   return (
     <button type="button" onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`} {...aria}>
-      <span className={`blk block px-3 py-2.5 ${primary ? "bg-cta font-poster text-[20px] text-cta-text" : "bg-cream"} ${faceClassName}`}>{children}</span>
+      <span className={`blk block px-3 py-2.5 ${primary ? `bg-cta text-cta-text ${reading ? "" : "font-poster text-[20px]"}` : "bg-cream text-ink"} ${faceClassName}`}>{children}</span>
     </button>
   );
 }

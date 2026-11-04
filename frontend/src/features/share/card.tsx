@@ -14,7 +14,7 @@ export const RULE = "#f1f4fa";
 export const CARD = "#ffffff";
 export const SUBTLE = "#5a6482";
 export const ACCENT = "#fd91cc";
-export const BAD = "#ff6b6b";
+export const BAD = "#ff5533";
 
 // 테두리 굵기이자 계단 모서리·말꼬리의 한 칸
 const CELL = 6;

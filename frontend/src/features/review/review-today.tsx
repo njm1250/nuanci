@@ -88,10 +88,10 @@ export function ReviewToday() {
               </p>
               <p className="mt-3.5 text-[14px] leading-relaxed text-ink-muted">{card.why}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <BlockButton onClick={() => next(false)} faceClassName="py-3 text-center font-pixel text-[15px]">
+                <BlockButton onClick={() => next(false)} reading faceClassName="py-3 text-center text-[16px] font-bold">
                   몰랐어요
                 </BlockButton>
-                <BlockButton primary onClick={() => next(true)} faceClassName="py-3 text-center font-pixel text-[15px]">
+                <BlockButton primary onClick={() => next(true)} reading faceClassName="py-3 text-center text-[16px] font-bold">
                   떠올렸어요
                 </BlockButton>
               </div>
