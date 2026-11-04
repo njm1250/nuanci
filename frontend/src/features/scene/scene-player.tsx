@@ -283,7 +283,7 @@ function WrapUp({
       <div className="flex items-end gap-3">
         <Mascot scale={3} className="shrink-0" />
         <div className="pb-1">
-          <p className="font-pixel text-[15px] text-gold">장면 완료!</p>
+          <p className="font-pixel text-[15px] text-paper-muted">장면 완료!</p>
           <p className="mt-1 font-poster text-[24px] leading-[1.25] text-paper">{scene.title}</p>
         </div>
       </div>
@@ -670,7 +670,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                 <p className="absolute bottom-2 left-2 animate-[fade-in_300ms] bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
                   {timeCue ?? (
                     <>
-                      <span className="text-gold">만약에</span> {scene.followUp.to}
+                      <span className="font-bold">만약에</span> {scene.followUp.to}
                     </>
                   )}
                 </p>
