@@ -349,6 +349,13 @@ function Arrow() {
   );
 }
 
+// "다음 장면 해 보기" 대신 이 장면에서 할 일을 버튼에 적는다("엄마 말에 답하기"). 상대가 길면("동네 모임에서 알게 된 친구") 끝말만 쓴다
+const CTA_RELATION_MAX = 8;
+function answerCta(relation: string) {
+  const who = relation.length <= CTA_RELATION_MAX ? relation : relation.split(" ").at(-1);
+  return who ? `${who} 말에 답하기` : "다음 장면 해 보기";
+}
+
 // 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 한다.
 // 데스크톱은 그림과 글을 나란히 둬서 버튼과 아래 목록이 첫 화면에 들어오게 한다
 function FeaturedScene({
@@ -395,7 +402,7 @@ function FeaturedScene({
             </span>
           </span>
           <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-[20px] text-ink transition-transform duration-150 group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
-            다음 장면 해 보기
+            {answerCta(scene.relation)}
             {/* 주요 버튼 화살표는 몸통이 있는 도트 화살표로 크게 그려야 움직이는 게 보인다 */}
             <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="nudge fill-current">
               <path d="M0 3h4v2H0zM4 1h1v6H4zM5 2h1v4H5zM6 3h1v2H6z" />
