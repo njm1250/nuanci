@@ -62,7 +62,7 @@ function useVisitor(scenes: ShelfScene[] = []) {
 
 function NewChip() {
   return (
-    <span className="shrink-0 bg-gold px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">
+    <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel-title text-[12px] leading-none text-[#ffffff]">
       NEW
     </span>
   );
@@ -146,7 +146,7 @@ function SceneCard({
           {done && (
             <span
               aria-label="해 본 장면"
-              className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-gold"
+              className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-good"
             >
               <Check />
             </span>
@@ -211,7 +211,7 @@ function SceneRow({
         {done && (
           <span
             aria-label="해 본 장면"
-            className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-gold"
+            className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-good"
           >
             <Check />
           </span>
@@ -293,13 +293,13 @@ function BlockCount({ progress }: { progress: Progress }) {
       ) : progress.into < BLOCK_SIZE / 2 ? (
         <>
           다음 {BLOCK_SIZE}화 열기{" "}
-          <span className="font-semibold text-gold">{progress.into}</span>/
+          <span className="font-bold text-paper">{progress.into}</span>/
           {BLOCK_SIZE}
         </>
       ) : (
         <>
           다음 {BLOCK_SIZE}화까지{" "}
-          <span className="font-semibold text-gold">{progress.left}개</span>
+          <span className="font-bold text-paper">{progress.left}개</span>
         </>
       )}
     </p>

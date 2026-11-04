@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Block, CARD, CARD_SIZE, Cta, INK, LIME, Lockup, Marker, render, RULE, SUBTLE, Tail } from "@/features/share/card";
+import { Block, CARD, CARD_SIZE, Cta, INK, ACCENT, Lockup, Marker, render, RULE, SUBTLE, Tail } from "@/features/share/card";
 import { CHAR_SIZE, characterDataUrl } from "./characters";
 import { STAMP_COLORS, stampSvg, type StampKind } from "./stamps";
 import { TYPE_IDS, TYPES, type TypeId } from "./types";
@@ -115,7 +115,7 @@ export function storyCard({ type, kinds, avg, mix }: { type: TypeId; kinds: Stam
           ))}
         </div>
       )}
-      <div style={{ display: "flex", flexShrink: 0, marginTop: 44, padding: "18px 34px", background: INK, color: LIME, fontSize: 38 }}>너도 해 봐 · nuanci.app/test</div>
+      <div style={{ display: "flex", flexShrink: 0, marginTop: 44, padding: "18px 34px", background: INK, color: ACCENT, fontSize: 38 }}>너도 해 봐 · nuanci.app/test</div>
     </div>,
     STORY_SIZE,
     "250px 64px 340px",

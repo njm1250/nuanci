@@ -146,7 +146,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
             {next && (
               <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
                 {nextGoalParts(next)[0]}
-                <span className="mx-0.5 bg-gold px-1 text-ink">{nextGoalParts(next)[1]}</span>
+                <span className="mx-0.5 bg-[#ffffff] px-1 font-bold text-ink">{nextGoalParts(next)[1]}</span>
                 {nextGoalParts(next)[2]}
               </p>
             )}
@@ -167,7 +167,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
           )
         )}
 
-        <div role="tablist" aria-label="아지트" className="grid grid-cols-3 gap-2">
+        <div role="tablist" aria-label="아지트" className="grid grid-cols-3 border-2 border-paper-subtle/40">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -177,7 +177,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
               aria-selected={tab === t.id}
               aria-controls={`panel-${t.id}`}
               onClick={() => (setTab(t.id), setShowLocked(false))}
-              className={`blk min-h-11 font-pixel text-[15px] ${tab === t.id ? "bg-cream text-ink" : "bg-slate-block text-paper-muted"}`}
+              className={`min-h-11 font-pixel text-[15px] ${tab === t.id ? "bg-paper text-night" : "text-paper-muted hover:text-paper"}`}
             >
               {t.label}
             </button>
@@ -190,14 +190,14 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
               <span id="hero-label" className="font-pixel text-[15px] text-paper-muted">
                 주인공
               </span>
-              <div role="group" aria-labelledby="hero-label" className="grid flex-1 grid-cols-2 gap-2">
+              <div role="group" aria-labelledby="hero-label" className="grid flex-1 grid-cols-2 border-2 border-paper-subtle/40">
                 {(["girl", "boy"] as const).map((hero) => (
                   <button
                     key={hero}
                     type="button"
                     onClick={() => setAvatar({ ...avatar, hero }, member)}
                     aria-pressed={avatar.hero === hero}
-                    className={`blk min-h-11 font-pixel text-[15px] ${avatar.hero === hero ? "bg-cream text-ink" : "bg-slate-block text-paper-muted"}`}
+                    className={`min-h-11 font-pixel text-[15px] ${avatar.hero === hero ? "bg-paper text-night" : "text-paper-muted hover:text-paper"}`}
                   >
                     {HERO_LABELS[hero]}
                   </button>
@@ -265,7 +265,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   );
 }
 
-// 아이템 한 칸. 켠 상태는 금색 바탕과 체크로, 처음 보는 물건은 점으로, 못 얻은 아이템은 그림자와 얻는 조건으로 보여준다
+// 아이템 한 칸. 켠 상태는 누르는 색(핑크) 바탕과 체크로, 얻은 물건은 먹선 칸, 못 얻은 칸은 점선으로 나눈다. 처음 보는 물건은 점으로, 못 얻은 아이템은 그림자와 얻는 조건으로 보여준다
 function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; selected: boolean; onPress: () => void }) {
   const usable = isUsable(item);
   const box = isUnopened(item);
@@ -276,7 +276,7 @@ function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; 
       onClick={onPress}
       aria-label={label}
       aria-pressed={usable ? on : undefined}
-      className={`blk relative flex aspect-square w-full flex-col items-center justify-center gap-1 px-1 ${on ? "bg-paper text-night" : usable ? "bg-cream text-ink" : "bg-slate-block text-paper-subtle"} ${selected ? "outline outline-[3px] outline-offset-2 outline-paper" : ""}`}
+      className={`relative flex aspect-square w-full flex-col items-center justify-center gap-1 border-2 px-1 ${on ? "border-ink bg-cta text-cta-text" : usable ? "border-ink bg-cream text-ink hover:bg-night-deep" : "border-dashed border-line bg-night-deep text-paper-subtle"} ${selected ? "outline outline-[3px] outline-offset-2 outline-paper" : ""}`}
     >
       {/* 못 얻은 물건은 그림자만 보여주고 얻는 조건을 적는다. 열지 않은 상자는 무엇이 들었는지 감춘다 */}
       <RewardIcon

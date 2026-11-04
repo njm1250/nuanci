@@ -33,17 +33,18 @@
   --color-cream: #2e2d34;
   /* 기본 카드 바탕. 밤 화면에서 눈부시지 않게 어두운 면을 쓰고, 밝은 화면에서는 흰색으로 바꾼다 */
   --color-card: #26252b;
-  --color-gold: #c8f031;
-  /* 주요 버튼은 화면마다 하나만 두고 어느 바탕에서나 연두로 쓴다. 검은 면이 늘어나지 않게 먹색 버튼은 쓰지 않는다 */
-  --color-cta: #c8f031;
-  --color-cta-text: #141317;
+  --color-gold: #fd91cc;
+  /* 주요 버튼은 화면마다 하나만 두고 어느 바탕에서나 버블껌 핑크로 쓴다. 핑크 면은 누를 수 있는 곳(버튼·켜진 토글·고른 칸)과 진행 막대에만 써서 "핑크면 누른다"가 지켜지게 한다 */
+  --color-cta: #fd91cc;
+  --color-cta-text: #09318d;
   --color-rust: #d4265f;
   /* 어두운 배경 위 오류 글자 */
   --color-rust-light: #ff7aa8;
   /* 판정 색: 자연스러움 O, 맥락 주의 △, 직역 X */
   --color-good: #5be38a;
   --color-warn: #ffc24b;
-  --color-bad: #ff6b6b;
+  /* 사고 판정은 핑크기 없는 주홍으로 둬서 버블껌 핑크 버튼과 섞이지 않게 한다 */
+  --color-bad: #ff5533;
   --color-night: #18171c;
   --color-night-deep: #0f0e12;
   --color-slate-block: #34323b;
@@ -70,21 +71,40 @@
  * 밝은 화면(종이). 기본 화면이라 layout의 인라인 스크립트가 html에 data-theme="light"를 붙이고, 내 정보에서 밤 화면을 고르면 뗀다.
  * 페이지 바탕(night·slate-block)은 밝게, 그 위 글자(paper)는 어둡게 바꾼다. 카드(card·cream)와 진한 칸(ink)은 그대로 둔다
  */
+/* 브랜드 색 단계. 기준색(딥 블루 700, 버블껌 핑크 400) 둘레로 연한 단계와 진한 단계를 두고, 화면 토큰은 이 단계에서만 고른다 */
+:root {
+  --blue-50: #f1f4fa;
+  --blue-100: #e3e8f3;
+  --blue-200: #d3dbf3;
+  --blue-300: #a3abc4;
+  --blue-500: #64719a;
+  --blue-600: #425075;
+  --blue-700: #09318d;
+  --blue-900: #0b1a44;
+  --pink-50: #fff0f8;
+  --pink-400: #fd91cc;
+  --pink-700: #b8336f;
+}
 :root[data-theme="light"] {
   color-scheme: light;
-  --color-night: #f3f4f0;
-  --color-night-deep: #e7e9e3;
-  --color-slate-block: #dfe1da;
+  --color-night: #ffffff;
+  --color-night-deep: var(--blue-50);
+  --color-slate-block: var(--blue-100);
+  /* 글자·테두리는 깊은 미드나잇 네이비로 누르고, 머리줄·무대 띠 같은 면만 브랜드 딥 블루(--color-band)로 칠한다 */
+  --color-ink: var(--blue-900);
+  --color-band: var(--blue-700);
+  --color-ink-muted: var(--blue-600);
+  --color-ink-subtle: var(--blue-500);
   /* SEED의 글자색 3단계(neutral·muted·subtle)처럼 단계마다 밝기 차이를 크게 벌려서, 중요한 글과 덜 중요한 글이 색만으로도 갈린다 */
-  --color-paper: #1a1c20;
-  --color-paper-muted: #5d626c;
-  --color-paper-subtle: #6b6f78;
+  --color-paper: var(--blue-900);
+  --color-paper-muted: var(--blue-600);
+  --color-paper-subtle: var(--blue-500);
   --color-card: #ffffff;
   --color-cream: #ffffff;
-  --color-line: #8a8d84;
+  --color-line: var(--blue-300);
   --color-rust-light: #c01f55;
 }
-/* 밤 화면의 어두운 카드 안에서는 먹색 글자를 밝게 바꾸고, 연두·판정색·먹색 칸 안에서만 다시 먹색으로 둔다 */
+/* 밤 화면의 어두운 카드 안에서는 먹색 글자를 밝게 바꾸고, 핑크·판정색·딥 블루 칸 안에서만 다시 먹색으로 둔다 */
 :root:not([data-theme="light"]) :is(.bg-card, .bg-cream) {
   --color-ink: #f6f4ee;
   --color-ink-muted: #cbc8bf;
@@ -100,16 +120,26 @@
 /* 진한 칸(뱃지, 무대 위 글자 상자 등) 안에서는 글자를 다시 밝게 쓴다 */
 /* 진한 칸(slate-block·night-deep) 위에서는 흐린 글자도 대비 4.5:1을 넘게 한 단계 진하게 쓴다 */
 :root[data-theme="light"] :is(.bg-slate-block, .bg-night-deep) {
-  --color-paper-subtle: #4b505a;
+  --color-paper-subtle: #425075;
+}
+/* 먹색 면(.bg-ink)은 밝은 화면에서 브랜드 딥 블루로 칠한다. 데스크톱에서 면을 비우는 칸과 가상 요소로 칠하는 머리줄도 같은 규칙을 따르게 한다 */
+:root[data-theme="light"] [class*="before:bg-ink"]::before {
+  background-color: var(--color-band);
+}
+@media (width >= 48rem) {
+  :root[data-theme="light"] .bg-ink[class*="md:bg-transparent"] {
+    background-color: transparent;
+  }
 }
 :root[data-theme="light"] .bg-ink {
-  --color-paper: #f6f4ee;
-  --color-paper-muted: #cbc8bf;
-  --color-paper-subtle: #a5a29b;
+  background-color: var(--color-band);
+  --color-paper: #ffffff;
+  --color-paper-muted: var(--blue-200);
+  --color-paper-subtle: #aebbe2;
 }
-/* 형광 연두 글자는 밝은 바탕에서 안 읽혀서 진한 올리브로 바꾼다. 진한 칸 안에서는 원래 색 그대로 */
+/* 버블껌 핑크 글자는 흰 바탕에서 안 읽혀서 진한 핑크로 바꾼다. 딥 블루 칸 안에서는 원래 색 그대로 */
 :root[data-theme="light"] .text-gold {
-  color: #4d6e00;
+  color: var(--pink-700);
 }
 :root[data-theme="light"] :is(.bg-ink .text-gold, .bg-ink.text-gold) {
   color: var(--color-gold);
@@ -232,7 +262,7 @@ body {
   }
 }
 
-/* 형광펜. 연두는 넓은 면 대신 글자 밑에 긋는 데만 쓴다. 밤 화면에서는 글자 뒤를 다 칠하고 글자를 먹색으로 바꾼다 */
+/* 형광펜. 핑크는 넓은 면 대신 글자 밑에 긋는 데만 쓴다. 밤 화면에서는 글자 뒤를 다 칠하고 글자를 먹색으로 바꾼다 */
 .hl {
   padding: 0 0.15em;
   background: var(--color-gold);

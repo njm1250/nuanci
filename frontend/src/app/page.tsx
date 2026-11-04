@@ -65,12 +65,12 @@ export default async function Home() {
 
       {/* 종이 면과 검은 무대 사이에 장면 제목이 필름 띠처럼 흐른다. 어떤 이야기들이 있는지 읽지 않아도 지나가며 보인다 */}
       <div aria-hidden className="overflow-hidden border-b border-paper/15 bg-ink py-2.5 returning:hidden">
-        <div className="ticker flex w-max whitespace-nowrap font-pixel text-[15px] text-[#f6f4ee]/55">
+        <div className="ticker flex w-max whitespace-nowrap font-pixel text-[15px] text-[#ffffff]/55">
           {[0, 1].map((k) => (
             <span key={k} className="flex">
               {shelf.slice(0, 15).map((x, i) => (
                 <span key={x.id} className="px-5">
-                  <span className="text-[#f6f4ee]">EP.{String(i + 1).padStart(2, "0")}</span> {x.title}
+                  <span className="text-[#ffffff]">EP.{String(i + 1).padStart(2, "0")}</span> {x.title}
                 </span>
               ))}
             </span>
@@ -93,12 +93,12 @@ export default async function Home() {
           <div className="order-2 max-w-[440px] px-4 pt-5 min-[960px]:col-start-2 min-[960px]:row-start-1 min-[960px]:self-end min-[960px]:px-0 min-[960px]:pt-0">
             {sample && (
               // 오답 한 컷을 인쇄 스티커처럼 붙여서 글을 읽기 전에 "고르면 반응이 온다"는 규칙이 보이게 한다
-              <div aria-hidden className="mb-8 hidden w-fit max-w-full -rotate-2 border-2 border-[#f6f4ee] bg-[#f6f4ee] px-4 py-3 text-[#141317] shadow-[4px_4px_0_var(--color-gold)] min-[960px]:block">
-                <p className="text-[13px] text-[#646872]">{sample.name}</p>
+              <div aria-hidden className="mb-8 hidden w-fit max-w-full -rotate-2 border-2 border-[#ffffff] bg-[#ffffff] px-4 py-3 text-[#0b1a44] shadow-[4px_4px_0_var(--color-gold)] min-[960px]:block">
+                <p className="text-[13px] text-[#5a6482]">{sample.name}</p>
                 <p className="font-line text-[18px] leading-snug">{sample.heard}</p>
                 <p className="mt-2 flex items-center gap-3">
                   <span className="font-line text-[18px] leading-snug">나: {sample.said}</span>
-                  <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-[#141317] bg-bad px-1.5 py-1 font-pixel-title text-[12px] leading-none outline-2 outline-offset-1 outline-[#141317]">사고 발생</span>
+                  <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-[#0b1a44] bg-bad px-1.5 py-1 font-pixel-title text-[12px] leading-none outline-2 outline-offset-1 outline-[#0b1a44]">사고 발생</span>
                 </p>
               </div>
             )}

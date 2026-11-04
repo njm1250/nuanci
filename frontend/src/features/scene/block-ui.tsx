@@ -9,6 +9,7 @@ export function BlockButton({
   primary = false,
   className = "",
   faceClassName = "",
+  reading = false,
   ...aria
 }: {
   children: React.ReactNode;
@@ -16,10 +17,12 @@ export function BlockButton({
   primary?: boolean;
   className?: string;
   faceClassName?: string;
+  // 둘을 나란히 두는 짧은 답 버튼처럼 포스터 글꼴이 과할 때 본문 글꼴로 쓴다
+  reading?: boolean;
 } & Pick<React.AriaAttributes, "aria-pressed" | "aria-expanded" | "aria-label">) {
   return (
     <button type="button" onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`} {...aria}>
-      <span className={`blk block px-3 py-2.5 ${primary ? "bg-cta font-poster text-[20px] text-cta-text" : "bg-cream"} ${faceClassName}`}>{children}</span>
+      <span className={`blk block px-3 py-2.5 ${primary ? `bg-cta text-cta-text ${reading ? "" : "font-poster text-[20px]"}` : "bg-cream text-ink"} ${faceClassName}`}>{children}</span>
     </button>
   );
 }
@@ -69,7 +72,7 @@ export function Panel({ children, className = "", dark = false }: { children: Re
   );
 }
 
-// 대화에서 누가 말했는지 붙이는 이름표. 먹색과 연두는 화면에서 가장 강한 색이라 라벨에는 쓰지 않는다
+// 대화에서 누가 말했는지 붙이는 이름표. 딥 블루와 핑크는 화면에서 가장 강한 색이라 라벨에는 쓰지 않는다
 export function SpeakerTag({ me = false, children }: { me?: boolean; children: React.ReactNode }) {
   return (
     <span className={`shrink-0 justify-self-start px-1.5 py-1 font-pixel text-[15px] leading-none ${me ? "bg-night-deep text-paper" : "bg-night-deep text-paper-muted"}`}>{children}</span>

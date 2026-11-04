@@ -2,7 +2,7 @@
 // 답을 밝히지 않고 O·△·X 줄만 보여줘서, 친구가 같은 문제를 풀고 비교하게 만든다
 export type StampKind = "good" | "meh" | "bad" | "time";
 
-export const STAMP_COLORS: Record<StampKind, string> = { good: "#5be38a", meh: "#ffc24b", bad: "#ff6b6b", time: "#8ecbff" };
+export const STAMP_COLORS: Record<StampKind, string> = { good: "#5be38a", meh: "#ffc24b", bad: "#ff5533", time: "#8ecbff" };
 
 export const STAMP_LABELS: Record<StampKind, string> = { good: "자연스러워요", meh: "애매해요", bad: "사고 발생", time: "시간 초과" };
 

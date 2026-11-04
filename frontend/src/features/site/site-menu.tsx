@@ -88,7 +88,7 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
                       <span className="block font-poster text-[22px] leading-tight">{item.title}</span>
                       <span className="mt-0.5 block text-[14px] text-ink-muted">{item.desc}</span>
                     </span>
-                    {here && <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink bg-gold px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">지금 여기</span>}
+                    {here && <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink bg-[#ffffff] px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink">지금 여기</span>}
                   </span>
                 </Link>
               </li>

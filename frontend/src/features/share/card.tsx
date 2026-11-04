@@ -8,13 +8,13 @@ import { LOGO_SIZE, logoDataUrl, WORDMARK_SIZE, wordmarkDataUrl } from "@/featur
 export const CARD_SIZE = { width: 1200, height: 630 };
 
 // 종이 화면과 같은 색. 테스트 결과 카드도 같은 색과 블록을 쓴다
-export const INK = "#141317";
-export const PAPER = "#f3f4f0";
-export const RULE = "#e7e9e3";
+export const INK = "#09318d";
+export const PAPER = "#ffffff";
+export const RULE = "#f1f4fa";
 export const CARD = "#ffffff";
-export const SUBTLE = "#55535a";
-export const LIME = "#c8f031";
-export const BAD = "#ff6b6b";
+export const SUBTLE = "#5a6482";
+export const ACCENT = "#fd91cc";
+export const BAD = "#ff5533";
 
 // 테두리 굵기이자 계단 모서리·말꼬리의 한 칸
 const CELL = 6;
@@ -74,7 +74,7 @@ export function Tail({ bg = CARD, flip = false }: { bg?: string; flip?: boolean 
 export function Marker({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
     <div style={{ display: "flex", position: "relative", ...style }}>
-      <div style={{ position: "absolute", left: -10, right: -10, top: "45%", bottom: "8%", background: LIME }} />
+      <div style={{ position: "absolute", left: -10, right: -10, top: "45%", bottom: "8%", background: ACCENT }} />
       <div style={{ display: "flex" }}>{children}</div>
     </div>
   );
@@ -91,10 +91,10 @@ export function Lockup() {
   );
 }
 
-// 화면의 주 버튼처럼 먹색 바탕에 라임 밑단
+// 화면의 주 버튼처럼 딥 블루 바탕에 핑크 밑단
 export function Cta({ children }: { children: ReactNode }) {
   return (
-    <div style={{ display: "flex", alignSelf: "flex-start", background: INK, color: LIME, fontSize: 34, padding: "18px 30px", boxShadow: `0 ${CELL + 2}px 0 ${LIME}, 0 ${CELL + 2}px 0 ${CELL}px ${INK}` }}>{children}</div>
+    <div style={{ display: "flex", alignSelf: "flex-start", background: INK, color: ACCENT, fontSize: 34, padding: "18px 30px", boxShadow: `0 ${CELL + 2}px 0 ${ACCENT}, 0 ${CELL + 2}px 0 ${CELL}px ${INK}` }}>{children}</div>
   );
 }
 
@@ -176,7 +176,7 @@ export function sceneCard({ title, partnerName, partnerLine, intent }: SceneCard
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: 1072 }}>
           <Lockup />
           <div style={{ display: "flex", alignItems: "center", fontSize: 28 }}>
-            <div style={{ display: "flex", background: INK, color: LIME, padding: "6px 12px 4px", maxWidth: 640 }}>{title}</div>
+            <div style={{ display: "flex", background: INK, color: ACCENT, padding: "6px 12px 4px", maxWidth: 640 }}>{title}</div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", width: 790 }}>
@@ -191,9 +191,9 @@ export function sceneCard({ title, partnerName, partnerLine, intent }: SceneCard
         <Cta>너라면 뭐라고 할래? →</Cta>
       </div>
       <div style={{ position: "absolute", right: 76, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <Block bg={LIME} style={{ padding: "2px 26px 0", fontSize: 68, marginBottom: 30 }}>
+        <Block bg={ACCENT} style={{ padding: "2px 26px 0", fontSize: 68, marginBottom: 30 }}>
           ?
-          <Tail bg={LIME} />
+          <Tail bg={ACCENT} />
         </Block>
         <Mochi scale={12} />
       </div>
