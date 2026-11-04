@@ -1,8 +1,9 @@
-/* 기능 소개 그림의 무대. 무대 띠와 같은 딥 블루 면에 만화 컷처럼 2px 먹선과 어긋난 그림자를 두르고, 안의 카드는 아래로 잘려 나간다 */
+/* 기능 소개 그림의 무대. 옅은 종이 면에 만화 컷처럼 2px 먹선과 어긋난 그림자를 두르고, 안의 카드는 아래로 잘려 나간다.
+   딥 블루 면은 머리줄과 무대 띠에만 쓴다. 그림 판까지 파랗게 칠하면 첫 화면에 파란 면이 넷이 된다 */
 .feature-art .ss-stage {
   --ss-font: var(--font-sans);
   overflow: hidden;
-  background: var(--color-band);
+  background: var(--color-night-deep);
   letter-spacing: -0.02em;
   color: var(--color-ink);
 }
