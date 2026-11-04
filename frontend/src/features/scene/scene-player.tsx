@@ -362,7 +362,9 @@ function WrapUp({
 }
 
 // 대사 한 줄을 보여주는 시간. 영어 한 줄과 뜻을 읽을 수 있게 2~4초, 다 읽었으면 눌러서 바로 넘긴다
-const beatMs = (b: Beat) => Math.min(4000, Math.max(2000, 1400 + Math.max(b.line.length, b.meaning.length) * 45));
+// 한 줄에 2~4.5초. 속도를 늦추면 모두가 느려져서, 놓친 줄은 질문 화면의 "앞 대화 다시 보기"가 맡는다.
+// 한국어 뜻은 영어보다 글자당 조금 더 오래 읽는다고 봐서, 상황 설명처럼 뜻이 긴 줄만 그만큼 더 머문다
+const beatMs = (b: Beat) => Math.min(4500, Math.max(2000, 1400 + Math.max(b.line.length * 45, b.meaning.length * 55)));
 
 // 대사가 몇 줄 남았는지 보여주는 점
 function BeatDots({ total, at }: { total: number; at: number }) {
@@ -395,6 +397,24 @@ function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// 질문이 나오면 빌드업 대사가 사라져서, 잠깐 한눈판 사람은 무슨 일이 있었는지 모른 채 골라야 했다. 접어 둔 채로 다시 펼쳐 볼 수 있게 남긴다
+function LeadRecap({ beats, partnerName, translate }: { beats: Beat[]; partnerName: string; translate: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-1.5">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="-mx-1 flex min-h-9 items-center gap-1.5 px-1 text-[13px] text-paper-subtle underline decoration-paper-subtle/40 underline-offset-4 hover:text-paper">
+        {open ? "앞 대화 접기" : "앞 대화 다시 보기"}
+        <Caret open={open} />
+      </button>
+      {open && (
+        <div className="mb-2 mt-1 animate-[fade-in_150ms] border-l-2 border-line pl-3">
+          <BeatLog beats={beats} partnerName={partnerName} translate={translate} />
+        </div>
+      )}
     </div>
   );
 }
@@ -481,6 +501,13 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   useEffect(() => {
     if (beat) sfx.blip(beat.line === "……" ? "narration" : beat.who);
   }, [beat]);
+  // 다른 탭이나 앱으로 가 있는 동안 대사가 혼자 넘어가면 돌아와서 이야기를 놓친다. 떠나는 순간 자동 넘김을 멈춘다
+  useEffect(() => {
+    if (!leading) return;
+    const onHide = () => document.hidden && setAutoPaused(true);
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, [leading]);
   useEffect(() => {
     if (!beat || autoPaused) return;
     const t = window.setTimeout(() => {
@@ -768,6 +795,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             // 고르는 동안 질문이 계속 보이고, 작은 폰(375×667)에서도 선택지 세 개가 스크롤 없이 들어오게 높이를 맞춘다
             <div key={`ask-${phase}`}>
               <p className="text-[14px] leading-normal text-paper-muted">{situation.context}</p>
+              {lead.length > 0 && <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />}
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-[rise_220ms_var(--ease-snap)_both]" />
               {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게, 메뉴처럼 Mochi가 말풍선으로 묻는다 */}
               <MochiAsk className="mt-3 animate-[rise_220ms_var(--ease-snap)_both] [animation-delay:200ms]">너라면 뭐라고 할래?</MochiAsk>
