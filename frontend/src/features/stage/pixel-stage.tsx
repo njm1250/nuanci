@@ -207,6 +207,8 @@ export type StageState = {
   meNote?: React.ReactNode;
   meNoteKey?: string;
   partnerLine?: string;
+  // 고른 말을 들은 뒤 상대가 하는 반응. 있으면 반응 기호 대신 말풍선으로 띄운다
+  partnerSays?: string;
   meTurn?: boolean;
 };
 
@@ -343,7 +345,9 @@ export function PixelStage({
           {state.meNote
             ? bubble("me", state.meNote, `note-${state.meNoteKey ?? ""}`)
             : bubble("me", state.meLine ?? (state.meTurn ? <TypingDots /> : null), state.meLine ?? "turn")}
-          {symbol ? (
+          {state.partnerSays ? (
+            bubble("partner", state.partnerSays, `says-${state.partnerKey}`)
+          ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
               <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-[pop_260ms_steps(3,end)]">
                 {symbol}
