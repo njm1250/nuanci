@@ -260,7 +260,7 @@ function LockedSceneRow({
 }
 
 const SCENE_ROWS_CLASS =
-  "mt-3 grid grid-cols-1 border-t-2 border-paper md:grid-cols-2 md:gap-x-8 lg:grid-cols-3";
+  "stagger mt-3 grid grid-cols-1 border-t-2 border-paper md:grid-cols-2 md:gap-x-8 lg:grid-cols-3";
 const SCENE_ROW_ITEM_CLASS = "list-row-lazy border-b border-line/40";
 
 type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
@@ -277,7 +277,7 @@ function BlockBar({ progress }: { progress: Progress }) {
       aria-label="다음 10화까지"
     >
       <div
-        className="h-full bg-gold"
+        className="h-full origin-left animate-[fill_800ms_var(--ease-snap)_200ms_both] bg-gold"
         style={{ width: `${(filled / BLOCK_SIZE) * 100}%` }}
       />
     </div>
@@ -364,29 +364,41 @@ function FeaturedScene({
     <EntryLink
       href={`/scenes/${scene.number}`}
       entry="home"
-      className="blk-btn blk-strong mt-4 block"
+      className="group blk-btn blk-strong mt-4 block"
     >
       <span className="blk block bg-cream p-2 pb-4 text-ink md:grid md:grid-cols-2 md:gap-8 md:p-3">
         <span className="relative block">
           <SceneThumb
             stage={scene.stage}
-            className="aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
+            className="aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%] [&_img]:transition-transform [&_img]:duration-300 group-hover:[&_img]:scale-[1.04]"
           />
           <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">
             {label}
             {fresh && <span className="ml-1.5 text-gold">NEW</span>}
           </span>
         </span>
-        <span className="block md:flex md:flex-col md:justify-center">
-          <span className="mt-3 block px-2 font-poster text-[24px] leading-[1.25] md:mt-0">
-            {scene.title}
+        {/* 데스크톱은 제목을 위에, 버튼을 아래에 붙여 오른쪽 칸이 그림 높이를 꽉 채우게 한다. 가운데에 떠 있으면 위아래가 비어 보인다 */}
+        <span className="block md:flex md:flex-col md:justify-between md:py-2">
+          <span className="block">
+            <span className="mt-3 block px-2 font-poster text-[24px] leading-[1.25] md:mt-0 md:text-[34px] md:leading-[1.15]">
+              {scene.title}
+            </span>
+            <span className="mt-1.5 block px-2 text-[13px] text-ink-subtle md:hidden">
+              {scene.relation} · {scene.place}
+            </span>
+            {/* 데스크톱은 넓은 칸에 맞게 누구와·어디서를 표처럼 나눠 적는다 */}
+            <span className="mx-2 mt-5 hidden grid-cols-[auto_minmax(0,1fr)] border-t border-line/60 md:grid">
+              <span className="border-b border-line/60 py-2.5 pr-4 text-[12px] text-ink-subtle">누구와</span>
+              <span className="truncate border-b border-line/60 py-2.5 text-[15px] font-semibold">{scene.relation}</span>
+              <span className="border-b border-line/60 py-2.5 pr-4 text-[12px] text-ink-subtle">어디서</span>
+              <span className="truncate border-b border-line/60 py-2.5 text-[15px] font-semibold">{scene.place}</span>
+            </span>
           </span>
-          <span className="mt-1.5 block px-2 text-[13px] text-ink-subtle">
-            {scene.relation} · {scene.place}
-          </span>
-          <span className="mx-2 mt-4 flex items-center justify-between border border-ink bg-gold px-3 py-2.5 font-pixel text-[15px] text-ink">
+          <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-[20px] text-ink transition-transform duration-150 group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
             다음 장면 해 보기
-            <Arrow />
+            <span className="nudge">
+              <Arrow />
+            </span>
           </span>
         </span>
       </span>
@@ -476,7 +488,7 @@ export function SceneShelf({
               <p className="mt-6 text-[16px] font-bold">
                 다른 장면
               </p>
-              <ul className="mt-2 grid gap-3 md:grid-cols-2">
+              <ul className="stagger mt-2 grid gap-3 md:grid-cols-2">
                 {upNext.slice(1).map((s) => (
                   <li key={s.id}>
                     <SceneCard

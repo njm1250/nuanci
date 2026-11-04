@@ -157,7 +157,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
           {shown.length === 0 ? (
             <p className="mt-6 text-[14px] text-paper-muted">찾는 표현이 없어요.</p>
           ) : (
-            <div className="mt-4 grid items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
+            <div className="stagger mt-4 grid items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
               {shown.map(({ entry, pairs }) => (
                 <section key={entry.id}>
                   {/* 장면 묶음 머리는 단어장 인덱스 탭처럼, 굵은 줄 위에 제목 탭을 올린다 */}
