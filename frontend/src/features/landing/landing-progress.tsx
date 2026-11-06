@@ -68,7 +68,7 @@ function useVisitor(scenes: ShelfScene[] = []) {
 
 function NewChip() {
   return (
-    <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel-title text-[12px] leading-none text-[#ffffff]">
+    <span className="shrink-0 bg-ink px-1.5 py-1 font-pixel-title text-meta leading-none text-[#ffffff]">
       NEW
     </span>
   );
@@ -119,7 +119,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
       <BlockLink href="/test" className="mt-2.5 hidden min-[960px]:block" pair>
         유형 테스트 먼저 해 보기
       </BlockLink>
-      <p className="mt-3 text-center text-[14px] text-paper-subtle">{note}</p>
+      <p className="mt-3 text-center text-note text-paper-subtle">{note}</p>
     </>
   );
 }
@@ -148,7 +148,7 @@ function SceneCard({
       className="blk-btn block h-full"
     >
       <span className={`blk flex h-full items-center bg-cream text-ink ${inRow ? "gap-2 p-1.5 pr-2" : "gap-3 p-2 pr-3"}`}>
-        {inRow && <span className="w-7 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums">{tocNumber(label)}</span>}
+        {inRow && <span className="w-7 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums">{tocNumber(label)}</span>}
         <span className="relative shrink-0">
           <SceneThumb
             stage={scene.stage}
@@ -165,19 +165,19 @@ function SceneCard({
         </span>
         <span className="min-w-0 flex-1">
           {!inRow && (
-            <span className="mb-1 block text-[12px] font-medium leading-none text-ink-subtle">
+            <span className="mb-1 block text-meta font-medium leading-none text-ink-subtle">
               {label}
             </span>
           )}
-          <span className="block truncate text-[16px] font-bold leading-snug">
+          <span className="block truncate text-body font-bold leading-snug">
             {scene.title}
           </span>
-          <span className="mt-0.5 block truncate text-[12px] text-ink-subtle">
+          <span className="mt-0.5 block truncate text-meta text-ink-subtle">
             {scene.relation} · {scene.place}
           </span>
         </span>
         {next ? (
-          <span className={`shrink-0 border-2 border-ink py-0.5 font-pixel text-[15px] leading-none ${inRow ? "px-1" : "px-1.5"}`}>
+          <span className={`shrink-0 border-2 border-ink py-0.5 font-pixel text-ui leading-none ${inRow ? "px-1" : "px-1.5"}`}>
             다음
           </span>
         ) : (
@@ -213,7 +213,7 @@ function SceneRow({
       className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors duration-150 hover:bg-paper hover:text-night"
     >
       {/* 목차처럼 화수를 굵은 숫자로 왼쪽에 세운다 */}
-      <span className="w-8 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums">{tocNumber(label)}</span>
+      <span className="w-8 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums">{tocNumber(label)}</span>
       <span className="relative shrink-0">
         <SceneThumb
           stage={scene.stage}
@@ -229,10 +229,10 @@ function SceneRow({
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[16px] font-bold leading-snug">
+        <span className="block truncate text-body font-bold leading-snug">
           {scene.title}
         </span>
-        <span className="mt-0.5 block truncate text-[12px] text-paper-subtle group-hover:text-night/70">
+        <span className="mt-0.5 block truncate text-meta text-paper-subtle group-hover:text-night/70">
           {scene.relation} · {scene.place}
         </span>
       </span>
@@ -254,15 +254,15 @@ function LockedSceneRow({
 }) {
   return (
     <div aria-disabled="true" className="flex items-center gap-3 py-2.5">
-      <span className="w-8 shrink-0 text-right font-poster text-[22px] leading-none tabular-nums text-paper-subtle">{tocNumber(label)}</span>
-      <span className="grid aspect-[4/3] w-[72px] shrink-0 place-items-center border border-dashed border-line font-pixel text-[15px] text-paper-subtle">
+      <span className="w-8 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums text-paper-subtle">{tocNumber(label)}</span>
+      <span className="grid aspect-[4/3] w-[72px] shrink-0 place-items-center border border-dashed border-line font-pixel text-ui text-paper-subtle">
         잠김
       </span>
       <span className="min-w-0 flex-1 text-paper-subtle">
-        <span className="block truncate text-[16px] leading-snug">
+        <span className="block truncate text-body leading-snug">
           {scene.title}
         </span>
-        <span className="mt-0.5 block truncate text-[12px]">
+        <span className="mt-0.5 block truncate text-meta">
           {scene.relation} · {scene.place}
         </span>
       </span>
@@ -298,7 +298,7 @@ function BlockBar({ progress }: { progress: Progress }) {
 // 진행도 문구는 작은 쪽을 보여 준다. 10개 중 절반 전에는 한 개수를, 절반이 넘으면 남은 개수를 보여 줘야 빨리 나아가는 느낌이 든다
 function BlockCount({ progress }: { progress: Progress }) {
   return (
-    <p className="shrink-0 text-[14px] text-paper-subtle">
+    <p className="shrink-0 text-note text-paper-subtle">
       {progress.left === 0 ? (
         "모든 화가 열렸어요"
       ) : progress.into < BLOCK_SIZE / 2 ? (
@@ -326,7 +326,7 @@ function Unlocked({ progress }: { progress: Progress }) {
       <Link
         href="/scenes"
         onClick={() => markOpenSeen(progress.openEnd)}
-        className="flex min-w-0 flex-1 items-center justify-between gap-2 font-pixel text-[15px]"
+        className="flex min-w-0 flex-1 items-center justify-between gap-2 font-pixel text-ui"
       >
         <span>
           {seen + 1}~{progress.openEnd}화가 열렸어요
@@ -337,7 +337,7 @@ function Unlocked({ progress }: { progress: Progress }) {
         type="button"
         onClick={() => markOpenSeen(progress.openEnd)}
         aria-label="닫기"
-        className="grid size-8 shrink-0 place-items-center font-pixel text-[15px]"
+        className="grid size-8 shrink-0 place-items-center font-pixel text-ui"
       >
         ✕
       </button>
@@ -383,7 +383,7 @@ function FeaturedScene({
             stage={scene.stage}
             className="aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
           />
-          <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-pixel text-[15px] leading-none text-paper">
+          <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-pixel text-ui leading-none text-paper">
             {label}
             {fresh && <span className="ml-1.5 text-gold">NEW</span>}
           </span>
@@ -391,21 +391,21 @@ function FeaturedScene({
         {/* 데스크톱은 제목을 위에, 버튼을 아래에 붙여 오른쪽 칸이 그림 높이를 꽉 채우게 한다. 가운데에 떠 있으면 위아래가 비어 보인다 */}
         <span className="block md:flex md:flex-col md:justify-between md:py-2">
           <span className="block">
-            <span className="mt-3 block px-2 font-poster text-[22px] leading-[1.25] md:mt-0 md:text-[30px] md:leading-[1.15]">
+            <span className="mt-3 block px-2 font-poster text-say-lg leading-[1.25] md:mt-0 md:text-display md:leading-[1.15]">
               {scene.title}
             </span>
-            <span className="mt-1.5 block px-2 text-[13px] text-ink-subtle md:hidden">
+            <span className="mt-1.5 block px-2 text-meta text-ink-subtle md:hidden">
               {scene.relation} · {scene.place}
             </span>
             {/* 데스크톱은 넓은 칸에 맞게 누구와·어디서를 표처럼 나눠 적는다 */}
             <span className="mx-2 mt-5 hidden grid-cols-[auto_minmax(0,1fr)] border-t border-line/60 md:grid">
-              <span className="border-b border-line/60 py-2.5 pr-4 text-[12px] text-ink-subtle">누구와</span>
-              <span className="truncate border-b border-line/60 py-2.5 text-[15px] font-semibold">{scene.relation}</span>
-              <span className="border-b border-line/60 py-2.5 pr-4 text-[12px] text-ink-subtle">어디서</span>
-              <span className="truncate border-b border-line/60 py-2.5 text-[15px] font-semibold">{scene.place}</span>
+              <span className="border-b border-line/60 py-2.5 pr-4 text-meta text-ink-subtle">누구와</span>
+              <span className="truncate border-b border-line/60 py-2.5 text-ui font-semibold">{scene.relation}</span>
+              <span className="border-b border-line/60 py-2.5 pr-4 text-meta text-ink-subtle">어디서</span>
+              <span className="truncate border-b border-line/60 py-2.5 text-ui font-semibold">{scene.place}</span>
             </span>
           </span>
-          <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-[20px] text-ink transition-transform duration-150 group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
+          <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-say text-ink transition-transform duration-150 group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
             {/* 포스터 글꼴은 글자가 줄 상자 안에서 위로 치우쳐 그려져서, 줄 높이를 글자 크기에 맞추고 화살표를 3px 올려야 눈으로 본 가운데가 맞는다 */}
             <span className="leading-none">{answerCta(scene.relation)}</span>
             {/* 주요 버튼 화살표는 몸통이 있는 도트 화살표로 크게 그려야 움직이는 게 보인다 */}
@@ -434,14 +434,14 @@ function NextGoal() {
       className="mt-3 flex items-center gap-3 bg-night-deep px-3 py-2 hover:bg-slate-block"
     >
       <Mascot scale={2} className="shrink-0" />
-      <span className="min-w-0 flex-1 text-[14px] text-paper-muted">
+      <span className="min-w-0 flex-1 text-note text-paper-muted">
         {before}
         <span className="mx-0.5 font-bold text-paper">{em}</span>
         {after}
       </span>
-      <span className="flex shrink-0 items-center gap-1.5 font-pixel text-[15px] text-paper-subtle">
+      <span className="flex shrink-0 items-center gap-1.5 font-pixel text-ui text-paper-subtle">
         {box ? (
-          <span className="hl font-pixel-title text-[12px] leading-[1.4]">
+          <span className="hl font-pixel-title text-meta leading-[1.4]">
             새 상자
           </span>
         ) : (
@@ -468,14 +468,14 @@ function TodayGoals() {
   return (
     <div className="lg:border lg:border-line lg:bg-cream lg:p-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[16px] font-bold">오늘의 목표</h2>
-        <span className="text-[12px] tabular-nums text-paper-subtle lg:text-ink-subtle">
+        <h2 className="text-body font-bold">오늘의 목표</h2>
+        <span className="text-meta tabular-nums text-paper-subtle lg:text-ink-subtle">
           {done}/{counted.length}
         </span>
       </div>
       <ul className="mt-2 space-y-1.5">
         {goals.map((g) => (
-          <li key={g.label} className={`flex items-center gap-2.5 text-[15px] ${g.off ? "text-paper-subtle lg:text-ink-subtle" : ""}`}>
+          <li key={g.label} className={`flex items-center gap-2.5 text-ui ${g.off ? "text-paper-subtle lg:text-ink-subtle" : ""}`}>
             <span aria-hidden className={`grid size-5 shrink-0 place-items-center border-2 ${g.done ? "border-ink bg-good" : g.off ? "border-dashed border-line" : "border-line"}`}>
               {g.done && <Check />}
             </span>
@@ -512,15 +512,15 @@ function SituationTiles({ scenes, open }: { scenes: ShelfScene[]; open: Set<stri
   if (tiles.length < 2) return null;
   return (
     <>
-      <p className="mt-8 text-[16px] font-bold">상황별로 고르기</p>
+      <p className="mt-8 text-body font-bold">상황별로 고르기</p>
       <ul className="-mx-4 mt-2 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
         {tiles.map((t) => (
           <li key={t.label} className="w-[148px] shrink-0 snap-start lg:w-auto">
             <Link href={`/scenes?group=${encodeURIComponent(t.label)}`} onClick={() => setSceneView("group")} className="group block">
               <SceneThumb stage={GROUP_STAGES[t.label] ?? t.scenes[0].stage} className="aspect-[4/3] w-full border-2 border-line transition-colors group-hover:border-ink" />
-              <span className="mt-2 block truncate text-[15px] font-bold leading-[1.35]">{t.label}</span>
+              <span className="mt-2 block truncate text-ui font-bold leading-[1.35]">{t.label}</span>
               {/* 눌러서 대부분 잠겨 있으면 실망하니, 지금 할 수 있는 개수를 같이 적는다 */}
-              <span className="mt-0.5 block text-[12px] leading-[1.35] text-paper-subtle">
+              <span className="mt-0.5 block text-meta leading-[1.35] text-paper-subtle">
                 {openCount(t.scenes, open) === t.scenes.length ? `장면 ${t.scenes.length}개` : `${t.scenes.length}개 중 ${openCount(t.scenes, open)}개 열림`}
               </span>
             </Link>
@@ -573,7 +573,7 @@ export function SceneShelf({
             />
             {upNext.length > 1 && (
               <>
-                <p className="mt-6 text-[16px] font-bold">
+                <p className="mt-6 text-body font-bold">
                   다른 장면
                 </p>
                 <ul className="stagger mt-2 grid gap-3 md:grid-cols-2">
@@ -594,7 +594,7 @@ export function SceneShelf({
           </>
         ) : (
           <>
-            <p className="mt-3 text-[14px] leading-relaxed text-paper">
+            <p className="mt-3 text-note leading-relaxed text-paper">
               새 장면이 올라오면 여기서 바로 이어서 할 수 있어요.
             </p>
             <BlockLink
@@ -615,7 +615,7 @@ export function SceneShelf({
         {!reviewAfter && <ReviewToday className="order-1 mb-7 lg:mb-0" />}
         <div className="order-2 lg:border lg:border-line lg:bg-cream lg:p-4">
         <div className="flex items-baseline justify-between">
-            <h2 className="text-[16px] font-bold">
+            <h2 className="text-body font-bold">
               {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
             </h2>
             <BlockCount progress={progress} />
@@ -637,8 +637,8 @@ export function SceneShelf({
                   className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
                 >
                   <span>
-                    <span className="block text-[16px] font-semibold">표현 모음</span>
-                    <span className="mt-0.5 block text-[12px] text-ink-subtle">
+                    <span className="block text-body font-semibold">표현 모음</span>
+                    <span className="mt-0.5 block text-meta text-ink-subtle">
                       모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
                     </span>
                   </span>
@@ -651,8 +651,8 @@ export function SceneShelf({
                   className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/5"
                 >
                   <span>
-                    <span className="block text-[16px] font-semibold">전체 장면</span>
-                    <span className="mt-0.5 block text-[12px] text-ink-subtle">
+                    <span className="block text-body font-semibold">전체 장면</span>
+                    <span className="mt-0.5 block text-meta text-ink-subtle">
                       {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
                     </span>
                   </span>
@@ -687,7 +687,7 @@ function ViewSwitch({ view }: { view: "group" | "order" }) {
           role="radio"
           aria-checked={view === o.value}
           onClick={() => setSceneView(o.value)}
-          className={`min-h-10 px-4 font-pixel text-[15px] ${view === o.value ? "bg-paper text-night" : "text-paper-muted"}`}
+          className={`min-h-10 px-4 font-pixel text-ui ${view === o.value ? "bg-paper text-night" : "text-paper-muted"}`}
         >
           {o.label}
         </button>
@@ -768,7 +768,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
         <BlockCount progress={progress} />
       </div>
       <BlockBar progress={progress} />
-      <p className="mt-2 text-[14px] text-paper-subtle">
+      <p className="mt-2 text-note text-paper-subtle">
         장면 {BLOCK_SIZE}개를 할 때마다 다음 {BLOCK_SIZE}화가 열려요
       </p>
       {view === "order" ? (
@@ -776,10 +776,10 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {opened.map((x) => (
             <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-poster text-[32px] md:text-[44px]">
+                <span className="font-poster text-display md:text-display-lg">
                   {blockTitle(x)}
                 </span>
-                <span className="text-[14px] text-paper-subtle">
+                <span className="text-note text-paper-subtle">
                   {x.scenes.length}화 중 {x.done}화
                 </span>
               </h2>
@@ -811,10 +811,10 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {locked.map((x, k) => (
             <section key={x.start} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-poster text-[32px] text-paper-subtle md:text-[44px]">
+                <span className="font-poster text-display text-paper-subtle md:text-display-lg">
                   {blockTitle(x)}
                 </span>
-                <span className="text-[14px] text-paper-subtle">
+                <span className="text-note text-paper-subtle">
                   장면 {progress.left + k * BLOCK_SIZE}개 더 하면 열려요
                 </span>
               </h2>
@@ -851,7 +851,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                 type="button"
                 onClick={() => setOnly(label)}
                 aria-pressed={only === label}
-                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-[15px] ${only === label ? "border-paper bg-paper text-night" : "border-paper-subtle/40 text-paper-muted"}`}
+                className={`min-h-9 shrink-0 whitespace-nowrap border-2 px-3 font-pixel text-ui ${only === label ? "border-paper bg-paper text-night" : "border-paper-subtle/40 text-paper-muted"}`}
               >
                 {label ?? "전체"}
               </button>
@@ -860,8 +860,8 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
           {shown.map((g) => (
             <section key={g.label} className="mt-10">
               <h2 className="flex items-baseline gap-2">
-                <span className="font-poster text-[32px] md:text-[44px]">{g.label}</span>
-                <span className="text-[14px] text-paper-subtle">
+                <span className="font-poster text-display md:text-display-lg">{g.label}</span>
+                <span className="text-note text-paper-subtle">
                   {g.scenes.length}개 중{" "}
                   {g.scenes.filter((s) => cleared.includes(s.id)).length}개
                 </span>

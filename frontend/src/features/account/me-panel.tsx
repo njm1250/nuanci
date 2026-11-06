@@ -31,19 +31,19 @@ function Arrow() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-1 text-[14px] font-semibold text-paper-muted">{title}</h2>
+      <h2 className="mb-1 text-note font-semibold text-paper-muted">{title}</h2>
       <div className="divide-y divide-line/40 border-y border-line/40">{children}</div>
     </section>
   );
 }
 
-const rowClass = "flex min-h-11 w-full items-center justify-between gap-3 text-left text-[15px]";
+const rowClass = "flex min-h-11 w-full items-center justify-between gap-3 text-left text-ui";
 
 function Stat({ href, label, value }: { href: string; label: string; value: string }) {
   return (
     <Link href={href} className="flex flex-col items-center justify-center py-3 text-center">
-      <span className="font-poster text-[24px] leading-none">{value}</span>
-      <span className="mt-1 text-[12px] text-ink-subtle">{label}</span>
+      <span className="font-poster text-display-sm leading-none">{value}</span>
+      <span className="mt-1 text-meta text-ink-subtle">{label}</span>
     </Link>
   );
 }
@@ -62,7 +62,7 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
   const { current, next } = rankAt(ranks, cleared);
   return (
     <Panel>
-      <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-pixel text-[15px] text-paper">
+      <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-pixel text-ui text-paper">
         <span>
           <span className="text-gold">nuanci</span> 사원증
         </span>
@@ -78,14 +78,14 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-[12px] text-ink-subtle">이름</p>
+          <p className="text-meta text-ink-subtle">이름</p>
           <p className="mt-0.5 flex min-w-0 items-center gap-2">
-            <span className="truncate text-[16px] font-semibold">{me ? (me.name ?? "이름 없음") : "손님"}</span>
+            <span className="truncate text-body font-semibold">{me ? (me.name ?? "이름 없음") : "손님"}</span>
             {badge && <StreakBadge days={badge} />}
           </p>
-          <p className="mt-3.5 text-[12px] text-ink-subtle">직급</p>
-          <p className="mt-0.5 break-all font-poster text-[24px] leading-none">{current.name}</p>
-          {next && <p className="mt-1 break-all text-[13px] text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
+          <p className="mt-3.5 text-meta text-ink-subtle">직급</p>
+          <p className="mt-0.5 break-all font-poster text-display-sm leading-none">{current.name}</p>
+          {next && <p className="mt-1 break-all text-meta text-ink-muted">장면 {next.min - cleared}개 더 하면 {next.name}</p>}
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
@@ -97,7 +97,7 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
         {BARCODE.map((w, i) => (
           <span key={i} className="bg-current" style={{ width: w * 2 }} />
         ))}
-        <span className="ml-auto self-end font-pixel text-[15px] leading-none text-ink-subtle">{me?.email ? "" : "GUEST"}</span>
+        <span className="ml-auto self-end font-pixel text-ui leading-none text-ink-subtle">{me?.email ? "" : "GUEST"}</span>
       </div>
     </Panel>
   );
@@ -120,8 +120,8 @@ function Profile() {
     return (
       <Panel>
         <div className="p-4">
-          {notice === "1" && <p className="mb-2 text-[14px] text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합쳤어요.</p>}
-          <p className="truncate text-[14px] text-ink-muted">{account.me.email}로 로그인했어요</p>
+          {notice === "1" && <p className="mb-2 text-note text-ink-muted">로그인했어요. 이 기기 기록을 계정에 합쳤어요.</p>}
+          <p className="truncate text-note text-ink-muted">{account.me.email}로 로그인했어요</p>
         </div>
       </Panel>
     );
@@ -134,9 +134,9 @@ function GuestProfile({ notice, google }: { notice: string | null; google: boole
   return (
     <Panel>
       <div className="p-4">
-        {notice === "failed" && <p className="mb-3 text-[14px] text-rust">로그인하지 못했어요. 다시 시도해 주세요.</p>}
-        <p className="text-[17px] font-bold leading-snug">로그인하면</p>
-        <ul className="mt-2 space-y-1.5 text-[14px] leading-snug text-ink-muted">
+        {notice === "failed" && <p className="mb-3 text-note text-rust">로그인하지 못했어요. 다시 시도해 주세요.</p>}
+        <p className="text-title font-bold leading-snug">로그인하면</p>
+        <ul className="mt-2 space-y-1.5 text-note leading-snug text-ink-muted">
           <li className="flex gap-2">
             <span className="text-ink">·</span>기기를 바꿔도 기록이 이어져요
           </li>
@@ -146,7 +146,7 @@ function GuestProfile({ notice, google }: { notice: string | null; google: boole
           </li>
         </ul>
         <GoogleButton next="/me" enabled={google} />
-        <p className="mt-2 text-center text-[12px] text-ink-subtle">지금까지 한 기록도 함께 옮겨져요</p>
+        <p className="mt-2 text-center text-meta text-ink-subtle">지금까지 한 기록도 함께 옮겨져요</p>
       </div>
     </Panel>
   );
@@ -180,8 +180,8 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
       <Link href="/me/room" className="blk-btn blk-strong block">
         <span className="blk flex items-center justify-between gap-3 bg-cream px-4 py-4 text-ink">
           <span>
-            <span className="block text-[18px] font-bold leading-tight">내 아지트</span>
-            <span className="mt-1 block text-[13px] text-ink-subtle">받은 옷 입히기 · 방에 물건 두기</span>
+            <span className="block text-title font-bold leading-tight">내 아지트</span>
+            <span className="mt-1 block text-meta text-ink-subtle">받은 옷 입히기 · 방에 물건 두기</span>
           </span>
           <Arrow />
         </span>
@@ -238,15 +238,15 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
 
       {member && (
         <div className="flex justify-center gap-6">
-          <button type="button" onClick={() => void logout()} className="min-h-11 font-pixel text-[15px] text-paper-muted underline underline-offset-4">
+          <button type="button" onClick={() => void logout()} className="min-h-11 font-pixel text-ui text-paper-muted underline underline-offset-4">
             로그아웃
           </button>
-          <button type="button" onClick={remove} disabled={busy} className="min-h-11 font-pixel text-[15px] text-paper-subtle underline underline-offset-4 disabled:opacity-40">
+          <button type="button" onClick={remove} disabled={busy} className="min-h-11 font-pixel text-ui text-paper-subtle underline underline-offset-4 disabled:opacity-40">
             계정 삭제
           </button>
         </div>
       )}
-      <p className="text-center text-[12px] text-paper-subtle">© 2026 nuanci</p>
+      <p className="text-center text-meta text-paper-subtle">© 2026 nuanci</p>
       </div>
       {element}
     </div>

@@ -179,7 +179,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
               onPick={pokeStage}
             />
             {next && (
-              <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
+              <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-pixel text-ui leading-none text-paper">
                 {nextGoalParts(next)[0]}
                 <span className="mx-0.5 bg-[#ffffff] px-1 font-bold text-ink">{nextGoalParts(next)[1]}</span>
                 {nextGoalParts(next)[2]}
@@ -212,7 +212,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
               aria-selected={tab === t.id}
               aria-controls={`panel-${t.id}`}
               onClick={() => (setTab(t.id), setShowLocked(false))}
-              className={`min-h-11 font-pixel text-[15px] ${tab === t.id ? "bg-paper text-night" : "text-paper-muted hover:text-paper"}`}
+              className={`min-h-11 font-pixel text-ui ${tab === t.id ? "bg-paper text-night" : "text-paper-muted hover:text-paper"}`}
             >
               {t.label}
             </button>
@@ -222,7 +222,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
         <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="mt-4">
           {tab === "wear" && (
             <div className="mb-4 flex items-center gap-3">
-              <span id="hero-label" className="font-pixel text-[15px] text-paper-muted">
+              <span id="hero-label" className="font-pixel text-ui text-paper-muted">
                 주인공
               </span>
               <div role="group" aria-labelledby="hero-label" className="grid flex-1 grid-cols-2 border-2 border-paper-subtle/40">
@@ -232,7 +232,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                     type="button"
                     onClick={() => setAvatar({ ...avatar, hero }, member)}
                     aria-pressed={avatar.hero === hero}
-                    className={`min-h-11 font-pixel text-[15px] ${avatar.hero === hero ? "bg-paper text-night" : "text-paper-muted hover:text-paper"}`}
+                    className={`min-h-11 font-pixel text-ui ${avatar.hero === hero ? "bg-paper text-night" : "text-paper-muted hover:text-paper"}`}
                   >
                     {HERO_LABELS[hero]}
                   </button>
@@ -256,7 +256,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                   type="button"
                   onClick={() => setShowLocked((v) => !v)}
                   aria-expanded={showLocked}
-                  className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4"
+                  className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 font-pixel text-ui text-paper-muted underline underline-offset-4"
                 >
                   {showLocked ? "접기" : "잠긴 칸 더 보기"}
                 </button>
@@ -266,7 +266,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
 
           {tab === "log" &&
             (log.length === 0 ? (
-              <p className="text-[14px] leading-relaxed text-paper-muted">장면을 끝내면 얻은 물건이 여기에 하나씩 쌓여요.</p>
+              <p className="text-note leading-relaxed text-paper-muted">장면을 끝내면 얻은 물건이 여기에 하나씩 쌓여요.</p>
             ) : (
               <ul className="divide-y-2 divide-night-deep">
                 {log.map((r) => (
@@ -275,11 +275,11 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                       <RewardIcon id={r.id} color={r.owned!.color} size={28} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-pixel text-[15px] text-paper">{r.name}</span>
-                      <span className="block truncate text-[12px] text-paper-subtle">{ownedReason(r.owned!, titleOf(r))}</span>
-                      {memoryOf(r) && <span className="mt-0.5 block truncate text-[14px] text-paper-muted">“{memoryOf(r)!.right}”</span>}
+                      <span className="block truncate font-pixel text-ui text-paper">{r.name}</span>
+                      <span className="block truncate text-meta text-paper-subtle">{ownedReason(r.owned!, titleOf(r))}</span>
+                      {memoryOf(r) && <span className="mt-0.5 block truncate text-note text-paper-muted">“{memoryOf(r)!.right}”</span>}
                     </span>
-                    <span className="shrink-0 text-[12px] text-paper-subtle">{formatDate(r.owned!.grantedAt)}</span>
+                    <span className="shrink-0 text-meta text-paper-subtle">{formatDate(r.owned!.grantedAt)}</span>
                   </li>
                 ))}
               </ul>
@@ -289,8 +289,8 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
         {!member && account.status !== "loading" && (
           <Panel className="mt-6">
             <div className="p-4">
-              <p className="text-[16px] font-bold">로그인하고 계정에 남기기</p>
-              <p className="mt-1 text-[13px] leading-relaxed text-ink-subtle">꾸민 모습과 모은 물건이 다른 기기에서도 그대로예요.</p>
+              <p className="text-body font-bold">로그인하고 계정에 남기기</p>
+              <p className="mt-1 text-meta leading-relaxed text-ink-subtle">꾸민 모습과 모은 물건이 다른 기기에서도 그대로예요.</p>
               <GoogleButton next="/me/room" enabled={account.google} />
             </div>
           </Panel>
@@ -320,7 +320,7 @@ function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; 
         size={28}
         className={usable || box ? "" : "opacity-30 [filter:brightness(0)_invert(1)] light:[filter:brightness(0)]"}
       />
-      <span aria-hidden className="w-full truncate text-center text-[10px] leading-tight">
+      <span aria-hidden className="w-full truncate text-center text-meta leading-tight">
         {usable ? item.name : box ? "상자" : item.lock ? lockHint(item.lock) : "???"}
       </span>
       {on && (
@@ -351,8 +351,8 @@ function Detail({
   return (
     <div className="blk mb-3 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 bg-night-deep px-3 py-2">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-pixel text-[15px] text-paper">{usable ? item.name : "???"}</p>
-        <p className="truncate text-[12px] text-paper-subtle">
+        <p className="truncate font-pixel text-ui text-paper">{usable ? item.name : "???"}</p>
+        <p className="truncate text-meta text-paper-subtle">
           {usable ? ownedReason(item.owned!, title) : item.lock ? lockHint(item.lock) : "깜짝 상자"}
         </p>
       </div>
@@ -380,7 +380,7 @@ function Detail({
           type="button"
           onClick={() => setOn(!on)}
           aria-pressed={on}
-          className={`blk flex min-h-11 items-center gap-1.5 px-3 font-pixel text-[15px] ${on ? "bg-paper text-night" : "bg-slate-block text-paper"}`}
+          className={`blk flex min-h-11 items-center gap-1.5 px-3 font-pixel text-ui ${on ? "bg-paper text-night" : "bg-slate-block text-paper"}`}
         >
           {item.kind === "wear" ? "쓰기" : "두기"}
           {on && <Check size={12} />}
@@ -389,10 +389,10 @@ function Detail({
       {usable && memory && (
         <div className="flex basis-full items-center gap-3 border-t-2 border-night pt-2">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] text-paper-subtle">「{memory.title}」에서 배운 말</p>
-            <p className="truncate text-[14px] font-semibold text-paper">{memory.right}</p>
+            <p className="truncate text-meta text-paper-subtle">「{memory.title}」에서 배운 말</p>
+            <p className="truncate text-note font-semibold text-paper">{memory.right}</p>
           </div>
-          <EntryLink href={`/scenes/${memory.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-muted underline underline-offset-4">
+          <EntryLink href={`/scenes/${memory.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-ui text-paper-muted underline underline-offset-4">
             다시 하기
           </EntryLink>
         </div>

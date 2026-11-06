@@ -31,8 +31,8 @@ export function FeatureRows({ scene }: { scene: Scene }) {
           <li key={r.title} className="grid items-center gap-6 md:grid-cols-2 md:gap-14">
             <div className={`w-full max-w-[460px] justify-self-center ${i % 2 ? "md:order-2" : ""}`}>{r.art}</div>
             <div>
-              <h2 className="font-poster text-[26px] leading-[1.25] md:text-[34px]">{r.title}</h2>
-              <p className="mt-3 max-w-[420px] text-[16px] leading-relaxed text-paper-muted">{r.body}</p>
+              <h2 className="font-poster text-display-sm leading-[1.25] md:text-display">{r.title}</h2>
+              <p className="mt-3 max-w-[420px] text-body leading-relaxed text-paper-muted">{r.body}</p>
             </div>
           </li>
         ))}

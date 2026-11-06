@@ -39,7 +39,7 @@ export default async function Home() {
       <SiteHeader
         left={
           // 테스트 입구는 머리줄에 작게 둔다. 첫 화면에서 첫 장면 버튼과 시선을 나눠 갖지 않게 한다
-          <Link href="/test" className="flex h-11 items-center truncate font-pixel text-[15px] text-paper-muted hover:text-paper">
+          <Link href="/test" className="flex h-11 items-center truncate font-pixel text-ui text-paper-muted hover:text-paper">
             유형 테스트
           </Link>
         }
@@ -60,7 +60,7 @@ export default async function Home() {
         {/* 다시 온 방문자에게도 첫 화면의 포스터 제목을 작게 남겨서 두 화면의 인상이 이어진다 */}
         <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 lg:max-w-[1200px] returning:block">
           {/* 첫 방문 제목이 숨는 재방문 화면의 h1. 둘 중 보이는 하나만 읽힌다 */}
-          <h1 className="font-poster text-[28px] leading-none text-paper md:text-[36px]">
+          <h1 className="font-poster text-display-sm leading-none text-paper md:text-display">
             직역하면 사고 나는 순간들
           </h1>
         </div>
@@ -73,7 +73,7 @@ export default async function Home() {
 
       {/* 종이 면과 검은 무대 사이에 장면 제목이 필름 띠처럼 흐른다. 어떤 이야기들이 있는지 읽지 않아도 지나가며 보인다 */}
       <div aria-hidden className="overflow-hidden border-b border-paper/15 bg-ink py-2.5 returning:hidden">
-        <div className="ticker flex w-max whitespace-nowrap font-pixel text-[15px] text-[#ffffff]/70">
+        <div className="ticker flex w-max whitespace-nowrap font-pixel text-ui text-[#ffffff]/70">
           {[0, 1].map((k) => (
             <span key={k} className="flex">
               {shelf.slice(0, 15).map((x, i) => (
@@ -99,11 +99,11 @@ export default async function Home() {
           )}
 
           <div className="order-2 max-w-[440px] px-4 pt-5 min-[960px]:col-start-2 min-[960px]:row-start-1 min-[960px]:self-end min-[960px]:px-0 min-[960px]:pt-0">
-            <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-[60px] leading-none text-paper [--lean:-4deg] min-[960px]:block">
+            <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-display-xl leading-none text-paper [--lean:-4deg] min-[960px]:block">
               골라 보면 알아요
             </p>
-            <p className="text-[16px] leading-relaxed text-paper-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
-            <Link href="/test" className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-[15px] font-semibold text-paper underline decoration-paper/30 underline-offset-4 min-[960px]:hidden">
+            <p className="text-body leading-relaxed text-paper-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
+            <Link href="/test" className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-ui font-semibold text-paper underline decoration-paper/30 underline-offset-4 min-[960px]:hidden">
               유형 테스트 먼저 해 보기 →
             </Link>
           </div>

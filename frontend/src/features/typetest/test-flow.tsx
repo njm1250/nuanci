@@ -38,7 +38,7 @@ export function TestFlow({ questions, version }: { questions: TestQuestion[]; ve
 
   return (
     <div className="flex min-h-dvh flex-col bg-night text-paper break-keep">
-      <SiteHeader left={<span className="truncate font-pixel text-[15px] text-paper-muted">유형 테스트</span>} />
+      <SiteHeader left={<span className="truncate font-pixel text-ui text-paper-muted">유형 테스트</span>} />
       <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-4 pb-8">
         {stage === "intro" && <Intro friend={friend} mine={mine} relaxed={relaxed} onRelaxed={setRelaxed} onStart={start} count={questions.length} />}
         {stage === "play" && (
@@ -59,22 +59,22 @@ export function TestFlow({ questions, version }: { questions: TestQuestion[]; ve
 function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: Friend | null; mine: Mine | null; relaxed: boolean; onRelaxed: (v: boolean) => void; onStart: () => void; count: number }) {
   return (
     <section className="flex flex-1 flex-col pt-4">
-      <p className="font-pixel text-[15px] text-paper-subtle">
+      <p className="font-pixel text-ui text-paper-subtle">
         {count}문제 · 문제당 {QUESTION_MS / 1000}초
       </p>
-      <h1 className="poster-rise mt-2 font-poster text-[36px] leading-[1.15] md:text-[60px]">
+      <h1 className="poster-rise mt-2 font-poster text-display leading-[1.15] md:text-display-xl">
         영어로 말할 때 나는
         <br />
         어떤 사고를 칠까?
       </h1>
-      <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">상대가 한 말에 바로 대답해 보세요. 고른 답에 숨은 함정으로 9가지 사고 유형 중 하나가 나와요.</p>
+      <p className="mt-3 text-body leading-relaxed text-paper-muted">상대가 한 말에 바로 대답해 보세요. 고른 답에 숨은 함정으로 9가지 사고 유형 중 하나가 나와요.</p>
 
       {friend && (
         <Panel className="mt-5">
           <div className="flex items-center gap-3 px-3 py-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={characterDataUrl(friend.type)} width={48} height={48} alt="" className="shrink-0 [image-rendering:pixelated]" />
-            <p className="text-[16px] leading-snug">
+            <p className="text-body leading-snug">
               친구는 <b>{TYPES[friend.type].name}</b>이었어요.
               <br />
               <span className="text-ink-subtle">같은 문제로 붙어 볼래요?</span>
@@ -100,7 +100,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
               className="animate-[bob_1.2s_steps(2,jump-none)_infinite] [image-rendering:pixelated]"
               style={{ animationDelay: `${(i % 3) * 200 + Math.floor(i / 3) * 100}ms` }}
             />
-            <span className="mt-1 text-center text-[12px] leading-tight text-paper-subtle">{TYPES[id].name}</span>
+            <span className="mt-1 text-center text-meta leading-tight text-paper-subtle">{TYPES[id].name}</span>
           </li>
         ))}
       </ul>
@@ -109,12 +109,12 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
         <BlockButton primary onClick={onStart} className="w-full" faceClassName="py-3.5 text-center">
           {friend ? "나도 풀어 보기" : "1번 문제 풀기"}
         </BlockButton>
-        <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[14px] text-paper-muted">
+        <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 text-note text-paper-muted">
           <input type="checkbox" checked={relaxed} onChange={(e) => onRelaxed(e.target.checked)} className="size-4 accent-current" />
           느긋하게 풀기 (시간 제한 없이)
         </label>
         {mine && (
-          <Link href={resultPath(mine.type, [...mine.picks].map(Number), mine.version, mine.avg)} className="flex min-h-11 items-center justify-center text-[14px] text-paper-muted underline underline-offset-4">
+          <Link href={resultPath(mine.type, [...mine.picks].map(Number), mine.version, mine.avg)} className="flex min-h-11 items-center justify-center text-note text-paper-muted underline underline-offset-4">
             내 결과 다시 보기 · {TYPES[mine.type].name}
           </Link>
         )}
@@ -185,23 +185,23 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
     <section className="flex flex-1 flex-col pt-2">
       <div className="flex items-center justify-between">
         <StampRow kinds={kinds} total={questions.length} />
-        <span className="font-pixel text-[15px] text-paper-subtle">
+        <span className="font-pixel text-ui text-paper-subtle">
           {index + 1} / {questions.length}
         </span>
       </div>
       {!relaxed && <Timer key={index} paused={shown !== null} onTimeout={() => answer(null)} />}
 
       <div key={`q-${index}`} className="mt-5 animate-[rise_220ms_var(--ease-snap)_both]">
-        <p className="flex items-center gap-2 font-pixel text-[15px] text-paper-subtle">
+        <p className="flex items-center gap-2 font-pixel text-ui text-paper-subtle">
           <SpeakerTag>{q.partnerName}</SpeakerTag>
           {q.title}
         </p>
         <div className="blk-frame mt-2">
-          <p className="blk bg-card px-4 py-3 font-line text-[24px] leading-snug text-ink">{q.partnerLine}</p>
+          <p className="blk bg-card px-4 py-3 font-line text-display-sm leading-snug text-ink">{q.partnerLine}</p>
         </div>
         <div className="mt-3 flex items-baseline gap-2.5">
           <SpeakerTag me>나</SpeakerTag>
-          <p className="font-pixel text-[15px] leading-snug">{q.intent}</p>
+          <p className="font-pixel text-ui leading-snug">{q.intent}</p>
         </div>
       </div>
 
@@ -211,12 +211,12 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
           return (
             <li key={`${index}-${c.id}`} className="relative animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${150 + i * 60}ms` }}>
               <BlockButton onClick={() => answer(c)} className={`w-full text-left ${shown && !mine ? "opacity-40" : ""}`} faceClassName="flex items-center gap-3">
-                <span className="grid size-7 shrink-0 place-items-center bg-ink font-pixel text-[15px] text-paper">{i + 1}</span>
-                <span className="min-w-0 flex-1 font-line text-[20px] leading-snug">{c.line}</span>
+                <span className="grid size-7 shrink-0 place-items-center bg-ink font-pixel text-ui text-paper">{i + 1}</span>
+                <span className="min-w-0 flex-1 font-line text-say leading-snug">{c.line}</span>
               </BlockButton>
               {mine && (
                 <span
-                  className="pointer-events-none absolute -top-2 right-2 -rotate-6 animate-[stamp_280ms_steps(4,end)_both] border-2 border-ink px-1.5 py-1 font-pixel-title text-[12px] leading-none text-ink outline-2 outline-offset-1 outline-ink"
+                  className="pointer-events-none absolute -top-2 right-2 -rotate-6 animate-[stamp_280ms_steps(4,end)_both] border-2 border-ink px-1.5 py-1 font-pixel-title text-meta leading-none text-ink outline-2 outline-offset-1 outline-ink"
                   style={{ background: STAMP_COLORS[stampKind(c.verdict)] }}
                 >
                   {STAMP_LABELS[stampKind(c.verdict)]}
@@ -231,8 +231,8 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
       <div className="mt-4 min-h-[64px]" aria-live="polite">
         {shown && (
           <Panel dark className="animate-[pop_260ms_steps(4,end)_both]">
-            <p className="px-3 py-2.5 text-[16px] leading-snug">
-              <span className="font-pixel text-[15px] text-paper-subtle">{q.partnerName} 속마음 </span>
+            <p className="px-3 py-2.5 text-body leading-snug">
+              <span className="font-pixel text-ui text-paper-subtle">{q.partnerName} 속마음 </span>
               {shown.choice ? shown.choice.reaction : "…? (대답이 없네)"}
             </p>
           </Panel>
@@ -299,8 +299,8 @@ function Analyze({ questions, picked, version, friend }: { questions: TestQuesti
     <section className="flex flex-1 flex-col items-center justify-center pb-16 text-center" aria-live="polite">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`data:image/svg+xml;base64,${btoa(mochiSvg())}`} width={96} height={102} alt="" className="animate-[bob_0.5s_steps(2,jump-none)_infinite] [image-rendering:pixelated]" />
-      <p className="mt-4 font-poster text-[24px]">사고 기록 분석 중…</p>
-      <ul className="mt-5 space-y-2 text-left font-pixel text-[15px]">
+      <p className="mt-4 font-poster text-display-sm">사고 기록 분석 중…</p>
+      <ul className="mt-5 space-y-2 text-left font-pixel text-ui">
         {CHECKS.map((c, i) => (
           <li key={c} className={i < done ? "text-paper" : "text-paper-subtle"}>
             <span className={`mr-2 inline-block w-4 ${i < done ? "text-good" : ""}`}>{i < done ? "✔" : "·"}</span>

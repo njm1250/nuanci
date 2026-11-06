@@ -23,7 +23,7 @@ export function BackButton({ fallback = "/" }: { fallback?: string }) {
     <button
       type="button"
       onClick={() => (movedInApp ? router.back() : router.push(fallback))}
-      className="flex h-11 items-center gap-2 font-pixel text-[15px] text-paper-muted hover:text-paper"
+      className="flex h-11 items-center gap-2 font-pixel text-ui text-paper-muted hover:text-paper"
     >
       <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="rotate-180 fill-current">
         <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />

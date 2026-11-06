@@ -127,8 +127,8 @@ export function RewardCard({
   const enter = reduced ? undefined : { animation: `rise 260ms ease-out ${delay}ms both` };
   // 완료 화면에서는 그 장면의 발견이 중심이라 차분한 색과 작은 크기로 덧붙인다. 아지트에서는 크게 보여준다
   const tone = compact
-    ? { card: "bg-slate-block text-paper", muted: "text-paper-subtle", ring: "border-paper", box: "size-12", icon: 34, name: "text-[16px]" }
-    : { card: "bg-card text-ink", muted: "text-ink-muted", ring: "border-ink", box: "size-16", icon: 44, name: "text-[20px]" };
+    ? { card: "bg-slate-block text-paper", muted: "text-paper-subtle", ring: "border-paper", box: "size-12", icon: 34, name: "text-body" }
+    : { card: "bg-card text-ink", muted: "text-ink-muted", ring: "border-ink", box: "size-16", icon: 44, name: "text-say" };
 
   if (isUnopened(item)) {
     return (
@@ -142,11 +142,11 @@ export function RewardCard({
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[16px] font-bold">깜짝 상자</p>
-            <p className={`mt-0.5 text-[12px] ${tone.muted}`}>아지트에 둘 물건 하나</p>
+            <p className="text-body font-bold">깜짝 상자</p>
+            <p className={`mt-0.5 text-meta ${tone.muted}`}>아지트에 둘 물건 하나</p>
           </div>
           <button type="button" onClick={open} disabled={shaking} className="blk-btn shrink-0">
-            <span className="blk flex min-h-11 items-center bg-cta px-4 text-[16px] font-bold text-cta-text">열기</span>
+            <span className="blk flex min-h-11 items-center bg-cta px-4 text-body font-bold text-cta-text">열기</span>
           </button>
         </div>
       </div>
@@ -182,9 +182,9 @@ export function RewardCard({
               ))}
           </div>
           <div className="min-w-0 flex-1 self-start">
-            <p className={`font-pixel text-[15px] ${tone.muted}`}>새 물건</p>
+            <p className={`font-pixel text-ui ${tone.muted}`}>새 물건</p>
             <p className={`truncate font-pixel-title leading-[1.25] ${tone.name}`}>{item.name}</p>
-            <p className={`truncate text-[12px] ${tone.muted}`}>{ownedReason(owned, sceneTitle)}</p>
+            <p className={`truncate text-meta ${tone.muted}`}>{ownedReason(owned, sceneTitle)}</p>
           </div>
           {onClose && (
             <button type="button" onClick={onClose} aria-label="닫기" className="-mr-1 -mt-1 grid size-11 shrink-0 place-items-center self-start text-ink">
@@ -202,7 +202,7 @@ export function RewardCard({
             aria-pressed={on}
             className="blk-btn"
           >
-            <span className={`blk flex min-h-11 items-center gap-2 px-3 text-[15px] font-bold ${on ? "bg-cta text-cta-text" : "bg-cream text-ink"}`}>
+            <span className={`blk flex min-h-11 items-center gap-2 px-3 text-ui font-bold ${on ? "bg-cta text-cta-text" : "bg-cream text-ink"}`}>
               {item.kind === "wear" ? "쓰기" : "방에 두기"}
               {on && <Check />}
             </span>
@@ -227,7 +227,7 @@ export function RewardCard({
             </div>
           )}
           {item.kind === "room" && sceneTitle !== undefined && (
-            <Link href="/me/room?tab=room" className={`ml-auto flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] ${tone.muted}`}>
+            <Link href="/me/room?tab=room" className={`ml-auto flex min-h-11 items-center gap-2 px-1 font-pixel text-ui ${tone.muted}`}>
               아지트
               <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
                 <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />

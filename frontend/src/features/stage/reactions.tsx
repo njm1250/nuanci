@@ -25,8 +25,8 @@ function Soul() {
 }
 
 export const REACTION_SYMBOLS: Partial<Record<Expression, React.ReactNode>> = {
-  puzzled: <span className="text-[30px] font-bold leading-none">?</span>,
-  delighted: <span className="text-[30px] font-bold leading-none">!</span>,
+  puzzled: <span className="text-display font-bold leading-none">?</span>,
+  delighted: <span className="text-display font-bold leading-none">!</span>,
   // 기분 좋음: 픽셀 음표
   happy: (
     <svg width="21" height="27" viewBox="0 0 7 9" shapeRendering="crispEdges" fill="currentColor">
@@ -38,7 +38,7 @@ export const REACTION_SYMBOLS: Partial<Record<Expression, React.ReactNode>> = {
       <path d="M9 2 C13 10 16 14 16 18 A7 7 0 0 1 2 18 C2 14 5 10 9 2Z" fill="#7fb4d8" stroke="currentColor" strokeWidth="2" />
     </svg>
   ),
-  neutral: <span className="text-[24px] font-bold leading-none tracking-widest">…</span>,
+  neutral: <span className="text-display-sm font-bold leading-none tracking-widest">…</span>,
   // 반함: 픽셀 하트
   love: (
     <svg width="24" height="21" viewBox="0 0 8 7" shapeRendering="crispEdges" aria-hidden>
@@ -51,8 +51,8 @@ export const REACTION_SYMBOLS: Partial<Record<Expression, React.ReactNode>> = {
       <path d="M1 0h2v2H2v1H0V1h1zM5 0h2v1h1v2H6V2H5zM0 5h2v1h1v2H1V7H0zM6 5h2v2H7v1H5V6h1z" fill="#d4265f" />
     </svg>
   ),
-  shocked: <span className="text-[30px] font-bold leading-none">!!</span>,
-  sleepy: <span className="text-[22px] font-bold italic leading-none">Zz</span>,
+  shocked: <span className="text-display font-bold leading-none">!!</span>,
+  sleepy: <span className="text-say-lg font-bold italic leading-none">Zz</span>,
   // 울음: 파란 눈물 두 방울
   crying: (
     <svg width="26" height="20" viewBox="0 0 13 10" shapeRendering="crispEdges" aria-hidden>
