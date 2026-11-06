@@ -99,7 +99,7 @@ export function ReviewToday({ className = "" }: { className?: string }) {
                 <BlockButton onClick={() => next(false)} reading faceClassName="py-3 text-center text-[16px] font-bold">
                   몰랐어요
                 </BlockButton>
-                <BlockButton primary onClick={() => next(true)} reading faceClassName="py-3 text-center text-[16px] font-bold">
+                <BlockButton onClick={() => next(true)} reading faceClassName="py-3 text-center text-[16px] font-bold">
                   떠올렸어요
                 </BlockButton>
               </div>

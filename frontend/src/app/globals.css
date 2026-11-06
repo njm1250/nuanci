@@ -637,8 +637,10 @@ body {
   *,
   *::before,
   *::after {
-    animation-duration: 150ms !important;
+    /* 동작 줄이기면 움직임 없이 바로 끝 상태를 보여 준다(Astryx motion 규칙과 같다) */
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 150ms !important;
+    transition-duration: 1ms !important;
   }
 }

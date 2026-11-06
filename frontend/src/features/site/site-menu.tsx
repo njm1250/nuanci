@@ -58,7 +58,7 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
       <div aria-hidden className="flex items-end gap-3 border-b-4 border-[#5e5a54] px-4">
         <Mascot scale={3} className="shrink-0" />
         <div className="blk-frame-sm mb-5 min-w-0">
-          <p key={reply} className="blk animate-[fade-in_160ms] bg-white px-3 py-2 text-[15px] font-semibold leading-snug text-[#141317]">
+          <p key={reply} className="blk animate-[fade-in_160ms] bg-white px-3 py-2 text-[15px] font-semibold leading-snug text-[#0b1a44]">
             {reply}
           </p>
         </div>
