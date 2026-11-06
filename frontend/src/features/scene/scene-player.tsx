@@ -584,6 +584,22 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
     f.pick(c.id);
   };
 
+  // 메뉴처럼 숫자 키 1·2·3으로도 보기를 고른다. 보기가 보이는 동안(질문과 결과 비교)만 받는다
+  const choosing = !leading && !wrapped && phase !== "transition";
+  useEffect(() => {
+    if (!choosing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target instanceof Element && e.target.closest("input, textarea, select, dialog")) return;
+      const c = situation.choices[Number(e.key) - 1];
+      if (!c) return;
+      e.preventDefault();
+      play(c);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   // 비교를 다 본 뒤에 완료 화면으로 넘어가며 팡파르를 울린다. 처음 한 번만 울린다
   const fanfared = useRef(false);
   const wrapUp = () => {

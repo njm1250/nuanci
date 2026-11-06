@@ -576,7 +576,7 @@ export function SceneShelf({
                 <p className="mt-6 text-body font-bold">
                   다른 장면
                 </p>
-                <ul className="stagger mt-2 grid gap-3 md:grid-cols-2">
+                <ul className="stagger mt-2 grid grid-cols-1 gap-3 md:grid-cols-2">
                   {/* 모바일은 두 개만, 넓은 왼쪽 칸이 생기는 데스크톱은 네 개까지 보여 준다 */}
                   {upNext.slice(1).map((s, i) => (
                     <li key={s.id} className={i >= 2 ? "max-lg:hidden" : undefined}>
@@ -687,7 +687,7 @@ function ViewSwitch({ view }: { view: "group" | "order" }) {
           role="radio"
           aria-checked={view === o.value}
           onClick={() => setSceneView(o.value)}
-          className={`min-h-10 px-4 font-pixel text-ui ${view === o.value ? "bg-paper text-night" : "text-paper-muted"}`}
+          className={`min-h-11 px-4 font-pixel text-ui ${view === o.value ? "bg-paper text-night" : "text-paper-muted"}`}
         >
           {o.label}
         </button>

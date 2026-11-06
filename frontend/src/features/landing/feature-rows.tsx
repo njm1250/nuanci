@@ -28,7 +28,7 @@ export function FeatureRows({ scene }: { scene: Scene }) {
       <ul className="space-y-16 md:space-y-24">
         {rows.map((r, i) => (
           // 데스크톱은 그림과 글을 한 줄씩 좌우를 바꿔 가며 놓아, 같은 모양이 세 번 반복돼 보이지 않게 한다
-          <li key={r.title} className="grid items-center gap-6 md:grid-cols-2 md:gap-14">
+          <li key={r.title} className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-14">
             <div className={`w-full max-w-[460px] justify-self-center ${i % 2 ? "md:order-2" : ""}`}>{r.art}</div>
             <div>
               <h2 className="font-poster text-display-sm leading-[1.25] md:text-display">{r.title}</h2>

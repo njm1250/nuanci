@@ -158,13 +158,13 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
           {shown.length === 0 ? (
             <p className="mt-6 text-note text-paper-muted">찾는 표현이 없어요.</p>
           ) : (
-            <div className="stagger mt-4 grid items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
+            <div className="stagger mt-4 grid grid-cols-1 items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
               {shown.map(({ entry, pairs }) => (
                 <section key={entry.id}>
                   {/* 장면 묶음 머리는 단어장 인덱스 탭처럼, 굵은 줄 위에 제목 탭을 올린다 */}
                   <div className="flex items-end justify-between gap-2 border-b-2 border-paper">
                     <h2 className="min-w-0 truncate bg-paper px-3 py-2 font-pixel text-ui text-night">{entry.title}</h2>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-10 shrink-0 items-center gap-1.5 px-1 font-pixel text-ui text-paper-muted hover:text-paper">
+                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-pixel text-ui text-paper-muted hover:text-paper">
                       다시 하기
                       <Arrow />
                     </EntryLink>
