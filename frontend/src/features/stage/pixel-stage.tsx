@@ -172,7 +172,7 @@ function TypingDots() {
   return (
     <span role="img" className="flex h-[1.4em] items-center gap-1 px-1" aria-label="내 차례">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="size-1.5 animate-[typing_1s_infinite] bg-current" style={{ animationDelay: `${i * 160}ms` }} />
+        <span key={i} className="size-1.5 animate-typing bg-current" style={{ animationDelay: `${i * 160}ms` }} />
       ))}
     </span>
   );
@@ -325,7 +325,7 @@ export function PixelStage({
   const bubble = (who: Who, text: React.ReactNode, key: string) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
       {text && (
-        <div key={key} className="blk-frame-sm animate-[fade-in_160ms]">
+        <div key={key} className="blk-frame-sm animate-fade">
           <div
             ref={(el) => void (slots.current[who].bubble = el)}
             className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-line text-note leading-snug text-ink break-keep"
@@ -396,7 +396,7 @@ export function PixelStage({
             bubble("partner", state.partnerSays, `says-${state.partnerKey}`)
           ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
-              <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-[pop_260ms_steps(3,end)]">
+              <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-pop">
                 {symbol}
               </div>
             </div>

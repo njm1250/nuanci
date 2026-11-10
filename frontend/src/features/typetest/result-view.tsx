@@ -145,7 +145,7 @@ const countSame = (a: number[], b: number[]) => a.filter((p, i) => p > 0 && p ==
 export function TypeCard({ type, kinds, avg, rarity, pop = false, className = "" }: { type: TypeId; kinds: ReturnType<typeof stampKind>[] | null; avg: number | null; rarity: number | null; pop?: boolean; className?: string }) {
   const t = TYPES[type];
   return (
-    <Panel className={`${pop ? "animate-[reward-pop_520ms_steps(6,end)_both]" : ""} ${className}`}>
+    <Panel className={`${pop ? "animate-reward-pop" : ""} ${className}`}>
       <div className="px-4 pb-4 pt-3">
         <div className="flex items-center justify-between font-pixel text-ui text-ink-subtle">
           <span>No.{String(t.no).padStart(2, "0")}</span>

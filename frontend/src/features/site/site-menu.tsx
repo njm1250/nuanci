@@ -47,7 +47,7 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
       onKeyDown={onKeyDown}
       onClick={(e) => e.target === ref.current && close()}
       aria-label="메뉴"
-      className="m-0 ml-auto h-dvh max-h-none w-full max-w-[440px] animate-[fade-in_160ms] overflow-y-auto bg-night text-paper break-keep backdrop:bg-[#141317]/50"
+      className="m-0 ml-auto h-dvh max-h-none w-full max-w-[440px] animate-fade overflow-y-auto bg-night text-paper break-keep backdrop:bg-[#141317]/50"
     >
       <div className="flex h-14 items-center justify-end px-4 md:h-16">
         <button type="button" onClick={close} className="flex h-11 items-center px-1 font-pixel text-ui text-paper-muted hover:text-paper">
@@ -58,7 +58,7 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
       <div aria-hidden className="flex items-end gap-3 border-b-4 border-[#5e5a54] px-4">
         <Mascot scale={3} className="shrink-0" />
         <div className="blk-frame-sm mb-5 min-w-0">
-          <p key={reply} className="blk animate-[fade-in_160ms] bg-white px-3 py-2 text-ui font-semibold leading-snug text-[#0b1a44]">
+          <p key={reply} className="blk animate-fade bg-white px-3 py-2 text-ui font-semibold leading-snug text-[#0b1a44]">
             {reply}
           </p>
         </div>

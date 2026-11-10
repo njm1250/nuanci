@@ -210,7 +210,7 @@ function SceneRow({
     <EntryLink
       href={`/scenes/${scene.number}`}
       entry="home"
-      className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors duration-150 hover:bg-paper hover:text-night"
+      className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors duration-fast hover:bg-paper hover:text-night"
     >
       {/* 목차처럼 화수를 굵은 숫자로 왼쪽에 세운다 */}
       <span className="w-8 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums">{tocNumber(label)}</span>
@@ -237,7 +237,7 @@ function SceneRow({
         </span>
       </span>
       {fresh && <NewChip />}
-      <span aria-hidden className="shrink-0 -translate-x-1 opacity-0 transition duration-150 group-hover:translate-x-0 group-hover:opacity-100">
+      <span aria-hidden className="shrink-0 -translate-x-1 opacity-0 transition duration-fast group-hover:translate-x-0 group-hover:opacity-100">
         <Arrow />
       </span>
     </EntryLink>
@@ -288,7 +288,7 @@ function BlockBar({ progress }: { progress: Progress }) {
       aria-label="다음 10화까지"
     >
       <div
-        className="h-full origin-left animate-[fill_800ms_var(--ease-snap)_200ms_both] bg-gold"
+        className="h-full origin-left animate-fill bg-gold"
         style={{ width: `${(filled / BLOCK_SIZE) * 100}%` }}
       />
     </div>
@@ -405,7 +405,7 @@ function FeaturedScene({
               <span className="truncate border-b border-line/60 py-2.5 text-ui font-semibold">{scene.place}</span>
             </span>
           </span>
-          <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-say text-ink transition-transform duration-150 group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
+          <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-gold px-4 py-3 font-poster text-say text-ink transition-transform duration-fast group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
             {/* 포스터 글꼴은 글자가 줄 상자 안에서 위로 치우쳐 그려져서, 줄 높이를 글자 크기에 맞추고 화살표를 3px 올려야 눈으로 본 가운데가 맞는다 */}
             <span className="leading-none">{answerCta(scene.relation)}</span>
             {/* 주요 버튼 화살표는 몸통이 있는 도트 화살표로 크게 그려야 움직이는 게 보인다 */}
@@ -562,7 +562,7 @@ export function SceneShelf({
     .slice(0, limit);
   return (
     // 데스크톱은 왼쪽 넓은 칸에 할 장면을, 오른쪽 좁은 칸에 진행도·복습·바로 가기를 둔다. 모바일은 같은 조각을 예전 순서대로 쌓는다
-    <section className="flex animate-[fade-in_200ms] flex-col px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
+    <section className="flex animate-fade flex-col px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
       <div className="order-3 lg:order-none lg:col-start-1 lg:row-start-1">
         {upNext.length > 0 ? (
           <>

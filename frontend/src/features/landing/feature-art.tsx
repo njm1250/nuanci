@@ -46,7 +46,7 @@ export function TalkArt({ partnerName, partnerLine, choices }: { partnerName: st
                 <div key={c.id} data-pressed={mine && phase === 1 ? "" : undefined} data-result={result ? "" : undefined} className="art-btn relative overflow-hidden bg-card">
                   {result && <span aria-hidden className={`absolute inset-0 opacity-15 ${VERDICTS[c.verdict].color}`} />}
                   {/* 고른 순간에만 판정 색이 한 번 번쩍인다. 끝 장면(poster)에는 남기지 않는다 */}
-                  {mine && phase === 2 && <span aria-hidden className={`absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.verdict].color}`} />}
+                  {mine && phase === 2 && <span aria-hidden className={`absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />}
                   <div className="relative flex items-start gap-3 px-3 py-2.5">
                     <Num n={i + 1} dark={result} />
                     <div className="min-w-0 flex-1">
@@ -60,10 +60,10 @@ export function TalkArt({ partnerName, partnerLine, choices }: { partnerName: st
                       </div>
                       {/* 보기마다 한국어 뜻을 달고, 고른 보기는 그 자리에 상대 반응이 올라온다. 두 줄을 한 칸에 겹쳐 둬서 카드 높이가 흔들리지 않는다 */}
                       <div className="grid">
-                        <span className={`col-start-1 row-start-1 mt-0.5 text-note leading-snug text-ink-subtle transition-opacity duration-150 ${result ? "opacity-0" : ""}`}>{c.meaning}</span>
+                        <span className={`col-start-1 row-start-1 mt-0.5 text-note leading-snug text-ink-subtle transition-opacity duration-fast ${result ? "opacity-0" : ""}`}>{c.meaning}</span>
                         {mine && (
                           <span
-                            className={`col-start-1 row-start-1 flex items-start gap-2 pt-1.5 text-body font-bold leading-[1.5] ${result ? "animate-[rise_240ms_var(--ease-snap)_both]" : "invisible"}`}
+                            className={`col-start-1 row-start-1 flex items-start gap-2 pt-1.5 text-body font-bold leading-[1.5] ${result ? "animate-rise" : "invisible"}`}
                           >
                             <span className="mt-px">
                               <ReactionFace expression={c.expression} size={18} />
@@ -112,12 +112,12 @@ export function BookArt({ title, pair, next }: { title: string; pair: Expression
                 </span>
                 {phase < 2 ? (
                   <span
-                    className={`flex min-h-9 flex-1 items-center border border-dashed border-line px-2 font-pixel text-ui text-ink-subtle transition-colors duration-100 ${phase === 1 ? "bg-night-deep" : ""}`}
+                    className={`flex min-h-9 flex-1 items-center border border-dashed border-line px-2 font-pixel text-ui text-ink-subtle transition-colors duration-press ${phase === 1 ? "bg-night-deep" : ""}`}
                   >
                     눌러서 보기
                   </span>
                 ) : (
-                  <span className="flex min-h-9 min-w-0 animate-[rise_240ms_var(--ease-snap)_both] items-center font-line text-say-lg leading-snug">{pair.right}</span>
+                  <span className="flex min-h-9 min-w-0 animate-rise items-center font-line text-say-lg leading-snug">{pair.right}</span>
                 )}
               </div>
               <div className="mt-1.5 flex items-center gap-2 text-note text-ink-subtle">
@@ -180,21 +180,21 @@ export function RoomArt() {
                   return (
                     <div key={`${id}-${i}`} className={`relative grid aspect-square place-items-center border-2 ${owned ? "border-ink bg-card" : "border-dashed border-line bg-night-deep"}`}>
                       {owned ? (
-                        <span data-snap={fresh || undefined} className={fresh ? "animate-[reward-pop_520ms_steps(6,end)_both]" : ""}>
+                        <span data-snap={fresh || undefined} className={fresh ? "animate-reward-pop" : ""}>
                           <RewardIcon id={id} size={compact ? 28 : 36} />
                         </span>
                       ) : (
                         <RewardIcon id={id} size={compact ? 28 : 36} className="opacity-30 [filter:brightness(0)]" />
                       )}
                       {/* 처음 보는 물건에는 진짜 아지트처럼 작은 점이 붙는다 */}
-                      {fresh && phase === 1 && <span aria-hidden className="absolute left-1 top-1 size-2 animate-[fade-in_150ms_200ms_both] bg-rust" />}
+                      {fresh && phase === 1 && <span aria-hidden className="absolute left-1 top-1 size-2 animate-fade [animation-delay:200ms] bg-rust" />}
                     </div>
                   );
                 })}
               </div>
             </div>
             <div className={`absolute ${compact ? "bottom-4 left-3" : "bottom-6 left-5"}`}>
-              <span data-snap className={`block ${phase === 1 ? "animate-[hop_380ms_steps(3,jump-none)_200ms_2]" : ""}`}>
+              <span data-snap className={`block ${phase === 1 ? "animate-hop-twice" : ""}`}>
                 <Mascot scale={compact ? 5 : 6} />
               </span>
             </div>

@@ -5,7 +5,7 @@ import { TRAP_LABELS, type Choice, type Verdict } from "./types";
 export function Num({ n, dark = false, hover = false }: { n: number; dark?: boolean; hover?: boolean }) {
   return (
     <span
-      className={`grid size-6 shrink-0 place-items-center font-pixel text-ui transition-transform duration-150 ${dark ? "bg-ink text-paper" : "border-2 border-ink/20 text-ink-muted"} ${hover ? "group-hover:-rotate-6 group-hover:border-ink group-hover:bg-ink group-hover:text-[#f6f4ee]" : ""}`}
+      className={`grid size-6 shrink-0 place-items-center font-pixel text-ui transition-transform duration-fast ${dark ? "bg-ink text-paper" : "border-2 border-ink/20 text-ink-muted"} ${hover ? "group-hover:-rotate-6 group-hover:border-ink group-hover:bg-ink group-hover:text-[#f6f4ee]" : ""}`}
     >
       {n}
     </span>
@@ -27,7 +27,7 @@ export function VerdictStamp({ choice, pop = false }: { choice: Choice; pop?: bo
     <span
       role="img"
       aria-label={choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label}
-      className={`-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink px-1.5 py-1 font-pixel-title text-meta leading-none text-ink outline-2 outline-offset-1 outline-ink ${v.color} ${pop ? "animate-[stamp_280ms_steps(4,end)_60ms_both]" : ""}`}
+      className={`-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink px-1.5 py-1 font-pixel-title text-meta leading-none text-ink outline-2 outline-offset-1 outline-ink ${v.color} ${pop ? "animate-stamp [animation-delay:60ms]" : ""}`}
     >
       {v.stamp}
     </span>

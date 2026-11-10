@@ -97,7 +97,7 @@ function Intro({ friend, mine, relaxed, onRelaxed, onStart, count }: { friend: F
               width={72}
               height={72}
               alt=""
-              className="animate-[bob_1.2s_steps(2,jump-none)_infinite] [image-rendering:pixelated]"
+              className="animate-bob [image-rendering:pixelated]"
               style={{ animationDelay: `${(i % 3) * 200 + Math.floor(i / 3) * 100}ms` }}
             />
             <span className="mt-1 text-center text-meta leading-tight text-paper-subtle">{TYPES[id].name}</span>
@@ -132,7 +132,7 @@ export function StampRow({ kinds, total, size = 28 }: { kinds: StampKind[]; tota
         return (
           <li
             key={i}
-            className={`grid place-items-center border-2 ${kind ? "border-ink animate-[stamp_280ms_steps(4,end)_both]" : "border-dashed border-paper-subtle"}`}
+            className={`grid place-items-center border-2 ${kind ? "border-ink animate-stamp" : "border-dashed border-paper-subtle"}`}
             style={{ width: size, height: size, background: kind ? STAMP_COLORS[kind] : undefined }}
           >
             {kind && (
@@ -191,7 +191,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
       </div>
       {!relaxed && <Timer key={index} paused={shown !== null} onTimeout={() => answer(null)} />}
 
-      <div key={`q-${index}`} className="mt-5 animate-[rise_220ms_var(--ease-snap)_both]">
+      <div key={`q-${index}`} className="mt-5 animate-rise">
         <p className="flex items-center gap-2 font-pixel text-ui text-paper-subtle">
           <SpeakerTag>{q.partnerName}</SpeakerTag>
           {q.title}
@@ -209,14 +209,14 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
         {q.choices.map((c, i) => {
           const mine = shown?.choice?.id === c.id;
           return (
-            <li key={`${index}-${c.id}`} className="relative animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${150 + i * 60}ms` }}>
+            <li key={`${index}-${c.id}`} className="relative animate-rise" style={{ animationDelay: `${150 + i * 60}ms` }}>
               <BlockButton onClick={() => answer(c)} className={`w-full text-left ${shown && !mine ? "opacity-40" : ""}`} faceClassName="flex items-center gap-3">
                 <span className="grid size-7 shrink-0 place-items-center bg-ink font-pixel text-ui text-paper">{i + 1}</span>
                 <span className="min-w-0 flex-1 font-line text-say leading-snug">{c.line}</span>
               </BlockButton>
               {mine && (
                 <span
-                  className="pointer-events-none absolute -top-2 right-2 -rotate-6 animate-[stamp_280ms_steps(4,end)_both] border-2 border-ink px-1.5 py-1 font-pixel-title text-meta leading-none text-ink outline-2 outline-offset-1 outline-ink"
+                  className="pointer-events-none absolute -top-2 right-2 -rotate-6 animate-stamp border-2 border-ink px-1.5 py-1 font-pixel-title text-meta leading-none text-ink outline-2 outline-offset-1 outline-ink"
                   style={{ background: STAMP_COLORS[stampKind(c.verdict)] }}
                 >
                   {STAMP_LABELS[stampKind(c.verdict)]}
@@ -230,7 +230,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
       {/* 고른 뒤 상대 속마음. 이 한 줄이 테스트의 웃음 포인트라 크게 보여준다 */}
       <div className="mt-4 min-h-[64px]" aria-live="polite">
         {shown && (
-          <Panel dark className="animate-[pop_260ms_steps(4,end)_both]">
+          <Panel dark className="animate-pop">
             <p className="px-3 py-2.5 text-body leading-snug">
               <span className="font-pixel text-ui text-paper-subtle">{q.partnerName} 속마음 </span>
               {shown.choice ? shown.choice.reaction : "…? (대답이 없네)"}
@@ -298,7 +298,7 @@ function Analyze({ questions, picked, version, friend }: { questions: TestQuesti
   return (
     <section className="flex flex-1 flex-col items-center justify-center pb-16 text-center" aria-live="polite">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`data:image/svg+xml;base64,${btoa(mochiSvg())}`} width={96} height={102} alt="" className="animate-[bob_0.5s_steps(2,jump-none)_infinite] [image-rendering:pixelated]" />
+      <img src={`data:image/svg+xml;base64,${btoa(mochiSvg())}`} width={96} height={102} alt="" className="animate-bob-fast [image-rendering:pixelated]" />
       <p className="mt-4 font-poster text-display-sm">사고 기록 분석 중…</p>
       <ul className="mt-5 space-y-2 text-left font-pixel text-ui">
         {CHECKS.map((c, i) => (

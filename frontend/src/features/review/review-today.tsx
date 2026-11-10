@@ -54,7 +54,7 @@ export function ReviewToday({ className = "" }: { className?: string }) {
   };
 
   return (
-    <section className={`animate-[fade-in_200ms] ${className}`}>
+    <section className={`animate-fade ${className}`}>
       <div className="flex items-baseline justify-between">
         <h2 className="text-body font-bold">오늘의 1분 복습</h2>
         <p className="text-meta text-paper-subtle">
@@ -62,7 +62,7 @@ export function ReviewToday({ className = "" }: { className?: string }) {
         </p>
       </div>
       <div className="blk-frame mt-2">
-        <div key={card.id} className="blk animate-[fade-in_200ms] bg-cream px-4 py-3.5 text-ink">
+        <div key={card.id} className="blk animate-fade bg-cream px-4 py-3.5 text-ink">
           <p className="text-meta text-ink-subtle">{card.title}</p>
           <div className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1">
             <SpeakerTag>{card.partnerName}</SpeakerTag>
@@ -79,7 +79,7 @@ export function ReviewToday({ className = "" }: { className?: string }) {
               </BlockButton>
             </div>
           ) : (
-            <div className="mt-3 animate-[fade-in_200ms]">
+            <div className="mt-3 animate-fade">
               <p className="flex items-start gap-2">
                 <span className="mt-1">
                   <Mark good />

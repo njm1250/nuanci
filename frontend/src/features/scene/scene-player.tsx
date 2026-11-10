@@ -86,7 +86,7 @@ function MochiAsk({ children, className = "" }: { children: React.ReactNode; cla
     <div className={`flex items-end gap-2 ${className}`}>
       {/* 누르면 제자리에서 콩 뛴다. 그냥 장식이지만 눌러 보는 사람에게 작은 대답이 된다 */}
       <button type="button" aria-label="Mochi 쓰다듬기" onClick={() => (setHop((n) => n + 1), sfx.tap())} className="-m-1 shrink-0 p-1">
-        <Mascot key={hop} scale={2} className={hop ? "animate-[hop_380ms_steps(3,end)]" : ""} />
+        <Mascot key={hop} scale={2} className={hop ? "animate-hop" : ""} />
       </button>
       <div className="blk-frame-sm mb-2 min-w-0">
         <p className="blk bg-white px-2.5 py-1.5 text-note font-bold leading-snug text-[#0b1a44]">{children}</p>
@@ -172,7 +172,7 @@ function ResultBody({
           </span>
         </span>
         {revealed ? (
-          <span key={verdictKey} className={`flex items-start gap-2 leading-[1.5] ${active ? "mt-1.5 animate-[rise_240ms_var(--ease-snap)_420ms_both] text-body font-bold text-ink" : "mt-1 text-note text-ink-muted"}`}>
+          <span key={verdictKey} className={`flex items-start gap-2 leading-[1.5] ${active ? "mt-1.5 animate-rise [animation-delay:420ms] text-body font-bold text-ink" : "mt-1 text-note text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -182,7 +182,7 @@ function ResultBody({
           <HiddenReaction />
         )}
         {/* 대사+반응을 한 덩어리로 진하게 묶고, 이유는 한 칸 떼어 한 톤 낮춘다 */}
-        {active && <span key={`why-${verdictKey}`} className="mt-3 block animate-[fade-in_240ms_ease-out_680ms_both] text-ui leading-[1.6] text-ink-muted">{choice.why}</span>}
+        {active && <span key={`why-${verdictKey}`} className="mt-3 block animate-fade [animation-delay:680ms] text-ui leading-[1.6] text-ink-muted">{choice.why}</span>}
         {meta && revealed && (mine || share !== undefined) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
       </span>
     </span>
@@ -266,7 +266,7 @@ function WrapUp({
     sfx.streak((STREAK_DELAY + 120) / 1000);
   }, [streak]);
   return (
-    <div className="animate-[rise_240ms_var(--ease-snap)]">
+    <div className="animate-rise">
       <div className="flex items-end gap-3">
         <Mascot scale={3} className="shrink-0" />
         <div className="pb-1">
@@ -351,7 +351,7 @@ function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName
     <div>
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2.5">
         {beats.map((b, i) => (
-          <div key={i} className={`col-span-2 grid animate-[rise_200ms_var(--ease-snap)_both] grid-cols-subgrid items-baseline ${i < beats.length - 1 ? "beat-past" : ""}`}>
+          <div key={i} className={`col-span-2 grid animate-rise grid-cols-subgrid items-baseline ${i < beats.length - 1 ? "beat-past" : ""}`}>
             <SpeakerTag me={b.who === "me"}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</SpeakerTag>
             {b.line === "……" ? (
               <p className="min-w-0 text-body leading-snug text-paper-muted">{b.meaning}</p>
@@ -378,7 +378,7 @@ function LeadRecap({ beats, partnerName, translate }: { beats: Beat[]; partnerNa
         <Caret open={open} />
       </button>
       {open && (
-        <div className="mb-2 mt-1 animate-[fade-in_150ms] border-l-2 border-line pl-3">
+        <div className="mb-2 mt-1 animate-fade border-l-2 border-line pl-3">
           <BeatLog beats={beats} partnerName={partnerName} translate={translate} />
         </div>
       )}
@@ -708,7 +708,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
               {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} />}
               {later && !endingOn && !beat && (
-                <p className="absolute bottom-2 left-2 animate-[fade-in_300ms] bg-ink px-2 py-1 font-pixel text-ui leading-none text-paper">
+                <p className="absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-pixel text-ui leading-none text-paper">
                   {timeCue ?? (
                     <>
                       <span className="font-bold">만약에</span> {scene.followUp.to}
@@ -716,12 +716,12 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                   )}
                 </p>
               )}
-              {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-[wipe_520ms_ease-in-out_both] bg-ink" />}
+              {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-wipe bg-ink" />}
               {burst && !reduced && phase !== "transition" && (
                 <span
                   key={`burst-${stageKey}`}
                   aria-hidden
-                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-[burst_950ms_steps(4,end)_70ms_both] font-poster text-display-sm leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
+                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-burst font-poster text-display-sm leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
                   {burst.text}
                 </span>
@@ -739,11 +739,11 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
         <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:flex-initial">
           {phase === "transition" && timeCue ? (
-            <p key="time" className="animate-[rise_220ms_var(--ease-snap)] pt-6 text-center font-poster text-display-sm text-paper">
+            <p key="time" className="animate-rise pt-6 text-center font-poster text-display-sm text-paper">
               {timeCue}…
             </p>
           ) : phase === "transition" ? (
-            <Panel key="transition" className="animate-[rise_220ms_var(--ease-snap)]">
+            <Panel key="transition" className="animate-rise">
               <div className="p-5">
                 <p className="font-pixel text-ui text-rust">만약에…</p>
                 <p className="mt-1.5 text-say font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
@@ -779,12 +779,12 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             <div key={`ask-${phase}`}>
               <p className="text-note leading-normal text-paper-muted">{situation.context}</p>
               {lead.length > 0 && <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />}
-              <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-[rise_220ms_var(--ease-snap)_both]" />
+              <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-rise" />
               {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게, 메뉴처럼 Mochi가 말풍선으로 묻는다 */}
-              <MochiAsk className="mt-3 animate-[rise_220ms_var(--ease-snap)_both] [animation-delay:200ms]">너라면 뭐라고 할래?</MochiAsk>
+              <MochiAsk className="mt-3 animate-rise [animation-delay:200ms]">너라면 뭐라고 할래?</MochiAsk>
               <ul className="mt-2 space-y-2.5">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-[rise_220ms_var(--ease-snap)_both]" style={{ animationDelay: `${300 + i * 60}ms` }}>
+                  <li key={c.id} className="animate-rise" style={{ animationDelay: `${300 + i * 60}ms` }}>
                     <BlockButton onClick={() => play(c)} className="group w-full text-left" faceClassName="flex items-center gap-3">
                       <Num n={i + 1} hover />
                       <span className="min-w-0 flex-1">
@@ -809,20 +809,20 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               <MochiAsk className="mt-3">다른 말도 눌러 볼래?</MochiAsk>
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-[rise_240ms_var(--ease-snap)_both]" style={{ animationDelay: `${i * 70}ms` }}>
+                  <li key={c.id} className="animate-rise" style={{ animationDelay: `${i * 70}ms` }}>
                     {c.id === choice.id ? (
                       <Panel className="blk-strong">
                         <div className="relative overflow-hidden px-3.5 pb-1 pt-3.5" aria-current="true">
                           {/* 판정 색을 옅게 깔아 두고, 방금 고른 순간에만 진하게 한 번 번쩍인다 */}
                           <span aria-hidden className={`pointer-events-none absolute inset-0 opacity-15 ${VERDICTS[c.verdict].color}`} />
                           {!reduced && (
-                            <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-[tint_400ms_ease-out_both] ${VERDICTS[c.verdict].color}`} />
+                            <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />
                           )}
                           <span className="relative block">
                             <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} />
                             {/* 더 보기와 메타는 카드 맨 아래 한 줄의 양 끝에 두고 힘을 뺀다 */}
                             <span className="mt-3.5 block border-t border-ink/10 pl-9">
-                              {detailOpen && <span className="mt-3 block animate-[fade-in_150ms] text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
+                              {detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
                               <span className="flex items-center justify-between gap-3">
                                 <button
                                   type="button"

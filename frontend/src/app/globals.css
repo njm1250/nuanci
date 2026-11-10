@@ -63,6 +63,33 @@
   --text-display: 2rem;
   --text-display-lg: 2.75rem;
   --text-display-xl: 3.75rem;
+  /* 움직임 단계. 화면에는 animate-[...]나 duration-150을 직접 쓰지 않고 이 이름만 쓴다(docs/design_system.md 5절).
+     길이는 :root의 --dur-*에서 온다. 늦게 시작해야 하면 [animation-delay:…]만 옆에 붙인다 */
+  --transition-duration-press: var(--dur-press);
+  --transition-duration-fast: var(--dur-fast);
+  --transition-duration-base: var(--dur-base);
+  --transition-duration-slow: var(--dur-slow);
+  --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-fade: fade-in var(--dur-fast) ease-out both;
+  --animate-rise: rise var(--dur-base) var(--ease-snap) both;
+  --animate-rise-step: rise var(--dur-base) steps(3, end) both;
+  --animate-tint: tint var(--dur-slow) ease-out both;
+  --animate-fill: fill 800ms var(--ease-snap) 200ms both;
+  /* 도트 그림의 움직임은 칸칸이 끊어서 움직인다 */
+  --animate-pop: pop 260ms steps(3, end) both;
+  --animate-stamp: stamp 280ms steps(4, end) both;
+  --animate-hop: hop 380ms steps(3, end);
+  --animate-hop-twice: hop 380ms steps(3, jump-none) 200ms 2;
+  --animate-wiggle: wiggle 420ms steps(4, end);
+  --animate-typing: typing 1s infinite;
+  --animate-bob: bob 1.2s steps(2, jump-none) infinite;
+  --animate-bob-fast: bob 0.5s steps(2, jump-none) infinite;
+  /* 한 번뿐인 순간(보상, 장면 넘김, 영혼 빠짐)은 300ms 규칙의 예외로 길게 쓴다 */
+  --animate-reward-pop: reward-pop 520ms steps(6, end) both;
+  --animate-box-shake: box-shake 520ms ease-in-out;
+  --animate-wipe: wipe 520ms ease-in-out both;
+  --animate-burst: burst 950ms steps(4, end) 70ms both;
+  --animate-soul: soul 1400ms ease-out both;
   --font-sans: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* 픽셀 글꼴은 흔한 글자(core)를 먼저 쓰고, 없는 글자만 Rest 파일에서 받는다. 변수는 app/fonts.ts의 next/font가 html에 붙인다 */
   /* 버튼·라벨 글꼴. 픽셀 글꼴은 로고와 무대 말풍선에만 남긴다 */
@@ -213,6 +240,11 @@ body {
 :root {
   /* 등장 애니메이션 곡선. 기본 ease-out보다 처음에 빨리 나왔다가 부드럽게 멈춘다 */
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
+  /* 움직임 길이 네 단계: 누름, 나타남·사라짐, 들어옴, 강조. UI 움직임은 300ms를 넘기지 않는다 */
+  --dur-press: 120ms;
+  --dur-fast: 160ms;
+  --dur-base: 220ms;
+  --dur-slow: 400ms;
 }
 
 /* 스크롤 영역의 스크롤바를 얇게, 배경에 묻히게 */
@@ -256,13 +288,13 @@ body {
 }
 /* 누를 수 있는 블록은 만화 컷처럼 2px 먹선에 어긋난 그림자를 둔다. 누르면 그림자만큼 내려앉아 눌린 손맛이 난다 */
 .blk-btn {
-  transition: transform 120ms var(--ease-snap);
+  transition: transform var(--dur-press) var(--ease-snap);
 }
 .blk-btn::before {
   inset: -2px;
   background: var(--color-paper);
   box-shadow: 3px 3px 0 var(--color-paper);
-  transition: box-shadow 120ms var(--ease-snap);
+  transition: box-shadow var(--dur-press) var(--ease-snap);
 }
 .blk-btn:active {
   transform: translate(3px, 3px);

@@ -16,7 +16,7 @@ const SOUL = [
 
 function Soul() {
   return (
-    <svg width="33" height="30" viewBox="0 0 11 10" shapeRendering="crispEdges" className="animate-[soul_1400ms_ease-out_both]" aria-hidden>
+    <svg width="33" height="30" viewBox="0 0 11 10" shapeRendering="crispEdges" className="animate-soul" aria-hidden>
       {SOUL.flatMap((row, y) =>
         [...row].map((cell, x) => (cell === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={cell === "k" ? "#141317" : "#f4f7ff"} />)),
       )}

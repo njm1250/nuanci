@@ -39,7 +39,7 @@ export function ScrollHeader({ children }: { children: React.ReactNode }) {
   return (
     <header
       data-hidden={hidden || undefined}
-      className="sticky top-0 z-30 bg-ink text-paper transition-transform duration-200 ease-out data-[hidden]:-translate-y-full motion-reduce:transition-none"
+      className="sticky top-0 z-30 bg-ink text-paper transition-transform duration-base ease-out data-[hidden]:-translate-y-full motion-reduce:transition-none"
     >
       {children}
     </header>

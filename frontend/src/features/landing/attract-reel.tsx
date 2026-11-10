@@ -69,11 +69,11 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
           <div className="absolute inset-x-0 bottom-0 h-[18%]" style={{ background: C.floor }} />
         </div>
       )}
-      <p key={`ask-${step.index}`} className="absolute left-2 top-2 animate-[fade-in_200ms] bg-ink px-2 py-1 font-pixel text-ui leading-none text-paper">
+      <p key={`ask-${step.index}`} className="absolute left-2 top-2 animate-fade bg-ink px-2 py-1 font-pixel text-ui leading-none text-paper">
         「{beat.ask}」 영어로?
       </p>
       {said && (
-        <p key={`punch-${step.n}`} className="absolute bottom-2 left-2 animate-[rise_240ms_var(--ease-snap)_400ms_both] border-2 border-ink bg-[#ffffff] px-2 py-1 font-pixel text-ui leading-none text-ink">
+        <p key={`punch-${step.n}`} className="absolute bottom-2 left-2 animate-rise [animation-delay:400ms] border-2 border-ink bg-[#ffffff] px-2 py-1 font-pixel text-ui leading-none text-ink">
           → {beat.punch}
         </p>
       )}

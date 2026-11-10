@@ -137,7 +137,7 @@ export function RewardCard({
           <div className={`relative shrink-0 ${tone.box}`}>
             {/* 남은 상자가 더 있으면 뒤에 한 장 더 겹쳐 그려서 쌓여 있는 것을 보여준다 */}
             {stacked && <span aria-hidden className={`absolute -right-1.5 -top-1.5 border-2 border-ink bg-night-deep ${tone.box}`} />}
-            <div className={`relative grid place-items-center border-2 border-ink bg-night-deep ${tone.box} ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
+            <div className={`relative grid place-items-center border-2 border-ink bg-night-deep ${tone.box} ${shaking ? "animate-box-shake" : ""}`}>
               <RewardIcon id="box" size={tone.icon} />
             </div>
           </div>
