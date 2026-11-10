@@ -458,25 +458,24 @@ function NextGoal() {
 function TodayGoals() {
   const streak = useStreak();
   const reviewed = useReviewedToday();
-  // 오늘 물을 말이 없는 날은 복습을 목표에서 빼고 흐리게만 남긴다. 한 게 없는데 체크가 되어 있으면 거짓말이 된다
+  // 오늘 물을 말이 없는 날은 복습을 목표에서 아예 뺀다. 빈 체크 칸으로 남기면 안 한 숙제처럼 보이고, 체크해 두면 거짓말이 된다
   const goals = [
-    { label: "장면 하나 끝내기", done: Boolean(streak?.today), off: false },
-    { label: reviewed === "none" ? "오늘은 복습할 말 없음" : "오늘의 복습 끝내기", done: reviewed === "done", off: reviewed === "none" },
+    { label: "장면 하나 끝내기", done: Boolean(streak?.today) },
+    ...(reviewed === "none" ? [] : [{ label: "오늘의 복습 끝내기", done: reviewed === "done" }]),
   ];
-  const counted = goals.filter((g) => !g.off);
-  const done = counted.filter((g) => g.done).length;
+  const done = goals.filter((g) => g.done).length;
   return (
     <div className="lg:border lg:border-line lg:bg-card-raised lg:p-4">
       <div className="flex items-baseline justify-between">
         <h2 className="text-body font-bold">오늘의 목표</h2>
         <span className="text-meta tabular-nums text-fg-subtle lg:text-ink-subtle">
-          {done}/{counted.length}
+          {done}/{goals.length}
         </span>
       </div>
       <ul className="mt-2 space-y-1.5">
         {goals.map((g) => (
-          <li key={g.label} className={`flex items-center gap-2.5 text-ui ${g.off ? "text-fg-subtle lg:text-ink-subtle" : ""}`}>
-            <span aria-hidden className={`grid size-5 shrink-0 place-items-center border-2 ${g.done ? "border-ink bg-good" : g.off ? "border-dashed border-line" : "border-line"}`}>
+          <li key={g.label} className="flex items-center gap-2.5 text-ui">
+            <span aria-hidden className={`grid size-5 shrink-0 place-items-center border-2 ${g.done ? "border-ink bg-good" : "border-line"}`}>
               {g.done && <Check />}
             </span>
             <span className={g.done ? "text-fg-subtle line-through decoration-2 lg:text-ink-subtle" : ""}>{g.label}</span>
@@ -561,9 +560,12 @@ export function SceneShelf({
     .filter((s) => open.has(s.id) && !cleared.includes(s.id))
     .slice(0, limit);
   return (
-    // 데스크톱은 왼쪽 넓은 칸에 할 장면을, 오른쪽 좁은 칸에 진행도·복습·바로 가기를 둔다. 모바일은 같은 조각을 예전 순서대로 쌓는다
+    // 데스크톱은 왼쪽 넓은 칸에 할 장면을, 오른쪽 좁은 칸에 진행도·복습·바로 가기를 둔다.
+    // 모바일은 할 장면을 먼저 두고 진행도와 목표는 그 아래로 내린다. 다시 온 사람이 하러 온 일이 상태 칸 뒤로 밀리지 않게 한다
     <section className="flex animate-fade flex-col px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
-      <div className="order-3 lg:order-none lg:col-start-1 lg:row-start-1">
+      <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-1">
+        {/* 모바일에서는 제목이 장면 카드 바로 위에 온다. 데스크톱은 오른쪽 진행도 칸의 제목이 같은 말을 한다 */}
+        <h2 className="mb-2 text-body font-bold lg:hidden">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</h2>
         {upNext.length > 0 ? (
           <>
             <FeaturedScene
@@ -613,10 +615,11 @@ export function SceneShelf({
       <div className="contents lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-6">
         {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다. 데스크톱은 오른쪽 칸의 위·아래로 나뉜다 */}
         {!reviewAfter && <ReviewToday className="order-1 mb-7 lg:mb-0" />}
-        <div className="order-2 lg:border lg:border-line lg:bg-card-raised lg:p-4">
+        <div className="order-4 mt-8 lg:mt-0 lg:border lg:border-line lg:bg-card-raised lg:p-4">
         <div className="flex items-baseline justify-between">
             <h2 className="text-body font-bold">
-              {upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}
+              <span className="lg:hidden">진행도</span>
+              <span className="max-lg:hidden">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</span>
             </h2>
             <BlockCount progress={progress} />
           </div>
@@ -624,10 +627,10 @@ export function SceneShelf({
           <Unlocked progress={progress} />
           <NextGoal />
         </div>
-        <div className="order-2 mt-6 lg:mt-0">
+        <div className="order-4 mt-6 lg:mt-0">
           <TodayGoals />
         </div>
-        {reviewAfter && <ReviewToday className="order-4 mt-8 lg:mt-0" />}
+        {reviewAfter && <ReviewToday className="order-3 mt-8 lg:mt-0" />}
         <div className="order-5">
         <div className="blk-frame mt-5 lg:mt-0">
             <ul className="blk divide-y-2 divide-ink/10 bg-card-raised text-ink">

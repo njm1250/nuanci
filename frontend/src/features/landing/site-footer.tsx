@@ -21,19 +21,16 @@ export function SiteFooter() {
         </span>
       </button>
       <div className="border-t border-surface-strong pt-3 md:flex md:items-center md:justify-between md:gap-4 md:pt-4">
-      <nav aria-label="서비스 안내" className="flex flex-wrap items-center justify-center text-fg-subtle md:-ml-2 md:justify-start">
+      <nav aria-label="서비스 안내" className="flex flex-wrap items-center justify-center gap-x-2 text-fg-subtle md:-ml-2 md:justify-start">
         <Link href="/?intro" className={linkClass}>
           nuanci 소개
         </Link>
-        <span aria-hidden="true" className="text-fg-subtle">·</span>
         <Link href="/terms" className={linkClass}>
           이용약관
         </Link>
-        <span aria-hidden="true" className="text-fg-subtle">·</span>
         <Link href="/privacy" className={`${linkClass} font-semibold text-fg-muted`}>
           개인정보처리방침
         </Link>
-        <span aria-hidden="true" className="text-fg-subtle">·</span>
         <button type="button" onClick={() => openInquiry()} className={linkClass}>
           문의 / 오류 제보
         </button>
