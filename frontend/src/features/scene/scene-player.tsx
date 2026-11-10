@@ -565,6 +565,13 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
   }, [phase, wrapped]);
+  // 고른 답의 카드가 하단 버튼에 가려 잘려 보이지 않게, 고를 때마다 그 카드를 보이는 자리로 올린다
+  const choiceId = choice?.id;
+  useEffect(() => {
+    if (!choiceId) return;
+    const card = scroller.current?.querySelector<HTMLElement>("[aria-current]");
+    card?.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
+  }, [choiceId, reduced]);
 
   // X일 때만 무대 칸을 짧게 흔든다. 화면 전체가 아니라 무대만 흔들어서 틀렸다는 신호로만 쓴다
   const stageBox = useRef<HTMLDivElement>(null);
@@ -737,7 +744,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         {/* 데스크톱 오른쪽 칸은 내용만큼만 길어지고, 짧으면 버튼을 무대 아래 끝선에 맞춘다. 화면보다 길어질 때만 글 영역이 스크롤된다 */}
         <div className="contents md:col-start-2 md:row-start-2 md:flex md:min-h-0 md:flex-col">
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
-        <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:flex-initial">
+        <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-8 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px,#000_calc(100%-24px),transparent)] md:flex-initial">
           {phase === "transition" && timeCue ? (
             <p key="time" className="animate-rise pt-6 text-center font-poster text-display-sm text-fg">
               {timeCue}…
