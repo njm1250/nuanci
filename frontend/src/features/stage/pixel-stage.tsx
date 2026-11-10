@@ -7,7 +7,7 @@ import type { Expression, Motion } from "@/features/scene/types";
 import { CAST, HEROES } from "./cast";
 import { DecorPieces } from "./decor";
 import { Figure, headTop } from "./figure";
-import { C } from "./palette";
+import { C, shade } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
 import { SETS } from "./sets";
 import type { PropId, StageSpec } from "./types";
@@ -178,12 +178,23 @@ function TypingDots() {
   );
 }
 
-function Backdrop({ wall, floor = C.floor }: { wall: string; floor?: string }) {
+// 벽과 바닥. 실내는 벽 아래에 걸레받이를 두르고, 바닥 앞면 맨 윗줄을 밝게 해서 벽과 바닥이 만나는 곳에 깊이가 생기게 한다
+function Backdrop({ wall, floor = C.floor, indoor }: { wall: string; floor?: string; indoor: boolean }) {
   return (
     <>
       <mesh position={[0, 1.5, -1.2]}>
         <planeGeometry args={[30, 6]} />
         <meshBasicMaterial color={wall} />
+      </mesh>
+      {indoor && (
+        <mesh position={[0, 0.05, -1.195]}>
+          <planeGeometry args={[30, 0.1]} />
+          <meshBasicMaterial color={shade(wall, -0.16)} />
+        </mesh>
+      )}
+      <mesh position={[0, -0.02, 1.205]}>
+        <planeGeometry args={[30, 0.04]} />
+        <meshBasicMaterial color={shade(floor, 0.12)} />
       </mesh>
       <mesh position={[0, -1.5, 0]}>
         <boxGeometry args={[30, 3, 2.4]} />
@@ -211,6 +222,20 @@ export type StageState = {
   partnerSays?: string;
   meTurn?: boolean;
 };
+
+// 하늘이 벽 자리에 오는 바깥 세트. 걸레받이를 그리지 않는다
+const OUTDOOR: ReadonlySet<string> = new Set(["park", "street", "market"]);
+
+// 대사 길이에 맞춘 말하는 시간(초). 짧은 한마디는 금방 끝나고 긴 문장은 입을 더 오래 움직인다
+const talkSeconds = (line: string | undefined) => Math.min(2.6, Math.max(0.7, 0.5 + (line?.length ?? 0) * 0.045));
+
+// 대사 글자에서 뽑은 번호. 대사가 바뀌면 번호가 바뀌어 말하는 동작이 새로 시작되고, 대사가 없으면 0이다
+function lineKey(line: string | undefined) {
+  if (!line) return 0;
+  let h = 7;
+  for (let i = 0; i < line.length; i++) h = (h * 31 + line.charCodeAt(i)) | 0;
+  return h || 1;
+}
 
 // 계속 반복되는 동작. 이 동작 중에는 무대를 계속 그린다
 const LOOPING: ReadonlySet<Motion> = new Set(["shiver", "dance", "panic", "sob", "wave", "facepalm", "patBelly"]);
@@ -284,13 +309,15 @@ export function PixelStage({
   const scenery = useMemo(
     () => (
       <>
-        <Backdrop wall={wall} floor={set.floor} />
+        <Backdrop wall={wall} floor={set.floor} indoor={!OUTDOOR.has(spec.set)} />
         <set.Scenery evening={evening} flags={flags} />
         <DecorPieces items={decor} />
       </>
     ),
-    [set, wall, evening, flags, decor],
+    [set, wall, evening, flags, decor, spec.set],
   );
+  const ground = set.floor ?? C.floor;
+  const partnerSpeech = state?.partnerSays ?? state?.partnerLine;
   const busy = useBusy(spec, state, reduced);
   const { box, dpr } = usePixelDpr();
   const { widths, heights, observer } = useBubbleWidths();
@@ -340,6 +367,8 @@ export function PixelStage({
           talkKey={state?.talkKey ?? 0}
           reduced={reduced}
           prop={state?.meProp}
+          talkFor={talkSeconds(state?.meLine)}
+          ground={ground}
         />
         </group>
         <group {...pickHandlers(onPick, "partner")}>
@@ -348,10 +377,12 @@ export function PixelStage({
           look={CAST[spec.partner]}
           motion={state?.partnerMotion ?? "idle"}
           motionKey={state?.partnerKey ?? 0}
-          talkKey={0}
+          talkKey={lineKey(partnerSpeech)}
           reduced={reduced}
           prop={state?.partnerProp}
           expression={state?.reaction}
+          talkFor={talkSeconds(partnerSpeech)}
+          ground={ground}
         />
         </group>
       </Canvas>
