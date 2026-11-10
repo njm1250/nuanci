@@ -5,7 +5,8 @@ import { StreakChip } from "@/features/streak/streak-chip";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/features/site/metadata";
 import { Panel } from "@/features/scene/block-ui";
 import { getCatalog, getReel, getScene } from "@/features/scene/api";
-import { AttractReel } from "@/features/landing/attract-reel";
+import { CtaBar, HeroAsk, HeroStage, type FirstPick } from "@/features/landing/home-arm";
+import { shuffleChoices } from "@/features/scene/choice-order";
 import { LandingCta, SceneShelf } from "@/features/landing/landing-progress";
 import { SiteFooter } from "@/features/landing/site-footer";
 import { FeatureRows } from "@/features/landing/feature-rows";
@@ -29,6 +30,12 @@ export default async function Home() {
   const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
   // 첫 장면을 아래 기능 소개의 실제 화면 조각으로 쓴다
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
+  // 첫 방문 홈 실험(B)에서 홈에 바로 놓을 첫 장면의 질문. 보기 순서는 장면 화면과 같게 섞는다
+  const base = first ? shuffleChoices(first).base : null;
+  const pick: FirstPick | null =
+    first && base?.stage
+      ? { number: first.number, context: base.context, intent: base.intent, partnerLine: base.partnerLine, partnerMotion: base.partnerIdle.motion, stage: base.stage, choices: base.choices.map((c) => ({ id: c.id, line: c.line })) }
+      : null;
   return (
     <div className="flex min-h-dvh flex-col bg-page text-fg break-keep">
       {/* 주소를 읽는 쪽은 Suspense 안에 둬야 홈 전체를 미리 만든 페이지로 유지할 수 있다 */}
@@ -92,7 +99,7 @@ export default async function Home() {
             <div className="order-1 px-4 min-[960px]:col-start-1 min-[960px]:row-span-2 min-[960px]:row-start-1 min-[960px]:px-0">
               <Panel>
                 <div className="relative aspect-[4/3] max-h-[40dvh] w-full overflow-hidden min-[960px]:max-h-none">
-                  <AttractReel beats={beats} />
+                  <HeroStage beats={beats} first={pick} />
                 </div>
               </Panel>
             </div>
@@ -102,12 +109,14 @@ export default async function Home() {
             <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-display-xl leading-none text-fg [--lean:-4deg] min-[960px]:block">
               골라 보면 알아요
             </p>
-            <p className="text-body leading-relaxed text-fg-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
+            <HeroAsk first={pick}>
+              <p className="text-body leading-relaxed text-fg-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
+            </HeroAsk>
           </div>
 
-          <div className="order-4 sticky bottom-0 z-10 max-w-none border-t border-fg/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 min-[960px]:static min-[960px]:col-start-2 min-[960px]:row-start-2 min-[960px]:max-w-[440px] min-[960px]:self-start min-[960px]:border-0 min-[960px]:px-0 min-[960px]:pb-0 min-[960px]:pt-6">
+          <CtaBar className="order-4 sticky bottom-0 z-10 max-w-none border-t border-fg/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 min-[960px]:static min-[960px]:col-start-2 min-[960px]:row-start-2 min-[960px]:max-w-[440px] min-[960px]:self-start min-[960px]:border-0 min-[960px]:px-0 min-[960px]:pb-0 min-[960px]:pt-6">
             <LandingCta scenes={shelf} />
-          </div>
+          </CtaBar>
         </div>
       </section>
 
