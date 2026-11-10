@@ -37,7 +37,7 @@ export function ReviewToday({ className = "" }: { className?: string }) {
 
   if (!card) {
     return (
-      <p className={`bg-night-deep px-3 py-2.5 font-pixel text-ui text-paper-subtle ${className}`}>
+      <p className={`bg-surface px-3 py-2.5 font-label text-ui text-fg-subtle ${className}`}>
         오늘 복습 끝 · {knewCount}/{total}개 떠올림
       </p>
     );
@@ -57,18 +57,18 @@ export function ReviewToday({ className = "" }: { className?: string }) {
     <section className={`animate-fade ${className}`}>
       <div className="flex items-baseline justify-between">
         <h2 className="text-body font-bold">오늘의 1분 복습</h2>
-        <p className="text-meta text-paper-subtle">
+        <p className="text-meta text-fg-subtle">
           지난번 헷갈린 말 {at + 1}/{total}
         </p>
       </div>
       <div className="blk-frame mt-2">
-        <div key={card.id} className="blk animate-fade bg-cream px-4 py-3.5 text-ink">
+        <div key={card.id} className="blk animate-fade bg-card-raised px-4 py-3.5 text-ink">
           <p className="text-meta text-ink-subtle">{card.title}</p>
           <div className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1">
             <SpeakerTag>{card.partnerName}</SpeakerTag>
             <p className="font-line text-title leading-snug">{card.partnerLine}</p>
             <SpeakerTag me>나</SpeakerTag>
-            <p className="justify-self-start border border-dashed border-paper-subtle px-2.5 py-1.5 text-body font-semibold leading-snug">{card.intent}</p>
+            <p className="justify-self-start border border-dashed border-fg-subtle px-2.5 py-1.5 text-body font-semibold leading-snug">{card.intent}</p>
           </div>
           {!revealed ? (
             // 묻는 말과 확인 버튼이 같은 행동이라 한 줄에 둔다. 질문은 왼쪽, 답을 여는 버튼은 오른쪽

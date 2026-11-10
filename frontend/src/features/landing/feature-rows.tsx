@@ -32,7 +32,7 @@ export function FeatureRows({ scene }: { scene: Scene }) {
             <div className={`w-full max-w-[460px] justify-self-center ${i % 2 ? "md:order-2" : ""}`}>{r.art}</div>
             <div>
               <h2 className="font-poster text-display-sm leading-[1.25] md:text-display">{r.title}</h2>
-              <p className="mt-3 max-w-[420px] text-body leading-relaxed text-paper-muted">{r.body}</p>
+              <p className="mt-3 max-w-[420px] text-body leading-relaxed text-fg-muted">{r.body}</p>
             </div>
           </li>
         ))}

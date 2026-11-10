@@ -64,7 +64,7 @@ async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">
 
 export default function ScenePage({ params }: PageProps<"/scenes/[number]">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-night-deep" />}>
+    <Suspense fallback={<div className="min-h-dvh bg-surface" />}>
       <SceneByNumber params={params} />
     </Suspense>
   );

@@ -4,8 +4,8 @@ import { PageShell } from "@/features/site/page-shell";
 export function LegalPage({ title, updated, children }: { title: string; updated: string; children: React.ReactNode }) {
   return (
     <PageShell title={title} width="max-w-[720px]">
-        <p className="text-note text-paper-subtle">시행일 {updated}</p>
-        <article className="mt-8 space-y-8 text-ui leading-relaxed text-paper-muted [&_h2]:mb-2 [&_h2]:font-poster [&_h2]:text-say [&_h2]:text-paper [&_li]:ml-5 [&_li]:list-disc [&_li]:pl-1 [&_strong]:text-paper [&_table]:w-full [&_td]:border-t [&_td]:border-slate-block [&_td]:py-2 [&_td]:pr-3 [&_td]:align-top [&_th]:pb-2 [&_th]:pr-3 [&_th]:text-left [&_th]:font-semibold [&_th]:text-paper [&_ul]:space-y-1">
+        <p className="text-note text-fg-subtle">시행일 {updated}</p>
+        <article className="mt-8 space-y-8 text-ui leading-relaxed text-fg-muted [&_h2]:mb-2 [&_h2]:font-poster [&_h2]:text-say [&_h2]:text-fg [&_li]:ml-5 [&_li]:list-disc [&_li]:pl-1 [&_strong]:text-fg [&_table]:w-full [&_td]:border-t [&_td]:border-surface-strong [&_td]:py-2 [&_td]:pr-3 [&_td]:align-top [&_th]:pb-2 [&_th]:pr-3 [&_th]:text-left [&_th]:font-semibold [&_th]:text-fg [&_ul]:space-y-1">
           {children}
         </article>
     </PageShell>
@@ -14,7 +14,7 @@ export function LegalPage({ title, updated, children }: { title: string; updated
 
 export function Contact({ email }: { email?: string }) {
   return email ? (
-    <a href={`mailto:${email}`} className="text-gold underline underline-offset-4">
+    <a href={`mailto:${email}`} className="text-pink underline underline-offset-4">
       {email}
     </a>
   ) : (

@@ -58,11 +58,11 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
   const friendInStore = mode === "mine" ? <FriendCompare me={type} myPicks={picks} /> : null;
 
   return (
-    <div className="min-h-dvh bg-night text-paper break-keep">
-      <SiteHeader left={<Link href="/test" className="truncate font-pixel text-ui text-paper-muted">유형 테스트</Link>} />
+    <div className="min-h-dvh bg-page text-fg break-keep">
+      <SiteHeader left={<Link href="/test" className="truncate font-label text-ui text-fg-muted">유형 테스트</Link>} />
       <main className="mx-auto w-full max-w-[560px] px-4 pb-12">
 
-        <p className="mt-2 font-pixel text-ui text-paper-subtle">{mode === "mine" ? "나의 영어 사고 유형" : mode === "friend" ? "친구의 영어 사고 유형" : "영어 사고 유형"}</p>
+        <p className="mt-2 font-label text-ui text-fg-subtle">{mode === "mine" ? "나의 영어 사고 유형" : mode === "friend" ? "친구의 영어 사고 유형" : "영어 사고 유형"}</p>
         <TypeCard type={type} kinds={answers?.map((a) => stampKind(a.verdict)) ?? null} avg={avg} rarity={rarity} pop={fresh} className="mt-2" />
 
         {/* 결과를 보자마자 보낼 수 있게 카드 바로 아래에 둔다 */}
@@ -85,7 +85,7 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
         <Panel className="mt-5">
           <div className="px-4 py-3.5">
             <p className="text-body leading-relaxed">{t.about}</p>
-            <p className="mt-3 border-t-[3px] border-dotted border-ink/20 pt-3 font-pixel text-ui text-ink-subtle">고치는 한 줄</p>
+            <p className="mt-3 border-t-[3px] border-dotted border-ink/20 pt-3 font-label text-ui text-ink-subtle">고치는 한 줄</p>
             <p className="mt-1 text-body leading-relaxed">{t.fix}</p>
           </div>
         </Panel>
@@ -110,7 +110,7 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
           </BlockLink>
           )}
           {mode === "mine" && (
-            <Link href="/test" className="flex min-h-11 items-center justify-center text-note text-paper-muted underline underline-offset-4">
+            <Link href="/test" className="flex min-h-11 items-center justify-center text-note text-fg-muted underline underline-offset-4">
               테스트 다시 하기
             </Link>
           )}
@@ -147,11 +147,11 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
   return (
     <Panel className={`${pop ? "animate-reward-pop" : ""} ${className}`}>
       <div className="px-4 pb-4 pt-3">
-        <div className="flex items-center justify-between font-pixel text-ui text-ink-subtle">
+        <div className="flex items-center justify-between font-label text-ui text-ink-subtle">
           <span>No.{String(t.no).padStart(2, "0")}</span>
           {rarity !== null && <span className="border border-ink/25 px-1.5 py-1 text-meta leading-none text-ink-muted">전체 참여자 중 {rarity}%</span>}
         </div>
-        <div className="mt-2 grid place-items-center border-[3px] border-ink bg-[linear-gradient(var(--color-night-deep)_2px,transparent_2px),linear-gradient(90deg,var(--color-night-deep)_2px,transparent_2px)] bg-[length:24px_24px] py-3 light:bg-[linear-gradient(#e4dfd3_2px,transparent_2px),linear-gradient(90deg,#e4dfd3_2px,transparent_2px)]">
+        <div className="mt-2 grid place-items-center border-[3px] border-ink bg-[linear-gradient(var(--color-surface)_2px,transparent_2px),linear-gradient(90deg,var(--color-surface)_2px,transparent_2px)] bg-[length:24px_24px] py-3 light:bg-[linear-gradient(#e4dfd3_2px,transparent_2px),linear-gradient(90deg,#e4dfd3_2px,transparent_2px)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={characterDataUrl(type)} width={192} height={192} alt={`${t.name} 캐릭터`} className="[image-rendering:pixelated]" />
         </div>
@@ -160,13 +160,13 @@ export function TypeCard({ type, kinds, avg, rarity, pop = false, className = ""
         </h1>
         <p className="mt-1.5 text-body leading-snug text-ink-subtle">{t.tagline}</p>
         <div className="mt-3 flex items-baseline gap-2.5">
-          <span className="shrink-0 bg-night-deep px-1.5 py-1 font-pixel text-ui leading-none text-ink-muted">자주 하는 말</span>
+          <span className="shrink-0 bg-surface px-1.5 py-1 font-label text-ui leading-none text-ink-muted">자주 하는 말</span>
           <p className="font-line text-say leading-snug">{t.says}</p>
         </div>
         {kinds && (
           <div className="mt-3.5 flex items-center justify-between">
             <StampRow kinds={kinds} total={kinds.length} size={26} />
-            {avg ? <span className="font-pixel text-ui text-ink-subtle">평균 {(avg / 10).toFixed(1)}초</span> : null}
+            {avg ? <span className="font-label text-ui text-ink-subtle">평균 {(avg / 10).toFixed(1)}초</span> : null}
           </div>
         )}
       </div>
@@ -183,11 +183,11 @@ function Ingredients({ mix, name }: { mix: ReturnType<typeof ingredients>; name:
       <ul>
         {mix.map((m) => (
           <li key={m.key} className="flex items-center gap-3 border-b-2 border-ink py-1.5 text-body">
-            <span className="w-28 shrink-0 font-pixel">{m.label}</span>
+            <span className="w-28 shrink-0 font-label">{m.label}</span>
             <span className="h-2.5 flex-1 border-2 border-ink">
               <span className="block h-full bg-ink" style={{ width: `${m.share}%` }} />
             </span>
-            <span className="w-10 shrink-0 text-right font-pixel">{m.share}%</span>
+            <span className="w-10 shrink-0 text-right font-label">{m.share}%</span>
           </li>
         ))}
       </ul>
@@ -208,14 +208,14 @@ function Compare({ me, friend, same, total }: { me: TypeId; friend: TypeId; same
             <div key={who} className="flex flex-col items-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={characterDataUrl(id as TypeId)} width={72} height={72} alt="" className="[image-rendering:pixelated]" />
-              <span className="mt-1 text-meta text-paper-subtle">{who}</span>
-              <span className="font-pixel text-ui">{TYPES[id as TypeId].name}</span>
+              <span className="mt-1 text-meta text-fg-subtle">{who}</span>
+              <span className="font-label text-ui">{TYPES[id as TypeId].name}</span>
             </div>
           ))}
         </div>
         <p className="mt-3 text-center text-body leading-snug">{pairLine(me, friend)}</p>
         {same !== null && (
-          <p className="mt-1 text-center font-pixel text-ui text-paper-subtle">
+          <p className="mt-1 text-center font-label text-ui text-fg-subtle">
             같은 답 {same} / {total}
           </p>
         )}
@@ -251,7 +251,7 @@ function Share({ type }: { type: TypeId }) {
   };
   return (
     <section className="mt-5">
-      <p className="font-pixel text-ui text-paper-subtle">친구는 무슨 유형일까?</p>
+      <p className="font-label text-ui text-fg-subtle">친구는 무슨 유형일까?</p>
       <div className="mt-2 space-y-3">
         <BlockButton primary onClick={share} className="w-full" faceClassName="py-3.5 text-center">
           {state === "copied" ? "복사했어요! 친구에게 붙여 넣어 주세요" : "친구에게 보내기"}
@@ -263,10 +263,10 @@ function Share({ type }: { type: TypeId }) {
             onClick={() => trackTest("test_shared", { choiceId: type })}
             className="blk-btn block"
           >
-            <span className="blk block bg-cream px-3 py-2.5 text-center font-pixel text-ui text-ink">스토리 이미지</span>
+            <span className="blk block bg-card-raised px-3 py-2.5 text-center font-label text-ui text-ink">스토리 이미지</span>
           </a>
           <button type="button" onClick={copy} className="blk-btn block">
-            <span className="blk block bg-cream px-3 py-2.5 text-center font-pixel text-ui text-ink">{copied ? "복사됨" : "링크 복사"}</span>
+            <span className="blk block bg-card-raised px-3 py-2.5 text-center font-label text-ui text-ink">{copied ? "복사됨" : "링크 복사"}</span>
           </button>
         </div>
       </div>
@@ -279,7 +279,7 @@ function Review({ questions, picks }: { questions: TestQuestion[]; picks: number
   const mine = chosen(questions, picks);
   return (
     <section className="mt-6">
-      <p className="font-pixel text-ui text-paper-subtle">내 답 다시 보기</p>
+      <p className="font-label text-ui text-fg-subtle">내 답 다시 보기</p>
       <ol className="mt-2 space-y-3">
         {questions.map((q, i) => {
           const c = mine[i];
@@ -342,8 +342,8 @@ function Collection({ current }: { current: TypeId }) {
   return (
     <section className="mt-8">
       <div className="flex items-baseline justify-between">
-        <p className="font-pixel text-ui text-paper-subtle">사고 유형 도감</p>
-        <span className="font-pixel text-ui text-paper-subtle">
+        <p className="font-label text-ui text-fg-subtle">사고 유형 도감</p>
+        <span className="font-label text-ui text-fg-subtle">
           {found.size} / {TYPE_IDS.length}
         </span>
       </div>
@@ -364,13 +364,13 @@ function Collection({ current }: { current: TypeId }) {
                   {body}
                 </Link>
               ) : (
-                <div className="flex flex-col items-center border-[3px] border-transparent px-1 py-2 text-paper-subtle">{body}</div>
+                <div className="flex flex-col items-center border-[3px] border-transparent px-1 py-2 text-fg-subtle">{body}</div>
               )}
             </li>
           );
         })}
       </ul>
-      <p className="mt-2 text-note leading-snug text-paper-subtle">친구에게 받은 결과 링크를 열면 그 유형이 도감에 모여요.</p>
+      <p className="mt-2 text-note leading-snug text-fg-subtle">친구에게 받은 결과 링크를 열면 그 유형이 도감에 모여요.</p>
     </section>
   );
 }

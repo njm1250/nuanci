@@ -29,7 +29,7 @@ function OpenOutside({ app }: { app: InApp }) {
       <p className="text-note leading-relaxed text-ink-muted">{app.name} 안에서는 구글 로그인이 막혀 있어요. 브라우저에서 열어 로그인해 주세요.</p>
       {href ? (
         <a href={href} className="blk-btn blk-btn-primary mt-3 block">
-          <span className="blk block bg-cta px-3 py-3 text-center font-pixel text-ui text-cta-text">브라우저에서 열기</span>
+          <span className="blk block bg-cta px-3 py-3 text-center font-label text-ui text-cta-text">브라우저에서 열기</span>
         </a>
       ) : (
         <>
@@ -39,7 +39,7 @@ function OpenOutside({ app }: { app: InApp }) {
             onClick={() => void navigator.clipboard.writeText(target).then(() => setCopied(true), () => {})}
             className="blk-btn mt-3 block w-full"
           >
-            <span className="blk block bg-cream px-3 py-3 text-center font-pixel text-ui text-ink">{copied ? "복사됨" : "링크 복사"}</span>
+            <span className="blk block bg-card-raised px-3 py-3 text-center font-label text-ui text-ink">{copied ? "복사됨" : "링크 복사"}</span>
           </button>
         </>
       )}
@@ -52,7 +52,7 @@ export function GoogleButton({ next, enabled }: { next: string; enabled: boolean
   const inApp = useSyncExternalStore(noop, inAppSnapshot, () => null);
   if (enabled && inApp) return <OpenOutside app={inApp} />;
   if (!enabled) {
-    return <p className="mt-4 bg-ink/5 px-3 py-3 text-center font-pixel text-ui text-ink-subtle">로그인 준비 중이에요</p>;
+    return <p className="mt-4 bg-ink/5 px-3 py-3 text-center font-label text-ui text-ink-subtle">로그인 준비 중이에요</p>;
   }
   return (
     <a

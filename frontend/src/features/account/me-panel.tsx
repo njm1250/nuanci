@@ -31,7 +31,7 @@ function Arrow() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-1 text-note font-semibold text-paper-muted">{title}</h2>
+      <h2 className="mb-1 text-note font-semibold text-fg-muted">{title}</h2>
       <div className="divide-y divide-line/40 border-y border-line/40">{children}</div>
     </section>
   );
@@ -62,18 +62,18 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
   const { current, next } = rankAt(ranks, cleared);
   return (
     <Panel>
-      <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-pixel text-ui text-paper">
+      <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-label text-ui text-fg">
         <span>
-          <span className="text-gold">nuanci</span> 사원증
+          <span className="text-pink">nuanci</span> 사원증
         </span>
-        <span aria-hidden className="h-2 w-10 bg-paper/30" />
+        <span aria-hidden className="h-2 w-10 bg-fg/30" />
       </div>
       <div className="flex gap-4 px-4 pt-4">
         {me?.picture ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={me.picture} alt="" width={80} height={96} referrerPolicy="no-referrer" className="h-24 w-20 shrink-0 border-2 border-ink object-cover" />
         ) : (
-          <span className="grid h-24 w-20 shrink-0 place-items-end justify-center border-2 border-ink bg-[#cfe4ec] pb-2">
+          <span className="grid h-24 w-20 shrink-0 place-items-end justify-center border-2 border-ink bg-stage-sky pb-2">
             <ReactionFace expression="happy" size={60} />
           </span>
         )}
@@ -97,7 +97,7 @@ function IdCard({ cleared, ranks }: { cleared: number; ranks: RankRule[] }) {
         {BARCODE.map((w, i) => (
           <span key={i} className="bg-current" style={{ width: w * 2 }} />
         ))}
-        <span className="ml-auto self-end font-pixel text-ui leading-none text-ink-subtle">{me?.email ? "" : "GUEST"}</span>
+        <span className="ml-auto self-end font-label text-ui leading-none text-ink-subtle">{me?.email ? "" : "GUEST"}</span>
       </div>
     </Panel>
   );
@@ -178,7 +178,7 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
       {/* 장면을 깨고 받은 물건을 쓰는 곳이라 내 정보에서 가장 먼저, 크게 보이게 둔다 */}
       {/* 사원증 머리와 겹치지 않게 면은 칠하지 않고, 큰 제목과 진한 선으로 눈에 띄게 한다 */}
       <Link href="/me/room" className="blk-btn blk-strong block">
-        <span className="blk flex items-center justify-between gap-3 bg-cream px-4 py-4 text-ink">
+        <span className="blk flex items-center justify-between gap-3 bg-card-raised px-4 py-4 text-ink">
           <span>
             <span className="block text-title font-bold leading-tight">내 아지트</span>
             <span className="mt-1 block text-meta text-ink-subtle">받은 옷 입히기 · 방에 물건 두기</span>
@@ -198,24 +198,24 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
         <div className={rowClass}>
           <span id="sound-label">효과음</span>
           <button type="button" role="switch" aria-checked={sound} aria-labelledby="sound-label" onClick={toggleSound} className="grid min-h-11 place-items-center">
-            <span className={`flex h-6 w-11 items-center p-0.5 ${sound ? "justify-end bg-gold" : "justify-start bg-paper/20"}`}>
-              <span className={`size-5 ${sound ? "bg-ink" : "bg-paper"}`} />
+            <span className={`flex h-6 w-11 items-center p-0.5 ${sound ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+              <span className={`size-5 ${sound ? "bg-ink" : "bg-fg"}`} />
             </span>
           </button>
         </div>
         <div className={rowClass}>
           <span id="translation-label">대사 번역</span>
           <button type="button" role="switch" aria-checked={translate} aria-labelledby="translation-label" onClick={toggleTranslation} className="grid min-h-11 place-items-center">
-            <span className={`flex h-6 w-11 items-center p-0.5 ${translate ? "justify-end bg-gold" : "justify-start bg-paper/20"}`}>
-              <span className={`size-5 ${translate ? "bg-ink" : "bg-paper"}`} />
+            <span className={`flex h-6 w-11 items-center p-0.5 ${translate ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+              <span className={`size-5 ${translate ? "bg-ink" : "bg-fg"}`} />
             </span>
           </button>
         </div>
         <div className={rowClass}>
           <span id="theme-label">밤 화면</span>
           <button type="button" role="switch" aria-checked={dark} aria-labelledby="theme-label" onClick={() => setTheme(dark ? "light" : "dark")} className="grid min-h-11 place-items-center">
-            <span className={`flex h-6 w-11 items-center p-0.5 ${dark ? "justify-end bg-gold" : "justify-start bg-paper/20"}`}>
-              <span className={`size-5 ${dark ? "bg-ink" : "bg-paper"}`} />
+            <span className={`flex h-6 w-11 items-center p-0.5 ${dark ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+              <span className={`size-5 ${dark ? "bg-ink" : "bg-fg"}`} />
             </span>
           </button>
         </div>
@@ -238,15 +238,15 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
 
       {member && (
         <div className="flex justify-center gap-6">
-          <button type="button" onClick={() => void logout()} className="min-h-11 font-pixel text-ui text-paper-muted underline underline-offset-4">
+          <button type="button" onClick={() => void logout()} className="min-h-11 font-label text-ui text-fg-muted underline underline-offset-4">
             로그아웃
           </button>
-          <button type="button" onClick={remove} disabled={busy} className="min-h-11 font-pixel text-ui text-paper-subtle underline underline-offset-4 disabled:opacity-40">
+          <button type="button" onClick={remove} disabled={busy} className="min-h-11 font-label text-ui text-fg-subtle underline underline-offset-4 disabled:opacity-40">
             계정 삭제
           </button>
         </div>
       )}
-      <p className="text-center text-meta text-paper-subtle">© 2026 nuanci</p>
+      <p className="text-center text-meta text-fg-subtle">© 2026 nuanci</p>
       </div>
       {element}
     </div>

@@ -304,7 +304,7 @@ export function PixelStage({
   const slots = useRef<Record<Who, Slot>>({ me: { wrap: null, bubble: null }, partner: { wrap: null, bubble: null } });
   const wall = set.wall[spec.time];
   const symbol = state?.reaction ? REACTION_SYMBOLS[state.reaction] : null;
-  const ink = evening && spec.set === "street" ? "text-paper" : "text-ink";
+  const ink = evening && spec.set === "street" ? "text-fg" : "text-ink";
   // 벽·가구·소품은 말을 고를 때마다 바뀌지 않는다. 같은 요소를 다시 쓰면 React가 수백 개의 메시를 다시 맞춰 보지 않고 넘어가서 누른 뒤 반응이 빨라진다
   const scenery = useMemo(
     () => (

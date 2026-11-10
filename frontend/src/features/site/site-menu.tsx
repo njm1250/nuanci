@@ -47,18 +47,18 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
       onKeyDown={onKeyDown}
       onClick={(e) => e.target === ref.current && close()}
       aria-label="메뉴"
-      className="m-0 ml-auto h-dvh max-h-none w-full max-w-[440px] animate-fade overflow-y-auto bg-night text-paper break-keep backdrop:bg-[#141317]/50"
+      className="m-0 ml-auto h-dvh max-h-none w-full max-w-[440px] animate-fade overflow-y-auto bg-page text-fg break-keep backdrop:bg-scrim/50"
     >
       <div className="flex h-14 items-center justify-end px-4 md:h-16">
-        <button type="button" onClick={close} className="flex h-11 items-center px-1 font-pixel text-ui text-paper-muted hover:text-paper">
+        <button type="button" onClick={close} className="flex h-11 items-center px-1 font-label text-ui text-fg-muted hover:text-fg">
           닫기
         </button>
       </div>
 
-      <div aria-hidden className="flex items-end gap-3 border-b-4 border-[#5e5a54] px-4">
+      <div aria-hidden className="flex items-end gap-3 border-b-4 border-stage-floor px-4">
         <Mascot scale={3} className="shrink-0" />
         <div className="blk-frame-sm mb-5 min-w-0">
-          <p key={reply} className="blk animate-fade bg-white px-3 py-2 text-ui font-semibold leading-snug text-[#0b1a44]">
+          <p key={reply} className="blk animate-fade bg-white px-3 py-2 text-ui font-semibold leading-snug text-ink-fixed">
             {reply}
           </p>
         </div>
@@ -80,15 +80,15 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
                   onBlur={() => setNear(null)}
                   className={`blk-btn block ${here ? "blk-strong" : ""}`}
                 >
-                  <span className="blk flex items-start gap-3 bg-cream px-3 py-3 text-ink">
-                    <span aria-hidden className="grid size-6 shrink-0 place-items-center border-2 border-ink/20 font-pixel text-ui text-ink-muted">
+                  <span className="blk flex items-start gap-3 bg-card-raised px-3 py-3 text-ink">
+                    <span aria-hidden className="grid size-6 shrink-0 place-items-center border-2 border-ink/20 font-label text-ui text-ink-muted">
                       {i + 1}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-poster text-say-lg leading-tight">{item.title}</span>
                       <span className="mt-0.5 block text-note text-ink-muted">{item.desc}</span>
                     </span>
-                    {here && <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink bg-[#ffffff] px-1.5 py-1 font-pixel-title text-meta leading-none text-ink">지금 여기</span>}
+                    {here && <span className="-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink bg-white px-1.5 py-1 font-label-strong text-meta leading-none text-ink">지금 여기</span>}
                   </span>
                 </Link>
               </li>
@@ -104,7 +104,7 @@ export function SiteMenu() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className="flex h-11 shrink-0 items-center gap-2 pl-2 font-pixel text-ui text-paper-muted hover:text-paper">
+      <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className="flex h-11 shrink-0 items-center gap-2 pl-2 font-label text-ui text-fg-muted hover:text-fg">
         <span aria-hidden className="block h-2 w-5 border-y-2 border-current" />
         메뉴
       </button>

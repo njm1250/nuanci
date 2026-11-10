@@ -101,8 +101,8 @@ export function BookArt({ title, pair, next }: { title: string; pair: Expression
       {({ phase }, _rect, layout) => (
         <div className={`absolute border-2 border-ink bg-card ${layout === "compact" ? "inset-x-4 top-4" : "inset-x-7 top-7"}`}>
           <div className={`bg-card ${layout === "compact" ? "px-3.5 pt-4" : "px-5 pt-5"}`}>
-            <div className="flex items-end border-b-2 border-paper">
-              <span className="min-w-0 truncate bg-paper px-3 py-2 font-pixel text-ui leading-tight text-night">{title}</span>
+            <div className="flex items-end border-b-2 border-fg">
+              <span className="min-w-0 truncate bg-fg px-3 py-2 font-label text-ui leading-tight text-page">{title}</span>
             </div>
             <div className="px-3 py-4">
               <div className="text-note leading-snug text-ink-muted">{spoken(pair.intent)}</div>
@@ -112,7 +112,7 @@ export function BookArt({ title, pair, next }: { title: string; pair: Expression
                 </span>
                 {phase < 2 ? (
                   <span
-                    className={`flex min-h-9 flex-1 items-center border border-dashed border-line px-2 font-pixel text-ui text-ink-subtle transition-colors duration-press ${phase === 1 ? "bg-night-deep" : ""}`}
+                    className={`flex min-h-9 flex-1 items-center border border-dashed border-line px-2 font-label text-ui text-ink-subtle transition-colors duration-press ${phase === 1 ? "bg-surface" : ""}`}
                   >
                     눌러서 보기
                   </span>
@@ -132,14 +132,14 @@ export function BookArt({ title, pair, next }: { title: string; pair: Expression
             {/* 같은 장면의 다음 표현은 자리만 보여 주고 무대 아래로 잘려 나간다 */}
             {next && (
               <div aria-hidden className="border-t border-line/40 px-3 py-4">
-                <div className="h-2.5 w-[38%] bg-night-deep" />
+                <div className="h-2.5 w-[38%] bg-surface" />
                 <div className="mt-2.5 flex items-center gap-2">
                   <span className="size-5 shrink-0 bg-good/40" />
-                  <span className="h-3.5 w-[62%] bg-slate-block" />
+                  <span className="h-3.5 w-[62%] bg-surface-strong" />
                 </div>
                 <div className="mt-2.5 flex items-center gap-2">
                   <span className="size-5 shrink-0 bg-bad/40" />
-                  <span className="h-2.5 w-[44%] bg-night-deep" />
+                  <span className="h-2.5 w-[44%] bg-surface" />
                 </div>
               </div>
             )}
@@ -178,7 +178,7 @@ export function RoomArt() {
                   const fresh = id === NEW;
                   const owned = OWNED.includes(id) || (fresh && phase === 1);
                   return (
-                    <div key={`${id}-${i}`} className={`relative grid aspect-square place-items-center border-2 ${owned ? "border-ink bg-card" : "border-dashed border-line bg-night-deep"}`}>
+                    <div key={`${id}-${i}`} className={`relative grid aspect-square place-items-center border-2 ${owned ? "border-ink bg-card" : "border-dashed border-line bg-surface"}`}>
                       {owned ? (
                         <span data-snap={fresh || undefined} className={fresh ? "animate-reward-pop" : ""}>
                           <RewardIcon id={id} size={compact ? 28 : 36} />

@@ -4,7 +4,7 @@ export function PageTitle({ children, note }: { children: React.ReactNode; note?
     <div className="relative">
       <h1 className="poster-rise poster-h1 font-poster">{children}</h1>
       {note && (
-        <p aria-hidden className="poster-scrawl absolute bottom-[0.2em] right-0 font-scrawl text-[clamp(26px,3.6vw,48px)] leading-none text-paper">
+        <p aria-hidden className="poster-scrawl absolute bottom-[0.2em] right-0 font-scrawl text-[clamp(26px,3.6vw,48px)] leading-none text-fg">
           {note}
         </p>
       )}

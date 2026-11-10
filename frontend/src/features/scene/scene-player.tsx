@@ -35,7 +35,7 @@ preloadStage();
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 function TrapChip({ choice }: { choice: Choice }) {
-  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-pixel-title text-meta leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "전달됨"}</span>;
+  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-label-strong text-meta leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "전달됨"}</span>;
 }
 
 // 상대 반응 위로 튀어나오는 만화 효과음 글자
@@ -57,7 +57,7 @@ const BURSTS: Record<Expression, { text: string; bad: boolean }> = {
 function SoundToggle() {
   const on = useSoundEnabled();
   return (
-    <button type="button" onClick={toggleSound} aria-pressed={on} aria-label={on ? "소리 끄기" : "소리 켜기"} className="-mr-2 ml-auto grid size-11 shrink-0 place-items-center text-paper-muted hover:text-paper">
+    <button type="button" onClick={toggleSound} aria-pressed={on} aria-label={on ? "소리 끄기" : "소리 켜기"} className="-mr-2 ml-auto grid size-11 shrink-0 place-items-center text-fg-muted hover:text-fg">
       <svg width="20" height="20" viewBox="0 0 10 10" shapeRendering="crispEdges" fill="currentColor" aria-hidden>
         <path d="M1 3h2v4H1zM3 3h1V2h1V1h1v8H5V8H4V7H3z" />
         {on ? <path d="M7 3h1v4H7zM8 2h1v1H8zM8 7h1v1H8zM9 3h1v4H9z" /> : <path d="M7 3h1v1H7zM9 3h1v1H9zM8 4h1v2H8zM7 6h1v1H7zM9 6h1v1H9z" />}
@@ -72,9 +72,9 @@ function Question({ name, line, intent, className = "" }: { name: string; line: 
     <div className={`grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-2 ${className}`}>
       {/* 상대 대사는 대본처럼 굵은 세로줄로, 내 속마음은 점선 칸으로 둬서 "들은 영어"와 "머릿속 한국어"가 바로 갈린다 */}
       <SpeakerTag>{name}</SpeakerTag>
-      <p className="border-l-[3px] border-paper pl-3 font-line text-say leading-snug text-paper md:text-display-sm">{line}</p>
+      <p className="border-l-[3px] border-fg pl-3 font-line text-say leading-snug text-fg md:text-display-sm">{line}</p>
       <SpeakerTag me>나</SpeakerTag>
-      <p className="justify-self-start border border-dashed border-paper-subtle px-2.5 py-1.5 text-body font-semibold leading-snug text-paper">{intent}</p>
+      <p className="justify-self-start border border-dashed border-fg-subtle px-2.5 py-1.5 text-body font-semibold leading-snug text-fg">{intent}</p>
     </div>
   );
 }
@@ -89,7 +89,7 @@ function MochiAsk({ children, className = "" }: { children: React.ReactNode; cla
         <Mascot key={hop} scale={2} className={hop ? "animate-hop" : ""} />
       </button>
       <div className="blk-frame-sm mb-2 min-w-0">
-        <p className="blk bg-white px-2.5 py-1.5 text-note font-bold leading-snug text-[#0b1a44]">{children}</p>
+        <p className="blk bg-white px-2.5 py-1.5 text-note font-bold leading-snug text-ink-fixed">{children}</p>
       </div>
     </div>
   );
@@ -108,7 +108,7 @@ function Caret({ open }: { open: boolean }) {
 function HiddenReaction() {
   return (
     <span className="mt-1.5 flex items-center gap-2 text-note leading-snug text-ink-subtle">
-      <span className="grid size-[18px] shrink-0 place-items-center border-2 border-ink-subtle font-pixel text-ui leading-none">?</span>
+      <span className="grid size-[18px] shrink-0 place-items-center border-2 border-ink-subtle font-label text-ui leading-none">?</span>
       반응 보기
     </span>
   );
@@ -270,13 +270,13 @@ function WrapUp({
       <div className="flex items-end gap-3">
         <Mascot scale={3} className="shrink-0" />
         <div className="pb-1">
-          <p className="font-pixel text-ui text-paper-muted">장면 완료!</p>
-          <p className="mt-1 font-poster text-display-sm leading-[1.25] text-paper">{scene.title}</p>
+          <p className="font-label text-ui text-fg-muted">장면 완료!</p>
+          <p className="mt-1 font-poster text-display-sm leading-[1.25] text-fg">{scene.title}</p>
         </div>
       </div>
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-5">
-        <div className="blk bg-cream px-4 py-4 text-ink">
+        <div className="blk bg-card-raised px-4 py-4 text-ink">
           <p className="text-ui leading-[1.6]">{scene.discovery}</p>
           <ul className="mt-3.5 space-y-3.5 border-t-2 border-dashed border-ink/20 pt-3">
             {pairs.map((p) => (
@@ -303,24 +303,24 @@ function WrapUp({
         </div>
       )}
 
-      <div className="blk mt-5 flex items-center gap-3 bg-slate-block px-4 py-3">
+      <div className="blk mt-5 flex items-center gap-3 bg-surface-strong px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="font-pixel text-ui text-paper">친구는 맞힐까?</p>
-          <p className="text-note text-paper-subtle">이 장면을 문제로 보내 보세요</p>
+          <p className="font-label text-ui text-fg">친구는 맞힐까?</p>
+          <p className="text-note text-fg-subtle">이 장면을 문제로 보내 보세요</p>
         </div>
-        <BlockButton onClick={share} className="shrink-0" faceClassName="font-pixel text-ui text-ink">
+        <BlockButton onClick={share} className="shrink-0" faceClassName="font-label text-ui text-ink">
           {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
         </BlockButton>
       </div>
 
-      <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center gap-2 px-1 font-pixel text-ui text-paper-muted hover:text-paper">
+      <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center gap-2 px-1 font-label text-ui text-fg-muted hover:text-fg">
         <span className="-scale-x-100">
           <Arrow />
         </span>
         다른 말 다시 보기
       </button>
       {/* 판정이나 영어가 이상하면 그 장면에서 바로 알린다. 문의 창이 보던 장면 주소를 함께 보낸다 */}
-      <button type="button" onClick={() => openInquiry("scene")} className="-mx-1 flex min-h-11 items-center px-1 text-note text-paper-subtle underline underline-offset-4 hover:text-paper">
+      <button type="button" onClick={() => openInquiry("scene")} className="-mx-1 flex min-h-11 items-center px-1 text-note text-fg-subtle underline underline-offset-4 hover:text-fg">
         이 장면의 영어가 이상해요
       </button>
       {inquiry}
@@ -354,11 +354,11 @@ function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; partnerName
           <div key={i} className={`col-span-2 grid animate-rise grid-cols-subgrid items-baseline ${i < beats.length - 1 ? "beat-past" : ""}`}>
             <SpeakerTag me={b.who === "me"}>{b.who === "me" ? "나" : b.who === "mochi" ? "Mochi" : partnerName}</SpeakerTag>
             {b.line === "……" ? (
-              <p className="min-w-0 text-body leading-snug text-paper-muted">{b.meaning}</p>
+              <p className="min-w-0 text-body leading-snug text-fg-muted">{b.meaning}</p>
             ) : (
               <p className="min-w-0">
-                <span className="block font-line text-say leading-snug text-paper">{b.line}</span>
-                {translate && <span className="mt-0.5 block text-note leading-snug text-paper-muted">{b.meaning}</span>}
+                <span className="block font-line text-say leading-snug text-fg">{b.line}</span>
+                {translate && <span className="mt-0.5 block text-note leading-snug text-fg-muted">{b.meaning}</span>}
               </p>
             )}
           </div>
@@ -373,7 +373,7 @@ function LeadRecap({ beats, partnerName, translate }: { beats: Beat[]; partnerNa
   const [open, setOpen] = useState(false);
   return (
     <div className="mt-1.5">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="-mx-1 flex min-h-9 items-center gap-1.5 px-1 text-meta text-paper-subtle underline decoration-paper-subtle/40 underline-offset-4 hover:text-paper">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="-mx-1 flex min-h-9 items-center gap-1.5 px-1 text-meta text-fg-subtle underline decoration-fg-subtle/40 underline-offset-4 hover:text-fg">
         {open ? "앞 대화 접기" : "앞 대화 다시 보기"}
         <Caret open={open} />
       </button>
@@ -633,12 +633,12 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
   return (
-    <div className="flex min-h-dvh justify-center overflow-x-clip bg-night break-keep text-ink">
+    <div className="flex min-h-dvh justify-center overflow-x-clip bg-page break-keep text-ink">
       {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-night md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] lg:max-w-[1360px] lg:grid-cols-[minmax(0,1.3fr)_minmax(440px,1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
+      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-page md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] lg:max-w-[1360px] lg:grid-cols-[minmax(0,1.3fr)_minmax(440px,1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
         {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
         <div className="shrink-0 md:contents">
-        <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-pixel text-ui text-paper md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
+        <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-label text-ui text-fg md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
           <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} aria-label={preview ? undefined : "nuanci"} className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
             {/* 다른 화면 머리줄과 같은 마크+글자 로고. 제목 자리가 좁아서 조금 작게 둔다 */}
             {preview ? (
@@ -650,12 +650,12 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               </>
             )}
           </Link>
-          <h1 className="min-w-0 truncate text-paper">{scene.title}</h1>
+          <h1 className="min-w-0 truncate text-fg">{scene.title}</h1>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && !leading && phase !== "transition" && (
               <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
-                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-paper bg-paper text-night" : "border-paper-subtle text-paper-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
+                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-page" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
             )}
             <SoundToggle />
@@ -708,7 +708,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
               {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} />}
               {later && !endingOn && !beat && (
-                <p className="absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-pixel text-ui leading-none text-paper">
+                <p className="absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-label text-ui leading-none text-fg">
                   {timeCue ?? (
                     <>
                       <span className="font-bold">만약에</span> {scene.followUp.to}
@@ -721,7 +721,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                 <span
                   key={`burst-${stageKey}`}
                   aria-hidden
-                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-burst font-poster text-display-sm leading-none [text-shadow:2px_0_#fff,-2px_0_#fff,0_2px_#fff,0_-2px_#fff,2px_2px_#fff,-2px_-2px_#fff,2px_-2px_#fff,-2px_2px_#fff] ${burst.bad ? "text-rust" : "text-ink"}`}
+                  className={`pointer-events-none absolute right-[7%] top-[9%] animate-burst font-poster text-display-sm leading-none text-outline-white ${burst.bad ? "text-rust" : "text-ink"}`}
                 >
                   {burst.text}
                 </span>
@@ -739,13 +739,13 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
         <section ref={scroller} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-6 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px)] md:flex-initial">
           {phase === "transition" && timeCue ? (
-            <p key="time" className="animate-rise pt-6 text-center font-poster text-display-sm text-paper">
+            <p key="time" className="animate-rise pt-6 text-center font-poster text-display-sm text-fg">
               {timeCue}…
             </p>
           ) : phase === "transition" ? (
             <Panel key="transition" className="animate-rise">
               <div className="p-5">
-                <p className="font-pixel text-ui text-rust">만약에…</p>
+                <p className="font-label text-ui text-rust">만약에…</p>
                 <p className="mt-1.5 text-say font-semibold leading-snug">{scene.followUp.prompt.replace(/^잠깐,\s*/, "")}</p>
                 <p className="mt-3 text-note text-ink-subtle">
                   <s className="decoration-rust decoration-2">{scene.followUp.from}</s> → <span className="text-ink">{scene.followUp.to}</span>
@@ -770,14 +770,14 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             />
           ) : leading ? (
             <div key={`lead-${phase}`}>
-              <p className="mb-3 text-note leading-normal text-paper-muted">{situation.context}</p>
+              <p className="mb-3 text-note leading-normal text-fg-muted">{situation.context}</p>
               <BeatLog beats={lead.slice(0, leadIdx + 1)} partnerName={scene.partnerName} translate={translate} />
             </div>
           ) : !choice ? (
             // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.
             // 고르는 동안 질문이 계속 보이고, 작은 폰(375×667)에서도 선택지 세 개가 스크롤 없이 들어오게 높이를 맞춘다
             <div key={`ask-${phase}`}>
-              <p className="text-note leading-normal text-paper-muted">{situation.context}</p>
+              <p className="text-note leading-normal text-fg-muted">{situation.context}</p>
               {lead.length > 0 && <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />}
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-rise" />
               {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게, 메뉴처럼 Mochi가 말풍선으로 묻는다 */}
@@ -849,12 +849,12 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               </ul>
               {/* 표현 출처는 선택지 카드마다가 아니라 이 상황에 한 번, 목록 아래에 작게 둔다 */}
               {situation.sources && situation.sources.length > 0 && (
-                <p className="mt-3 text-meta leading-relaxed text-paper-subtle">출처 · {situation.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
+                <p className="mt-3 text-meta leading-relaxed text-fg-subtle">출처 · {situation.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</p>
               )}
               {f.done && preview && (
-                <div className="blk mt-6 bg-night-deep px-4 py-3">
-                  <p className="font-pixel text-ui text-paper-subtle">한 줄 정리</p>
-                  <p className="mt-0.5 text-note leading-relaxed text-paper">{scene.discovery}</p>
+                <div className="blk mt-6 bg-surface px-4 py-3">
+                  <p className="font-label text-ui text-fg-subtle">한 줄 정리</p>
+                  <p className="mt-0.5 text-note leading-relaxed text-fg">{scene.discovery}</p>
                 </div>
               )}
             </div>
@@ -862,13 +862,13 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
         </section>
 
         {(choice || leading || (phase === "transition" && !timeCue)) && (
-          <footer className="relative shrink-0 border-t border-line/40 bg-night px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:mt-auto md:px-1 md:pb-8">
+          <footer className="relative shrink-0 border-t border-line/40 bg-page px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:mt-auto md:px-1 md:pb-8">
             {/* 대사가 저절로 넘어간다는 걸 알 수 있게 위 테두리를 남은 시간만큼 채운다 */}
             {beat && !reduced && !autoPaused && (
               <span
                 key={`fill-${step}-${leadIdx}`}
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 -top-[3px] h-[3px] origin-left bg-gold"
+                className="pointer-events-none absolute inset-x-0 -top-[3px] h-[3px] origin-left bg-pink"
                 style={{ animation: `fill ${beatMs(beat)}ms linear both` }}
               />
             )}
@@ -879,10 +879,10 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
                 <BlockButton onClick={nextBeat} reading className="flex-1" faceClassName="py-3 text-center text-body font-bold">
                   다음
                 </BlockButton>
-                <button type="button" onClick={() => setAutoPaused((v) => !v)} aria-pressed={autoPaused} className="min-h-11 shrink-0 px-2 font-pixel text-ui text-paper-muted hover:text-paper">
+                <button type="button" onClick={() => setAutoPaused((v) => !v)} aria-pressed={autoPaused} className="min-h-11 shrink-0 px-2 font-label text-ui text-fg-muted hover:text-fg">
                   {autoPaused ? "자동 켜기" : "자동 멈춤"}
                 </button>
-                <button type="button" onClick={skipLead} className="min-h-11 shrink-0 px-3 font-pixel text-ui text-paper-muted hover:text-paper">
+                <button type="button" onClick={skipLead} className="min-h-11 shrink-0 px-3 font-label text-ui text-fg-muted hover:text-fg">
                   건너뛰기
                 </button>
               </div>

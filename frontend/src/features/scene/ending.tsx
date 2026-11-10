@@ -13,7 +13,7 @@ export const PUNCH_HOLD = 2200;
 export function Subtitle({ text }: { text: string }) {
   return (
     <p className="absolute inset-x-2 bottom-2 animate-fade text-center">
-      <span className="inline-block bg-ink px-2 py-1 font-pixel text-ui leading-snug text-paper">{text}</span>
+      <span className="inline-block bg-ink px-2 py-1 font-label text-ui leading-snug text-fg">{text}</span>
     </p>
   );
 }

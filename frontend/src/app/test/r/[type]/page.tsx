@@ -37,8 +37,8 @@ async function Result({ params }: { params: PageProps<"/test/r/[type]">["params"
 
 function Shell({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh justify-center bg-night-deep text-paper break-keep">
-      <main className="w-full max-w-[480px] bg-night px-4 pb-12 pt-[68px]">{children}</main>
+    <div className="flex min-h-dvh justify-center bg-surface text-fg break-keep">
+      <main className="w-full max-w-[480px] bg-page px-4 pb-12 pt-[68px]">{children}</main>
     </div>
   );
 }

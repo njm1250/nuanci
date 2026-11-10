@@ -7,16 +7,16 @@
 
 /* 운영 화면은 서비스 테마와 분리해 표·코드·긴 본문의 가독성을 일정하게 유지한다. */
 .admin-shell {
-  --color-night: var(--adm-bg-layer-basement);
-  --color-night-deep: var(--adm-bg-layer-basement);
-  --color-slate-block: var(--adm-bg-neutral-weak);
-  --color-paper: var(--adm-fg-neutral);
-  --color-paper-muted: var(--adm-fg-neutral-muted);
-  --color-paper-subtle: var(--adm-fg-neutral-muted);
+  --color-page: var(--adm-bg-layer-basement);
+  --color-surface: var(--adm-bg-layer-basement);
+  --color-surface-strong: var(--adm-bg-neutral-weak);
+  --color-fg: var(--adm-fg-neutral);
+  --color-fg-muted: var(--adm-fg-neutral-muted);
+  --color-fg-subtle: var(--adm-fg-neutral-muted);
   --color-ink: var(--adm-fg-neutral);
   --color-ink-muted: var(--adm-fg-neutral-muted);
   --color-ink-subtle: var(--adm-fg-neutral-muted);
-  --color-gold: var(--adm-brand-mark);
+  --color-pink: var(--adm-brand-mark);
   --color-rust: var(--adm-fg-critical-contrast);
   --color-rust-light: var(--adm-fg-critical-contrast);
   --color-good: var(--adm-bg-positive-solid);
