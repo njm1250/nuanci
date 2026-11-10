@@ -5,7 +5,7 @@ import type { StageSpec } from "./types";
 
 // 장면 목록 카드에 쓰는 무대 썸네일. 화면 밖 무대 하나(thumb-studio)가 차례로 그려 그림으로 남기고, 이 기기에 저장해 두어 다음에 와도 다시 그리지 않는다.
 // 다 그려 둔 뒤에는 three.js를 받지 않아도 되게, 그리는 쪽과 파일을 나눈다. 무대 그림이 바뀌면 VERSION을 올려 예전 그림을 버린다
-const VERSION = 7;
+const VERSION = 8;
 const KEY = `nuanci.thumbs.v${VERSION}`;
 
 type Job = { key: string; spec: StageSpec };
@@ -67,6 +67,20 @@ export function useNextThumb() {
   return useSyncExternalStore(subscribe, () => queue[0] ?? null, () => null);
 }
 
+// 저장 공간이 모자라면 오래된 그림부터 절반씩 덜어 내고 다시 저장한다. 사파리는 한도가 작아서, 그냥 포기하면 하나도 남지 않아 올 때마다 전부 다시 그리게 된다.
+// 화면에 떠 있는 그림은 그대로 두고 저장하는 쪽만 줄인다
+function save() {
+  let kept = [...urls];
+  while (kept.length > 0) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(kept)));
+      return;
+    } catch {
+      kept = kept.slice(Math.ceil(kept.length / 2));
+    }
+  }
+}
+
 // 주인공 모습을 바꿀 때마다 새 그림이 쌓이므로, 오래된 것부터 지워 저장 공간을 이만큼 안에서 쓴다
 const MAX_SAVED = 150;
 
@@ -78,8 +92,6 @@ export function finishThumb(key: string, url: string) {
   }
   const i = queue.findIndex((j) => j.key === key);
   if (i >= 0) queue.splice(i, 1);
-  try {
-    localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(urls)));
-  } catch {}
+  save();
   emit();
 }

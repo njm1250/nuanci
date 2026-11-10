@@ -51,7 +51,7 @@ export function SceneThumb({ stage, className = "" }: { stage?: StageSpec; class
         </span>
       )}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url && <img src={url} alt="" className="absolute inset-0 size-full animate-[fade-in_200ms] object-cover [image-rendering:pixelated]" />}
+      {url && <img src={url} alt="" className="absolute inset-0 size-full animate-fade object-cover [image-rendering:pixelated]" />}
     </span>
   );
 }

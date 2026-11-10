@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Expression, Motion } from "@/features/scene/types";
-import { C } from "./palette";
+import { C, shade } from "./palette";
 import { targetPose } from "./pose";
 import { HAIR_ITEMS, isHairItem } from "./hair";
 import { HeldProp } from "./props";
@@ -37,15 +37,13 @@ const counterLift = (p: Placement) => ((p.z ?? 0) < -0.4 ? 0.92 : 0);
 export const headTop = (p: Placement, look?: Look) =>
     HIP[p.posture] + counterLift(p) + (look?.animal ? 1.06 : 1.02);
 
-function shiftColor(hex: string, amount: number): string {
-    const c = new THREE.Color(hex);
-    if (amount > 0) {
-        c.lerp(new THREE.Color("#ffffff"), amount);
-    } else {
-        c.lerp(new THREE.Color("#141317"), -amount);
-    }
-    return `#${c.getHexString()}`;
-}
+// 눈 깜빡임을 정해진 박자가 아니라 들쭉날쭉하게 만드는 난수. 같은 칸 번호에는 늘 같은 값이 나온다
+const noise = (n: number) => {
+    const x = Math.sin(n * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+};
+// 말하는 시간의 기본값. 대사 길이를 모를 때 쓴다
+const TALK_SECONDS = 1.15;
 
 // 동작(motion)과 반응(expression)을 조합해 치비 캐릭터가 지을 표정을 결정한다
 function resolveExpression(expression: Expression | null | undefined, motion: Motion): Expression {
@@ -93,6 +91,8 @@ export function Figure({
     reduced,
     prop,
     expression,
+    talkFor = TALK_SECONDS,
+    ground,
 }: {
     placement: Placement;
     look: Look;
@@ -102,6 +102,10 @@ export function Figure({
     reduced: boolean;
     prop?: PropId;
     expression?: Expression | null;
+    // 입을 움직이는 시간(초). 긴 대사는 더 오래 말한다
+    talkFor?: number;
+    // 발밑 바닥 색. 주면 바닥에 그림자를 그린다
+    ground?: string;
 }) {
     const root = useRef<THREE.Group>(null!);
     const scaleGroup = useRef<THREE.Group>(null!);
@@ -113,6 +117,7 @@ export function Figure({
     const rArm = useRef<THREE.Group>(null!);
     const lLeg = useRef<THREE.Group>(null!);
     const rLeg = useRef<THREE.Group>(null!);
+    const shadow = useRef<THREE.Mesh>(null);
 
     // 표정·깜빡임·립싱크용 ref
     const normalEyesRef = useRef<THREE.Group>(null!);
@@ -166,7 +171,7 @@ export function Figure({
     const hair = wornHair?.color ?? HAIR_DEFAULT[hairStyle] ?? look.hair;
     const softBangs = SOFT_BANGS.has(hairStyle);
     const skin = animal?.fur ?? SKIN;
-    const shirtShade = useMemo(() => shiftColor(look.shirt, -0.18), [look.shirt]);
+    const shirtShade = useMemo(() => shade(look.shirt, -0.18), [look.shirt]);
 
     // 상대방을 바라보는 방향(+1: 오른쪽을 봄, -1: 왼쪽을 봄)
     const dir = placement.facing >= 0 ? 1 : -1;
@@ -182,8 +187,12 @@ export function Figure({
             motionStart.current = { key: motionKey, at: now };
         }
         if (talkStart.current.key !== talkKey) {
-            talkStart.current = { key: talkKey, at: now };
+            // 0은 말하지 않는다는 뜻이라, 대사가 사라져 0으로 돌아올 때는 입을 움직이지 않는다
+            talkStart.current = { key: talkKey, at: talkKey === 0 ? -99 : now };
         }
+        // 무대 한 칸의 크기. 몸의 위치를 이 칸에 맞춰야 가만히 있을 때 외곽선이 칸 사이에서 깜빡이지 않는다
+        const cell = 1 / (state.camera.zoom * state.viewport.dpr);
+        const snap = (v: number) => Math.round(v / cell) * cell;
 
         // 이상한 말을 들으면 바로 반응하지 않고 멍하니 굳어 있다가 한 박자 늦게 움직인다
         const heard = resolveExpression(expression, motion);
@@ -282,14 +291,15 @@ export function Figure({
 
         // 1. 살아 숨 쉬는 아이들(Idle) 호흡과 미세 리듬
         const breathPhase = now * 3.4 + blinkOffset;
+        // 숨을 내쉴 때 머리가 한 칸 내려온다. 발은 바닥에 붙여 두고 머리만 움직여야 떠 보이지 않는다
+        const breath = !reduced && motion === "idle" && Math.sin(breathPhase * 0.45) < 0 ? cell : 0;
         if (!reduced && motion === "idle") {
-            p.rootY += Math.sin(breathPhase * 0.45) * 0.008;
             targetLArmZ -= Math.sin(breathPhase) * 0.04;
             targetRArmZ += Math.sin(breathPhase) * 0.04;
         }
 
         // 2. 말할 때 손짓 + 고개 까딱임
-        const isTalking = !reduced && tt >= 0 && tt < 1.15;
+        const isTalking = !reduced && tt >= 0 && tt < talkFor;
         if (isTalking && motion === "idle") {
             if (dir > 0) {
                 targetRArmZ = 1.15 + Math.sin(tt * 15) * 0.25;
@@ -344,13 +354,19 @@ export function Figure({
 
         const bowDrop = motion === "bow" ? Math.sin(Math.PI * Math.min(mt / 1.4, 1)) * 0.12 : 0;
 
-        root.current.position.x = s.x;
-        root.current.position.y = s.y;
+        root.current.position.x = snap(s.x);
+        root.current.position.y = snap(s.y);
+        // 뛰어오르면 그림자가 작아지고, 옆으로 움직이면 따라간다
+        if (shadow.current) {
+            const lift = 1 - Math.min(0.55, Math.max(0, s.y) * 1.1);
+            shadow.current.position.x = snap(s.x);
+            shadow.current.scale.set((sit ? 0.36 : 0.3) * lift, 0.04, 1);
+        }
         root.current.rotation.y = s.spin;
         root.current.rotation.z = sit ? 0 : s.tilt;
         torso.current.rotation.z = sit ? s.tilt * 0.82 : 0;
         torso.current.position.y = hip - bowDrop * 0.4;
-        head.current.position.y = torsoH + (0.33) - bowDrop * 0.8 - s.headDrop;
+        head.current.position.y = torsoH + 0.33 - bowDrop * 0.8 - s.headDrop - breath;
         head.current.rotation.z = s.headZ;
         lArm.current.rotation.z = s.lArmZ;
         rArm.current.rotation.z = s.rArmZ;
@@ -403,8 +419,11 @@ export function Figure({
 
         // 5. 실시간 도트 표정 & 눈 깜빡임 & 립싱크 업데이트
         const expr = resolveExpression(expression, motion);
-        const blinkCycle = (now + blinkOffset) % (4.8);
-        const isBlinking = !reduced && now > 0.8 && blinkCycle < (0.34);
+        // 1.6초 칸마다 깜빡일지 뽑아서 사람처럼 불규칙하게 깜빡이고, 가끔은 두 번 연달아 깜빡인다
+        const blinkSlot = Math.floor((now + blinkOffset) / 1.6);
+        const blinkAt = (now + blinkOffset) % 1.6;
+        const blinkRoll = noise(blinkSlot + blinkOffset * 7);
+        const isBlinking = !reduced && now > 0.8 && blinkRoll < 0.4 && (blinkAt < 0.13 || (blinkRoll < 0.1 && blinkAt > 0.26 && blinkAt < 0.39));
 
         const showHappy = expr === "happy" || expr === "delighted" || expr === "stuffed";
         const showShock = expr === "shocked";
@@ -492,6 +511,13 @@ export function Figure({
 
     return (
         <group position={[placement.x, baseY, baseZ]}>
+            {/* 바닥 앞면에 붙이는 그림자. 카운터 뒤에 선 사람은 발이 안 보여서 그리지 않는다 */}
+            {ground && baseY === 0 && (
+                <mesh ref={shadow} position={[0, -0.05, 1.215 - baseZ]} scale={[sit ? 0.36 : 0.3, 0.04, 1]}>
+                    <circleGeometry args={[1, 20]} />
+                    <meshBasicMaterial color={shade(ground, -0.24)} />
+                </mesh>
+            )}
             <group ref={root}>
                 <group ref={scaleGroup}>
                     {/* 1. 하체: 앙증맞은 2등신 도트 다리 & 신발 */}

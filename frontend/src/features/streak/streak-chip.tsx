@@ -11,7 +11,7 @@ export function StreakChip() {
   return (
     <Link
       href="/me#streak"
-      className={`flex h-11 items-center gap-1.5 px-2 font-pixel text-[15px] ${streak.today ? "text-paper" : "text-paper-subtle"}`}
+      className={`flex h-11 items-center gap-1.5 px-2 font-label text-ui ${streak.today ? "text-fg" : "text-fg-subtle"}`}
     >
       <Flame lit={streak.today} size={16} />
       {/* 화면에 보이는 숫자가 읽어 주는 이름에도 그대로 들어가게, 나머지 말은 화면 밖 글자로 붙인다 */}

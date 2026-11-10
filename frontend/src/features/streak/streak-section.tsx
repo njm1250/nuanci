@@ -27,14 +27,14 @@ export function StreakSection({ member }: { member: boolean }) {
 
   return (
     <section id="streak" className="scroll-mt-4">
-      <h2 className="mb-2 text-[16px] font-bold text-paper">연속 기록</h2>
+      <h2 className="mb-2 text-body font-bold text-fg">연속 기록</h2>
       <Panel>
         <div className="divide-y-2 divide-ink/10 px-4">
           <div className="flex items-center gap-3 py-4">
             <Flame lit={Boolean(streak?.today)} size={36} />
             <div className="min-w-0 flex-1">
-              <p className="text-[18px] font-bold leading-none">{current}일 연속</p>
-              <p className="mt-1 text-[12px] text-ink-subtle">최고 {streak?.best ?? 0}일</p>
+              <p className="text-title font-bold leading-none">{current}일 연속</p>
+              <p className="mt-1 text-meta text-ink-subtle">최고 {streak?.best ?? 0}일</p>
             </div>
           </div>
 
@@ -44,7 +44,7 @@ export function StreakSection({ member }: { member: boolean }) {
               const today = i === 6;
               return (
                 <li key={i} className="flex flex-col items-center gap-1.5" aria-label={`${labels[i]}요일${today ? " 오늘" : ""}, ${done ? "도장 찍음" : "안 함"}`}>
-                  <span className={`text-[12px] leading-none ${today ? "font-semibold text-ink" : "text-ink-subtle"}`}>{labels[i]}</span>
+                  <span className={`text-meta leading-none ${today ? "font-semibold text-ink" : "text-ink-subtle"}`}>{labels[i]}</span>
                   <StampSlot done={done} today={today} tilt={STAMP_TILTS[i]} />
                 </li>
               );
@@ -55,7 +55,7 @@ export function StreakSection({ member }: { member: boolean }) {
             <div className="flex items-center gap-3 py-3">
               <Medal days={next} size={32} locked />
               <div className="min-w-0 flex-1">
-                <p className="text-[14px]">
+                <p className="text-note">
                   {next}일 뱃지까지 <span className="font-semibold">{next - current}일</span>
                 </p>
                 <Progress value={current} max={next} />
@@ -65,7 +65,7 @@ export function StreakSection({ member }: { member: boolean }) {
 
           {earned.length > 0 && (
             <div className="py-3">
-              <p id="badge-label" className="text-[14px] text-ink-subtle">
+              <p id="badge-label" className="text-note text-ink-subtle">
                 모은 뱃지
               </p>
               <div role={member ? "radiogroup" : "list"} aria-labelledby="badge-label" className="mt-2 flex flex-wrap gap-2">
@@ -74,10 +74,10 @@ export function StreakSection({ member }: { member: boolean }) {
                   const body = (
                     <>
                       <Medal days={days} size={32} />
-                      <span className="font-pixel text-[15px] leading-none">{days}일</span>
+                      <span className="font-label text-ui leading-none">{days}일</span>
                     </>
                   );
-                  const tile = `relative flex size-14 flex-col items-center justify-center gap-1 ${on ? "bg-gold outline outline-2 outline-ink" : "bg-ink/5"}`;
+                  const tile = `relative flex size-14 flex-col items-center justify-center gap-1 ${on ? "bg-pink outline outline-2 outline-ink" : "bg-ink/5"}`;
                   return member ? (
                     <button key={days} type="button" role="radio" aria-checked={on} aria-label={`${badgeLabel(days)}, 이름 옆에 달기`} onClick={() => pick(days)} className={tile}>
                       {body}
@@ -114,7 +114,7 @@ function StampSlot({ done, today, tilt }: { done: boolean; today: boolean; tilt:
   return (
     <span className="relative grid size-9 place-items-center" style={done ? { rotate: `${tilt}deg` } : undefined}>
       <Ring color={done ? "#c42b2b" : today ? "rgb(20 19 23 / 0.45)" : "rgb(20 19 23 / 0.15)"} size={36} />
-      {done && <span className="relative font-pixel-title text-[12px] leading-none text-[#c42b2b]">참</span>}
+      {done && <span className="relative font-label-strong text-meta leading-none text-seal">참</span>}
     </span>
   );
 }
@@ -126,14 +126,14 @@ function Progress({ value, max }: { value: number; max: number }) {
     return (
       <div className="mt-1.5 flex gap-1" aria-hidden>
         {Array.from({ length: max }, (_, i) => (
-          <span key={i} className={`h-2 flex-1 ${i < filled ? "bg-[#f08a24]" : "bg-ink/10"}`} />
+          <span key={i} className={`h-2 flex-1 ${i < filled ? "bg-flame" : "bg-ink/10"}`} />
         ))}
       </div>
     );
   }
   return (
     <div className="mt-1.5 h-2 bg-ink/10" aria-hidden>
-      <div className="h-full bg-[#f08a24]" style={{ width: `${(filled / max) * 100}%` }} />
+      <div className="h-full bg-flame" style={{ width: `${(filled / max) * 100}%` }} />
     </div>
   );
 }

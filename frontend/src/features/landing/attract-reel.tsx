@@ -69,11 +69,11 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
           <div className="absolute inset-x-0 bottom-0 h-[18%]" style={{ background: C.floor }} />
         </div>
       )}
-      <p key={`ask-${step.index}`} className="absolute left-2 top-2 animate-[fade-in_200ms] bg-ink px-2 py-1 font-pixel text-[15px] leading-none text-paper">
+      <p key={`ask-${step.index}`} className="absolute left-2 top-2 animate-fade bg-ink px-2 py-1 font-label text-ui leading-none text-fg">
         「{beat.ask}」 영어로?
       </p>
       {said && (
-        <p key={`punch-${step.n}`} className="absolute bottom-2 left-2 animate-[rise_240ms_var(--ease-snap)_400ms_both] border-2 border-ink bg-[#ffffff] px-2 py-1 font-pixel text-[15px] leading-none text-ink">
+        <p key={`punch-${step.n}`} className="absolute bottom-2 left-2 animate-rise [animation-delay:400ms] border-2 border-ink bg-white px-2 py-1 font-label text-ui leading-none text-ink">
           → {beat.punch}
         </p>
       )}
@@ -84,7 +84,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
           aria-label={paused ? "데모 다시 재생" : "데모 멈추기"}
           className="absolute right-0 top-0 grid size-11 place-items-center"
         >
-          <span className="grid size-7 place-items-center bg-ink/70 text-paper">
+          <span className="grid size-7 place-items-center bg-ink/70 text-fg">
             <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
               <path d={paused ? "M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" : "M1 0h1v5h-1zM3 0h1v5h-1z"} />
             </svg>

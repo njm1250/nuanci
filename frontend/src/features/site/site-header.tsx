@@ -11,7 +11,7 @@ export function SiteHeader({ left, right }: { left?: React.ReactNode; right?: Re
         <div className="flex min-w-0 items-center justify-start">{left}</div>
         <Link href="/" aria-label="nuanci" className="group flex h-11 items-center gap-2">
           {/* 파비콘·앱 아이콘과 같은 고양이 말풍선 마크와 같은 격자로 그린 글자 로고. 탭에서 본 그림과 사이트가 이어진다 */}
-          <span aria-hidden className="block size-7 group-hover:animate-[wiggle_420ms_steps(4,end)] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
+          <span aria-hidden className="block size-7 group-hover:animate-wiggle [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
           <span aria-hidden className="block h-5 w-[74px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
         </Link>
         <div className="flex min-w-0 items-center justify-end">

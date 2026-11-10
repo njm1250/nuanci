@@ -26,20 +26,20 @@ function OpenOutside({ app }: { app: InApp }) {
   const href = externalUrl(app, target);
   return (
     <div className="mt-4 bg-ink/5 p-3">
-      <p className="text-[14px] leading-relaxed text-ink-muted">{app.name} 안에서는 구글 로그인이 막혀 있어요. 브라우저에서 열어 로그인해 주세요.</p>
+      <p className="text-note leading-relaxed text-ink-muted">{app.name} 안에서는 구글 로그인이 막혀 있어요. 브라우저에서 열어 로그인해 주세요.</p>
       {href ? (
         <a href={href} className="blk-btn blk-btn-primary mt-3 block">
-          <span className="blk block bg-cta px-3 py-3 text-center font-pixel text-[15px] text-cta-text">브라우저에서 열기</span>
+          <span className="blk block bg-cta px-3 py-3 text-center font-label text-ui text-cta-text">브라우저에서 열기</span>
         </a>
       ) : (
         <>
-          <p className="mt-2 text-[14px] font-semibold text-ink">오른쪽 위 ··· 버튼 → &lsquo;외부 브라우저로 열기&rsquo;</p>
+          <p className="mt-2 text-note font-semibold text-ink">오른쪽 위 ··· 버튼 → &lsquo;외부 브라우저로 열기&rsquo;</p>
           <button
             type="button"
             onClick={() => void navigator.clipboard.writeText(target).then(() => setCopied(true), () => {})}
             className="blk-btn mt-3 block w-full"
           >
-            <span className="blk block bg-cream px-3 py-3 text-center font-pixel text-[15px] text-ink">{copied ? "복사됨" : "링크 복사"}</span>
+            <span className="blk block bg-card-raised px-3 py-3 text-center font-label text-ui text-ink">{copied ? "복사됨" : "링크 복사"}</span>
           </button>
         </>
       )}
@@ -52,12 +52,12 @@ export function GoogleButton({ next, enabled }: { next: string; enabled: boolean
   const inApp = useSyncExternalStore(noop, inAppSnapshot, () => null);
   if (enabled && inApp) return <OpenOutside app={inApp} />;
   if (!enabled) {
-    return <p className="mt-4 bg-ink/5 px-3 py-3 text-center font-pixel text-[15px] text-ink-subtle">로그인 준비 중이에요</p>;
+    return <p className="mt-4 bg-ink/5 px-3 py-3 text-center font-label text-ui text-ink-subtle">로그인 준비 중이에요</p>;
   }
   return (
     <a
       href={loginUrl(next)}
-      className="mt-4 flex min-h-12 items-center justify-center gap-3 rounded-[4px] border border-[#747775] bg-white px-4 text-[14px] font-medium text-[#1F1F1F] hover:bg-[#f8f8f8]"
+      className="mt-4 flex min-h-12 items-center justify-center gap-3 rounded-[4px] border border-[#747775] bg-white px-4 text-note font-medium text-[#1F1F1F] hover:bg-[#f8f8f8]"
     >
       <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />

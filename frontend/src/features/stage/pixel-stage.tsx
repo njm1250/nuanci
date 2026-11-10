@@ -7,7 +7,7 @@ import type { Expression, Motion } from "@/features/scene/types";
 import { CAST, HEROES } from "./cast";
 import { DecorPieces } from "./decor";
 import { Figure, headTop } from "./figure";
-import { C } from "./palette";
+import { C, shade } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
 import { SETS } from "./sets";
 import type { PropId, StageSpec } from "./types";
@@ -172,18 +172,29 @@ function TypingDots() {
   return (
     <span role="img" className="flex h-[1.4em] items-center gap-1 px-1" aria-label="내 차례">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="size-1.5 animate-[typing_1s_infinite] bg-current" style={{ animationDelay: `${i * 160}ms` }} />
+        <span key={i} className="size-1.5 animate-typing bg-current" style={{ animationDelay: `${i * 160}ms` }} />
       ))}
     </span>
   );
 }
 
-function Backdrop({ wall, floor = C.floor }: { wall: string; floor?: string }) {
+// 벽과 바닥. 실내는 벽 아래에 걸레받이를 두르고, 바닥 앞면 맨 윗줄을 밝게 해서 벽과 바닥이 만나는 곳에 깊이가 생기게 한다
+function Backdrop({ wall, floor = C.floor, indoor }: { wall: string; floor?: string; indoor: boolean }) {
   return (
     <>
       <mesh position={[0, 1.5, -1.2]}>
         <planeGeometry args={[30, 6]} />
         <meshBasicMaterial color={wall} />
+      </mesh>
+      {indoor && (
+        <mesh position={[0, 0.05, -1.195]}>
+          <planeGeometry args={[30, 0.1]} />
+          <meshBasicMaterial color={shade(wall, -0.16)} />
+        </mesh>
+      )}
+      <mesh position={[0, -0.02, 1.205]}>
+        <planeGeometry args={[30, 0.04]} />
+        <meshBasicMaterial color={shade(floor, 0.12)} />
       </mesh>
       <mesh position={[0, -1.5, 0]}>
         <boxGeometry args={[30, 3, 2.4]} />
@@ -211,6 +222,20 @@ export type StageState = {
   partnerSays?: string;
   meTurn?: boolean;
 };
+
+// 하늘이 벽 자리에 오는 바깥 세트. 걸레받이를 그리지 않는다
+const OUTDOOR: ReadonlySet<string> = new Set(["park", "street", "market"]);
+
+// 대사 길이에 맞춘 말하는 시간(초). 짧은 한마디는 금방 끝나고 긴 문장은 입을 더 오래 움직인다
+const talkSeconds = (line: string | undefined) => Math.min(2.6, Math.max(0.7, 0.5 + (line?.length ?? 0) * 0.045));
+
+// 대사 글자에서 뽑은 번호. 대사가 바뀌면 번호가 바뀌어 말하는 동작이 새로 시작되고, 대사가 없으면 0이다
+function lineKey(line: string | undefined) {
+  if (!line) return 0;
+  let h = 7;
+  for (let i = 0; i < line.length; i++) h = (h * 31 + line.charCodeAt(i)) | 0;
+  return h || 1;
+}
 
 // 계속 반복되는 동작. 이 동작 중에는 무대를 계속 그린다
 const LOOPING: ReadonlySet<Motion> = new Set(["shiver", "dance", "panic", "sob", "wave", "facepalm", "patBelly"]);
@@ -279,18 +304,20 @@ export function PixelStage({
   const slots = useRef<Record<Who, Slot>>({ me: { wrap: null, bubble: null }, partner: { wrap: null, bubble: null } });
   const wall = set.wall[spec.time];
   const symbol = state?.reaction ? REACTION_SYMBOLS[state.reaction] : null;
-  const ink = evening && spec.set === "street" ? "text-paper" : "text-ink";
+  const ink = evening && spec.set === "street" ? "text-fg" : "text-ink";
   // 벽·가구·소품은 말을 고를 때마다 바뀌지 않는다. 같은 요소를 다시 쓰면 React가 수백 개의 메시를 다시 맞춰 보지 않고 넘어가서 누른 뒤 반응이 빨라진다
   const scenery = useMemo(
     () => (
       <>
-        <Backdrop wall={wall} floor={set.floor} />
+        <Backdrop wall={wall} floor={set.floor} indoor={!OUTDOOR.has(spec.set)} />
         <set.Scenery evening={evening} flags={flags} />
         <DecorPieces items={decor} />
       </>
     ),
-    [set, wall, evening, flags, decor],
+    [set, wall, evening, flags, decor, spec.set],
   );
+  const ground = set.floor ?? C.floor;
+  const partnerSpeech = state?.partnerSays ?? state?.partnerLine;
   const busy = useBusy(spec, state, reduced);
   const { box, dpr } = usePixelDpr();
   const { widths, heights, observer } = useBubbleWidths();
@@ -298,10 +325,10 @@ export function PixelStage({
   const bubble = (who: Who, text: React.ReactNode, key: string) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
       {text && (
-        <div key={key} className="blk-frame-sm animate-[fade-in_160ms]">
+        <div key={key} className="blk-frame-sm animate-fade">
           <div
             ref={(el) => void (slots.current[who].bubble = el)}
-            className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-line text-[14px] leading-snug text-ink break-keep"
+            className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-stage text-note leading-snug text-ink break-keep"
           >
             {text}
           </div>
@@ -340,6 +367,8 @@ export function PixelStage({
           talkKey={state?.talkKey ?? 0}
           reduced={reduced}
           prop={state?.meProp}
+          talkFor={talkSeconds(state?.meLine)}
+          ground={ground}
         />
         </group>
         <group {...pickHandlers(onPick, "partner")}>
@@ -348,10 +377,12 @@ export function PixelStage({
           look={CAST[spec.partner]}
           motion={state?.partnerMotion ?? "idle"}
           motionKey={state?.partnerKey ?? 0}
-          talkKey={0}
+          talkKey={lineKey(partnerSpeech)}
           reduced={reduced}
           prop={state?.partnerProp}
           expression={state?.reaction}
+          talkFor={talkSeconds(partnerSpeech)}
+          ground={ground}
         />
         </group>
       </Canvas>
@@ -365,7 +396,7 @@ export function PixelStage({
             bubble("partner", state.partnerSays, `says-${state.partnerKey}`)
           ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
-              <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-[pop_260ms_steps(3,end)]">
+              <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-pop">
                 {symbol}
               </div>
             </div>

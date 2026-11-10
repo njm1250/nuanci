@@ -73,20 +73,20 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
       onClick={(event) => {
         if (event.target === event.currentTarget) close();
       }}
-      className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[440px] overflow-visible bg-transparent p-0 text-ink backdrop:bg-night-deep/80"
+      className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[440px] overflow-visible bg-transparent p-0 text-ink backdrop:bg-surface/80"
     >
       <div className="blk-frame">
         <div className="blk max-h-[calc(100dvh-3rem)] overflow-y-auto bg-card p-5">
-          <h2 id="inquiry-title" className="font-poster text-[24px] leading-[1.25]">
+          <h2 id="inquiry-title" className="font-poster text-display-sm leading-[1.25]">
             문의 / 오류 제보
           </h2>
 
           {status === "sent" ? (
             <>
-              <p className="mt-3 text-[16px] leading-relaxed">잘 받았어요. 알려 줘서 고마워요!</p>
-              <p className="mt-1 text-[14px] leading-relaxed text-ink-muted">{contact ? "남겨 주신 연락처로 답장할게요." : "보내 주신 내용은 하나씩 읽고 반영할게요."}</p>
+              <p className="mt-3 text-body leading-relaxed">잘 받았어요. 알려 줘서 고마워요!</p>
+              <p className="mt-1 text-note leading-relaxed text-ink-muted">{contact ? "남겨 주신 연락처로 답장할게요." : "보내 주신 내용은 하나씩 읽고 반영할게요."}</p>
               <button type="button" onClick={close} className="blk-btn blk-btn-primary mt-5 block w-full">
-                <span className="blk block bg-cta px-3 py-3 text-center font-pixel text-[15px] text-cta-text">닫기</span>
+                <span className="blk block bg-cta px-3 py-3 text-center font-label text-ui text-cta-text">닫기</span>
               </button>
             </>
           ) : (
@@ -99,7 +99,7 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
                     role="radio"
                     aria-checked={kind === k.id}
                     onClick={() => setKind(k.id)}
-                    className={`blk min-h-11 px-1 font-pixel text-[15px] ${kind === k.id ? "bg-ink text-paper" : "bg-cream text-ink ring-2 ring-inset ring-ink/15"}`}
+                    className={`blk min-h-11 px-1 font-label text-ui ${kind === k.id ? "bg-ink text-fg" : "bg-card-raised text-ink ring-2 ring-inset ring-ink/15"}`}
                   >
                     {k.label}
                   </button>
@@ -115,34 +115,34 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
                   maxLength={2000}
                   rows={5}
                   required
-                  className="blk block w-full resize-none bg-cream px-3 py-2.5 ring-2 ring-inset ring-ink/15 text-[16px] leading-relaxed text-ink placeholder:text-ink-subtle"
+                  className="blk block w-full resize-none bg-card-raised px-3 py-2.5 ring-2 ring-inset ring-ink/15 text-body leading-relaxed text-ink placeholder:text-ink-subtle"
                 />
               </label>
 
               <label className="mt-3 block">
-                <span className="text-[14px] text-ink-muted">답장 받을 이메일 (선택)</span>
+                <span className="text-note text-ink-muted">답장 받을 이메일 (선택)</span>
                 <input
                   type="email"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
                   maxLength={200}
                   autoComplete="email"
-                  className="blk mt-1 block min-h-11 w-full bg-cream px-3 text-[16px] text-ink ring-2 ring-inset ring-ink/15"
+                  className="blk mt-1 block min-h-11 w-full bg-card-raised px-3 text-body text-ink ring-2 ring-inset ring-ink/15"
                 />
               </label>
 
-              {status === "failed" && <p className="mt-3 text-[14px] text-rust">보내지 못했어요. 잠시 뒤 다시 시도해 주세요.</p>}
-              {status === "limited" && <p className="mt-3 text-[14px] text-rust">잠깐 사이에 많이 보냈어요. 10분 뒤 다시 보내 주세요.</p>}
+              {status === "failed" && <p className="mt-3 text-note text-rust">보내지 못했어요. 잠시 뒤 다시 시도해 주세요.</p>}
+              {status === "limited" && <p className="mt-3 text-note text-rust">잠깐 사이에 많이 보냈어요. 10분 뒤 다시 보내 주세요.</p>}
 
               <div className="mt-5 flex gap-2">
                 <button type="button" onClick={close} className="blk-btn block flex-1">
-                  <span className="blk block bg-cream px-3 py-3 text-center font-pixel text-[15px] text-ink">닫기</span>
+                  <span className="blk block bg-card-raised px-3 py-3 text-center font-label text-ui text-ink">닫기</span>
                 </button>
                 <button type="submit" disabled={message.trim().length < 2 || status === "sending"} className="blk-btn blk-btn-primary block flex-[2] disabled:opacity-50">
-                  <span className="blk block bg-cta px-3 py-3 text-center font-pixel text-[15px] text-cta-text">{status === "sending" ? "보내는 중…" : "보내기"}</span>
+                  <span className="blk block bg-cta px-3 py-3 text-center font-label text-ui text-cta-text">{status === "sending" ? "보내는 중…" : "보내기"}</span>
                 </button>
               </div>
-              <p className="mt-3 text-[12px] leading-relaxed text-ink-subtle">보던 화면 주소가 함께 전달돼요. 남긴 연락처는 답장에만 쓰고, 답변을 마친 뒤 1년 안에 지워요.</p>
+              <p className="mt-3 text-meta leading-relaxed text-ink-subtle">보던 화면 주소가 함께 전달돼요. 남긴 연락처는 답장에만 쓰고, 답변을 마친 뒤 1년 안에 지워요.</p>
             </form>
           )}
         </div>

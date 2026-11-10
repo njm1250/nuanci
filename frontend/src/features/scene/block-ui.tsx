@@ -22,7 +22,7 @@ export function BlockButton({
 } & Pick<React.AriaAttributes, "aria-pressed" | "aria-expanded" | "aria-label">) {
   return (
     <button type="button" onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`} {...aria}>
-      <span className={`blk block px-3 py-2.5 ${primary ? `bg-cta text-cta-text ${reading ? "" : "font-poster text-[20px]"}` : "bg-cream text-ink"} ${faceClassName}`}>{children}</span>
+      <span className={`blk block px-3 py-2.5 ${primary ? `bg-cta text-cta-text ${reading ? "" : "font-poster text-say"}` : "bg-card-raised text-ink"} ${faceClassName}`}>{children}</span>
     </button>
   );
 }
@@ -62,7 +62,7 @@ export function BlockLink({
 }) {
   return (
     <EntryLink href={href} entry={entry} onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`}>
-      <span className={`blk block px-3 py-3.5 text-center ${primary ? `bg-cta text-cta-text ${reading ? "text-[16px] font-bold" : "font-poster text-[20px]"}` : `bg-cream text-ink ${pair ? "font-poster text-[17px]" : "font-pixel text-[15px]"}`}`}>{children}</span>
+      <span className={`blk block px-3 py-3.5 text-center ${primary ? `bg-cta text-cta-text ${reading ? "text-body font-bold" : "font-poster text-say"}` : `bg-card-raised text-ink ${pair ? "font-poster text-title" : "font-label text-ui"}`}`}>{children}</span>
     </EntryLink>
   );
 }
@@ -70,7 +70,7 @@ export function BlockLink({
 export function Panel({ children, className = "", dark = false }: { children: React.ReactNode; className?: string; dark?: boolean }) {
   return (
     <div className={`blk-frame ${className}`}>
-      <div className={`blk h-full ${dark ? "bg-slate-block text-paper" : "bg-card text-ink"}`}>{children}</div>
+      <div className={`blk h-full ${dark ? "bg-surface-strong text-fg" : "bg-card text-ink"}`}>{children}</div>
     </div>
   );
 }
@@ -78,6 +78,6 @@ export function Panel({ children, className = "", dark = false }: { children: Re
 // 대화에서 누가 말했는지 붙이는 이름표. 딥 블루와 핑크는 화면에서 가장 강한 색이라 라벨에는 쓰지 않는다
 export function SpeakerTag({ me = false, children }: { me?: boolean; children: React.ReactNode }) {
   return (
-    <span className={`shrink-0 justify-self-start px-1.5 py-1 font-pixel text-[15px] leading-none ${me ? "bg-night-deep text-paper" : "bg-night-deep text-paper-muted"}`}>{children}</span>
+    <span className={`shrink-0 justify-self-start px-1.5 py-1 font-label text-ui leading-none ${me ? "bg-surface text-fg" : "bg-surface text-fg-muted"}`}>{children}</span>
   );
 }

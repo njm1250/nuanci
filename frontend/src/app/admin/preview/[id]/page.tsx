@@ -15,7 +15,7 @@ async function Preview({ params }: { params: PageProps<"/admin/preview/[id]">["p
 
 export default function PreviewPage({ params }: PageProps<"/admin/preview/[id]">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-night-deep" />}>
+    <Suspense fallback={<div className="min-h-dvh bg-surface" />}>
       <Preview params={params} />
     </Suspense>
   );

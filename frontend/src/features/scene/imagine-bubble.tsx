@@ -11,13 +11,13 @@ export function ImagineBubble({ icon, caption, reduced }: { icon: string; captio
       style={reduced ? undefined : { animation: "imagine 2400ms ease-out 650ms both" }}
     >
       <div className="blk-frame-sm">
-        <div className="blk flex items-center gap-2 bg-[#f6f4ee] px-2.5 py-1.5">
+        <div className="blk flex items-center gap-2 bg-white px-2.5 py-1.5">
           <RewardIcon id={icon} size={32} />
-          <span className="font-pixel text-[15px] leading-tight text-[#141317]">{caption}</span>
+          <span className="font-label text-ui leading-tight text-ink-fixed">{caption}</span>
         </div>
       </div>
-      <span aria-hidden className="absolute -bottom-2 right-5 size-2 bg-[#f6f4ee] outline outline-2 outline-[#141317]" />
-      <span aria-hidden className="absolute -bottom-4 right-3 size-1 bg-[#f6f4ee] outline outline-2 outline-[#141317]" />
+      <span aria-hidden className="absolute -bottom-2 right-5 size-2 bg-white outline outline-2 outline-ink-fixed" />
+      <span aria-hidden className="absolute -bottom-4 right-3 size-1 bg-white outline outline-2 outline-ink-fixed" />
     </div>
   );
 }

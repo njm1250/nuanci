@@ -127,8 +127,8 @@ export function RewardCard({
   const enter = reduced ? undefined : { animation: `rise 260ms ease-out ${delay}ms both` };
   // 완료 화면에서는 그 장면의 발견이 중심이라 차분한 색과 작은 크기로 덧붙인다. 아지트에서는 크게 보여준다
   const tone = compact
-    ? { card: "bg-slate-block text-paper", muted: "text-paper-subtle", ring: "border-paper", box: "size-12", icon: 34, name: "text-[16px]" }
-    : { card: "bg-card text-ink", muted: "text-ink-muted", ring: "border-ink", box: "size-16", icon: 44, name: "text-[20px]" };
+    ? { card: "bg-surface-strong text-fg", muted: "text-fg-subtle", ring: "border-fg", box: "size-12", icon: 34, name: "text-body" }
+    : { card: "bg-card text-ink", muted: "text-ink-muted", ring: "border-ink", box: "size-16", icon: 44, name: "text-say" };
 
   if (isUnopened(item)) {
     return (
@@ -136,17 +136,17 @@ export function RewardCard({
         <div className={`blk flex items-center gap-3 px-3 py-3 ${tone.card}`}>
           <div className={`relative shrink-0 ${tone.box}`}>
             {/* 남은 상자가 더 있으면 뒤에 한 장 더 겹쳐 그려서 쌓여 있는 것을 보여준다 */}
-            {stacked && <span aria-hidden className={`absolute -right-1.5 -top-1.5 border-2 border-ink bg-night-deep ${tone.box}`} />}
-            <div className={`relative grid place-items-center border-2 border-ink bg-night-deep ${tone.box} ${shaking ? "animate-[box-shake_520ms_ease-in-out]" : ""}`}>
+            {stacked && <span aria-hidden className={`absolute -right-1.5 -top-1.5 border-2 border-ink bg-surface ${tone.box}`} />}
+            <div className={`relative grid place-items-center border-2 border-ink bg-surface ${tone.box} ${shaking ? "animate-box-shake" : ""}`}>
               <RewardIcon id="box" size={tone.icon} />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[16px] font-bold">깜짝 상자</p>
-            <p className={`mt-0.5 text-[12px] ${tone.muted}`}>아지트에 둘 물건 하나</p>
+            <p className="text-body font-bold">깜짝 상자</p>
+            <p className={`mt-0.5 text-meta ${tone.muted}`}>아지트에 둘 물건 하나</p>
           </div>
           <button type="button" onClick={open} disabled={shaking} className="blk-btn shrink-0">
-            <span className="blk flex min-h-11 items-center bg-cta px-4 text-[16px] font-bold text-cta-text">열기</span>
+            <span className="blk flex min-h-11 items-center bg-cta px-4 text-body font-bold text-cta-text">열기</span>
           </button>
         </div>
       </div>
@@ -165,7 +165,7 @@ export function RewardCard({
                 style={{ animation: `rays 1400ms ease-out ${delay + POP_AFTER}ms both` }}
               />
             )}
-            <div className={`relative grid place-items-center border-2 border-ink bg-night-deep ${tone.box}`}>
+            <div className={`relative grid place-items-center border-2 border-ink bg-surface ${tone.box}`}>
               <span style={reduced ? undefined : { animation: `reward-pop 560ms ease-out ${delay + POP_AFTER}ms both` }}>
                 <RewardIcon id={item.id} color={owned.color} size={tone.icon} />
               </span>
@@ -176,15 +176,15 @@ export function RewardCard({
                 <span
                   key={i}
                   aria-hidden
-                  className="pointer-events-none absolute left-1/2 top-1/2 size-1.5 bg-cream"
+                  className="pointer-events-none absolute left-1/2 top-1/2 size-1.5 bg-card-raised"
                   style={{ "--dx": `${dx}px`, "--dy": `${dy}px`, animation: `sparkle 700ms ease-out ${delay + POP_AFTER + 220 + i * 35}ms both` } as React.CSSProperties}
                 />
               ))}
           </div>
           <div className="min-w-0 flex-1 self-start">
-            <p className={`font-pixel text-[15px] ${tone.muted}`}>새 물건</p>
-            <p className={`truncate font-pixel-title leading-[1.25] ${tone.name}`}>{item.name}</p>
-            <p className={`truncate text-[12px] ${tone.muted}`}>{ownedReason(owned, sceneTitle)}</p>
+            <p className={`font-label text-ui ${tone.muted}`}>새 물건</p>
+            <p className={`truncate font-label-strong leading-[1.25] ${tone.name}`}>{item.name}</p>
+            <p className={`truncate text-meta ${tone.muted}`}>{ownedReason(owned, sceneTitle)}</p>
           </div>
           {onClose && (
             <button type="button" onClick={onClose} aria-label="닫기" className="-mr-1 -mt-1 grid size-11 shrink-0 place-items-center self-start text-ink">
@@ -202,7 +202,7 @@ export function RewardCard({
             aria-pressed={on}
             className="blk-btn"
           >
-            <span className={`blk flex min-h-11 items-center gap-2 px-3 text-[15px] font-bold ${on ? "bg-cta text-cta-text" : "bg-cream text-ink"}`}>
+            <span className={`blk flex min-h-11 items-center gap-2 px-3 text-ui font-bold ${on ? "bg-cta text-cta-text" : "bg-card-raised text-ink"}`}>
               {item.kind === "wear" ? "쓰기" : "방에 두기"}
               {on && <Check />}
             </span>
@@ -219,7 +219,7 @@ export function RewardCard({
                   onClick={() => pickColor(c)}
                   className={`grid size-11 place-items-center border-[3px] ${owned.color === c ? tone.ring : "border-transparent"}`}
                 >
-                  <span className="grid size-6 place-items-center text-paper" style={{ background: COLOR_HEX[c] }}>
+                  <span className="grid size-6 place-items-center text-fg" style={{ background: COLOR_HEX[c] }}>
                     {owned.color === c && <Check />}
                   </span>
                 </button>
@@ -227,7 +227,7 @@ export function RewardCard({
             </div>
           )}
           {item.kind === "room" && sceneTitle !== undefined && (
-            <Link href="/me/room?tab=room" className={`ml-auto flex min-h-11 items-center gap-2 px-1 font-pixel text-[15px] ${tone.muted}`}>
+            <Link href="/me/room?tab=room" className={`ml-auto flex min-h-11 items-center gap-2 px-1 font-label text-ui ${tone.muted}`}>
               아지트
               <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden className="fill-current">
                 <path d="M1 0h1v1h1v1h1v1h-1v1h-1v1h-1z" />

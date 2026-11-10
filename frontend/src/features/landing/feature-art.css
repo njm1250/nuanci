@@ -3,7 +3,7 @@
 .feature-art .ss-stage {
   --ss-font: var(--font-sans);
   overflow: hidden;
-  background: var(--color-night-deep);
+  background: var(--color-surface);
   letter-spacing: -0.02em;
   color: var(--color-ink);
 }

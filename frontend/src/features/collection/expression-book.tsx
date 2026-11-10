@@ -10,7 +10,7 @@ import { spoken, type BookEntry, type ExpressionPair } from "./pairs";
 
 export function Mark({ good }: { good: boolean }) {
   return (
-    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-pixel text-[15px] leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
+    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-label text-ui leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
       {good ? "O" : "X"}
     </span>
   );
@@ -30,33 +30,33 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
   return (
     <li className="px-3 py-4">
       {/* 하고 싶던 말은 정답 위에 바짝 붙는 보조 질문, 영어 정답이 주인공이다 */}
-      <p className="text-[14px] leading-snug text-paper-muted">{spoken(pair.intent)}</p>
+      <p className="text-note leading-snug text-fg-muted">{spoken(pair.intent)}</p>
       <div className="mt-1 flex items-start gap-2">
         <span className="mt-1">
           <Mark good />
         </span>
         {hidden ? (
-          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border border-dashed border-line px-2 text-left font-pixel text-[15px] text-paper-subtle">
+          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border border-dashed border-line px-2 text-left font-label text-ui text-fg-subtle">
             눌러서 보기
           </button>
         ) : (
           <div className="min-w-0">
-            <p className="font-line text-[22px] leading-snug">{pair.right}</p>
+            <p className="font-line text-say-lg leading-snug">{pair.right}</p>
             {pair.alts.map((a) => (
-              <p key={a} className="font-line text-[16px] leading-snug text-paper-muted">
-                <span className="font-sans text-[12px] text-paper-subtle">또는 </span>
+              <p key={a} className="font-line text-body leading-snug text-fg-muted">
+                <span className="font-sans text-meta text-fg-subtle">또는 </span>
                 {a}
               </p>
             ))}
           </div>
         )}
       </div>
-      <p className="mt-1.5 flex items-center gap-2 text-[14px] text-paper-subtle">
+      <p className="mt-1.5 flex items-center gap-2 text-note text-fg-subtle">
         <Mark good={false} />
         <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
-        {pair.trap && <span className="shrink-0 text-[12px]">· {TRAP_LABELS[pair.trap]}</span>}
+        {pair.trap && <span className="shrink-0 text-meta">· {TRAP_LABELS[pair.trap]}</span>}
       </p>
-      <p className="mt-3.5 text-[12px] leading-relaxed text-paper-subtle">
+      <p className="mt-3.5 text-meta leading-relaxed text-fg-subtle">
         {pair.who} · {pair.when}
         {!hidden && pair.sources && pair.sources.length > 0 && <span className="block">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</span>}
       </p>
@@ -71,18 +71,18 @@ function EmptyBook({ entries }: { entries: BookEntry[] }) {
   const peek = entries.slice(10).flatMap((e) => e.pairs.slice(0, 1)).slice(0, 3);
   return (
     <>
-      <p className="mt-3 text-[16px] leading-relaxed text-paper-muted">장면을 해 보면 &lsquo;이럴 땐 영어로 이렇게&rsquo;가 여기 모여요.</p>
+      <p className="mt-3 text-body leading-relaxed text-fg-muted">장면을 해 보면 &lsquo;이럴 땐 영어로 이렇게&rsquo;가 여기 모여요.</p>
       {first && (
         <BlockLink href={`/scenes/${first.number}`} entry="home" primary className="mt-5 md:max-w-[400px]">
           {answerCta(first.relation)}
         </BlockLink>
       )}
       {peek.length > 0 && (
-        <ul className="mt-8 divide-y divide-line/40 border-t-2 border-paper" aria-hidden>
+        <ul className="mt-8 divide-y divide-line/40 border-t-2 border-fg" aria-hidden>
           {peek.map((p) => (
             <li key={`${p.who}:${p.right}`} className="py-3">
-              <p className="text-[14px] text-paper-muted">{p.intent}</p>
-              <p className="mt-1 select-none font-line text-[20px] leading-snug blur-[6px]">{p.right}</p>
+              <p className="text-note text-fg-muted">{p.intent}</p>
+              <p className="mt-1 select-none font-line text-say leading-snug blur-[6px]">{p.right}</p>
             </li>
           ))}
         </ul>
@@ -128,14 +128,14 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="표현 찾기"
               aria-label="표현 찾기"
-              className="min-h-11 min-w-0 flex-1 border border-line bg-night-deep px-3 text-[16px] text-paper placeholder:text-paper-subtle light:bg-cream"
+              className="min-h-11 min-w-0 flex-1 border border-line bg-surface px-3 text-body text-fg placeholder:text-fg-subtle light:bg-card-raised"
             />
             {traps.length > 1 && (
               <select
                 value={trap ?? ""}
                 onChange={(e) => setTrap((e.target.value || null) as Trap | null)}
                 aria-label="틀리는 이유"
-                className="min-h-11 w-[120px] shrink-0 border border-line bg-night-deep px-2 text-[14px] text-paper light:bg-cream [color-scheme:dark] light:[color-scheme:light]"
+                className="min-h-11 w-[120px] shrink-0 border border-line bg-surface px-2 text-note text-fg light:bg-card-raised [color-scheme:dark] light:[color-scheme:light]"
               >
                 <option value="">이유 전체</option>
                 {traps.map((t) => (
@@ -148,23 +148,23 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
           </div>
 
           <div className="mt-1 flex min-h-11 items-center justify-between gap-3">
-            <label className="flex min-h-11 items-center gap-2 text-[14px] text-paper-muted">
-              <input type="checkbox" checked={hide} onChange={toggleHide} className="size-[18px] accent-gold [color-scheme:dark] light:[color-scheme:light]" />
+            <label className="flex min-h-11 items-center gap-2 text-note text-fg-muted">
+              <input type="checkbox" checked={hide} onChange={toggleHide} className="size-[18px] accent-pink [color-scheme:dark] light:[color-scheme:light]" />
               영어 가리기
             </label>
-            <p className="text-[14px] text-paper-subtle">{count}개</p>
+            <p className="text-note text-fg-subtle">{count}개</p>
           </div>
 
           {shown.length === 0 ? (
-            <p className="mt-6 text-[14px] text-paper-muted">찾는 표현이 없어요.</p>
+            <p className="mt-6 text-note text-fg-muted">찾는 표현이 없어요.</p>
           ) : (
-            <div className="stagger mt-4 grid items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
+            <div className="stagger mt-4 grid grid-cols-1 items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
               {shown.map(({ entry, pairs }) => (
                 <section key={entry.id}>
                   {/* 장면 묶음 머리는 단어장 인덱스 탭처럼, 굵은 줄 위에 제목 탭을 올린다 */}
-                  <div className="flex items-end justify-between gap-2 border-b-2 border-paper">
-                    <h2 className="min-w-0 truncate bg-paper px-3 py-2 font-pixel text-[15px] text-night">{entry.title}</h2>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-10 shrink-0 items-center gap-1.5 px-1 font-pixel text-[15px] text-paper-muted hover:text-paper">
+                  <div className="flex items-end justify-between gap-2 border-b-2 border-fg">
+                    <h2 className="min-w-0 truncate bg-fg px-3 py-2 font-label text-ui text-page">{entry.title}</h2>
+                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-label text-ui text-fg-muted hover:text-fg">
                       다시 하기
                       <Arrow />
                     </EntryLink>
@@ -184,10 +184,10 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
 
       {lockedCount > 0 && count > 0 && (
         <Link href="/scenes" className="blk-btn mt-8 block">
-          <span className="blk flex items-center justify-between gap-3 bg-slate-block px-4 py-3 text-paper">
+          <span className="blk flex items-center justify-between gap-3 bg-surface-strong px-4 py-3 text-fg">
             <span>
-              <span className="block font-pixel text-[15px]">아직 안 해 본 장면 {lockedCount}개</span>
-              <span className="block text-[14px] text-paper-subtle">해 보면 표현이 더 모여요</span>
+              <span className="block font-label text-ui">아직 안 해 본 장면 {lockedCount}개</span>
+              <span className="block text-note text-fg-subtle">해 보면 표현이 더 모여요</span>
             </span>
             <Arrow />
           </span>

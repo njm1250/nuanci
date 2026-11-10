@@ -59,7 +59,7 @@ export default function TermsPage() {
         <h2>7. 개인정보</h2>
         <p>
           개인정보는{" "}
-          <Link href="/privacy" className="text-gold underline underline-offset-4">
+          <Link href="/privacy" className="text-pink underline underline-offset-4">
             개인정보처리방침
           </Link>
           에 따라 처리해요.

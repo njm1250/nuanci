@@ -37,7 +37,7 @@ export function ReviewToday({ className = "" }: { className?: string }) {
 
   if (!card) {
     return (
-      <p className={`bg-night-deep px-3 py-2.5 font-pixel text-[15px] text-paper-subtle ${className}`}>
+      <p className={`bg-surface px-3 py-2.5 font-label text-ui text-fg-subtle ${className}`}>
         오늘 복습 끝 · {knewCount}/{total}개 떠올림
       </p>
     );
@@ -54,52 +54,52 @@ export function ReviewToday({ className = "" }: { className?: string }) {
   };
 
   return (
-    <section className={`animate-[fade-in_200ms] ${className}`}>
+    <section className={`animate-fade ${className}`}>
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[16px] font-bold">오늘의 1분 복습</h2>
-        <p className="text-[12px] text-paper-subtle">
+        <h2 className="text-body font-bold">오늘의 1분 복습</h2>
+        <p className="text-meta text-fg-subtle">
           지난번 헷갈린 말 {at + 1}/{total}
         </p>
       </div>
       <div className="blk-frame mt-2">
-        <div key={card.id} className="blk animate-[fade-in_200ms] bg-cream px-4 py-3.5 text-ink">
-          <p className="text-[12px] text-ink-subtle">{card.title}</p>
+        <div key={card.id} className="blk animate-fade bg-card-raised px-4 py-3.5 text-ink">
+          <p className="text-meta text-ink-subtle">{card.title}</p>
           <div className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-1">
             <SpeakerTag>{card.partnerName}</SpeakerTag>
-            <p className="font-line text-[18px] leading-snug">{card.partnerLine}</p>
+            <p className="font-line text-title leading-snug">{card.partnerLine}</p>
             <SpeakerTag me>나</SpeakerTag>
-            <p className="justify-self-start border border-dashed border-paper-subtle px-2.5 py-1.5 text-[16px] font-semibold leading-snug">{card.intent}</p>
+            <p className="justify-self-start border border-dashed border-fg-subtle px-2.5 py-1.5 text-body font-semibold leading-snug">{card.intent}</p>
           </div>
           {!revealed ? (
             // 묻는 말과 확인 버튼이 같은 행동이라 한 줄에 둔다. 질문은 왼쪽, 답을 여는 버튼은 오른쪽
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-ink/10 pt-3">
-              <p className="text-[15px] font-bold">영어로 뭐라고 할까?</p>
-              <BlockButton onClick={() => setRevealed(true)} reading className="shrink-0" faceClassName="px-4 py-2 text-[15px] font-bold">
+              <p className="text-ui font-bold">영어로 뭐라고 할까?</p>
+              <BlockButton onClick={() => setRevealed(true)} reading className="shrink-0" faceClassName="px-4 py-2 text-ui font-bold">
                 정답 보기
               </BlockButton>
             </div>
           ) : (
-            <div className="mt-3 animate-[fade-in_200ms]">
+            <div className="mt-3 animate-fade">
               <p className="flex items-start gap-2">
                 <span className="mt-1">
                   <Mark good />
                 </span>
                 <span className="min-w-0">
-                  <span className="block font-line text-[20px] leading-snug">{card.right.line}</span>
-                  <span className="mt-0.5 block text-[13px] text-ink-subtle">{card.right.meaning}</span>
+                  <span className="block font-line text-say leading-snug">{card.right.line}</span>
+                  <span className="mt-0.5 block text-meta text-ink-subtle">{card.right.meaning}</span>
                 </span>
               </p>
-              <p className="mt-1.5 flex items-center gap-2 text-[13px] text-ink-subtle">
+              <p className="mt-1.5 flex items-center gap-2 text-meta text-ink-subtle">
                 <Mark good={false} />
                 <span className="shrink-0">지난번 내가 고른 말</span>
                 <s className="min-w-0 truncate decoration-rust decoration-2">{card.mine.line}</s>
               </p>
-              <p className="mt-3.5 text-[14px] leading-relaxed text-ink-muted">{card.why}</p>
+              <p className="mt-3.5 text-note leading-relaxed text-ink-muted">{card.why}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <BlockButton onClick={() => next(false)} reading faceClassName="py-3 text-center text-[16px] font-bold">
+                <BlockButton onClick={() => next(false)} reading faceClassName="py-3 text-center text-body font-bold">
                   몰랐어요
                 </BlockButton>
-                <BlockButton primary onClick={() => next(true)} reading faceClassName="py-3 text-center text-[16px] font-bold">
+                <BlockButton onClick={() => next(true)} reading faceClassName="py-3 text-center text-body font-bold">
                   떠올렸어요
                 </BlockButton>
               </div>
