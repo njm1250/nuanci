@@ -328,7 +328,7 @@ export function PixelStage({
         <div key={key} className="blk-frame-sm animate-fade">
           <div
             ref={(el) => void (slots.current[who].bubble = el)}
-            className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-line text-note leading-snug text-ink break-keep"
+            className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-stage text-note leading-snug text-ink break-keep"
           >
             {text}
           </div>

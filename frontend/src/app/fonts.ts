@@ -7,4 +7,7 @@ const pangolin = localFont({ src: "./fonts/pangolin-line.woff2", weight: "400", 
 const poster = localFont({ src: "./fonts/poster.woff2", weight: "400", display: "swap", variable: "--font-black-han-sans", preload: false, adjustFontFallback: false });
 const scrawl = localFont({ src: "./fonts/scrawl.woff2", weight: "400", display: "swap", variable: "--font-nanum-pen", preload: false, adjustFontFallback: false });
 
-export const fontVariables = [text, pangolin, poster, scrawl].map((f) => f.variable).join(" ");
+// 무대 말풍선에만 쓰는 픽셀 글꼴. 무대가 있는 화면에서만 받는다
+const stage = localFont({ src: "../../node_modules/galmuri/dist/Galmuri14.woff2", weight: "400", display: "swap", variable: "--font-galmuri", preload: false, adjustFontFallback: false });
+
+export const fontVariables = [text, pangolin, poster, scrawl, stage].map((f) => f.variable).join(" ");
