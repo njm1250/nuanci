@@ -21,7 +21,7 @@ import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
 import { Num, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
-import { markPlayed, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
+import { markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 import { TrapChip, BURSTS, SoundToggle, Question, MochiAsk, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
@@ -239,6 +239,21 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
       { duration: 280, delay: 60, easing: "ease-out" },
     );
   };
+
+  // 홈에서 보기를 바로 고르고 들어오면(주소의 pick) 대사 없이 그 답에 대한 반응부터 보여 준다. 홈에서 이미 고른 사람을 다시 기다리게 하지 않는다
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get(PICK_PARAM);
+    if (!id) return;
+    history.replaceState(null, "", location.pathname);
+    if (!scene.base.choices.some((c) => c.id === id)) return;
+    const t = window.setTimeout(() => {
+      setLeadAt((a) => ({ ...a, base: 99 }));
+      send({ type: "lead_finished", step: "base", choiceId: "home_pick" });
+      f.pick(id);
+    }, 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 고른 말에 맞춰 소리를 낸다
   const play = (c: Choice) => {

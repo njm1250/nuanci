@@ -12,6 +12,8 @@ const VISITOR_KEY = "nuanci.visitor";
 const ENTRY_KEY = "nuanci.entry";
 const PLAYED_KEY = "nuanci.played";
 export const SHARE_PARAM = "s";
+// 홈에서 보기를 바로 고르고 들어올 때 고른 보기 id를 싣는 주소 꼬리표
+export const PICK_PARAM = "pick";
 // 공유 링크로 연 장면이면 링크 주인의 공유 코드를 남겨 둔다. 그 장면을 끝낼 때 보상 서버에 함께 보낸다
 export const VIA_KEY = "nuanci.via";
 let fallbackVisitor: string | null = null;
