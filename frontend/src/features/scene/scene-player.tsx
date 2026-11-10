@@ -26,6 +26,7 @@ import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 import { TrapChip, BURSTS, SoundToggle, Question, MochiAsk, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, BeatLog, LeadRecap } from "./beat-log";
+import { noteLeadSkipped, noteLeadWatched, useStartAtQuestion } from "./lead-pref";
 
 preloadStage();
 
@@ -89,7 +90,9 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   const [recover, setRecover] = useState<Beat | null>(null);
   const lead = step === "followUp" && recover ? [recover, ...(situation.lead ?? [])] : (situation.lead ?? []);
   const [leadAt, setLeadAt] = useState({ base: 0, followUp: 0 });
-  const leadIdx = leadAt[step];
+  // 건너뛰기를 거듭한 사람은 대사 없이 질문부터 시작한다. 검수 화면에서는 늘 대사부터 본다
+  const startAtQuestion = useStartAtQuestion() && !preview;
+  const leadIdx = startAtQuestion ? lead.length : leadAt[step];
   // 영어와 번역을 천천히 읽고 싶은 사람은 자동 넘김을 멈추고 직접 넘길 수 있다
   const [autoPaused, setAutoPaused] = useState(false);
   const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
@@ -102,13 +105,22 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
   // 대사가 끝날 때 끝까지 봤는지(저절로 흐르거나 눌러 넘김) 건너뛰었는지 한 번 남긴다. 대사 도중에 나가는지 보려는 것이다
   const lastBeat = leadIdx + 1 >= lead.length;
   const nextBeat = () => {
-    if (lastBeat) send({ type: "lead_finished", step, choiceId: "watched" });
+    if (lastBeat) {
+      send({ type: "lead_finished", step, choiceId: "watched" });
+      noteLeadWatched();
+    }
     setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
   };
   const skipLead = () => {
     send({ type: "lead_finished", step, choiceId: "skipped" });
+    noteLeadSkipped();
     setLeadAt((a) => ({ ...a, [step]: lead.length }));
   };
+  // 대사 없이 시작한 장면도 지표에 남겨서, 몇 명이 바로 고르는 쪽에 자리 잡았는지 센다
+  const leadCount = lead.length;
+  useEffect(() => {
+    if (startAtQuestion && leadCount > 0 && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "auto_skipped" });
+  }, [startAtQuestion, leadCount, preview, scene.id, scene.version, attemptId, step]);
   useEffect(() => {
     if (beat) sfx.blip(beat.line === "……" ? "narration" : beat.who);
   }, [beat]);
@@ -123,6 +135,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
     if (!beat || autoPaused) return;
     const t = window.setTimeout(() => {
       if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
+      if (lastBeat) noteLeadWatched();
       setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
     }, beatMs(beat));
     return () => clearTimeout(t);
@@ -429,7 +442,7 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
             // 고르는 동안 질문이 계속 보이고, 작은 폰(375×667)에서도 선택지 세 개가 스크롤 없이 들어오게 높이를 맞춘다
             <div key={`ask-${phase}`}>
               <p className="text-note leading-normal text-fg-muted">{situation.context}</p>
-              {lead.length > 0 && <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />}
+              {lead.length > 0 && <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} onOpen={noteLeadWatched} />}
               <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} className="mt-2.5 animate-rise" />
               {/* 대사를 영상처럼 보던 사람도 지금 고를 차례라는 걸 알게, 메뉴처럼 Mochi가 말풍선으로 묻는다 */}
               <MochiAsk className="mt-3 animate-rise [animation-delay:200ms]">너라면 뭐라고 할래?</MochiAsk>
@@ -524,17 +537,18 @@ function SceneRun({ scene: original, order = [], teaser = null, preview = false 
               />
             )}
             {leading ? (
-              // 대사는 저절로 넘어가고, 메인 버튼(과 무대)을 누르면 바로 다음 줄로, 이미 본 장면이면 옆의 건너뛰기로 바로 질문에 간다
-              <div className="flex items-center gap-2">
+              // 대사는 저절로 넘어가고, 다음(과 무대)을 누르면 바로 다음 줄로, 건너뛰기로 바로 질문에 간다.
+              // 보고 싶은 사람과 바로 고르고 싶은 사람이 갈려서 두 버튼을 같은 크기로 둔다
+              <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
                 {/* 대사는 저절로 넘어가니 "다음"은 재촉하는 보조 버튼이다. 대사보다 눈에 띄지 않게 흰 칸으로 둔다 */}
-                <BlockButton onClick={nextBeat} reading className="flex-1" faceClassName="py-3 text-center text-body font-bold">
+                <BlockButton onClick={nextBeat} reading faceClassName="py-3 text-center text-body font-bold">
                   다음
+                </BlockButton>
+                <BlockButton onClick={skipLead} faceClassName="py-3 text-center text-body font-bold">
+                  바로 고르기
                 </BlockButton>
                 <button type="button" onClick={() => setAutoPaused((v) => !v)} aria-pressed={autoPaused} className="min-h-11 shrink-0 px-2 font-label text-ui text-fg-muted hover:text-fg">
                   {autoPaused ? "자동 켜기" : "자동 멈춤"}
-                </button>
-                <button type="button" onClick={skipLead} className="min-h-11 shrink-0 px-3 font-label text-ui text-fg-muted hover:text-fg">
-                  건너뛰기
                 </button>
               </div>
             ) : phase === "transition" ? (

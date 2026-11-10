@@ -103,9 +103,6 @@ export default async function Home() {
               골라 보면 알아요
             </p>
             <p className="text-body leading-relaxed text-fg-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
-            <Link href="/test" className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-ui font-semibold text-fg underline decoration-fg/30 underline-offset-4 min-[960px]:hidden">
-              유형 테스트 먼저 해 보기 →
-            </Link>
           </div>
 
           <div className="order-4 sticky bottom-0 z-10 max-w-none border-t border-fg/20 bg-ink px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 min-[960px]:static min-[960px]:col-start-2 min-[960px]:row-start-2 min-[960px]:max-w-[440px] min-[960px]:self-start min-[960px]:border-0 min-[960px]:px-0 min-[960px]:pb-0 min-[960px]:pt-6">
