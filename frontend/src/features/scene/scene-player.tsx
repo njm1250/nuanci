@@ -12,7 +12,7 @@ import { playStreak, useStreakMoment } from "@/features/streak/streak";
 // 다만 페이지 묶음에는 넣지 않아서, 받는 동안에도 글자와 선택지는 먼저 그려지고 누를 수 있다
 import { preloadStage, Stage } from "@/features/stage/stage";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
-import { BlockButton, BlockLink, Panel } from "./block-ui";
+import { BlockButton, BlockLink, Panel, SpeakerTag } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
 import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
@@ -456,7 +456,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} className={MOCHI_TUCK_LIFT} />}
               {beat && <BeatDots total={lead.length} at={leadIdx} />}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
-              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} className={STAGE_TUCK_LIFT} />}
+              {/* 모바일은 무대 위 자막으로 읽고, 데스크톱은 오른쪽 칸이 지금 대사를 크게 보여 줘서 무대 자막은 뺀다 */}
+              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} className={`${STAGE_TUCK_LIFT} md:hidden`} />}
               {/* 두 번째 말부터는 무대가 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/60">
@@ -537,9 +538,29 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               onNext={() => send({ type: "next_clicked" })}
             />
           ) : leading ? (
-            // 대사는 무대 말풍선과 자막으로만 흐른다. 아래에는 상황 한 줄만 두고, 어디를 눌러도 다음 줄로 넘어간다
+            // 모바일은 대사가 무대 말풍선과 자막으로만 흐르고, 아래에는 상황 한 줄만 둔다.
+            // 데스크톱은 오른쪽 칸이 비어 시선이 갈리지 않게, 지금 흐르는 대사 한 줄을 대본처럼 크게 띄운다. 어디를 눌러도 다음 줄로 넘어간다
             <div key={`lead-${phase}`} className="min-h-full cursor-pointer">
               <p className="text-note leading-normal text-fg-muted">{situation.context}</p>
+              {beat && (
+                <div key={`script-${leadIdx}`} className="mt-8 hidden animate-rise md:block">
+                  <div className="flex items-center gap-2.5">
+                    {/* 상황 묘사 줄("……")은 누가 한 말이 아니라서 이름표를 달지 않는다 */}
+                    {beat.line !== "……" && <SpeakerTag me={beat.who === "me"}>{beat.who === "partner" ? scene.partnerName : beat.who === "me" ? "나" : "Mochi"}</SpeakerTag>}
+                    <span className="text-meta tabular-nums text-fg-subtle">
+                      {leadIdx + 1} / {lead.length}
+                    </span>
+                  </div>
+                  {beat.line === "……" ? (
+                    <p className="mt-3 text-title leading-snug text-fg-muted">{beat.meaning}</p>
+                  ) : (
+                    <>
+                      <p className="mt-3 font-line text-display-sm leading-snug text-fg">{beat.line}</p>
+                      {translate && <p className="mt-2 text-body leading-relaxed text-fg-muted">{beat.meaning}</p>}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           ) : !choice ? (
             // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.
