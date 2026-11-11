@@ -325,7 +325,8 @@ export function PixelStage({
   const { box, dpr } = usePixelDpr();
   const { widths, heights, observer } = useBubbleWidths();
 
-  // think는 생각 풍선. 꼬리를 뾰족하게 잇지 않고 떨어진 점 두 개로 둬서(상상 풍선과 같은 꼴) 소리 내지 않은 말로 읽힌다
+  // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 한눈에 갈리게 둥근 모서리, 옅은 회청색 바탕, 떨어진 점 두 개 꼬리로 그린다.
+  // 무대 위 말풍선이라 밤 화면에서도 같은 색을 쓴다
   const bubble = (who: Who, text: React.ReactNode, key: string, think = false) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
       {text && (
@@ -333,7 +334,7 @@ export function PixelStage({
           <div className="blk-frame-sm">
             <div
               ref={(el) => void (slots.current[who].bubble = el)}
-              className={`blk absolute w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-stage text-note leading-snug text-ink break-keep ${think ? "bottom-[13px]" : "bottom-[9px]"}`}
+              className={`absolute w-max max-w-[13rem] px-2.5 py-1.5 font-stage text-note leading-snug break-keep ${think ? "bottom-[15px] rounded-[12px] bg-[var(--blue-100)] text-ink-fixed" : "blk bottom-[9px] bg-white text-ink"}`}
             >
               {text}
             </div>
@@ -346,8 +347,8 @@ export function PixelStage({
           </div>
           {think && (
             <>
-              <span aria-hidden className="absolute bottom-[5px] left-0 size-[6px] -translate-x-1/2 bg-white outline outline-2 outline-ink-fixed" />
-              <span aria-hidden className="absolute -bottom-[1px] left-[3px] size-[3px] bg-white outline outline-2 outline-ink-fixed" />
+              <span aria-hidden className="absolute bottom-[6px] left-0 size-[7px] -translate-x-1/2 rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
+              <span aria-hidden className="absolute -bottom-[1px] left-[4px] size-[4px] rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
             </>
           )}
         </div>

@@ -23,7 +23,7 @@ import { Num, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
 import { markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
-import { TrapChip, BURSTS, SoundToggle, Question, MochiAsk, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
+import { TrapChip, BURSTS, SoundToggle, MochiAsk, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
 import { spoken } from "@/features/collection/pairs";
@@ -516,11 +516,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
             </div>
           ) : (
             <div key={`result-${phase}`}>
-              {/* 답을 고르면 무대 말풍선이 내 말로 바뀌어서, 무엇에 대한 답이었는지 잊지 않게 상대 말과 하고 싶던 말을 남겨 둔다 */}
-              <Question name={scene.partnerName} line={situation.partnerLine} intent={situation.intent} />
+              {/* 상대 말과 하고 싶던 말은 무대와 카드의 도장 줄에 있어서 여기 다시 두지 않는다 */}
               {/* 다른 보기의 반응을 비교해 보는 게 이 화면에서 배우는 방법이라, 고를 때처럼 Mochi가 권한다 */}
               {/* 세 가지 말을 다 해 보는 게 이 화면의 놀이다. 몇 개를 들어 봤는지 같이 보여 준다 */}
-              <MochiAsk className="mt-3">
+              <MochiAsk>
                 {seenIds.length < situation.choices.length ? (
                   <>
                     다른 말도 해 볼래? <span className="tabular-nums text-ink-subtle">{seenIds.length}/{situation.choices.length}</span>

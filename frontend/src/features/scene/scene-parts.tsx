@@ -142,7 +142,7 @@ export function ResultBody({
   verdictKey?: number;
   share?: number;
 }) {
-  const heardAt = 500;
+  const heardAt = 300;
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
@@ -155,14 +155,9 @@ export function ResultBody({
             </span>
           )}
         </span>
-        {active && waiting ? (
-          <span aria-hidden className="mt-1.5 flex h-6 items-center gap-1 text-ink-subtle">
-            {[0, 1, 2].map((i) => (
-              <span key={i} className="size-1.5 animate-typing bg-current" style={{ animationDelay: `${i * 160}ms` }} />
-            ))}
-          </span>
-        ) : revealed ? (
-          <span key={verdictKey} className={`flex items-start gap-2 leading-[1.5] ${active ? "mt-1.5 animate-rise text-body font-bold text-ink" : "mt-1 text-note text-ink-muted"}`}>
+        {/* 지금 고른 말의 상대 반응은 무대 생각 풍선에 있어서 카드에는 다시 적지 않는다. 다른 보기는 비교하려고 반응을 남긴다 */}
+        {active ? null : revealed ? (
+          <span key={verdictKey} className="mt-1 flex items-start gap-2 text-note leading-[1.5] text-ink-muted">
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
