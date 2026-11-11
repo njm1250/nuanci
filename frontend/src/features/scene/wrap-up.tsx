@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { bookEntry, spoken } from "@/features/collection/pairs";
+import { bookEntry, quotedIntent, spoken } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Mascot } from "@/features/mascot/mascot";
 import { RewardIcon } from "@/features/rewards/reward-icon";
@@ -112,7 +112,9 @@ export function WrapUp({
             <span className="mr-1.5 align-middle font-label text-ui text-fg-muted">{nextAsk.partnerName}</span>
             {nextAsk.partnerLine}
           </p>
-          <p className="mt-1.5 text-body font-bold leading-snug text-fg">「{spoken(nextAsk.intent)}」 영어로 뭐라고 할래?</p>
+          <p className="mt-1.5 text-body font-bold leading-snug text-fg">
+            {quotedIntent(nextAsk.intent)} <span className="whitespace-nowrap">영어로 뭐라고 할래?</span>
+          </p>
           <ul className="mt-3 space-y-2.5">
             {nextAsk.choices.map((c, i) => (
               <li key={c.id}>
@@ -148,10 +150,10 @@ export function WrapUp({
         </div>
       </div>
 
-      {/* 방금 고른 답까지 반영한 "영어의 나" 한 줄. 진행 체계를 이것 하나로 모았다 */}
+      {/* 방금 고른 답까지 반영한 "내 영어 말투" 한 줄. 진행 체계를 이것 하나로 모았다 */}
       <Link href="/me" className="-mx-1 mt-3 flex min-h-11 items-center justify-between gap-3 px-1 hover:text-fg">
         <span className="min-w-0">
-          <span className="block text-meta text-fg-subtle">영어의 나</span>
+          <span className="block text-meta text-fg-subtle">내 영어 말투</span>
           <span className={`block text-ui ${voice.answered >= VOICE_MIN ? "font-bold text-fg" : "text-fg-muted"}`}>{voice.headline}</span>
         </span>
         <Arrow />

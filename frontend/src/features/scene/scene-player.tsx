@@ -46,6 +46,8 @@ const STAGE_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+0.5rem)]";
 const CUT_IN_MS = 1800;
 // 상대의 영어 겉말이 말풍선에 머무는 시간. 그 뒤 속마음 생각 풍선으로 바뀐다
 const SAYS_MS = 1600;
+// 겉말과 속마음 사이의 쉼. 펀치라인 앞의 한 박자가 웃음을 키운다(약 0.3~0.6초)
+const SAYS_BEAT = 350;
 // 고른 뒤 컷인이 뜨는 때. 효과음 글자가 터지는 순간(약 0.4초)에 맞춘다
 const CUT_IN_AT = 350;
 const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
@@ -68,7 +70,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const [attemptId] = useState(uuid);
   const send = (e: Omit<TrackEvent, "sceneId" | "sceneVersion" | "attemptId">) => {
     if (preview) return;
-    // 질문마다 첫 답이 어떤 함정에 걸렸는지 "영어의 나"에 모은다
+    // 질문마다 첫 답이 어떤 함정에 걸렸는지 "내 영어 말투"에 모은다
     if (e.type === "choice_selected" && e.step && e.choiceId) {
       const trap = (e.step === "base" ? scene.base : scene.followUp).choices.find((c) => c.id === e.choiceId)?.trap;
       recordVoice(scene.id, e.step, trap);
@@ -228,10 +230,18 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const hasSays = Boolean(stageChoice?.says);
   useEffect(() => {
     if (!partnerReacts || !hasSays) return;
-    const t = window.setTimeout(() => setThoughtKey(stageKey), SAYS_MS);
+    const t = window.setTimeout(() => setThoughtKey(stageKey), SAYS_MS + SAYS_BEAT);
     return () => clearTimeout(t);
   }, [partnerReacts, hasSays, stageKey]);
   const speaking = partnerReacts && hasSays && thoughtKey !== stageKey;
+  // 겉말이 내려간 뒤 속마음이 뜨기 전 한 박자. 이때는 반응 기호만 남아 펀치라인 앞의 쉼이 된다
+  const [beatKey, setBeatKey] = useState<number | null>(null);
+  useEffect(() => {
+    if (!partnerReacts || !hasSays) return;
+    const t = window.setTimeout(() => setBeatKey(stageKey), SAYS_MS);
+    return () => clearTimeout(t);
+  }, [partnerReacts, hasSays, stageKey]);
+  const pausing = speaking && beatKey === stageKey;
   // 오해가 터지는 말(효과음이 "헉!"·"엥?" 쪽인 반응)에만, 효과음이 터지는 순간 상대 얼굴 컷인을 한 번 띄웠다가 내린다.
   // 웃긴 건 놀란 얼굴이라 평온한 반응에는 띄우지 않는다. 동작 줄이기 설정이면 띄우지 않는다
   const shocked = Boolean(stageChoice && BURSTS[stageChoice.expression].bad) && !endingOn && !beat && !wrapped && phase !== "transition" && !reduced;
@@ -436,7 +446,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                         phase === "transition" && scene.followUp.lead?.length
                         ? undefined
                         : stageSituation.partnerLine,
-                  partnerSpeaks: speaking ? stageChoice?.says : undefined,
+                  partnerSpeaks: speaking && !pausing ? stageChoice?.says : undefined,
                   partnerSays: partnerReacts && !speaking ? stageChoice?.reaction : undefined,
                   meTurn: phase !== "transition" && !choice && !beat,
                   meThink: spoken(stageSituation.intent),
@@ -450,7 +460,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {/* 두 번째 말부터는 무대가 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/60">
-                  <span className="font-poster text-display text-white">◀◀</span>
+                  <svg width="64" height="32" viewBox="0 0 16 8" shapeRendering="crispEdges" className="fill-white">
+                    <path d="M7 0h1v8H7V7H6V6H5V5H4V3h1V2h1V1h1zM15 0h1v8h-1V7h-1V6h-1V5h-1V3h1V2h1V1h1z" />
+                  </svg>
                 </div>
               )}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} className={MOCHI_TUCK_LIFT} />}
@@ -601,7 +613,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                 </button>
                                 <span className="flex flex-col items-end gap-1">
                                   {cardRevealed && <VerdictNote choice={c} />}
-                                  {(c.id === pickedId || shareOf(c) !== undefined) && <PickMeta mine={c.id === pickedId} share={shareOf(c)} className="justify-end" />}
+                                  {(c.id === pickedId || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} share={shareOf(c)} className="justify-end" />}
                                 </span>
                               </span>
                             </span>

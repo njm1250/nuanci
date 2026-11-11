@@ -632,7 +632,7 @@ export function SceneShelf({
           {FEATURES.rewards && <NextGoal />}
         </div>
         <div className="order-4 mt-6 lg:mt-0">
-          {/* 오늘의 목표는 연속 기록과 복습으로 이뤄져서, 둘을 닫아 둔 동안에는 "영어의 나" 카드가 그 자리를 맡는다 */}
+          {/* 오늘의 목표는 연속 기록과 복습으로 이뤄져서, 둘을 닫아 둔 동안에는 "내 영어 말투" 카드가 그 자리를 맡는다 */}
           {FEATURES.streak ? <TodayGoals /> : <VoiceCard compact />}
         </div>
         {FEATURES.review && reviewAfter && <ReviewToday className="order-3 mt-8 lg:mt-0" />}

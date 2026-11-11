@@ -6,7 +6,7 @@ import { SpeakerTag } from "./block-ui";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
-import { spoken } from "@/features/collection/pairs";
+import { quotedIntent } from "@/features/collection/pairs";
 import { heardAs, Num, StakesNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
@@ -170,7 +170,7 @@ export function ResultBody({
         {/* 지금 고른 말의 주인공 줄: 하고 싶던 말이 어떤 느낌으로 들렸는지. 웃음(반응)이 먼저 오고 설명은 한 박자 뒤에 온다 */}
         {active && !waiting && intent && (
           <span key={`heard-${verdictKey}`} className="mt-3 flex animate-fade flex-wrap items-center gap-x-2 gap-y-1.5" style={{ animationDelay: `${heardAt}ms` }}>
-            <span className="text-note text-ink-muted">「{spoken(intent)}」</span>
+            <span className="text-note text-ink-muted">{quotedIntent(intent)}</span>
             <span aria-hidden className="text-note text-ink-subtle">→</span>
             <VerdictStamp choice={choice} pop delay={heardAt} />
           </span>
@@ -186,7 +186,7 @@ export function ResultBody({
             {choice.why}
           </span>
         )}
-        {meta && revealed && (mine || share !== undefined) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
+        {meta && revealed && (mine || (share ?? 0) > 0) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
       </span>
     </span>
   );
@@ -198,7 +198,8 @@ export function PickMeta({ mine, share, className = "" }: { mine: boolean; share
   return (
     <span className={`flex flex-wrap items-center gap-x-1.5 text-meta tabular-nums text-ink-subtle ${className}`}>
       {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
-      {share !== undefined && <span>첫 답으로 {share}%가 골랐어요</span>}
+      {/* 0%는 새로 넣어 아직 아무도 못 본 보기일 수 있어서 적지 않는다 */}
+      {share !== undefined && share > 0 && <span>첫 답으로 {share}%가 골랐어요</span>}
     </span>
   );
 }

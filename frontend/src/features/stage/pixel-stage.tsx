@@ -406,8 +406,9 @@ export function PixelStage({
           </div>
           {think && (
             <>
-              <span aria-hidden className="absolute bottom-[6px] left-0 size-[7px] -translate-x-1/2 rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
-              <span aria-hidden className="absolute -bottom-[1px] left-[4px] size-[4px] rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
+              <span aria-hidden className="absolute bottom-[7px] left-0 size-[7px] -translate-x-1/2 rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
+              <span aria-hidden className="absolute bottom-[1px] left-[3px] size-[5px] rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
+              <span aria-hidden className="absolute -bottom-[4px] left-[7px] size-[3px] rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
             </>
           )}
         </div>

@@ -13,7 +13,7 @@ const ALL_ITEMS = [
   { href: "/expressions", title: "표현 모음", desc: "해 본 장면의 표현 복습", reply: "그 말, 이번엔 써먹어 봐", on: true },
   { href: "/test", title: "유형 테스트", desc: "내 영어 사고 유형 찾기", reply: "넌 무슨 유형이려나~", on: FEATURES.typetest },
   { href: "/me/room", title: "아지트", desc: "옷 입히기 · 방 꾸미기", reply: "내 자리도 하나 만들어 줘", on: FEATURES.rewards },
-  { href: "/me", title: "영어의 나", desc: "내 영어가 어떻게 들리는 편인지 · 설정", reply: "넌 영어로 어떤 사람이야?", on: true },
+  { href: "/me", title: "내 영어 말투", desc: "내 영어가 어떻게 들리는지 · 설정", reply: "넌 영어로 어떻게 들려?", on: true },
 ];
 const ITEMS = ALL_ITEMS.filter((i) => i.on);
 

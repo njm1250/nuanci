@@ -27,3 +27,8 @@ export function spoken(intent: string) {
   const i = intent.lastIndexOf(" 하고 ");
   return i > 0 ? intent.slice(0, i) : intent;
 }
+
+// 하고 싶던 말을 화면에 옮길 때 쓴다. 따옴말이 있으면 「」로 감싸고, "~라고 알려 주고 싶다"처럼 서술만 있으면 따옴표 없이 문장 그대로 둔다
+export function quotedIntent(intent: string) {
+  return intent.lastIndexOf(" 하고 ") > 0 ? `「${spoken(intent)}」` : intent;
+}

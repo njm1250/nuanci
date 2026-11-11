@@ -1,3 +1,4 @@
+import { quotedIntent } from "@/features/collection/pairs";
 import { TRAP_LABELS, type Choice, type Verdict } from "./types";
 
 // 선택지 번호. 평소에는 테두리만 두고, 지금 고른 줄에만 먹색을 칠해 화면에서 먹색이 한 곳에만 남게 한다
@@ -43,13 +44,12 @@ export function VerdictStamp({ choice, pop = false, delay = 60 }: { choice: Choi
 const COUNT_WORDS = ["", "한", "두", "세", "네", "다섯", "여섯", "일곱"];
 
 export function HeardTrio({ intent, choices }: { intent: string; choices: Choice[] }) {
-  const said = intent.lastIndexOf(" 하고 ") > 0 ? intent.slice(0, intent.lastIndexOf(" 하고 ")) : intent;
   const count = COUNT_WORDS[choices.length] ?? String(choices.length);
   return (
     <div data-trio className="blk-frame blk-strong mt-3 scroll-mt-3 animate-rise">
       <div className="blk bg-card-raised px-4 py-3.5 text-ink">
-        <p className="text-note text-ink-muted">같은 마음, {count} 가지로 들림</p>
-        <p className="mt-0.5 text-body font-bold leading-snug">「{said}」</p>
+        <p className="text-note text-ink-muted">같은 마음도 {count} 가지로 들려요</p>
+        <p className="mt-0.5 text-body font-bold leading-snug">{quotedIntent(intent)}</p>
         <ul className="mt-3 space-y-2.5">
           {choices.map((c, i) => (
             <li key={c.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
@@ -67,8 +67,8 @@ export function HeardTrio({ intent, choices }: { intent: string; choices: Choice
 
 // 실제 대화에서 낼 사고의 크기. 모든 틀린 말이 큰 사고처럼 보이면 말하기가 무서워져서, 그냥 넘어가는 실수와 진짜 오해를 갈라 준다
 const STAKES = {
-  small: { dots: 1, text: "실제로는 대부분 알아듣고 넘어가요" },
-  big: { dots: 3, text: "실제로도 오해가 생길 수 있어요" },
+  small: { dots: 1, text: "대부분 알아듣고 넘어가요" },
+  big: { dots: 3, text: "진짜 오해가 생길 수 있어요" },
 } as const;
 
 export function StakesNote({ stakes }: { stakes: "small" | "big" }) {

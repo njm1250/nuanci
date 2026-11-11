@@ -18,7 +18,7 @@ function Arrow() {
   );
 }
 
-// 진행 체계 하나로 모은 "영어의 나" 카드. 사원증 모양은 그대로 두고, 직급 대신 내 영어가 상대에게 어떻게 들리는 편인지 적는다.
+// 진행 체계 하나로 모은 "내 영어 말투" 카드. 사원증 모양은 그대로 두고, 직급 대신 내 영어가 상대에게 어떻게 들리는 편인지 적는다.
 // compact는 재방문 홈 옆 칸에 두는 작은 판이고, 내 정보 화면에서는 숫자까지 다 보여 준다
 export function VoiceCard({ compact = false, name }: { compact?: boolean; name?: string }) {
   const voice = useVoice();
@@ -28,7 +28,7 @@ export function VoiceCard({ compact = false, name }: { compact?: boolean; name?:
     <Panel>
       <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-label text-ui text-fg">
         <span>
-          <span className="text-pink">nuanci</span> 영어의 나
+          <span className="text-pink">nuanci</span> 내 영어 말투
         </span>
         <span aria-hidden className="h-2 w-10 bg-fg/30" />
       </div>
@@ -45,13 +45,14 @@ export function VoiceCard({ compact = false, name }: { compact?: boolean; name?:
               <p className="mt-0.5 truncate text-body font-semibold">{name ?? "손님"}</p>
             </>
           )}
-          <p className={`${compact ? "" : "mt-3.5"} text-meta text-ink-subtle`}>영어로 들리는 나</p>
+          <p className={`${compact ? "" : "mt-3.5"} text-meta text-ink-subtle`}>지금까지 들린 느낌</p>
           <p className={`mt-0.5 font-bold leading-snug ${ready ? "text-title text-ink" : "text-body text-ink-muted"}`}>{voice.headline}</p>
           {ready && voice.top && <p className="mt-1 text-meta text-ink-subtle">가장 자주 걸린 함정 · {TRAP_LABELS[voice.top.trap]} {voice.top.count}번</p>}
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
-        <Stat label="의도대로 들린 답" value={voice.answered ? `${voice.clear}%` : "–"} />
+        {/* 퍼센트는 점수처럼 읽혀서, 몇 번 중 몇 번이었는지로 보여 준다 */}
+        <Stat label={voice.answered ? `${voice.answered}번 중 의도대로 들림` : "의도대로 들린 말"} value={voice.answered ? `${voice.good}번` : "–"} />
         <Stat label="해 본 장면" value={`${cleared.length}`} />
       </div>
       {compact ? (
