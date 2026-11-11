@@ -156,6 +156,43 @@ function Anchors({
   return null;
 }
 
+// 컷인 칸의 크기. 무대 너비에 대한 비율과 가로세로 비율(5:4). 화면의 테두리 칸(HTML)과 그리는 칸(WebGL)이 같은 값을 쓴다
+const CUT_W = 0.3;
+const CUT_EDGE = 8;
+// 컷인 카메라가 담는 세계 크기(가로 절반). 얼굴과 어깨 위가 들어온다
+const CUT_HALF = 0.62;
+
+// 반응 순간 상대 얼굴을 무대 구석의 작은 칸에 한 번 더 그린다(만화·격투 게임의 컷인). 본 무대는 당기지 않고 그대로 둔다.
+// 같은 장면을 두 번째 카메라로 한 번 더 그려서 WebGL 컨텍스트를 하나만 쓴다. 우선순위를 주면 기본 그리기를 이 함수가 맡는다
+function CutIn({ target, on }: { target: THREE.Vector3; on: boolean }) {
+  const cam = useMemo(() => new THREE.OrthographicCamera(-CUT_HALF, CUT_HALF, CUT_HALF * 0.8, -CUT_HALF * 0.8, 0.1, 50), []);
+  useFrame(({ gl, scene, camera, size }) => {
+    gl.setScissorTest(false);
+    gl.setViewport(0, 0, size.width, size.height);
+    gl.render(scene, camera);
+    if (!on) return;
+    const w = Math.round(size.width * CUT_W);
+    const h = Math.round(w * 0.8);
+    // WebGL 좌표는 왼쪽 아래가 원점이라, 화면 왼쪽 위 칸은 y를 위에서부터 거꾸로 센다
+    const x = CUT_EDGE;
+    const y = size.height - h - CUT_EDGE;
+    cam.position.set(target.x, target.y - 0.32, 10);
+    cam.lookAt(target.x, target.y - 0.32, 0);
+    cam.updateProjectionMatrix();
+    const clear = gl.autoClear;
+    gl.autoClear = false;
+    gl.setScissorTest(true);
+    gl.setScissor(x, y, w, h);
+    gl.setViewport(x, y, w, h);
+    gl.clear();
+    gl.render(scene, cam);
+    gl.setScissorTest(false);
+    gl.setViewport(0, 0, size.width, size.height);
+    gl.autoClear = clear;
+  }, 1);
+  return null;
+}
+
 // 움직이는 동안 초당 30번만 다시 그린다. 가로 200픽셀짜리 픽셀 무대라 60번은 필요 없고, 그만큼 메인 스레드가 쉰다
 const FPS = 30;
 
@@ -224,6 +261,8 @@ export type StageState = {
   meTurn?: boolean;
   // 내가 고를 차례에 내 머리 위 생각 풍선에 띄우는 속마음(하고 싶은 말). 없으면 점 세 개로 차례만 알린다
   meThink?: string;
+  // 켜면 무대 왼쪽 위 작은 칸에 상대 얼굴을 크게 한 번 더 보여 준다(컷인)
+  cutIn?: boolean;
 };
 
 // 하늘이 벽 자리에 오는 바깥 세트. 걸레받이를 그리지 않는다
@@ -371,6 +410,7 @@ export function PixelStage({
         {onSnapshot && <Snapshot key={snapshotKey} onSnapshot={onSnapshot} />}
         {busy && !paused && <Ticker />}
         {state && <Anchors targets={targets} slots={slots} widths={widths} heights={heights} observer={observer} />}
+        {state && <CutIn target={targets.partner} on={Boolean(state.cutIn)} />}
         <ambientLight intensity={evening ? 1.7 : 2.1} />
         <directionalLight position={[-3, 4, 6]} intensity={evening ? 0.9 : 1.2} />
 
@@ -404,6 +444,13 @@ export function PixelStage({
         </group>
       </Canvas>
 
+      {state?.cutIn && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute animate-pop outline outline-2 outline-ink-fixed"
+          style={{ left: CUT_EDGE, top: CUT_EDGE, width: `${CUT_W * 100}%`, aspectRatio: "5 / 4" }}
+        />
+      )}
       {state && (
         <div className={`pointer-events-none absolute inset-0 ${ink}`}>
           {state.meNote

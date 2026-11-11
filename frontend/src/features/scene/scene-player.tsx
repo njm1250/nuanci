@@ -37,6 +37,15 @@ preloadStage();
 
 const NO_REWARDS: ReturnType<typeof usePendingRewards> = [];
 
+// 모바일 무대 높이와, 아래 글 칸이 무대 바닥을 덮는 깊이. 고르는 칸(질문·보기 셋)이 작은 폰에서도 한 화면에 들어오게 화면 높이에서 빼서 정하고,
+// 덮는 깊이는 인물 발밑(무대 가운데에서 약 100px 아래)을 넘지 않게 무대 높이의 절반에서 110px을 뺀다
+const STAGE_VARS = { "--stage-h": "max(36dvh, min(58dvh, 100dvh - 26rem))", "--stage-tuck": "max(0px, min(29dvh, 50dvh - 13rem) - 110px)" } as React.CSSProperties;
+const STAGE_TUCK = "max-md:-mt-[var(--stage-tuck)]";
+const STAGE_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+0.5rem)]";
+// 얼굴 컷인이 떠 있는 시간
+const CUT_IN_MS = 1800;
+const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
+
 
 // teaser는 다음 장면 예고. 페이지가 서버에서 만들어 넘겨서 브라우저가 다음 장면 본문을 받지 않는다
 // nextAsk는 다음 장면의 첫 질문. 완료 화면 아래로 밀려 올라와서, 고르면 그 답을 든 채 다음 장면에 들어간다
@@ -210,6 +219,14 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const partnerReacts = reactWait !== null && reactedKey === stageKey;
   // 결과 카드는 무대에서 상대가 반응하는 순간에 같이 채운다. 그 전에는 고른 말만 보이고 판정 색도 깔지 않는다
   const cardRevealed = reduced || partnerReacts;
+  // 상대가 반응하는 순간 얼굴 컷인을 한 번 띄웠다가 내린다. 계속 떠 있으면 무대를 가린다
+  const [cutDoneKey, setCutDoneKey] = useState<number | null>(null);
+  useEffect(() => {
+    if (!partnerReacts) return;
+    const t = window.setTimeout(() => setCutDoneKey(stageKey), CUT_IN_MS);
+    return () => clearTimeout(t);
+  }, [partnerReacts, stageKey]);
+  const cutIn = partnerReacts && cutDoneKey !== stageKey && phase !== "transition";
 
   // 팡파르(와 연속 기록 줄)가 끝나고 새 물건 카드가 들어올 때 주인공도 무대에서 그 물건을 받는다. 잠깐 보여준 뒤 엔딩으로 돌아간다
   const prize = stagePrize(granted);
@@ -336,7 +353,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   return (
     <div className="flex min-h-dvh justify-center overflow-x-clip bg-page break-keep text-ink">
       {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
-      <main className="relative flex h-dvh w-full max-w-[480px] flex-col bg-page md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] lg:max-w-[1360px] lg:grid-cols-[minmax(0,1.3fr)_minmax(440px,1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
+      <main style={STAGE_VARS} className="relative flex h-dvh w-full max-w-[480px] flex-col bg-page md:grid md:max-w-[1200px] md:grid-cols-[minmax(0,1fr)_minmax(480px,1.1fr)] lg:max-w-[1360px] lg:grid-cols-[minmax(0,1.3fr)_minmax(440px,1fr)] md:grid-rows-[auto_minmax(0,max-content)] md:content-start md:gap-x-10 md:px-8">
         {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
         <div className="shrink-0 md:contents">
         <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-label text-ui text-fg md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
@@ -365,7 +382,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
 
         <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:self-start md:bg-transparent md:pb-8 md:pt-6">
           <Panel>
-            <div className="relative aspect-[4/3] max-h-[36dvh] w-full overflow-hidden md:max-h-[calc(100dvh-10rem)]">
+            {/* 모바일 무대는 세로로 길게 둔다. 카메라 배율은 무대 너비로 정해져서 인물 크기는 그대로고 방이 위아래로 더 보인다.
+                무대 아래쪽 바닥은 아래 글 칸이 덮으며 올라온다(STAGE_TUCK). 데스크톱은 4:3 그대로다 */}
+            <div className="relative h-[var(--stage-h)] w-full overflow-hidden md:aspect-[4/3] md:h-auto md:max-h-[calc(100dvh-10rem)]">
               <Stage
                 spec={spec}
                 reduced={reduced}
@@ -403,22 +422,23 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   partnerSays: partnerReacts ? stageChoice?.reaction : undefined,
                   meTurn: phase !== "transition" && !choice && !beat,
                   meThink: spoken(stageSituation.intent),
+                  cutIn,
                 }}
               />
-              {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} />}
+              {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} className={MOCHI_TUCK_LIFT} />}
               {beat && <BeatDots total={lead.length} at={leadIdx} />}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
-              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} />}
+              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} className={STAGE_TUCK_LIFT} />}
               {/* 두 번째 말부터는 무대가 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/60">
                   <span className="font-poster text-display text-white">◀◀</span>
                 </div>
               )}
-              {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} />}
-              {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} />}
+              {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} className={MOCHI_TUCK_LIFT} />}
+              {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
               {later && !endingOn && !beat && (
-                <p className="absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-label text-ui leading-none text-fg">
+                <p className={`absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-label text-ui leading-none text-fg ${STAGE_TUCK_LIFT}`}>
                   {timeCue ?? (
                     <>
                       <span className="font-bold">만약에</span> {scene.followUp.to}
@@ -447,7 +467,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
         {/* 데스크톱 오른쪽 칸은 내용만큼만 길어지고, 짧으면 버튼을 무대 아래 끝선에 맞춘다. 화면보다 길어질 때만 글 영역이 스크롤된다 */}
         <div className="contents md:col-start-2 md:row-start-2 md:flex md:min-h-0 md:flex-col">
         {/* 데스크톱에서는 오른쪽 패널만 따로 스크롤된다. 위아래 끝을 흐리게 해서 더 있다는 걸 보여 주고, 스크롤바 자리를 미리 비워 글이 옆으로 밀리지 않게 한다 */}
-        <section ref={scroller} onClick={leading ? nextBeat : undefined} className="scroll-area min-h-0 flex-1 md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] overflow-y-auto overflow-x-hidden px-4 pb-8 pt-5 [mask-image:linear-gradient(to_bottom,transparent,#000_20px,#000_calc(100%-24px),transparent)] md:flex-initial">
+        <section
+          ref={scroller}
+          onClick={leading ? nextBeat : undefined}
+          className={`scroll-area relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden border-t-2 border-fg bg-page px-4 pb-8 pt-5 [mask-image:linear-gradient(to_bottom,#000_calc(100%-24px),transparent)] md:flex-initial md:border-t-0 md:bg-transparent md:px-1 md:pt-6 md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-32px),transparent)] ${STAGE_TUCK}`}
+        >
           {phase === "transition" && timeCue ? (
             <p key="time" className="animate-rise pt-6 text-center font-poster text-display-sm text-fg">
               {timeCue}…
