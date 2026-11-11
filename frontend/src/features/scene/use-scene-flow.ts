@@ -42,6 +42,7 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
     situation,
     choice,
     pickedId: phase === "transition" ? null : picked[step],
+    picked,
     seenIds: phase === "transition" ? [] : seen[step],
     reactionKey,
     done: phase === "followUp" && choice !== null,

@@ -12,6 +12,7 @@ import { SiteFooter } from "@/features/landing/site-footer";
 import { FeatureRows } from "@/features/landing/feature-rows";
 import { ReturningSync } from "@/features/landing/returning-sync";
 import { Suspense } from "react";
+import { FEATURES } from "@/features/site/lean";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
 
@@ -46,11 +47,11 @@ export default async function Home() {
       <SiteHeader
         left={
           // 테스트 입구는 머리줄에 작게 둔다. 첫 화면에서 첫 장면 버튼과 시선을 나눠 갖지 않게 한다
-          <Link href="/test" className="flex h-11 items-center truncate font-label text-ui text-fg-muted hover:text-fg">
+          FEATURES.typetest && <Link href="/test" className="flex h-11 items-center truncate font-label text-ui text-fg-muted hover:text-fg">
             유형 테스트
           </Link>
         }
-        right={<StreakChip />}
+        right={FEATURES.streak && <StreakChip />}
       />
       {/* 머리줄과 푸터 사이 전부가 이 화면의 본문이다. 스크린 리더가 "본문으로 건너뛰기"로 바로 올 수 있게 main 하나로 감싼다 */}
       <main className="flex flex-col">

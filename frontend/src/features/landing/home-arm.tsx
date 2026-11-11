@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { quotedIntent } from "@/features/collection/pairs";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { BlockLink } from "@/features/scene/block-ui";
 import { PICK_PARAM, visitorId } from "@/features/scene/track";
@@ -71,7 +72,7 @@ export function HeroAsk({ first, children }: { first: FirstPick | null; children
   return (
     <div className="pb-6 min-[960px]:pb-0">
       <p className="text-note leading-normal text-fg-muted">{first.context}</p>
-      <p className="mt-2 text-body font-bold leading-snug text-fg">「{first.intent}」 영어로 뭐라고 할래?</p>
+      <p className="mt-2 text-body font-bold leading-snug text-fg">{quotedIntent(first.intent)} 영어로 뭐라고 할래?</p>
       <ul className="mt-3 space-y-2.5">
         {first.choices.map((c, i) => (
           <li key={c.id}>

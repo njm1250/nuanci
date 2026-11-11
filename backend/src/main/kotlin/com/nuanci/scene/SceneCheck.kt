@@ -38,7 +38,8 @@ object SceneCheck {
 		val out = mutableListOf<String>()
 		for ((step, label) in STEPS) {
 			val choices = content.path(step).path("choices").toList()
-			if (choices.size != 3) out += "${label}: 선택지가 ${choices.size}개예요 (3개 권장)"
+			// 많이 풀리는 장면은 구경할 반응을 늘리려고 보기를 5~6개까지 둔다
+			if (choices.size !in 3..6) out += "${label}: 선택지가 ${choices.size}개예요 (3~6개 권장)"
 			val good = choices.filter { verdict(it) == "good" }
 			val others = choices.filter { verdict(it) != "good" }
 			if (good.isEmpty()) out += "${label}: 자연스러운 말이 없어요"

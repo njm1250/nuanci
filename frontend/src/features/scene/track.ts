@@ -109,10 +109,14 @@ export function watchEngagement(extra: Record<string, unknown> = {}) {
   return stop;
 }
 
+// 다시 온 사람인지 서버(proxy.ts)가 알 수 있게 남기는 쿠키. 이게 없으면 홈 주소에서 소개 화면 대신 첫 장면을 바로 보여 준다
+export const RETURNING_COOKIE = "nuanci_r";
+
 export function markPlayed() {
   try {
     localStorage.setItem(PLAYED_KEY, "1");
   } catch {}
+  document.cookie = `${RETURNING_COOKIE}=1; path=/; max-age=31536000; samesite=lax`;
   // layout의 인라인 스크립트는 새로고침할 때만 도니, 로고를 눌러 돌아와도 데모가 숨게 바로 붙인다
   document.documentElement.setAttribute("data-returning", "");
 }

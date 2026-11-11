@@ -2,6 +2,7 @@
 
 - 본문(Pretendard), 제목(Black Han Sans): 코드의 한글과 운영 장면의 한글 전부
 - 낙서(Nanum Pen Script): 정해진 문구 / 영어 대사(Pangolin): 대사에 쓰는 글자. 로고는 글꼴이 아니라 site/logo.ts의 도트 그림이다
+- 무대 말풍선(Galmuri14): 본문과 같은 글자. 원본은 550KB가 넘어서 통째로 넣으면 무대가 늦게 뜬다
 
 빠진 글자는 layout의 Pretendard 조각 CSS가 대신 보여 주므로 깨지지 않는다. 장면을 많이 올린 뒤 다시 실행하면 된다.
 @font-face는 src/app/fonts.ts의 next/font/local이 만든다.
@@ -76,6 +77,7 @@ def main():
         save(tmp / "text.ttf", everything, "text.woff2")
         save(tmp / "black-han.ttf", everything, "poster.woff2")
         save(tmp / "nanum-pen.ttf", set(SCRAWL), "scrawl.woff2")
+    save(FRONT / "node_modules/galmuri/dist/Galmuri14.ttf", everything, "stage.woff2")
     save(FRONT / "node_modules/@fontsource/pangolin/files/pangolin-latin-400-normal.woff2", ascii_chars | set(LINE_EXTRA), "pangolin-line.woff2")
 
 

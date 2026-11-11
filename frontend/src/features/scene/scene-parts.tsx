@@ -6,7 +6,8 @@ import { SpeakerTag } from "./block-ui";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
-import { Num, VerdictStamp } from "./verdict";
+import { quotedIntent } from "@/features/collection/pairs";
+import { heardAs, Num, StakesNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
@@ -123,7 +124,13 @@ export function ResultBody({
   verdictKey,
   share,
   meta = true,
+  intent,
+  waiting = false,
 }: {
+  // 지금 펼친 카드에서 "하고 싶던 말 → 들린 느낌" 줄을 만드는 데 쓴다
+  intent?: string;
+  // 무대에서 상대가 아직 반응하기 전. 반응·인상·해설을 비워 두고 무대에 눈이 가게 한다. 반응이 뜨면 인상과 해설은 한 박자 뒤에 온다
+  waiting?: boolean;
   // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
   meta?: boolean;
   choice: Choice;
@@ -135,19 +142,23 @@ export function ResultBody({
   verdictKey?: number;
   share?: number;
 }) {
+  // 반응은 무대가 먼저 보여 줬으니 도장은 카드가 채워지는 순간 찍고, 해설만 조금 뒤에 온다
+  const heardAt = 0;
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
           <span className="font-line text-say leading-snug">{choice.line}</span>
-          <span className="flex shrink-0 items-center gap-1.5 pt-1">
-            {showTrap && <TrapChip choice={choice} />}
-            {revealed && <VerdictStamp key={verdictKey} choice={choice} pop={active} />}
-          </span>
+          {showTrap && (
+            <span className="shrink-0 pt-1">
+              <TrapChip choice={choice} />
+            </span>
+          )}
         </span>
-        {revealed ? (
-          <span key={verdictKey} className={`flex items-start gap-2 leading-[1.5] ${active ? "mt-1.5 animate-rise [animation-delay:420ms] text-body font-bold text-ink" : "mt-1 text-note text-ink-muted"}`}>
+        {/* 지금 고른 말의 상대 반응은 무대 생각 풍선에 있어서 카드에는 다시 적지 않는다. 다른 보기는 비교하려고 반응을 남긴다 */}
+        {active ? null : revealed ? (
+          <span key={verdictKey} className="mt-1 flex items-start gap-2 text-note leading-[1.5] text-ink-muted">
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -156,20 +167,39 @@ export function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {/* 대사+반응을 한 덩어리로 진하게 묶고, 이유는 한 칸 떼어 한 톤 낮춘다 */}
-        {active && <span key={`why-${verdictKey}`} className="mt-3 block animate-fade [animation-delay:680ms] text-ui leading-[1.6] text-ink-muted">{choice.why}</span>}
-        {meta && revealed && (mine || share !== undefined) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
+        {/* 지금 고른 말의 주인공 줄: 하고 싶던 말이 어떤 느낌으로 들렸는지. 웃음(반응)이 먼저 오고 설명은 한 박자 뒤에 온다 */}
+        {active && !waiting && intent && (
+          <span key={`heard-${verdictKey}`} className="mt-3 flex animate-fade flex-wrap items-center gap-x-2 gap-y-1.5" style={{ animationDelay: `${heardAt}ms` }}>
+            <span className="text-note text-ink-muted">{quotedIntent(intent)}</span>
+            <span aria-hidden className="text-note text-ink-subtle">→</span>
+            <VerdictStamp choice={choice} pop delay={heardAt} />
+          </span>
+        )}
+        {active && !waiting && choice.stakes && (
+          <span key={`stakes-${verdictKey}`} className="mt-2 block animate-fade" style={{ animationDelay: `${heardAt + 150}ms` }}>
+            <StakesNote stakes={choice.stakes} />
+          </span>
+        )}
+        {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
+        {active && !waiting && (
+          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted" style={{ animationDelay: `${heardAt + 250}ms` }}>
+            {choice.why}
+          </span>
+        )}
+        {meta && revealed && (mine || (share ?? 0) > 0) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
       </span>
     </span>
   );
 }
+
 
 // 내가 고른 보기인지, 첫 답으로 몇 %가 골랐는지. 본문보다 두 단계 작고 흐리게 둔다
 export function PickMeta({ mine, share, className = "" }: { mine: boolean; share?: number; className?: string }) {
   return (
     <span className={`flex flex-wrap items-center gap-x-1.5 text-meta tabular-nums text-ink-subtle ${className}`}>
       {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
-      {share !== undefined && <span>첫 답으로 {share}%가 골랐어요</span>}
+      {/* 0%는 새로 넣어 아직 아무도 못 본 보기일 수 있어서 적지 않는다 */}
+      {share !== undefined && share > 0 && <span>첫 답으로 {share}%가 골랐어요</span>}
     </span>
   );
 }
