@@ -10,10 +10,9 @@ import { Figure, headTop } from "./figure";
 import { C, shade } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
 import { SETS } from "./sets";
+import { stagePixel } from "./stage-px";
 import type { PropId, StageSpec } from "./types";
 
-// 화면 크기와 상관없이 가로 픽셀 수를 고정해서 어떤 크기에서도 같은 도트 밀도로 보이게 한다
-const PIXELS_WIDE = 400;
 const EDGE = 8;
 const BUBBLE_MAX = 208;
 // 말풍선 아래 꼬리 자리. 말풍선 클래스의 bottom-[9px]와 같다
@@ -68,7 +67,7 @@ function usePixelDpr() {
       const width = entry.contentRect.width;
       if (width <= 0) return;
       const device = window.devicePixelRatio || 1;
-      setDpr(device / Math.max(1, Math.round((width * device) / PIXELS_WIDE)));
+      setDpr(1 / stagePixel(width, device));
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -104,19 +103,22 @@ function setStyle(el: HTMLElement, name: string, value: string | null) {
 }
 
 // 머리 위 3D 좌표를 화면 좌표로 옮기고, 말풍선은 화면 안에 들어오게 밀되 꼬리는 머리를 가리키게 한다.
-// 두 사람 말풍선이 함께 떠 있으면 두 머리 사이 중간에서 나눠 각자 자기 쪽 안에서만 펼쳐지게 한다
+// 두 사람 말풍선이 함께 떠 있으면 두 머리 사이 중간에서 나눠 각자 자기 쪽 안에서만 펼쳐지게 한다.
+// scale은 말풍선을 키운 배율. 말풍선 안쪽 치수(너비·높이·left)는 키우기 전 값이라, 화면 거리를 배율로 나눠서 맞춘다
 function Anchors({
   targets,
   slots,
   widths,
   heights,
   observer,
+  scale,
 }: {
   targets: Record<Who, THREE.Vector3>;
   slots: React.RefObject<Record<Who, Slot>>;
   widths: WeakMap<Element, number>;
   heights: WeakMap<Element, number>;
   observer: ResizeObserver | null;
+  scale: number;
 }) {
   const v = useRef(new THREE.Vector3());
   // 지금 너비를 재고 있는 말풍선. 말풍선이 바뀌면 예전 것은 그만 잰다
@@ -143,14 +145,14 @@ function Anchors({
       }
       if (!bubble) continue;
       const [from, to] = !both ? [EDGE, width - EDGE] : who === "me" ? [EDGE, mid - EDGE / 2] : [mid + EDGE / 2, width - EDGE];
-      setStyle(bubble, "max-width", both ? `${Math.floor(Math.min(to - from, BUBBLE_MAX))}px` : null);
+      setStyle(bubble, "max-width", both ? `${Math.floor(Math.min((to - from) / scale, BUBBLE_MAX))}px` : null);
       // 처음 뜬 말풍선은 아직 잰 너비가 없어서 한 번만 직접 잰다
       const w = widths.get(bubble) ?? bubble.offsetWidth;
       const x = xs[who];
-      setStyle(bubble, "left", `${Math.min(Math.max(-w / 2, from - x), to - x - w)}px`);
+      setStyle(bubble, "left", `${Math.min(Math.max(-w / 2, (from - x) / scale), (to - x) / scale - w)}px`);
       // 키 큰 캐릭터 위로 두 줄짜리 말풍선이 뜨면 무대 위로 잘리지 않게 아래로 내려 머리와 살짝 겹치게 둔다
-      const top = ys[who] - BUBBLE_GAP - (heights.get(bubble) ?? bubble.offsetHeight);
-      setStyle(bubble, "bottom", top < EDGE / 2 ? `${BUBBLE_GAP - (EDGE / 2 - top)}px` : null);
+      const top = ys[who] - (BUBBLE_GAP + (heights.get(bubble) ?? bubble.offsetHeight)) * scale;
+      setStyle(bubble, "bottom", top < EDGE / 2 ? `${BUBBLE_GAP - (EDGE / 2 - top) / scale}px` : null);
     }
   });
   return null;
@@ -170,7 +172,8 @@ export const CUT_MIN_WIDTH = 380;
 
 // 반응 순간 상대 얼굴을 무대 구석의 작은 칸에 한 번 더 그린다(만화·격투 게임의 컷인). 본 무대는 당기지 않고 그대로 둔다.
 // 같은 장면을 두 번째 카메라로 한 번 더 그려서 WebGL 컨텍스트를 하나만 쓴다. 우선순위를 주면 기본 그리기를 이 함수가 맡는다
-function CutIn({ target, on }: { target: THREE.Vector3; on: boolean }) {
+// low면 칸을 오른쪽 아래(바닥 쪽)에 둔다. 말풍선을 키운 넓은 무대에서는 상대 말풍선이 위쪽을 채워서 오른쪽 위에 두면 얼굴이 가린다
+function CutIn({ target, on, low }: { target: THREE.Vector3; on: boolean; low: boolean }) {
   const cam = useMemo(() => {
     const c = new THREE.OrthographicCamera(-CUT_HALF, CUT_HALF, CUT_HALF * 0.8, -CUT_HALF * 0.8, 0.1, 50);
     c.layers.set(CUT_LAYER);
@@ -189,7 +192,7 @@ function CutIn({ target, on }: { target: THREE.Vector3; on: boolean }) {
     const h = Math.round(w * 0.8);
     // WebGL 좌표는 왼쪽 아래가 원점이다. 칸은 상대가 서 있는 오른쪽 위에 둔다
     const x = size.width - w - CUT_EDGE;
-    const y = size.height - h - CUT_EDGE;
+    const y = low ? CUT_EDGE : size.height - h - CUT_EDGE;
     cam.position.set(target.x, target.y - 0.32, 10);
     cam.lookAt(target.x, target.y - 0.32, 0);
     cam.updateProjectionMatrix();
@@ -279,6 +282,8 @@ export type StageState = {
   meTurn?: boolean;
   // 내가 고를 차례에 내 머리 위 생각 풍선에 띄우는 속마음(하고 싶은 말). 없으면 점 세 개로 차례만 알린다
   meThink?: string;
+  // 보기 위에 마우스를 올리거나 키보드로 짚었을 때, 그 말을 속마음 아래에 미리 얹어 본다. 오른쪽 보기가 곧 내 캐릭터가 할 말이라는 걸 무대에서 바로 보여 준다
+  meTry?: string;
   // 켜면 무대 구석 작은 칸에 상대 얼굴을 크게 한 번 더 보여 준다(컷인)
   cutIn?: boolean;
   // 고른 말을 들은 상대가 입 밖으로 하는 영어 한마디(겉말). 반응 기호와 속마음보다 먼저 말풍선으로 띄운다
@@ -338,10 +343,13 @@ export function PixelStage({
   onSnapshot,
   snapshotKey,
   onPick,
+  bubbleScale = 1,
 }: {
   spec: StageSpec;
   state?: StageState;
   reduced?: boolean;
+  // 말풍선과 반응 기호를 키우는 배율. 넓은 무대에서 도트 크기만큼 주면 인물과 글자의 비율이 휴대폰 무대와 같아진다(stage-px.ts)
+  bubbleScale?: number;
   // 켜면 그리기를 멈춰 캐릭터 움직임까지 정지한다
   paused?: boolean;
   onSnapshot?: (url: string) => void;
@@ -383,12 +391,15 @@ export function PixelStage({
   const busy = useBusy(spec, state, reduced);
   const { box, dpr } = usePixelDpr();
   const { widths, heights, observer } = useBubbleWidths();
+  // 머리 위 기준점에서부터 키운다. 1배일 때는 스타일을 걸지 않아 휴대폰 무대는 전과 똑같이 그려진다
+  const scaled = bubbleScale === 1 ? undefined : { transform: `scale(${bubbleScale})` };
 
   // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 한눈에 갈리게 둥근 모서리, 옅은 회청색 바탕, 떨어진 점 두 개 꼬리로 그린다.
   // 무대 위 말풍선이라 밤 화면에서도 같은 색을 쓴다
   const bubble = (who: Who, text: React.ReactNode, key: string, think = false) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
       {text && (
+        <div style={scaled} className="origin-top-left">
         <div key={key} className="animate-fade">
           <div className="blk-frame-sm">
             <div
@@ -412,6 +423,7 @@ export function PixelStage({
             </>
           )}
         </div>
+        </div>
       )}
     </div>
   );
@@ -430,8 +442,8 @@ export function PixelStage({
         <Rig />
         {onSnapshot && <Snapshot key={snapshotKey} onSnapshot={onSnapshot} />}
         {busy && !paused && <Ticker />}
-        {state && <Anchors targets={targets} slots={slots} widths={widths} heights={heights} observer={observer} />}
-        {state && <CutIn target={targets.partner} on={Boolean(state.cutIn)} />}
+        {state && <Anchors targets={targets} slots={slots} widths={widths} heights={heights} observer={observer} scale={bubbleScale} />}
+        {state && <CutIn target={targets.partner} on={Boolean(state.cutIn)} low={bubbleScale > 1} />}
         <ambientLight intensity={evening ? 1.7 : 2.1} />
         <directionalLight position={[-3, 4, 6]} intensity={evening ? 0.9 : 1.2} />
 
@@ -469,7 +481,7 @@ export function PixelStage({
         <div
           aria-hidden
           className="pointer-events-none absolute animate-pop outline outline-2 outline-ink-fixed max-[379px]:hidden"
-          style={{ right: CUT_EDGE, top: CUT_EDGE, width: `${CUT_W * 100}%`, aspectRatio: "5 / 4" }}
+          style={{ right: CUT_EDGE, [bubbleScale > 1 ? "bottom" : "top"]: CUT_EDGE, width: `${CUT_W * 100}%`, aspectRatio: "5 / 4" }}
         />
       )}
       {state && (
@@ -479,7 +491,19 @@ export function PixelStage({
             : state.meLine
               ? bubble("me", state.meLine, state.meLine)
               : state.meTurn && state.meThink
-                ? bubble("me", <span aria-label={`내 속마음: ${state.meThink}`}>{state.meThink}</span>, `think-${state.meThink}`, true)
+                ? bubble(
+                    "me",
+                    <>
+                      <span aria-label={`내 속마음: ${state.meThink}`}>{state.meThink}</span>
+                      {state.meTry && (
+                        <span key={state.meTry} aria-hidden className="mt-1 block animate-fade border-t border-dashed border-ink-fixed/40 pt-1">
+                          {state.meTry}
+                        </span>
+                      )}
+                    </>,
+                    `think-${state.meThink}`,
+                    true,
+                  )
                 : bubble("me", state.meTurn ? <TypingDots /> : null, "turn")}
           {state.partnerSpeaks ? (
             bubble("partner", state.partnerSpeaks, `speaks-${state.partnerKey}`)
@@ -487,8 +511,10 @@ export function PixelStage({
             bubble("partner", <span aria-label={`상대 속마음: ${state.partnerSays}`}>{state.partnerSays}</span>, `says-${state.partnerKey}`, true)
           ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
-              <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-pop">
-                {symbol}
+              <div style={scaled} className="origin-top-left">
+                <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-pop">
+                  {symbol}
+                </div>
               </div>
             </div>
           ) : (

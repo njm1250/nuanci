@@ -9,11 +9,11 @@ export const PUNCH_AT = 2400;
 // 펀치라인을 읽을 시간. 새 물건은 그 뒤에 무대에 올라온다
 export const PUNCH_HOLD = 2200;
 
-// 무대 대사(빌드업·이음·펀치라인)의 한국어 자막. 무대 아래쪽에 붙인다
+// 무대 대사(빌드업·이음·펀치라인)의 한국어 자막. 무대 아래쪽에 붙인다. 무대가 넓은 데스크톱에서는 영화 자막처럼 한 단계 크게 쓴다
 export function Subtitle({ text, className = "" }: { text: string; className?: string }) {
   return (
-    <p className={`absolute inset-x-2 bottom-2 animate-fade text-center ${className}`}>
-      <span className="inline-block bg-ink px-2 py-1 font-label text-ui leading-snug text-fg">{text}</span>
+    <p className={`absolute inset-x-2 bottom-2 animate-fade text-center md:bottom-5 ${className}`}>
+      <span className="inline-block bg-ink px-2 py-1 font-label text-ui leading-snug text-fg md:px-3 md:py-1.5 md:text-title">{text}</span>
     </p>
   );
 }

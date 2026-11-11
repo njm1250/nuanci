@@ -11,6 +11,7 @@ import { playStreak, useStreakMoment } from "@/features/streak/streak";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 three.js를 이 파일을 읽자마자 받기 시작한다.
 // 다만 페이지 묶음에는 넣지 않아서, 받는 동안에도 글자와 선택지는 먼저 그려지고 누를 수 있다
 import { preloadStage, Stage } from "@/features/stage/stage";
+import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { shuffleChoices } from "./choice-order";
@@ -146,9 +147,12 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
     setAutoPaused(false);
   };
+  // 데스크톱에서는 "바로 고르기"가 있던 자리에 보기가 올라온다. 버튼을 연달아 눌러 첫 보기가 골라지지 않게, 건너뛴 직후 잠깐은 고르기를 받지 않는다
+  const pickAfter = useRef(0);
   const skipLead = () => {
     send({ type: "lead_finished", step, choiceId: "skipped" });
     noteLeadSkipped();
+    pickAfter.current = performance.now() + 450;
     setLeadAt((a) => ({ ...a, [step]: lead.length }));
   };
   // 대사 없이 시작한 장면도 지표에 남겨서, 몇 명이 바로 고르는 쪽에 자리 잡았는지 센다
@@ -323,7 +327,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
 
   // 고른 말에 맞춰 소리를 낸다
   const play = (c: Choice) => {
-    if (c.id === choice?.id) return;
+    if (c.id === choice?.id || performance.now() < pickAfter.current) return;
     sfx[c.verdict]();
     if (c.verdict === "bad") shake();
     f.pick(c.id);
@@ -331,6 +335,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
 
   // 메뉴처럼 숫자 키 1·2·3으로도 보기를 고른다. 보기가 보이는 동안(질문과 결과 비교)만 받는다
   const choosing = !leading && !wrapped && phase !== "transition";
+  // 고르기 전, 마우스를 올리거나 키보드로 짚은 보기. 그 말을 무대의 내 생각 풍선에 미리 얹어서 오른쪽 보기와 왼쪽 무대가 한 동작으로 이어지게 한다
+  const [tryId, setTryId] = useState<string | null>(null);
+  const trying = choosing && !choice ? situation.choices.find((c) => c.id === tryId) : undefined;
+  const { ref: stageSize, scale: bubbleScale } = useBubbleScale<HTMLDivElement>();
   useEffect(() => {
     if (!choosing) return;
     const onKey = (e: KeyboardEvent) => {
@@ -407,14 +415,20 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           </div>
         </header>
 
-        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:self-start md:bg-transparent md:pb-8 md:pt-6">
+        <div className="md:self-start md:pt-5">
+          {/* 데스크톱은 상황 한 줄을 무대 바로 위에 둔다. 대사가 흐르는 동안 읽을 것(상황·대사·자막)이 전부 왼쪽에 있어야 눈이 오른쪽 칸과 무대를 오가지 않는다.
+              오른쪽 칸 맨 위 Mochi 한마디와 같은 높이에 놓여, 왼쪽은 "무슨 상황인지", 오른쪽은 "내가 할 일"로 나뉜다.
+              무대 띠(bg-ink) 안에 두면 글자가 흰색으로 바뀌어서 띠 밖에 둔다 */}
+          <p className="mb-2.5 hidden min-h-10 items-end text-body leading-snug text-fg-muted md:flex">{stageSituation.context}</p>
+        <div ref={stageBox} onClick={leading ? nextBeat : undefined} className="shrink-0 bg-ink md:bg-transparent md:pb-8">
           <Panel>
             {/* 모바일 무대는 세로로 길게 둔다. 카메라 배율은 무대 너비로 정해져서 인물 크기는 그대로고 방이 위아래로 더 보인다.
                 무대 아래쪽 바닥은 아래 글 칸이 덮으며 올라온다(STAGE_TUCK). 데스크톱은 4:3 그대로다 */}
-            <div className="relative h-[var(--stage-h)] w-full overflow-hidden md:aspect-[4/3] md:h-auto md:max-h-[calc(100dvh-10rem)]">
+            <div ref={stageSize} style={{ "--stage-px": bubbleScale } as React.CSSProperties} className="relative h-[var(--stage-h)] w-full overflow-hidden md:aspect-[4/3] md:h-auto md:max-h-[calc(100dvh-10rem)]">
               <Stage
                 spec={spec}
                 reduced={reduced}
+                bubbleScale={bubbleScale}
                 state={{
                   meMotion: prizeOn ? "bounce" : celebrate ? "clap" : beat?.who === "me" && beat.motion ? beat.motion : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
                   meKey: prizeOn ? stageKey + 1000 : stageKey,
@@ -450,11 +464,21 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   partnerSays: partnerReacts && !speaking ? stageChoice?.reaction : undefined,
                   meTurn: phase !== "transition" && !choice && !beat,
                   meThink: spoken(stageSituation.intent),
+                  meTry: trying?.line,
                   cutIn,
                 }}
               />
               {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} className={MOCHI_TUCK_LIFT} />}
               {beat && <BeatDots total={lead.length} at={leadIdx} />}
+              {/* 대사가 저절로 넘어가기까지 남은 시간. 데스크톱은 무대 아래 테두리를 따라 채운다(모바일은 하단 버튼 위) */}
+              {beat && !reduced && !autoPaused && (
+                <span
+                  key={`stage-fill-${step}-${leadIdx}`}
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-1 origin-left bg-pink md:block"
+                  style={{ animation: `fill ${beatMs(beat)}ms linear both` }}
+                />
+              )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
               {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} className={STAGE_TUCK_LIFT} />}
               {/* 두 번째 말부터는 무대가 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
@@ -482,6 +506,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   key={`burst-${stageKey}`}
                   aria-hidden
                   className={`pointer-events-none absolute right-[7%] top-[9%] animate-burst font-poster text-display-sm leading-none text-outline-white ${burst.bad ? "text-rust" : "text-ink"}`}
+                  style={{ zoom: "var(--stage-px, 1)" }}
                 >
                   {burst.text}
                 </span>
@@ -491,6 +516,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               )}
             </div>
           </Panel>
+        </div>
         </div>
         </div>
 
@@ -536,37 +562,64 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               askAt={ending && !reduced ? PUNCH_AT + PUNCH_HOLD : 600}
               onNext={() => send({ type: "next_clicked" })}
             />
-          ) : leading ? (
-            // 대사는 무대 말풍선과 자막으로만 흐른다. 아래에는 상황 한 줄만 두고, 어디를 눌러도 다음 줄로 넘어간다
-            <div key={`lead-${phase}`} className="min-h-full cursor-pointer">
-              <p className="text-note leading-normal text-fg-muted">{situation.context}</p>
-            </div>
-          ) : !choice ? (
-            // 상대가 한 말을 먼저 띄우고 선택지는 조금 늦게 올려서, 탭을 늘리지 않고도 눈이 질문 → 선택지 순서로 가게 한다.
-            // 고르는 동안 질문이 계속 보이고, 작은 폰(375×667)에서도 선택지 세 개가 스크롤 없이 들어오게 높이를 맞춘다
-            <div key={`ask-${phase}`}>
-              <p className="text-note leading-normal text-fg-muted">{situation.context}</p>
-              {lead.length > 0 && <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} onOpen={noteLeadWatched} />}
+          ) : leading || !choice ? (
+            // 대사가 흐르는 동안과 고르는 동안을 한 칸으로 잇는다. Mochi의 한마디가 같은 자리에 머물며 "먼저 보자"에서 "뭐라고 할래?"로 바뀌고, 그 아래가 "바로 고르기"에서 보기로 바뀐다.
+            // 모바일은 대사 동안 상황 한 줄만 두고 어디를 눌러도 다음 줄로 넘어간다. 고를 때는 작은 폰(375×667)에서도 보기 세 개가 스크롤 없이 들어온다
+            <div key={`turn-${phase}`} className={leading ? "min-h-full cursor-pointer" : undefined}>
+              {/* 데스크톱은 상황 한 줄이 무대 위에 있다 */}
+              <p className="text-note leading-normal text-fg-muted md:hidden">{situation.context}</p>
+              {!leading && lead.length > 0 && (
+                <div className="md:hidden">
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} onOpen={noteLeadWatched} />
+                </div>
+              )}
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 질문과 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
-              <MochiAsk className="mt-3 animate-rise">너라면 뭐라고 할래?</MochiAsk>
-              <ul className="mt-2 space-y-2.5">
-                {situation.choices.map((c, i) => (
-                  <li key={c.id} className="animate-rise" style={{ animationDelay: `${300 + i * 60}ms` }}>
-                    <BlockButton onClick={() => play(c)} className="group w-full text-left" faceClassName="flex items-center gap-3">
-                      <Num n={i + 1} hover />
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-line text-say leading-snug">{c.line}</span>
-                        {showMeaning && <span className="mt-0.5 block text-note text-ink-subtle">{c.meaning}</span>}
-                      </span>
-                      {preview && (
-                        <span className="text-ink-subtle">
-                          <TrapChip choice={c} />
-                        </span>
-                      )}
-                    </BlockButton>
-                  </li>
-                ))}
-              </ul>
+              <div className={leading ? "hidden md:block" : undefined} onClick={leading ? (e) => e.stopPropagation() : undefined}>
+                <MochiAsk className={leading ? "" : "mt-3 max-md:animate-rise md:mt-0"}>
+                  <span key={leading ? "watch" : "ask"} className="block md:animate-fade">
+                    {leading ? "무슨 일인지 먼저 볼까?" : "너라면 뭐라고 할래?"}
+                  </span>
+                </MochiAsk>
+                {leading ? (
+                  <BlockButton onClick={skipLead} className="mt-2 w-full" faceClassName="py-3 text-center text-body font-bold">
+                    바로 고르기
+                  </BlockButton>
+                ) : (
+                  <ul className="mt-2 space-y-2.5">
+                    {situation.choices.map((c, i) => (
+                      <li
+                        key={c.id}
+                        className="animate-rise"
+                        style={{ animationDelay: `${300 + i * 60}ms` }}
+                        // 보기가 마우스 밑에서 올라왔을 때 미리 고른 것처럼 보이지 않게, 마우스가 실제로 움직였을 때만 얹는다
+                        onPointerMove={(e) => e.pointerType === "mouse" && tryId !== c.id && setTryId(c.id)}
+                        onPointerLeave={() => setTryId((t) => (t === c.id ? null : t))}
+                        onFocus={(e) => e.target.matches(":focus-visible") && setTryId(c.id)}
+                        onBlur={() => setTryId((t) => (t === c.id ? null : t))}
+                      >
+                        <BlockButton onClick={() => play(c)} className="group w-full text-left" faceClassName="flex items-center gap-3">
+                          <Num n={i + 1} hover />
+                          <span className="min-w-0 flex-1">
+                            <span className="block font-line text-say leading-snug">{c.line}</span>
+                            {showMeaning && <span className="mt-0.5 block text-note text-ink-subtle">{c.meaning}</span>}
+                          </span>
+                          {preview && (
+                            <span className="text-ink-subtle">
+                              <TrapChip choice={c} />
+                            </span>
+                          )}
+                        </BlockButton>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              {/* 데스크톱은 Mochi와 보기가 칸 맨 위에 붙어 있도록 앞 대화 다시 보기를 보기 아래에 둔다 */}
+              {!leading && lead.length > 0 && (
+                <div className="hidden md:block">
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} onOpen={noteLeadWatched} />
+                </div>
+              )}
             </div>
           ) : (
             <div key={`result-${phase}`}>
@@ -643,7 +696,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
         </section>
 
         {(choice || leading || (phase === "transition" && !timeCue)) && (
-          <footer className="relative shrink-0 border-t border-line/40 bg-page px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:mt-auto md:px-1 md:pb-8">
+          <footer className={`relative shrink-0 border-t border-line/40 bg-page px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 md:col-start-2 md:row-start-3 md:mt-auto md:px-1 md:pb-8 ${leading ? "md:hidden" : ""}`}>
             {/* 대사가 저절로 넘어간다는 걸 알 수 있게 위 테두리를 남은 시간만큼 채운다 */}
             {beat && !reduced && !autoPaused && (
               <span
@@ -654,9 +707,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               />
             )}
             {leading ? (
-              // 대사는 저절로 넘어가고, 다음(과 무대)을 누르면 바로 다음 줄로, 건너뛰기로 바로 질문에 간다.
-              // 보고 싶은 사람과 바로 고르고 싶은 사람이 갈려서 두 버튼을 같은 크기로 둔다
-              // 다음 줄로 넘기기는 화면 아무 데나 누르면 된다. 버튼 자리에는 대사를 건너뛰고 바로 고르기 하나만 흰 보조 버튼으로 둔다
+              // 다음 줄로 넘기기는 화면 아무 데나 누르면 된다. 버튼 자리에는 대사를 건너뛰고 바로 고르기 하나만 흰 보조 버튼으로 둔다.
+              // 데스크톱은 이 버튼이 오른쪽 칸 Mochi 한마디 바로 아래에 있어서 하단 칸을 감춘다
               <BlockButton onClick={skipLead} className="w-full" faceClassName="py-3 text-center text-body font-bold">
                 바로 고르기
               </BlockButton>
