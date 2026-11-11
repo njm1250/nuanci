@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { bookEntry, spoken } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Mascot } from "@/features/mascot/mascot";
@@ -10,10 +10,16 @@ import { RewardReveal } from "@/features/rewards/reward-reveal";
 import { isUnopened, type RewardItem } from "@/features/rewards/rewards";
 import { type StreakMoment } from "@/features/streak/streak";
 import { StreakMomentCard } from "@/features/streak/streak-ui";
-import { BlockButton } from "./block-ui";
+import { useVoice, VOICE_MIN } from "@/features/progression/voice";
+import { BlockButton, BlockLink } from "./block-ui";
+import { PICK_PARAM } from "./track";
+import { Num } from "./verdict";
 import { sfx } from "./sfx";
 import { type Scene } from "./types";
 import { Arrow } from "./scene-parts";
+
+// 다음 장면의 첫 질문. 완료 화면 끝에 밀려 올라와 장면 사이에 홈 화면 없이 질문이 이어진다
+export type NextAsk = { number: number; partnerName: string; partnerLine: string; intent: string; choices: { id: string; line: string }[] };
 
 // 고른 말을 들은 상대가 무대에서 반응을 말하기까지의 시간. 생각 말풍선은 650ms에 떠서 3050ms에 사라진다
 export const REACT_AFTER = 1100;
@@ -53,7 +59,16 @@ export function WrapUp({
   onRewardShown,
   streak,
   rewardAt,
+  pickedIds = [],
+  nextAsk = null,
+  askAt = 600,
+  onNext,
 }: {
+  onNext?: () => void;
+  pickedIds?: string[];
+  nextAsk?: NextAsk | null;
+  // 엔딩 컷을 다 본 뒤에 다음 질문이 올라오도록 기다리는 시간(ms)
+  askAt?: number;
   scene: Scene;
   share: () => void;
   shareState: "idle" | "copied" | "failed";
@@ -64,7 +79,14 @@ export function WrapUp({
   streak: StreakMoment | null;
   rewardAt: number;
 }) {
-  const { pairs } = bookEntry(scene);
+  const { pairs } = bookEntry(scene, pickedIds);
+  const [askShown, setAskShown] = useState(false);
+  useEffect(() => {
+    if (!nextAsk) return;
+    const t = window.setTimeout(() => setAskShown(true), askAt);
+    return () => clearTimeout(t);
+  }, [nextAsk, askAt]);
+  const voice = useVoice();
   const { open: openInquiry, element: inquiry } = useInquiry();
   // 오늘 처음 이어졌으면 연속 기록을 먼저 보여주고, 새 물건은 그 뒤에 들어온다
   const streakShown = useRef(false);
@@ -82,6 +104,29 @@ export function WrapUp({
           <p className="mt-1 font-poster text-display-sm leading-[1.25] text-fg">{scene.title}</p>
         </div>
       </div>
+      {/* 엔딩 컷이 끝나면 다음 질문이 제목 바로 아래로 밀려 올라온다. 장면 사이에 홈을 거치지 않고 질문이 이어진다 */}
+      {nextAsk && askShown && (
+        <section aria-label="다음 질문" className="mt-5 animate-rise">
+          <p className="text-note text-fg-subtle">다음 질문</p>
+          <p className="mt-1 font-line text-say leading-snug text-fg">
+            <span className="mr-1.5 align-middle font-label text-ui text-fg-muted">{nextAsk.partnerName}</span>
+            {nextAsk.partnerLine}
+          </p>
+          <p className="mt-1.5 text-body font-bold leading-snug text-fg">「{spoken(nextAsk.intent)}」 영어로 뭐라고 할래?</p>
+          <ul className="mt-3 space-y-2.5">
+            {nextAsk.choices.map((c, i) => (
+              <li key={c.id}>
+                <BlockLink href={`/scenes/${nextAsk.number}?${PICK_PARAM}=${encodeURIComponent(c.id)}`} entry="next" onClick={onNext} className="group">
+                  <span className="flex items-center gap-3 text-left">
+                    <Num n={i + 1} hover />
+                    <span className="min-w-0 flex-1 font-line text-say font-normal leading-snug">{c.line}</span>
+                  </span>
+                </BlockLink>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-5">
         <div className="blk bg-card-raised px-4 py-4 text-ink">
@@ -102,6 +147,16 @@ export function WrapUp({
           </Link>
         </div>
       </div>
+
+      {/* 방금 고른 답까지 반영한 "영어의 나" 한 줄. 진행 체계를 이것 하나로 모았다 */}
+      <Link href="/me" className="-mx-1 mt-3 flex min-h-11 items-center justify-between gap-3 px-1 hover:text-fg">
+        <span className="min-w-0">
+          <span className="block text-meta text-fg-subtle">영어의 나</span>
+          <span className={`block text-ui ${voice.answered >= VOICE_MIN ? "font-bold text-fg" : "text-fg-muted"}`}>{voice.headline}</span>
+        </span>
+        <Arrow />
+      </Link>
+
 
       {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
       {(streak || granted.length > 0) && (

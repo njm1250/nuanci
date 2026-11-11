@@ -16,6 +16,8 @@ import { useStreak } from "@/features/streak/streak";
 import { StreakBadge } from "@/features/streak/streak-ui";
 import { setTheme, useTheme } from "@/features/theme/theme";
 import { rankAt, type RankRule } from "@/features/progression/types";
+import { VoiceCard } from "@/features/progression/voice-card";
+import { FEATURES } from "@/features/site/lean";
 
 const noop = () => () => {};
 const PAIRS_PER_SCENE = 2;
@@ -173,8 +175,10 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
   return (
     <div className="space-y-6 md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10 md:space-y-0">
       <div className="space-y-6">
-      <IdCard cleared={cleared.length} ranks={ranks} />
+      {FEATURES.rewards ? <IdCard cleared={cleared.length} ranks={ranks} /> : <VoiceCard name={account.status === "member" ? (account.me?.name ?? undefined) : undefined} />}
 
+      {FEATURES.rewards && (
+      <>
       {/* 장면을 깨고 받은 물건을 쓰는 곳이라 내 정보에서 가장 먼저, 크게 보이게 둔다 */}
       {/* 사원증 머리와 겹치지 않게 면은 칠하지 않고, 큰 제목과 진한 선으로 눈에 띄게 한다 */}
       <Link href="/me/room" className="blk-btn blk-strong block">
@@ -186,10 +190,13 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
           <Arrow />
         </span>
       </Link>
+      </>
+      )}
 
-      <Profile />
+      {/* 로그인을 닫아 둔 동안에도 이미 로그인한 사람은 계정을 보고 로그아웃할 수 있어야 한다 */}
+      {(FEATURES.login || member) && <Profile />}
 
-      <StreakSection member={member} />
+      {FEATURES.streak && <StreakSection member={member} />}
 
       </div>
 

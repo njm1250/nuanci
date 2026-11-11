@@ -218,9 +218,12 @@ export type StageState = {
   meNote?: React.ReactNode;
   meNoteKey?: string;
   partnerLine?: string;
-  // 고른 말을 들은 뒤 상대가 하는 반응. 있으면 반응 기호 대신 말풍선으로 띄운다
+  // 고른 말을 들은 뒤 상대가 하는 반응. 있으면 반응 기호 대신 말풍선으로 띄운다.
+  // 반응은 한국어 속마음이라 생각 풍선으로 그린다. 입으로 하는 말(영어)은 말풍선, 머릿속 말(한국어)은 생각 풍선이다
   partnerSays?: string;
   meTurn?: boolean;
+  // 내가 고를 차례에 내 머리 위 생각 풍선에 띄우는 속마음(하고 싶은 말). 없으면 점 세 개로 차례만 알린다
+  meThink?: string;
 };
 
 // 하늘이 벽 자리에 오는 바깥 세트. 걸레받이를 그리지 않는다
@@ -322,18 +325,31 @@ export function PixelStage({
   const { box, dpr } = usePixelDpr();
   const { widths, heights, observer } = useBubbleWidths();
 
-  const bubble = (who: Who, text: React.ReactNode, key: string) => (
+  // think는 생각 풍선. 꼬리를 뾰족하게 잇지 않고 떨어진 점 두 개로 둬서(상상 풍선과 같은 꼴) 소리 내지 않은 말로 읽힌다
+  const bubble = (who: Who, text: React.ReactNode, key: string, think = false) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
       {text && (
-        <div key={key} className="blk-frame-sm animate-fade">
-          <div
-            ref={(el) => void (slots.current[who].bubble = el)}
-            className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-stage text-note leading-snug text-ink break-keep"
-          >
-            {text}
+        <div key={key} className="animate-fade">
+          <div className="blk-frame-sm">
+            <div
+              ref={(el) => void (slots.current[who].bubble = el)}
+              className={`blk absolute w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-stage text-note leading-snug text-ink break-keep ${think ? "bottom-[13px]" : "bottom-[9px]"}`}
+            >
+              {text}
+            </div>
+            {!think && (
+              <>
+                <span className="absolute bottom-[5px] left-0 h-[5px] w-[10px] -translate-x-1/2 bg-white" />
+                <span className="absolute bottom-[1px] left-0 h-[5px] w-[4px] -translate-x-1/2 bg-white" />
+              </>
+            )}
           </div>
-          <span className="absolute bottom-[5px] left-0 h-[5px] w-[10px] -translate-x-1/2 bg-white" />
-          <span className="absolute bottom-[1px] left-0 h-[5px] w-[4px] -translate-x-1/2 bg-white" />
+          {think && (
+            <>
+              <span aria-hidden className="absolute bottom-[5px] left-0 size-[6px] -translate-x-1/2 bg-white outline outline-2 outline-ink-fixed" />
+              <span aria-hidden className="absolute -bottom-[1px] left-[3px] size-[3px] bg-white outline outline-2 outline-ink-fixed" />
+            </>
+          )}
         </div>
       )}
     </div>
@@ -391,9 +407,13 @@ export function PixelStage({
         <div className={`pointer-events-none absolute inset-0 ${ink}`}>
           {state.meNote
             ? bubble("me", state.meNote, `note-${state.meNoteKey ?? ""}`)
-            : bubble("me", state.meLine ?? (state.meTurn ? <TypingDots /> : null), state.meLine ?? "turn")}
+            : state.meLine
+              ? bubble("me", state.meLine, state.meLine)
+              : state.meTurn && state.meThink
+                ? bubble("me", <span aria-label={`내 속마음: ${state.meThink}`}>{state.meThink}</span>, `think-${state.meThink}`, true)
+                : bubble("me", state.meTurn ? <TypingDots /> : null, "turn")}
           {state.partnerSays ? (
-            bubble("partner", state.partnerSays, `says-${state.partnerKey}`)
+            bubble("partner", <span aria-label={`상대 속마음: ${state.partnerSays}`}>{state.partnerSays}</span>, `says-${state.partnerKey}`, true)
           ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
               <div key={`${state.reaction}-${state.partnerKey}`} className="absolute bottom-0 left-0 -translate-x-1/2 animate-pop">

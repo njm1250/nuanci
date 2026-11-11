@@ -6,7 +6,8 @@ import { SpeakerTag } from "./block-ui";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
-import { Num, VerdictStamp } from "./verdict";
+import { spoken } from "@/features/collection/pairs";
+import { heardAs, Num, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
@@ -123,7 +124,13 @@ export function ResultBody({
   verdictKey,
   share,
   meta = true,
+  intent,
+  waiting = false,
 }: {
+  // 지금 펼친 카드에서 "하고 싶던 말 → 들린 느낌" 줄을 만드는 데 쓴다
+  intent?: string;
+  // 무대에서 상대가 아직 반응하기 전. 반응·인상·해설을 비워 두고 무대에 눈이 가게 한다. 반응이 뜨면 인상과 해설은 한 박자 뒤에 온다
+  waiting?: boolean;
   // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
   meta?: boolean;
   choice: Choice;
@@ -135,19 +142,27 @@ export function ResultBody({
   verdictKey?: number;
   share?: number;
 }) {
+  const heardAt = 500;
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
           <span className="font-line text-say leading-snug">{choice.line}</span>
-          <span className="flex shrink-0 items-center gap-1.5 pt-1">
-            {showTrap && <TrapChip choice={choice} />}
-            {revealed && <VerdictStamp key={verdictKey} choice={choice} pop={active} />}
-          </span>
+          {showTrap && (
+            <span className="shrink-0 pt-1">
+              <TrapChip choice={choice} />
+            </span>
+          )}
         </span>
-        {revealed ? (
-          <span key={verdictKey} className={`flex items-start gap-2 leading-[1.5] ${active ? "mt-1.5 animate-rise [animation-delay:420ms] text-body font-bold text-ink" : "mt-1 text-note text-ink-muted"}`}>
+        {active && waiting ? (
+          <span aria-hidden className="mt-1.5 flex h-6 items-center gap-1 text-ink-subtle">
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="size-1.5 animate-typing bg-current" style={{ animationDelay: `${i * 160}ms` }} />
+            ))}
+          </span>
+        ) : revealed ? (
+          <span key={verdictKey} className={`flex items-start gap-2 leading-[1.5] ${active ? "mt-1.5 animate-rise text-body font-bold text-ink" : "mt-1 text-note text-ink-muted"}`}>
             <span className="mt-px">
               <ReactionFace expression={choice.expression} size={18} />
             </span>
@@ -156,13 +171,26 @@ export function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {/* 대사+반응을 한 덩어리로 진하게 묶고, 이유는 한 칸 떼어 한 톤 낮춘다 */}
-        {active && <span key={`why-${verdictKey}`} className="mt-3 block animate-fade [animation-delay:680ms] text-ui leading-[1.6] text-ink-muted">{choice.why}</span>}
+        {/* 지금 고른 말의 주인공 줄: 하고 싶던 말이 어떤 느낌으로 들렸는지. 웃음(반응)이 먼저 오고 설명은 한 박자 뒤에 온다 */}
+        {active && !waiting && intent && (
+          <span key={`heard-${verdictKey}`} className="mt-3 flex animate-fade flex-wrap items-center gap-x-2 gap-y-1.5" style={{ animationDelay: `${heardAt}ms` }}>
+            <span className="text-note text-ink-muted">「{spoken(intent)}」</span>
+            <span aria-hidden className="text-note text-ink-subtle">→</span>
+            <VerdictStamp choice={choice} pop delay={heardAt} />
+          </span>
+        )}
+        {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
+        {active && !waiting && (
+          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted" style={{ animationDelay: `${heardAt + 300}ms` }}>
+            {choice.why}
+          </span>
+        )}
         {meta && revealed && (mine || share !== undefined) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
       </span>
     </span>
   );
 }
+
 
 // 내가 고른 보기인지, 첫 답으로 몇 %가 골랐는지. 본문보다 두 단계 작고 흐리게 둔다
 export function PickMeta({ mine, share, className = "" }: { mine: boolean; share?: number; className?: string }) {

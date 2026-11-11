@@ -95,6 +95,8 @@
   --animate-reward-pop: reward-pop 520ms steps(6, end) both;
   --animate-box-shake: box-shake 520ms ease-in-out;
   --animate-wipe: wipe 520ms ease-in-out both;
+  /* 다른 말로 다시 해 볼 때 무대가 뒤로 감기는 한 번. 도트 무대에 맞게 칸칸이 끊어 지나간다 */
+  --animate-rewind: rewind 300ms steps(4, end) both;
   --animate-burst: burst 950ms steps(4, end) 70ms both;
   --animate-soul: soul 1400ms ease-out both;
   --font-sans: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
@@ -523,6 +525,17 @@ body {
   }
   40% {
     opacity: 1;
+  }
+}
+
+@keyframes rewind {
+  0% {
+    opacity: 0.85;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-12%);
   }
 }
 

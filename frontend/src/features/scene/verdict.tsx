@@ -12,24 +12,40 @@ export function Num({ n, dark = false, hover = false }: { n: number; dark?: bool
   );
 }
 
-// 고른 말의 판정. 초등학교 "참 잘했어요" 도장처럼 글자를 새긴 도장으로 찍어서 색만으로 구분하지 않는다
+// 고른 말의 판정. 맞고 틀림은 색과 작은 글자로만 남기고, 도장에는 채점 대신 그 말이 어떻게 들렸는지를 새긴다
 export const VERDICTS: Record<Verdict, { label: string; color: string; stamp: string }> = {
   good: { label: "자연스러워요", color: "bg-good", stamp: "참 잘했어요" },
   meh: { label: "상황에 따라 어색해요", color: "bg-warn", stamp: "애매해요" },
   bad: { label: "어색해요", color: "bg-bad", stamp: "사고 발생" },
 };
 
-// 살짝 기운 채로 찍히는 판정 도장. 픽셀 무대에 맞게 부드럽게 커지지 않고 몇 프레임으로 끊어서 쾅 찍힌다
-export function VerdictStamp({ choice, pop = false }: { choice: Choice; pop?: boolean }) {
+// 그 말이 상대에게 어떻게 들렸는지. 보기마다 붙은 태그의 두 번째(들린 느낌)를 쓰고, 없으면 판정 도장 글자를 쓴다
+export function heardAs(choice: Choice) {
+  return choice.tags[1] ?? choice.tags[0] ?? VERDICTS[choice.verdict].stamp;
+}
+
+// 살짝 기운 채로 찍히는 인상 도장. 픽셀 무대에 맞게 부드럽게 커지지 않고 몇 프레임으로 끊어서 쾅 찍힌다
+export function VerdictStamp({ choice, pop = false, delay = 60 }: { choice: Choice; pop?: boolean; delay?: number }) {
   const v = VERDICTS[choice.verdict];
-  // 지금 보고 있는 줄에는 기호 옆에 판정 글자도 같이 찍는다
   return (
     <span
       role="img"
-      aria-label={choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label}
-      className={`-rotate-6 shrink-0 whitespace-nowrap border-2 border-ink px-1.5 py-1 font-label-strong text-meta leading-none text-ink outline-2 outline-offset-1 outline-ink ${v.color} ${pop ? "animate-stamp [animation-delay:60ms]" : ""}`}
+      aria-label={`들린 느낌 ${heardAs(choice)} · ${choice.trap ? `${v.label} · ${TRAP_LABELS[choice.trap]}` : v.label}`}
+      className={`-rotate-3 inline-block border-2 border-ink px-1.5 py-1 font-label-strong text-meta leading-none text-ink outline-2 outline-offset-1 outline-ink ${v.color} ${pop ? "animate-stamp" : ""}`}
+      style={pop ? { animationDelay: `${delay}ms` } : undefined}
     >
-      {v.stamp}
+      {heardAs(choice)}
+    </span>
+  );
+}
+
+// 맞고 틀림은 결과의 주인공이 아니라서 맨 아래 줄에 작은 색 칸과 글자로만 둔다
+export function VerdictNote({ choice }: { choice: Choice }) {
+  const v = VERDICTS[choice.verdict];
+  return (
+    <span className="flex items-center gap-1.5 text-meta text-ink-subtle">
+      <span aria-hidden className={`size-2 border border-ink ${v.color}`} />
+      {v.label}
     </span>
   );
 }

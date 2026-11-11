@@ -24,6 +24,13 @@ export function Stage(props: ComponentProps<typeof PixelStageType>) {
   return (
     <div className="absolute inset-0" style={{ background: wall }}>
       <div className="absolute inset-x-0 bottom-0 h-[18%]" style={{ background: C.floor }} />
+      {/* 무대를 받는 동안에도 상대 말과 내 속마음은 읽혀야 고를 수 있다. 다 받으면 무대가 벽색으로 이 위를 덮는다 */}
+      {props.state && (
+        <div className="absolute inset-x-2 top-2 flex items-start justify-between gap-2 font-stage text-note leading-snug text-ink-fixed">
+          {props.state.meTurn && props.state.meThink ? <span className="max-w-[48%] bg-white px-2 py-1">{props.state.meThink}</span> : <span />}
+          {(props.state.partnerSays ?? props.state.partnerLine) && <span className="max-w-[48%] bg-white px-2 py-1">{props.state.partnerSays ?? props.state.partnerLine}</span>}
+        </div>
+      )}
       <PixelStage {...props} />
     </div>
   );

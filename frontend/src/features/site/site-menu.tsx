@@ -5,15 +5,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Mascot } from "@/features/mascot/mascot";
+import { FEATURES } from "./lean";
 
 const ASK = "어디로 갈까?";
-const ITEMS = [
-  { href: "/scenes", title: "전체 장면", desc: "순서대로 · 상황별로 고르기", reply: "오늘은 또 무슨 사고 치게?" },
-  { href: "/expressions", title: "표현 모음", desc: "해 본 장면의 표현 복습", reply: "그 말, 이번엔 써먹어 봐" },
-  { href: "/test", title: "유형 테스트", desc: "내 영어 사고 유형 찾기", reply: "넌 무슨 유형이려나~" },
-  { href: "/me/room", title: "아지트", desc: "옷 입히기 · 방 꾸미기", reply: "내 자리도 하나 만들어 줘" },
-  { href: "/me", title: "내 정보", desc: "사원증 · 연속 기록 · 설정", reply: "오늘도 출근 도장 찍자" },
+const ALL_ITEMS = [
+  { href: "/scenes", title: "전체 장면", desc: "순서대로 · 상황별로 고르기", reply: "오늘은 또 무슨 사고 치게?", on: true },
+  { href: "/expressions", title: "표현 모음", desc: "해 본 장면의 표현 복습", reply: "그 말, 이번엔 써먹어 봐", on: true },
+  { href: "/test", title: "유형 테스트", desc: "내 영어 사고 유형 찾기", reply: "넌 무슨 유형이려나~", on: FEATURES.typetest },
+  { href: "/me/room", title: "아지트", desc: "옷 입히기 · 방 꾸미기", reply: "내 자리도 하나 만들어 줘", on: FEATURES.rewards },
+  { href: "/me", title: "영어의 나", desc: "내 영어가 어떻게 들리는 편인지 · 설정", reply: "넌 영어로 어떤 사람이야?", on: true },
 ];
+const ITEMS = ALL_ITEMS.filter((i) => i.on);
 
 // 전체 메뉴. 장면처럼 Mochi가 묻고 선택지를 고르게 해서, 다가가면 말풍선이 반응한다. 말풍선은 없어도 되는 재미라 메뉴 이름과 설명만으로 쓸 수 있게 한다
 function MenuDialog({ onClose }: { onClose: () => void }) {

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-const RETURNING_SCRIPT = `try{var c=localStorage.getItem("nuanci.cleared");if(location.search.indexOf("intro")<0&&(localStorage.getItem("nuanci.played")==="1"||(c&&c!=="[]")))document.documentElement.setAttribute("data-returning","")}catch(e){}`;
+const RETURNING_SCRIPT = `try{var c=localStorage.getItem("nuanci.cleared");if(location.search.indexOf("intro")<0&&(localStorage.getItem("nuanci.played")==="1"||(c&&c!=="[]"))){document.documentElement.setAttribute("data-returning","");document.cookie="nuanci_r=1; path=/; max-age=31536000; samesite=lax"}}catch(e){}`;
 
 export const viewport: Viewport = {
   themeColor: THEME_COLORS.light,

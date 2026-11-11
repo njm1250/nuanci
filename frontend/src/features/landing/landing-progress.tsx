@@ -23,6 +23,8 @@ import {
   useRewards,
 } from "@/features/rewards/rewards";
 import type { StageSpec } from "@/features/stage/types";
+import { FEATURES } from "@/features/site/lean";
+import { VoiceCard } from "@/features/progression/voice-card";
 import { SceneThumb, ThumbStudio } from "./scene-thumb";
 import {
   groupOf,
@@ -116,9 +118,11 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
       </BlockLink>
       {/* 장면 대신 가볍게 시작하고 싶은 사람을 위한 두 번째 입구. 주요 버튼과 같은 너비의 흰 버튼으로 한 단계 낮춘다 */}
       {/* 모바일은 이 칸이 화면 아래에 붙어 있어서, 두 번째 버튼까지 두면 화면을 너무 많이 가린다. 모바일에서는 설명 아래 글자 링크로 둔다 */}
-      <BlockLink href="/test" className="mt-2.5 hidden min-[960px]:block" pair>
-        유형 테스트 먼저 해 보기
-      </BlockLink>
+      {FEATURES.typetest && (
+        <BlockLink href="/test" className="mt-2.5 hidden min-[960px]:block" pair>
+          유형 테스트 먼저 해 보기
+        </BlockLink>
+      )}
       <p className="mt-3 text-center text-note text-fg-subtle">{note}</p>
     </>
   );
@@ -614,7 +618,7 @@ export function SceneShelf({
       {/* 오른쪽 칸. 모바일에서는 틀 없이 풀려서 장면 앞뒤 자리에 끼어든다 */}
       <div className="contents lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-6">
         {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다. 데스크톱은 오른쪽 칸의 위·아래로 나뉜다 */}
-        {!reviewAfter && <ReviewToday className="order-1 mb-7 lg:mb-0" />}
+        {FEATURES.review && !reviewAfter && <ReviewToday className="order-1 mb-7 lg:mb-0" />}
         <div className="order-4 mt-8 lg:mt-0 lg:border lg:border-line lg:bg-card-raised lg:p-4">
         <div className="flex items-baseline justify-between">
             <h2 className="text-body font-bold">
@@ -625,12 +629,13 @@ export function SceneShelf({
           </div>
           <BlockBar progress={progress} />
           <Unlocked progress={progress} />
-          <NextGoal />
+          {FEATURES.rewards && <NextGoal />}
         </div>
         <div className="order-4 mt-6 lg:mt-0">
-          <TodayGoals />
+          {/* 오늘의 목표는 연속 기록과 복습으로 이뤄져서, 둘을 닫아 둔 동안에는 "영어의 나" 카드가 그 자리를 맡는다 */}
+          {FEATURES.streak ? <TodayGoals /> : <VoiceCard compact />}
         </div>
-        {reviewAfter && <ReviewToday className="order-3 mt-8 lg:mt-0" />}
+        {FEATURES.review && reviewAfter && <ReviewToday className="order-3 mt-8 lg:mt-0" />}
         <div className="order-5">
         <div className="blk-frame mt-5 lg:mt-0">
             <ul className="blk divide-y-2 divide-ink/10 bg-card-raised text-ink">
