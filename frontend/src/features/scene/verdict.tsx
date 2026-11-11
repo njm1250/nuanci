@@ -39,6 +39,29 @@ export function VerdictStamp({ choice, pop = false, delay = 60 }: { choice: Choi
   );
 }
 
+// 세 말을 다 들어 본 뒤의 한 장: 같은 마음이 말마다 어떻게 들렸는지 도장 셋을 나란히 둔다
+export function HeardTrio({ intent, choices }: { intent: string; choices: Choice[] }) {
+  const said = intent.lastIndexOf(" 하고 ") > 0 ? intent.slice(0, intent.lastIndexOf(" 하고 ")) : intent;
+  return (
+    <div data-trio className="blk-frame blk-strong mt-3 scroll-mt-3 animate-rise">
+      <div className="blk bg-card-raised px-4 py-3.5 text-ink">
+        <p className="text-note text-ink-muted">같은 마음, 세 가지로 들림</p>
+        <p className="mt-0.5 text-body font-bold leading-snug">「{said}」</p>
+        <ul className="mt-3 space-y-2.5">
+          {choices.map((c, i) => (
+            <li key={c.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <span className="font-line text-say leading-snug">{c.line}</span>
+              <span className="inline-block animate-stamp" style={{ animationDelay: `${200 + i * 160}ms` }}>
+                <VerdictStamp choice={c} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 // 맞고 틀림은 결과의 주인공이 아니라서 맨 아래 줄에 작은 색 칸과 글자로만 둔다
 export function VerdictNote({ choice }: { choice: Choice }) {
   const v = VERDICTS[choice.verdict];

@@ -161,20 +161,34 @@ const CUT_W = 0.3;
 const CUT_EDGE = 8;
 // 컷인 카메라가 담는 세계 크기(가로 절반). 얼굴과 어깨 위가 들어온다
 const CUT_HALF = 0.62;
+// 컷인에는 상대만 그린다. 상대와 조명을 이 레이어에도 올리고, 컷인 카메라는 이 레이어만 본다
+const CUT_LAYER = 1;
+// 컷인 바탕. 만화 컷처럼 단색으로 깔아 잘린 소품 조각이 섞이지 않게 한다
+const CUT_BG = new THREE.Color("#ffe48a");
+// 이보다 좁은 무대(작은 폰)에서는 컷인이 무대를 너무 가려서 띄우지 않는다
+export const CUT_MIN_WIDTH = 380;
 
 // 반응 순간 상대 얼굴을 무대 구석의 작은 칸에 한 번 더 그린다(만화·격투 게임의 컷인). 본 무대는 당기지 않고 그대로 둔다.
 // 같은 장면을 두 번째 카메라로 한 번 더 그려서 WebGL 컨텍스트를 하나만 쓴다. 우선순위를 주면 기본 그리기를 이 함수가 맡는다
 function CutIn({ target, on }: { target: THREE.Vector3; on: boolean }) {
-  const cam = useMemo(() => new THREE.OrthographicCamera(-CUT_HALF, CUT_HALF, CUT_HALF * 0.8, -CUT_HALF * 0.8, 0.1, 50), []);
+  const cam = useMemo(() => {
+    const c = new THREE.OrthographicCamera(-CUT_HALF, CUT_HALF, CUT_HALF * 0.8, -CUT_HALF * 0.8, 0.1, 50);
+    c.layers.set(CUT_LAYER);
+    return c;
+  }, []);
+  const clearColor = useMemo(() => new THREE.Color(), []);
   useFrame(({ gl, scene, camera, size }) => {
     gl.setScissorTest(false);
     gl.setViewport(0, 0, size.width, size.height);
     gl.render(scene, camera);
-    if (!on) return;
+    if (!on || size.width < CUT_MIN_WIDTH) return;
+    // 표정·소품이 바뀌면 상대 아래 물체도 바뀌어서, 띄울 때마다 상대와 조명을 컷인 레이어에 올린다
+    scene.getObjectByName("cut-partner")?.traverse((o) => o.layers.enable(CUT_LAYER));
+    scene.traverse((o) => (o as THREE.Light).isLight && o.layers.enable(CUT_LAYER));
     const w = Math.round(size.width * CUT_W);
     const h = Math.round(w * 0.8);
-    // WebGL 좌표는 왼쪽 아래가 원점이라, 화면 왼쪽 위 칸은 y를 위에서부터 거꾸로 센다
-    const x = CUT_EDGE;
+    // WebGL 좌표는 왼쪽 아래가 원점이다. 칸은 상대가 서 있는 오른쪽 위에 둔다
+    const x = size.width - w - CUT_EDGE;
     const y = size.height - h - CUT_EDGE;
     cam.position.set(target.x, target.y - 0.32, 10);
     cam.lookAt(target.x, target.y - 0.32, 0);
@@ -184,8 +198,12 @@ function CutIn({ target, on }: { target: THREE.Vector3; on: boolean }) {
     gl.setScissorTest(true);
     gl.setScissor(x, y, w, h);
     gl.setViewport(x, y, w, h);
+    gl.getClearColor(clearColor);
+    const alpha = gl.getClearAlpha();
+    gl.setClearColor(CUT_BG, 1);
     gl.clear();
     gl.render(scene, cam);
+    gl.setClearColor(clearColor, alpha);
     gl.setScissorTest(false);
     gl.setViewport(0, 0, size.width, size.height);
     gl.autoClear = clear;
@@ -428,7 +446,7 @@ export function PixelStage({
           ground={ground}
         />
         </group>
-        <group {...pickHandlers(onPick, "partner")}>
+        <group name="cut-partner" {...pickHandlers(onPick, "partner")}>
         <Figure
           placement={set.partner}
           look={CAST[spec.partner]}
@@ -447,8 +465,8 @@ export function PixelStage({
       {state?.cutIn && (
         <div
           aria-hidden
-          className="pointer-events-none absolute animate-pop outline outline-2 outline-ink-fixed"
-          style={{ left: CUT_EDGE, top: CUT_EDGE, width: `${CUT_W * 100}%`, aspectRatio: "5 / 4" }}
+          className="pointer-events-none absolute animate-pop outline outline-2 outline-ink-fixed max-[379px]:hidden"
+          style={{ right: CUT_EDGE, top: CUT_EDGE, width: `${CUT_W * 100}%`, aspectRatio: "5 / 4" }}
         />
       )}
       {state && (

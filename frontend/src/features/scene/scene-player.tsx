@@ -29,7 +29,7 @@ import { beatMs, BeatDots, LeadRecap } from "./beat-log";
 import { spoken } from "@/features/collection/pairs";
 import { recordVoice } from "@/features/progression/voice";
 import { FEATURES } from "@/features/site/lean";
-import { VerdictNote } from "./verdict";
+import { HeardTrio, VerdictNote } from "./verdict";
 import type { NextAsk } from "./wrap-up";
 import { noteLeadSkipped, noteLeadWatched, useStartAtQuestion } from "./lead-pref";
 
@@ -44,6 +44,8 @@ const STAGE_TUCK = "max-md:-mt-[var(--stage-tuck)]";
 const STAGE_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+0.5rem)]";
 // 얼굴 컷인이 떠 있는 시간
 const CUT_IN_MS = 1800;
+// 고른 뒤 컷인이 뜨는 때. 효과음 글자가 터지는 순간(약 0.4초)에 맞춘다
+const CUT_IN_AT = 350;
 const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
 
 
@@ -219,14 +221,17 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const partnerReacts = reactWait !== null && reactedKey === stageKey;
   // 결과 카드는 무대에서 상대가 반응하는 순간에 같이 채운다. 그 전에는 고른 말만 보이고 판정 색도 깔지 않는다
   const cardRevealed = reduced || partnerReacts;
-  // 상대가 반응하는 순간 얼굴 컷인을 한 번 띄웠다가 내린다. 계속 떠 있으면 무대를 가린다
-  const [cutDoneKey, setCutDoneKey] = useState<number | null>(null);
+  // 오해가 터지는 말(효과음이 "헉!"·"엥?" 쪽인 반응)에만, 효과음이 터지는 순간 상대 얼굴 컷인을 한 번 띄웠다가 내린다.
+  // 웃긴 건 놀란 얼굴이라 평온한 반응에는 띄우지 않는다. 동작 줄이기 설정이면 띄우지 않는다
+  const shocked = Boolean(stageChoice && BURSTS[stageChoice.expression].bad) && !endingOn && !beat && !wrapped && phase !== "transition" && !reduced;
+  const [cutAt, setCutAt] = useState<{ key: number; on: boolean } | null>(null);
   useEffect(() => {
-    if (!partnerReacts) return;
-    const t = window.setTimeout(() => setCutDoneKey(stageKey), CUT_IN_MS);
-    return () => clearTimeout(t);
-  }, [partnerReacts, stageKey]);
-  const cutIn = partnerReacts && cutDoneKey !== stageKey && phase !== "transition";
+    if (!shocked) return;
+    const show = window.setTimeout(() => setCutAt({ key: stageKey, on: true }), CUT_IN_AT);
+    const hide = window.setTimeout(() => setCutAt({ key: stageKey, on: false }), CUT_IN_AT + CUT_IN_MS);
+    return () => (clearTimeout(show), clearTimeout(hide));
+  }, [shocked, stageKey]);
+  const cutIn = shocked && cutAt?.key === stageKey && cutAt.on;
 
   // 팡파르(와 연속 기록 줄)가 끝나고 새 물건 카드가 들어올 때 주인공도 무대에서 그 물건을 받는다. 잠깐 보여준 뒤 엔딩으로 돌아간다
   const prize = stagePrize(granted);
@@ -265,7 +270,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const choiceId = choice?.id;
   useEffect(() => {
     if (!choiceId) return;
-    const card = scroller.current?.querySelector<HTMLElement>("[aria-current]");
+    // 세 말을 다 들어 본 순간에는 도장 셋 묶음을 보여 주고, 그 전에는 방금 고른 카드를 보여 준다
+    const card = scroller.current?.querySelector<HTMLElement>("[data-trio]") ?? scroller.current?.querySelector<HTMLElement>("[aria-current]");
     card?.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
   }, [choiceId, reduced]);
 
@@ -549,9 +555,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     다른 말도 해 볼래? <span className="tabular-nums text-ink-subtle">{seenIds.length}/{situation.choices.length}</span>
                   </>
                 ) : (
-                  "셋 다 해 봤네! 반응 다 모았어"
+                  "셋 다 해 봤네!"
                 )}
               </MochiAsk>
+              {/* 세 말을 다 해 보면 도장 셋을 나란히 모아 준다. 같은 마음이 말에 따라 어떻게 다르게 들리는지가 이 장면에서 배운 것이다 */}
+              {seenIds.length >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
               <ul className="mt-3 space-y-3">
                 {situation.choices.map((c, i) => (
                   <li key={c.id} className="animate-rise" style={{ animationDelay: `${i * 70}ms` }}>
@@ -559,9 +567,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                       <Panel className="blk-strong">
                         <div className="relative overflow-hidden px-3.5 pb-1 pt-3.5" aria-current="true">
                           {/* 판정 색을 옅게 깔아 두고, 방금 고른 순간에만 진하게 한 번 번쩍인다 */}
-                          {cardRevealed && <span aria-hidden className={`pointer-events-none absolute inset-0 opacity-15 ${VERDICTS[c.verdict].color}`} />}
+                          {/* 판정 색은 도장이 찍히는 순간 같이 깔린다. 색이 내용보다 먼저 오면 빈 덩어리처럼 보인다 */}
+                          {cardRevealed && <span key={`base-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-fade opacity-15 ${VERDICTS[c.verdict].color}`} />}
                           {cardRevealed && !reduced && (
-                            <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} style={{ animationDelay: "500ms" }} />
+                            <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />
                           )}
                           <span className="relative block">
                             <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} />

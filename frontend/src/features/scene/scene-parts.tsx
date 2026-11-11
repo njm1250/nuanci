@@ -142,7 +142,8 @@ export function ResultBody({
   verdictKey?: number;
   share?: number;
 }) {
-  const heardAt = 300;
+  // 반응은 무대가 먼저 보여 줬으니 도장은 카드가 채워지는 순간 찍고, 해설만 조금 뒤에 온다
+  const heardAt = 0;
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
@@ -176,7 +177,7 @@ export function ResultBody({
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
         {active && !waiting && (
-          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted" style={{ animationDelay: `${heardAt + 300}ms` }}>
+          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted" style={{ animationDelay: `${heardAt + 250}ms` }}>
             {choice.why}
           </span>
         )}
