@@ -7,7 +7,7 @@ import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
 import { spoken } from "@/features/collection/pairs";
-import { heardAs, Num, VerdictStamp } from "./verdict";
+import { heardAs, Num, StakesNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
@@ -173,6 +173,11 @@ export function ResultBody({
             <span className="text-note text-ink-muted">「{spoken(intent)}」</span>
             <span aria-hidden className="text-note text-ink-subtle">→</span>
             <VerdictStamp choice={choice} pop delay={heardAt} />
+          </span>
+        )}
+        {active && !waiting && choice.stakes && (
+          <span key={`stakes-${verdictKey}`} className="mt-2 block animate-fade" style={{ animationDelay: `${heardAt + 150}ms` }}>
+            <StakesNote stakes={choice.stakes} />
           </span>
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}

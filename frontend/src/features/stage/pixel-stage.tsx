@@ -279,8 +279,10 @@ export type StageState = {
   meTurn?: boolean;
   // 내가 고를 차례에 내 머리 위 생각 풍선에 띄우는 속마음(하고 싶은 말). 없으면 점 세 개로 차례만 알린다
   meThink?: string;
-  // 켜면 무대 왼쪽 위 작은 칸에 상대 얼굴을 크게 한 번 더 보여 준다(컷인)
+  // 켜면 무대 구석 작은 칸에 상대 얼굴을 크게 한 번 더 보여 준다(컷인)
   cutIn?: boolean;
+  // 고른 말을 들은 상대가 입 밖으로 하는 영어 한마디(겉말). 반응 기호와 속마음보다 먼저 말풍선으로 띄운다
+  partnerSpeaks?: string;
 };
 
 // 하늘이 벽 자리에 오는 바깥 세트. 걸레받이를 그리지 않는다
@@ -377,7 +379,7 @@ export function PixelStage({
     [set, wall, evening, flags, decor, spec.set],
   );
   const ground = set.floor ?? C.floor;
-  const partnerSpeech = state?.partnerSays ?? state?.partnerLine;
+  const partnerSpeech = state?.partnerSpeaks ?? state?.partnerSays ?? state?.partnerLine;
   const busy = useBusy(spec, state, reduced);
   const { box, dpr } = usePixelDpr();
   const { widths, heights, observer } = useBubbleWidths();
@@ -478,7 +480,9 @@ export function PixelStage({
               : state.meTurn && state.meThink
                 ? bubble("me", <span aria-label={`내 속마음: ${state.meThink}`}>{state.meThink}</span>, `think-${state.meThink}`, true)
                 : bubble("me", state.meTurn ? <TypingDots /> : null, "turn")}
-          {state.partnerSays ? (
+          {state.partnerSpeaks ? (
+            bubble("partner", state.partnerSpeaks, `speaks-${state.partnerKey}`)
+          ) : state.partnerSays ? (
             bubble("partner", <span aria-label={`상대 속마음: ${state.partnerSays}`}>{state.partnerSays}</span>, `says-${state.partnerKey}`, true)
           ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">

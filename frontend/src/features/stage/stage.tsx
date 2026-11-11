@@ -28,7 +28,9 @@ export function Stage(props: ComponentProps<typeof PixelStageType>) {
       {props.state && (
         <div className="absolute inset-x-2 top-2 flex items-start justify-between gap-2 font-stage text-note leading-snug text-ink-fixed">
           {props.state.meTurn && props.state.meThink ? <span className="max-w-[48%] bg-white px-2 py-1">{props.state.meThink}</span> : <span />}
-          {(props.state.partnerSays ?? props.state.partnerLine) && <span className="max-w-[48%] bg-white px-2 py-1">{props.state.partnerSays ?? props.state.partnerLine}</span>}
+          {(props.state.partnerSpeaks ?? props.state.partnerSays ?? props.state.partnerLine) && (
+            <span className="max-w-[48%] bg-white px-2 py-1">{props.state.partnerSpeaks ?? props.state.partnerSays ?? props.state.partnerLine}</span>
+          )}
         </div>
       )}
       <PixelStage {...props} />

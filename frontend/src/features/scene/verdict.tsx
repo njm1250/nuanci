@@ -40,18 +40,21 @@ export function VerdictStamp({ choice, pop = false, delay = 60 }: { choice: Choi
 }
 
 // 세 말을 다 들어 본 뒤의 한 장: 같은 마음이 말마다 어떻게 들렸는지 도장 셋을 나란히 둔다
+const COUNT_WORDS = ["", "한", "두", "세", "네", "다섯", "여섯", "일곱"];
+
 export function HeardTrio({ intent, choices }: { intent: string; choices: Choice[] }) {
   const said = intent.lastIndexOf(" 하고 ") > 0 ? intent.slice(0, intent.lastIndexOf(" 하고 ")) : intent;
+  const count = COUNT_WORDS[choices.length] ?? String(choices.length);
   return (
     <div data-trio className="blk-frame blk-strong mt-3 scroll-mt-3 animate-rise">
       <div className="blk bg-card-raised px-4 py-3.5 text-ink">
-        <p className="text-note text-ink-muted">같은 마음, 세 가지로 들림</p>
+        <p className="text-note text-ink-muted">같은 마음, {count} 가지로 들림</p>
         <p className="mt-0.5 text-body font-bold leading-snug">「{said}」</p>
         <ul className="mt-3 space-y-2.5">
           {choices.map((c, i) => (
             <li key={c.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <span className="font-line text-say leading-snug">{c.line}</span>
-              <span className="inline-block animate-stamp" style={{ animationDelay: `${200 + i * 160}ms` }}>
+              <span className="inline-block animate-stamp" style={{ animationDelay: `${200 + i * 120}ms` }}>
                 <VerdictStamp choice={c} />
               </span>
             </li>
@@ -59,6 +62,26 @@ export function HeardTrio({ intent, choices }: { intent: string; choices: Choice
         </ul>
       </div>
     </div>
+  );
+}
+
+// 실제 대화에서 낼 사고의 크기. 모든 틀린 말이 큰 사고처럼 보이면 말하기가 무서워져서, 그냥 넘어가는 실수와 진짜 오해를 갈라 준다
+const STAKES = {
+  small: { dots: 1, text: "실제로는 대부분 알아듣고 넘어가요" },
+  big: { dots: 3, text: "실제로도 오해가 생길 수 있어요" },
+} as const;
+
+export function StakesNote({ stakes }: { stakes: "small" | "big" }) {
+  const s = STAKES[stakes];
+  return (
+    <span className="flex items-center gap-2 text-meta text-ink-subtle">
+      <span role="img" aria-label={`사고 크기 ${stakes === "big" ? "큼" : "작음"}`} className="flex gap-0.5">
+        {[1, 2, 3].map((n) => (
+          <span key={n} className={`size-1.5 border border-ink ${n <= s.dots ? "bg-ink" : ""}`} />
+        ))}
+      </span>
+      {s.text}
+    </span>
   );
 }
 

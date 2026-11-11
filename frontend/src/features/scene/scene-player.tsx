@@ -44,6 +44,8 @@ const STAGE_TUCK = "max-md:-mt-[var(--stage-tuck)]";
 const STAGE_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+0.5rem)]";
 // 얼굴 컷인이 떠 있는 시간
 const CUT_IN_MS = 1800;
+// 상대의 영어 겉말이 말풍선에 머무는 시간. 그 뒤 속마음 생각 풍선으로 바뀐다
+const SAYS_MS = 1600;
 // 고른 뒤 컷인이 뜨는 때. 효과음 글자가 터지는 순간(약 0.4초)에 맞춘다
 const CUT_IN_AT = 350;
 const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
@@ -221,6 +223,15 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const partnerReacts = reactWait !== null && reactedKey === stageKey;
   // 결과 카드는 무대에서 상대가 반응하는 순간에 같이 채운다. 그 전에는 고른 말만 보이고 판정 색도 깔지 않는다
   const cardRevealed = reduced || partnerReacts;
+  // 겉말이 있는 반응은 상대가 영어로 먼저 말하고(말풍선), 잠시 뒤 속마음(생각 풍선)이 뜬다. 실제로는 속마음을 말해 주지 않는다는 걸 보여 준다
+  const [thoughtKey, setThoughtKey] = useState<number | null>(null);
+  const hasSays = Boolean(stageChoice?.says);
+  useEffect(() => {
+    if (!partnerReacts || !hasSays) return;
+    const t = window.setTimeout(() => setThoughtKey(stageKey), SAYS_MS);
+    return () => clearTimeout(t);
+  }, [partnerReacts, hasSays, stageKey]);
+  const speaking = partnerReacts && hasSays && thoughtKey !== stageKey;
   // 오해가 터지는 말(효과음이 "헉!"·"엥?" 쪽인 반응)에만, 효과음이 터지는 순간 상대 얼굴 컷인을 한 번 띄웠다가 내린다.
   // 웃긴 건 놀란 얼굴이라 평온한 반응에는 띄우지 않는다. 동작 줄이기 설정이면 띄우지 않는다
   const shocked = Boolean(stageChoice && BURSTS[stageChoice.expression].bad) && !endingOn && !beat && !wrapped && phase !== "transition" && !reduced;
@@ -425,7 +436,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                         phase === "transition" && scene.followUp.lead?.length
                         ? undefined
                         : stageSituation.partnerLine,
-                  partnerSays: partnerReacts ? stageChoice?.reaction : undefined,
+                  partnerSpeaks: speaking ? stageChoice?.says : undefined,
+                  partnerSays: partnerReacts && !speaking ? stageChoice?.reaction : undefined,
                   meTurn: phase !== "transition" && !choice && !beat,
                   meThink: spoken(stageSituation.intent),
                   cutIn,
@@ -555,7 +567,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     다른 말도 해 볼래? <span className="tabular-nums text-ink-subtle">{seenIds.length}/{situation.choices.length}</span>
                   </>
                 ) : (
-                  "셋 다 해 봤네!"
+                  "다 해 봤네!"
                 )}
               </MochiAsk>
               {/* 세 말을 다 해 보면 도장 셋을 나란히 모아 준다. 같은 마음이 말에 따라 어떻게 다르게 들리는지가 이 장면에서 배운 것이다 */}
