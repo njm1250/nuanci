@@ -8,7 +8,8 @@ export function ImagineBubble({ icon, caption, reduced }: { icon: string; captio
       role="img"
       aria-label={`상대의 생각: ${caption}`}
       className="pointer-events-none absolute right-[4%] top-[6%] origin-bottom-right"
-      style={reduced ? undefined : { animation: "imagine 2400ms ease-out 650ms both" }}
+      // 넓은 무대에서는 말풍선과 같은 배율로 키운다
+      style={{ zoom: "var(--stage-px, 1)", ...(reduced ? null : { animation: "imagine 2400ms ease-out 650ms both" }) }}
     >
       <div className="blk-frame-sm">
         <div className="blk flex items-center gap-2 bg-white px-2.5 py-1.5">
