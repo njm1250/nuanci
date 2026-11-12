@@ -10,7 +10,7 @@ import { RewardReveal } from "@/features/rewards/reward-reveal";
 import { isUnopened, type RewardItem } from "@/features/rewards/rewards";
 import { type StreakMoment } from "@/features/streak/streak";
 import { StreakMomentCard } from "@/features/streak/streak-ui";
-import { useVoice, VOICE_MIN } from "@/features/progression/voice";
+import { usePackVoice, useVoice, VOICE_MIN } from "@/features/progression/voice";
 import { BlockButton, BlockLink } from "./block-ui";
 import { PICK_PARAM } from "./track";
 import { Num } from "./verdict";
@@ -86,7 +86,11 @@ export function WrapUp({
     const t = window.setTimeout(() => setAskShown(true), askAt);
     return () => clearTimeout(t);
   }, [nextAsk, askAt]);
-  const voice = useVoice();
+  // 개발자 팩에서는 팩 안의 답만 센 "내 리뷰 말투"를 보여 준다
+  const pack = scene.category === "dev";
+  const allVoice = useVoice();
+  const packVoice = usePackVoice();
+  const voice = pack ? packVoice : allVoice;
   const { open: openInquiry, element: inquiry } = useInquiry();
   // 오늘 처음 이어졌으면 연속 기록을 먼저 보여주고, 새 물건은 그 뒤에 들어온다
   const streakShown = useRef(false);
@@ -156,7 +160,7 @@ export function WrapUp({
       {/* 방금 고른 답까지 반영한 "내 영어 말투" 한 줄. 진행 체계를 이것 하나로 모았다 */}
       <Link href="/me" className="-mx-1 mt-3 flex min-h-11 items-center justify-between gap-3 px-1 hover:text-fg">
         <span className="min-w-0">
-          <span className="block text-meta text-fg-subtle">내 영어 말투</span>
+          <span className="block text-meta text-fg-subtle">{pack ? "내 리뷰 말투" : "내 영어 말투"}</span>
           <span className={`block text-ui ${voice.answered >= VOICE_MIN ? "font-bold text-fg" : "text-fg-muted"}`}>{voice.headline}</span>
         </span>
         <Arrow />

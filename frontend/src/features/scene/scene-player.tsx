@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LogoLink } from "@/features/site/logo-link";
+import { PrStatus } from "./pr-status";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -58,7 +59,7 @@ const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
 // teaser는 다음 장면 예고. 페이지가 서버에서 만들어 넘겨서 브라우저가 다음 장면 본문을 받지 않는다
 // nextAsk는 다음 장면의 첫 질문. 완료 화면 아래로 밀려 올라와서, 고르면 그 답을 든 채 다음 장면에 들어간다
 // entry는 들어온 경로를 정해 줄 때 쓴다(첫 방문 홈에서 바로 열린 장면은 home)
-type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; teaser?: string | null; nextAsk?: NextAsk | null; preview?: boolean; entry?: "home" };
+type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; teaser?: string | null; nextAsk?: NextAsk | null; preview?: boolean; entry?: "home"; packStep?: number };
 
 // Next.js는 떠난 페이지를 숨겨 두기만 해서 상태가 남는다. 링크로 새로 들어오면 처음부터, 뒤로 가기로 돌아오면 하던 곳부터 보여준다
 export function ScenePlayer(props: PlayerProps) {
@@ -67,7 +68,7 @@ export function ScenePlayer(props: PlayerProps) {
 }
 
 // 장면 하나를 처음 질문부터 정리까지 진행하는 화면. 검수 미리보기에서는 이벤트를 보내지 않고 함정 유형을 보여준다
-function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry }: PlayerProps) {
+function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry, packStep }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
   const send = (e: Omit<TrackEvent, "sceneId" | "sceneVersion" | "attemptId">) => {
@@ -405,6 +406,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
             </LogoLink>
           )}
           <h1 className="min-w-0 truncate text-fg">{scene.title}</h1>
+          {/* 개발자 팩은 몇 화인지 대신 PR이 지금 어느 단계인지 보여 준다 */}
+          {packStep !== undefined && <PrStatus step={packStep} />}
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && !leading && phase !== "transition" && (
