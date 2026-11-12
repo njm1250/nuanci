@@ -175,7 +175,8 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
   return (
     <div className="space-y-6 md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10 md:space-y-0">
       <div className="space-y-6">
-      {FEATURES.rewards ? <IdCard cleared={cleared.length} ranks={ranks} /> : <VoiceCard name={account.status === "member" ? (account.me?.name ?? undefined) : undefined} />}
+      {/* 이 화면의 주인공은 "내 영어 말투"다. 보상을 다시 켜도 직급 사원증(IdCard)이 이 자리를 차지하지 않게, 말투 카드를 늘 맨 위에 둔다 */}
+      <VoiceCard name={account.status === "member" ? (account.me?.name ?? undefined) : undefined} />
 
       {FEATURES.rewards && (
       <>
