@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 /Users/jun/dev/language-project/scripts/admin-query.py *)",
+      "Bash(python3 scripts/admin-query.py *)",
+      "Bash(scripts/push-scene.sh *)",
+      "Bash(/Users/jun/dev/language-project/scripts/push-scene.sh *)",
+      "Bash(bash /private/tmp/claude-501/-Users-jun-dev-language-project/e7b2f345-60b4-474f-8e17-9ee08141c584/scratchpad/dev-pack-local.sh)"
+    ]
+  }
+}

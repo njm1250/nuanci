@@ -1,5 +1,6 @@
 "use client";
 
+import { ThinkCloud } from "./think-cloud";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -394,7 +395,7 @@ export function PixelStage({
   // 머리 위 기준점에서부터 키운다. 1배일 때는 스타일을 걸지 않아 휴대폰 무대는 전과 똑같이 그려진다
   const scaled = bubbleScale === 1 ? undefined : { transform: `scale(${bubbleScale})` };
 
-  // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 한눈에 갈리게 둥근 모서리, 옅은 회청색 바탕, 떨어진 점 두 개 꼬리로 그린다.
+  // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 같은 도트 결이되, 위·아래가 도트 구름 혹으로 울퉁불퉁한 테두리(ThinkCloud), 옅은 회청색 바탕, 작아지는 도트 동그라미 꼬리로 갈라 보이게 그린다.
   // 무대 위 말풍선이라 밤 화면에서도 같은 색을 쓴다
   const bubble = (who: Who, text: React.ReactNode, key: string, think = false) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
@@ -402,12 +403,21 @@ export function PixelStage({
         <div style={scaled} className="origin-top-left">
         <div key={key} className="animate-fade">
           <div className="blk-frame-sm">
-            <div
-              ref={(el) => void (slots.current[who].bubble = el)}
-              className={`absolute w-max max-w-[13rem] px-2.5 py-1.5 font-stage text-note leading-snug break-keep ${think ? "bottom-[15px] rounded-[12px] bg-[var(--blue-100)] text-ink-fixed" : "blk bottom-[9px] bg-white text-ink"}`}
-            >
-              {text}
-            </div>
+            {think ? (
+              <ThinkCloud
+                ref={(el) => void (slots.current[who].bubble = el)}
+                className="absolute bottom-[12px] w-max max-w-[14rem] px-3.5 py-3 font-stage text-note leading-snug break-keep text-ink-fixed"
+              >
+                {text}
+              </ThinkCloud>
+            ) : (
+              <div
+                ref={(el) => void (slots.current[who].bubble = el)}
+                className="blk absolute bottom-[9px] w-max max-w-[13rem] bg-white px-2.5 py-1.5 font-stage text-note leading-snug break-keep text-ink"
+              >
+                {text}
+              </div>
+            )}
             {!think && (
               <>
                 <span className="absolute bottom-[5px] left-0 h-[5px] w-[10px] -translate-x-1/2 bg-white" />
@@ -417,9 +427,15 @@ export function PixelStage({
           </div>
           {think && (
             <>
-              <span aria-hidden className="absolute bottom-[7px] left-0 size-[7px] -translate-x-1/2 rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
-              <span aria-hidden className="absolute bottom-[1px] left-[3px] size-[5px] rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
-              <span aria-hidden className="absolute -bottom-[4px] left-[7px] size-[3px] rounded-full bg-[var(--blue-100)] outline outline-2 outline-ink-fixed" />
+              {/* 꼬리는 머리 쪽으로 갈수록 작아지는 도트 동그라미 두 개 */}
+              <svg aria-hidden width="12" height="10" viewBox="0 0 6 5" shapeRendering="crispEdges" className="absolute bottom-[3px] left-0 -translate-x-1/2">
+                <path d="M1 0h4v1H1zM0 1h1v3H0zM5 1h1v3H5zM1 4h4v1H1z" fill="var(--color-ink-fixed)" />
+                <path d="M1 1h4v3H1z" fill="var(--blue-100)" />
+              </svg>
+              <svg aria-hidden width="8" height="6" viewBox="0 0 4 3" shapeRendering="crispEdges" className="absolute -bottom-[5px] left-[4px]">
+                <path d="M1 0h2v1H1zM0 1h1v1H0zM3 1h1v1H3zM1 2h2v1H1z" fill="var(--color-ink-fixed)" />
+                <path d="M1 1h2v1H1z" fill="var(--blue-100)" />
+              </svg>
             </>
           )}
         </div>
