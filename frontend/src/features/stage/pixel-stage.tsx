@@ -1,5 +1,6 @@
 "use client";
 
+import { ThinkCloud } from "./think-cloud";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -394,7 +395,7 @@ export function PixelStage({
   // 머리 위 기준점에서부터 키운다. 1배일 때는 스타일을 걸지 않아 휴대폰 무대는 전과 똑같이 그려진다
   const scaled = bubbleScale === 1 ? undefined : { transform: `scale(${bubbleScale})` };
 
-  // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 같은 도트 결이되, 위·아래가 도트 구름 혹으로 울퉁불퉁한 테두리(.think-cloud), 옅은 회청색 바탕, 작아지는 도트 동그라미 꼬리로 갈라 보이게 그린다.
+  // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 같은 도트 결이되, 위·아래가 도트 구름 혹으로 울퉁불퉁한 테두리(ThinkCloud), 옅은 회청색 바탕, 작아지는 도트 동그라미 꼬리로 갈라 보이게 그린다.
   // 무대 위 말풍선이라 밤 화면에서도 같은 색을 쓴다
   const bubble = (who: Who, text: React.ReactNode, key: string, think = false) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
@@ -403,12 +404,12 @@ export function PixelStage({
         <div key={key} className="animate-fade">
           <div className="blk-frame-sm">
             {think ? (
-              <div
+              <ThinkCloud
                 ref={(el) => void (slots.current[who].bubble = el)}
-                className="think-cloud absolute bottom-[12px] -my-1 w-max max-w-[14rem] font-stage text-note leading-snug break-keep text-ink-fixed"
+                className="absolute bottom-[12px] w-max max-w-[14rem] px-3.5 py-3 font-stage text-note leading-snug break-keep text-ink-fixed"
               >
                 {text}
-              </div>
+              </ThinkCloud>
             ) : (
               <div
                 ref={(el) => void (slots.current[who].bubble = el)}
