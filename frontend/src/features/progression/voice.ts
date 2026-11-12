@@ -99,3 +99,27 @@ const emptyVoice = voiceOf(EMPTY);
 export function useVoice() {
   return useSyncExternalStore(subscribe, voiceSnapshot, () => emptyVoice);
 }
+
+// 개발자 팩만 따로 센 "내 리뷰 말투". 팩 장면(id가 dev-로 시작)의 첫 답만 모아 "10번 중 4번"처럼 횟수로 말한다
+const PACK_PREFIX = "dev-";
+const packCache = { store: EMPTY as Store, voice: voiceOf(EMPTY) };
+function packSnapshot() {
+  const store = snapshot();
+  if (store !== packCache.store) {
+    packCache.store = store;
+    const only = Object.fromEntries(Object.entries(store).filter(([key]) => key.startsWith(PACK_PREFIX)));
+    const v = voiceOf(only);
+    const headline =
+      v.answered < VOICE_MIN
+        ? v.headline
+        : v.top && v.clear < 70
+          ? `리뷰에서 ${v.top.lean}(${v.answered}번 중 ${v.top.count}번)`
+          : `리뷰에서도 대체로 의도대로 들리는 편(${v.answered}번 중 ${v.good}번)`;
+    packCache.voice = { ...v, headline };
+  }
+  return packCache.voice;
+}
+
+export function usePackVoice() {
+  return useSyncExternalStore(subscribe, packSnapshot, () => emptyVoice);
+}

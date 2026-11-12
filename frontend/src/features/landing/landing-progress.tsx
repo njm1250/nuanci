@@ -1,5 +1,7 @@
 "use client";
 
+import type { SceneCategory } from "@/features/scene/types";
+
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
@@ -49,7 +51,7 @@ export type ShelfScene = {
   relation: string;
   place: string;
   stage?: StageSpec;
-  category?: "meme";
+  category?: SceneCategory;
 };
 
 const noop = () => () => {};
@@ -94,7 +96,8 @@ function Check() {
 // 첫 방문이면 첫 장면으로, 다시 오면 아직 안 해 본 다음 장면으로 보내는 시작 버튼
 export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const { returning, cleared } = useVisitor(scenes);
-  const next = nextUncleared(scenes, cleared);
+  // 개발자 팩은 /dev로 따로 들어오는 묶음이라, 일반 홈의 다음 장면으로는 고르지 않는다
+  const next = nextUncleared(scenes.filter((s) => s.category !== "dev"), cleared);
   useEffect(() => {
     trackHome();
     return watchEngagement();
@@ -752,7 +755,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   const opened = progress.list.filter((x) => x.open);
   const locked = progress.list.filter((x) => !x.open);
   const next = nextUncleared(
-    opened.flatMap((x) => x.scenes),
+    opened.flatMap((x) => x.scenes).filter((s) => s.category !== "dev"),
     cleared,
   );
   // 순서를 바꾸다 이미 해 본 장면이 잠긴 묶음으로 밀려나도, 해 본 장면은 잠그지 않는다
