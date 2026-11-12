@@ -24,6 +24,15 @@ function Arrow() {
   );
 }
 
+// 도트 돋보기. 찾기 칸 앞에 둔다
+function SearchIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden className="shrink-0 fill-current text-ink-subtle">
+      <path d="M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v1H2zM6 6h1v1H6zM7 7h1v1H7zM8 8h1v1H8z" />
+    </svg>
+  );
+}
+
 // 표현 한 쌍. 하고 싶던 말 → 자연스러운 말(다른 자연스러운 말은 '또는'으로) → 틀리기 쉬운 말 순서로, 배울 표현을 가장 크게 둔다.
 // 영어 가리기를 켜면 자연스러운 말을 가려 두고 눌러야 보여준다. 스스로 떠올려 본 뒤 확인하면 더 오래 기억한다. 출처는 맨 아래 한 줄로 작게 둔다
 function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boolean; onReveal: () => void }) {
@@ -108,6 +117,9 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
   const q = query.trim().toLowerCase();
   const matches = (p: ExpressionPair) => (!trap || p.trap === trap) && (!q || [p.intent, p.right, p.wrong, p.who, p.when].some((t) => t.toLowerCase().includes(q)));
   const shown = open.map((e) => ({ entry: e, pairs: e.pairs.filter(matches) })).filter((g) => g.pairs.length > 0);
+  const shownCount = shown.reduce((n, g) => n + g.pairs.length, 0);
+  const trapCount = new Map<Trap, number>();
+  for (const p of open.flatMap((e) => e.pairs)) if (p.trap) trapCount.set(p.trap, (trapCount.get(p.trap) ?? 0) + 1);
 
   const toggleHide = () => {
     setHide((v) => !v);
@@ -121,38 +133,55 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
         <EmptyBook entries={entries} />
       ) : (
         <>
-          <div className="flex gap-2">
+          {/* 찾기: 사이트의 다른 칸처럼 2px 선, 앞에 돋보기, 글이 있으면 지우기 버튼. 포커스 표시는 안쪽 입력칸이 아니라 바깥 칸 전체에 둔다 */}
+          <div className="flex min-h-12 items-center gap-2 border-2 border-fg bg-card-raised px-3 text-ink focus-within:outline focus-within:outline-[3px] focus-within:outline-offset-4 focus-within:outline-pink">
+            <SearchIcon />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="표현 찾기"
+              placeholder="영어나 한국어, 상황으로 찾기"
               aria-label="표현 찾기"
-              className="min-h-11 min-w-0 flex-1 border border-line bg-surface px-3 text-body text-fg placeholder:text-fg-subtle light:bg-card-raised"
+              className="min-w-0 flex-1 bg-transparent py-2 text-body text-ink outline-none placeholder:text-ink-subtle focus-ring-off [&::-webkit-search-cancel-button]:hidden"
             />
-            {traps.length > 1 && (
-              <select
-                value={trap ?? ""}
-                onChange={(e) => setTrap((e.target.value || null) as Trap | null)}
-                aria-label="틀리는 이유"
-                className="min-h-11 w-[120px] shrink-0 border border-line bg-surface px-2 text-note text-fg light:bg-card-raised [color-scheme:dark] light:[color-scheme:light]"
-              >
-                <option value="">이유 전체</option>
-                {traps.map((t) => (
-                  <option key={t} value={t}>
-                    {TRAP_LABELS[t]}
-                  </option>
-                ))}
-              </select>
+            {query && (
+              <button type="button" onClick={() => setQuery("")} aria-label="찾는 말 지우기" className="-mr-2 grid size-11 place-items-center text-ink-subtle hover:text-ink">
+                <span aria-hidden className="text-title leading-none">×</span>
+              </button>
             )}
           </div>
 
-          <div className="mt-1 flex min-h-11 items-center justify-between gap-3">
-            <label className="flex min-h-11 items-center gap-2 text-note text-fg-muted">
-              <input type="checkbox" checked={hide} onChange={toggleHide} className="size-[18px] accent-pink [color-scheme:dark] light:[color-scheme:light]" />
+          {/* 틀리는 이유: 열어 봐야 보이는 목록 대신, 이유마다 몇 개인지 붙은 칸을 한 줄로 늘어놓는다. 모바일은 옆으로 넘긴다 */}
+          {traps.length > 1 && (
+            <div role="radiogroup" aria-label="틀리는 이유" className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+              {[{ value: null, label: "전체", n: count }, ...traps.map((t) => ({ value: t, label: TRAP_LABELS[t], n: trapCount.get(t) ?? 0 }))].map((o) => {
+                const on = trap === o.value;
+                return (
+                  <button
+                    key={o.label}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => setTrap(o.value)}
+                    className={`flex min-h-11 shrink-0 items-center gap-1.5 border-2 px-3 font-label text-ui ${on ? "border-fg bg-fg text-page" : "border-line text-fg-muted hover:border-fg hover:text-fg"}`}
+                  >
+                    {o.label}
+                    <span className={`text-meta ${on ? "text-page/70" : "text-fg-subtle"}`}>{o.n}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-2 flex min-h-11 items-center justify-between gap-3">
+            {/* 영어 가리기는 다른 설정과 같은 켜고 끄기 스위치로 */}
+            <button type="button" role="switch" aria-checked={hide} onClick={toggleHide} className="flex min-h-11 items-center gap-2.5 text-note text-fg-muted">
+              <span className={`flex h-6 w-11 items-center p-0.5 ${hide ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+                <span className={`size-5 ${hide ? "bg-ink" : "bg-fg"}`} />
+              </span>
               영어 가리기
-            </label>
-            <p className="text-note text-fg-subtle">{count}개</p>
+            </button>
+            <p className="text-note text-fg-subtle">{shownCount === count ? `${count}개` : `${count}개 중 ${shownCount}개`}</p>
           </div>
 
           {shown.length === 0 ? (
