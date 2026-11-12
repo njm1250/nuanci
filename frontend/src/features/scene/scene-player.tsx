@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogoLink } from "@/features/site/logo-link";
 import { useRouter } from "next/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -392,17 +393,17 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
         {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
         <div className="shrink-0 md:contents">
         <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-label text-ui text-fg md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
-          <Link href={preview ? `/admin/scenes/${scene.id}` : "/"} aria-label={preview ? undefined : "nuanci"} className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
-            {/* 다른 화면 머리줄과 같은 마크+글자 로고. 제목 자리가 좁아서 조금 작게 둔다 */}
-            {preview ? (
+          {/* 다른 화면 머리줄과 같은 마크+글자 로고. 제목 자리가 좁아서 조금 작게 둔다. 첫 방문 중에는 소개 화면으로 간다(LogoLink) */}
+          {preview ? (
+            <Link href={`/admin/scenes/${scene.id}`} className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
               <span className="logo">검수</span>
-            ) : (
-              <>
-                <span aria-hidden className="block size-6 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
-                <span aria-hidden className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
-              </>
-            )}
-          </Link>
+            </Link>
+          ) : (
+            <LogoLink className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
+              <span aria-hidden className="block size-6 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
+              <span aria-hidden className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
+            </LogoLink>
+          )}
           <h1 className="min-w-0 truncate text-fg">{scene.title}</h1>
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">

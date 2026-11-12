@@ -97,18 +97,15 @@ export function WrapUp({
   }, [streak]);
   return (
     <div className="animate-rise">
-      <div className="flex items-end gap-3">
-        <Mascot scale={3} className="shrink-0" />
-        <div className="pb-1">
-          <p className="font-label text-ui text-fg-muted">장면 완료!</p>
-          <p className="mt-1 font-poster text-display-sm leading-[1.25] text-fg">{scene.title}</p>
-        </div>
-      </div>
-      {/* 엔딩 컷이 끝나면 다음 질문이 제목 바로 아래로 밀려 올라온다. 장면 사이에 홈을 거치지 않고 질문이 이어진다 */}
-      {nextAsk && askShown && (
-        <section aria-label="다음 질문" className="mt-5 animate-rise">
-          <p className="text-note text-fg-subtle">다음 질문</p>
-          <p className="mt-1 font-line text-say leading-snug text-fg">
+      {/* 끝났다는 말을 크게 두면 화면을 닫는 신호로 읽혀서(첫 방문 9명 중 2명이 여기서 나감), 다음 질문이 있으면 그 질문을 맨 위 주인공으로 둔다.
+          질문은 엔딩 컷을 본 뒤 올라오되, 자리는 미리 잡아 두어 아래 카드가 밀려 내려가지 않게 한다 */}
+      {nextAsk ? (
+        <section aria-label="다음 질문" className={askShown ? "animate-rise" : "invisible"}>
+          <div className="flex items-end gap-3">
+            <Mascot scale={3} className="shrink-0" />
+            <p className="pb-1 text-note text-fg-subtle">다음 질문</p>
+          </div>
+          <p className="mt-3 font-line text-say leading-snug text-fg">
             <span className="mr-1.5 align-middle font-label text-ui text-fg-muted">{nextAsk.partnerName}</span>
             {nextAsk.partnerLine}
           </p>
@@ -128,10 +125,16 @@ export function WrapUp({
             ))}
           </ul>
         </section>
+      ) : (
+        <div className="flex items-end gap-3">
+          <Mascot scale={3} className="shrink-0" />
+          <p className="pb-1 font-poster text-display-sm leading-[1.25] text-fg">{scene.title}</p>
+        </div>
       )}
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
-      <div className="blk-frame mt-5">
+      <div className="blk-frame mt-6">
         <div className="blk bg-card-raised px-4 py-4 text-ink">
+          {nextAsk && <p className="mb-1.5 text-meta text-ink-subtle">방금 장면 · {scene.title}</p>}
           <p className="text-ui leading-[1.6]">{scene.discovery}</p>
           <ul className="mt-3.5 space-y-3.5 border-t-2 border-dashed border-ink/20 pt-3">
             {pairs.map((p) => (
