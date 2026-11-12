@@ -1,6 +1,7 @@
 "use client";
 
 import type { SceneCategory } from "@/features/scene/types";
+import { DevPackBanner } from "./dev-pack-banner";
 
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
@@ -673,6 +674,8 @@ export function SceneShelf({
             </ul>
           </div>
         </div>
+        {/* 개발자 팩 캠페인. 데스크톱 오른쪽 칸 맨 아래에만 작게 둔다. 팩으로 사람을 데려오는 주 경로는 개발자 채널의 /dev 링크다 */}
+        <DevPackBanner className="order-6 max-lg:hidden" />
       </div>
       <ThumbStudio />
     </section>
