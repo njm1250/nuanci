@@ -674,8 +674,8 @@ export function SceneShelf({
             </ul>
           </div>
         </div>
-        {/* 개발자 팩 캠페인. 데스크톱 오른쪽 칸 맨 아래에만 작게 둔다. 팩으로 사람을 데려오는 주 경로는 개발자 채널의 /dev 링크다 */}
-        <DevPackBanner className="order-6 max-lg:hidden" />
+        {/* 개발자 팩 캠페인. 오른쪽 칸(모바일은 바로 가기 아래) 맨 아래에 작게 둔다. 팩으로 사람을 데려오는 주 경로는 개발자 채널의 /dev 링크다 */}
+        <DevPackBanner className="order-6 mt-5 lg:mt-0" />
       </div>
       <ThumbStudio />
     </section>
