@@ -394,7 +394,7 @@ export function PixelStage({
   // 머리 위 기준점에서부터 키운다. 1배일 때는 스타일을 걸지 않아 휴대폰 무대는 전과 똑같이 그려진다
   const scaled = bubbleScale === 1 ? undefined : { transform: `scale(${bubbleScale})` };
 
-  // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 같은 도트 결이되, 더 둥글게 꺾은 모서리(.px-round), 옅은 회청색 바탕, 떨어진 도트 꼬리로 갈라 보이게 그린다.
+  // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 같은 도트 결이되, 위·아래가 도트 구름 혹으로 울퉁불퉁한 테두리(.think-cloud), 옅은 회청색 바탕, 작아지는 도트 동그라미 꼬리로 갈라 보이게 그린다.
   // 무대 위 말풍선이라 밤 화면에서도 같은 색을 쓴다
   const bubble = (who: Who, text: React.ReactNode, key: string, think = false) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
@@ -403,8 +403,11 @@ export function PixelStage({
         <div key={key} className="animate-fade">
           <div className="blk-frame-sm">
             {think ? (
-              <div ref={(el) => void (slots.current[who].bubble = el)} className="px-round absolute bottom-[16px] w-max max-w-[13rem] bg-ink-fixed p-[2px]">
-                <div className="px-round bg-[var(--blue-100)] px-2.5 py-1.5 font-stage text-note leading-snug break-keep text-ink-fixed">{text}</div>
+              <div
+                ref={(el) => void (slots.current[who].bubble = el)}
+                className="think-cloud absolute bottom-[12px] -my-1 w-max max-w-[14rem] font-stage text-note leading-snug break-keep text-ink-fixed"
+              >
+                {text}
               </div>
             ) : (
               <div
@@ -423,9 +426,15 @@ export function PixelStage({
           </div>
           {think && (
             <>
-              {/* 꼬리도 둥근 점 대신 도트 네모 두 개와 점 하나. 머리 쪽으로 갈수록 작아진다 */}
-              <span aria-hidden className="absolute bottom-[6px] left-0 size-[8px] -translate-x-1/2 border-2 border-ink-fixed bg-[var(--blue-100)]" />
-              <span aria-hidden className="absolute bottom-0 left-[4px] size-[4px] bg-ink-fixed" />
+              {/* 꼬리는 머리 쪽으로 갈수록 작아지는 도트 동그라미 두 개 */}
+              <svg aria-hidden width="12" height="10" viewBox="0 0 6 5" shapeRendering="crispEdges" className="absolute bottom-[3px] left-0 -translate-x-1/2">
+                <path d="M1 0h4v1H1zM0 1h1v3H0zM5 1h1v3H5zM1 4h4v1H1z" fill="var(--color-ink-fixed)" />
+                <path d="M1 1h4v3H1z" fill="var(--blue-100)" />
+              </svg>
+              <svg aria-hidden width="8" height="6" viewBox="0 0 4 3" shapeRendering="crispEdges" className="absolute -bottom-[5px] left-[4px]">
+                <path d="M1 0h2v1H1zM0 1h1v1H0zM3 1h1v1H3zM1 2h2v1H1z" fill="var(--color-ink-fixed)" />
+                <path d="M1 1h2v1H1z" fill="var(--blue-100)" />
+              </svg>
             </>
           )}
         </div>
