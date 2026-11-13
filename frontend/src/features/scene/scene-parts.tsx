@@ -56,13 +56,19 @@ export function Question({ name, line, intent, className = "" }: { name: string;
 }
 
 // Mochi가 옆에서 말을 거는 한 줄. 반말 안내가 서비스 말투가 아니라 고양이 말로 들리게 한다(메뉴의 "어디로 갈까?"와 같은 모양)
-export function MochiAsk({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function MochiAsk({ children, className = "", cheer = 0, cheerTwice = false }: { children: React.ReactNode; className?: string; cheer?: number; cheerTwice?: boolean }) {
   const [hop, setHop] = useState(0);
+  // cheer가 오를 때마다(다른 반응을 하나 더 들었을 때) 한 번, 다 모았을 때는 두 번 뛴다. 눌렀을 때와 같은 동작이라 새 그림 없이 곁반응이 된다
+  const [lastCheer, setLastCheer] = useState(cheer);
+  if (cheer !== lastCheer) {
+    setLastCheer(cheer);
+    if (cheer > lastCheer) setHop((n) => n + 1);
+  }
   return (
     <div className={`flex items-end gap-2 ${className}`}>
       {/* 누르면 제자리에서 콩 뛴다. 그냥 장식이지만 눌러 보는 사람에게 작은 대답이 된다 */}
       <button type="button" aria-label="Mochi 쓰다듬기" onClick={() => (setHop((n) => n + 1), sfx.tap())} className="-m-1 shrink-0 p-1">
-        <Mascot key={hop} scale={2} className={hop ? "animate-hop" : ""} />
+        <Mascot key={hop} scale={2} className={`origin-bottom ${hop ? (cheerTwice ? "animate-mochi-hop-twice" : "animate-mochi-hop") : ""}`} />
       </button>
       <div className="blk-frame-sm mb-2 min-w-0">
         <p className="blk bg-white px-2.5 py-1.5 text-note font-bold leading-snug text-ink-fixed">{children}</p>
