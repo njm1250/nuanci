@@ -38,17 +38,37 @@ type SfxName =
   | "poke-me"
   | "voice-partner"
   | "voice-me"
-  | "voice-mochi";
+  | "voice-mochi"
+  | "stamp"
+  | "react-shocked"
+  | "react-puzzled"
+  | "react-dizzy"
+  | "react-awkward"
+  | "react-neutral"
+  | "react-happy"
+  | "react-delighted"
+  | "react-love"
+  | "react-angry"
+  | "react-crying"
+  | "react-sleepy"
+  | "react-stuffed";
 
+// 장면에서 바로 나는 소리(누름, 상대 표정 리액션, 도장)를 먼저 받아 둔다. 정답·오답 소리는 장면에서 쓰지 않아 뒤로 미룬다
 const CORE_PREFETCH: SfxName[] = [
   "tap",
-  "good",
-  "good-sparkle",
-  "meh",
-  "meh-puzzled",
-  "bad",
-  "bad-dizzy",
-  "bad-shocked",
+  "stamp",
+  "react-shocked",
+  "react-puzzled",
+  "react-dizzy",
+  "react-awkward",
+  "react-neutral",
+  "react-happy",
+  "react-delighted",
+  "react-love",
+  "react-angry",
+  "react-crying",
+  "react-sleepy",
+  "react-stuffed",
   "whoosh",
   "flip",
   "voice-partner",
@@ -58,6 +78,13 @@ const CORE_PREFETCH: SfxName[] = [
 
 const ALL_CLIPS: SfxName[] = [
   ...CORE_PREFETCH,
+  "good",
+  "good-sparkle",
+  "meh",
+  "meh-puzzled",
+  "bad",
+  "bad-dizzy",
+  "bad-shocked",
   "equip",
   "place",
   "box-shake",
@@ -381,6 +408,15 @@ function blip(kind: "partner" | "me" | "mochi" | "narration", line = ""): () => 
 const CLEAR_CLIPS: SfxName[] = ["clear-1", "clear-2", "clear-3"];
 
 export const sfx = {
+  // 상대 표정에 맞춘 만화식 리액션(띠용·귀뚜라미·뾰롱 등). 맞고 틀림이 아니라 상대가 어떻게 들었는지를 소리로 낸다
+  react: (expression: Expression) => playClip(`react-${expression}` as SfxName, { vol: 0.85, rate: 0.98 + Math.random() * 0.04 }),
+
+  // 결과 도장이 찍히는 '쾅'. 어떤 결과든 같은 소리라 채점처럼 들리지 않는다
+  stamp: () => playClip("stamp", { vol: 0.8 }),
+
+  // 다른 말까지 다 들어 보고 도장이 모두 모인 순간. 채점이 아니라 다 모은 성취라 위로 뛰는 정답음을 여기 쓴다
+  collect: () => playClip("good", { vol: 0.9 }),
+
   // O: 로즈우드 마림바 + 우쿨렐레 3화음 롤
   good: (expression?: Expression) => {
     const clip: SfxName = expression === "delighted" || expression === "love" ? "good-sparkle" : "good";
