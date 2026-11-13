@@ -46,11 +46,11 @@ export function BeatLog({ beats, partnerName, translate }: { beats: Beat[]; part
 }
 
 // 질문이 나오면 빌드업 대사가 사라져서, 잠깐 한눈판 사람은 무슨 일이 있었는지 모른 채 골라야 했다. 접어 둔 채로 다시 펼쳐 볼 수 있게 남긴다
-export function LeadRecap({ beats, partnerName, translate, onOpen }: { beats: Beat[]; partnerName: string; translate: boolean; onOpen?: () => void }) {
+export function LeadRecap({ beats, partnerName, translate }: { beats: Beat[]; partnerName: string; translate: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="mt-1.5">
-      <button type="button" onClick={() => (open || onOpen?.(), setOpen((v) => !v))} aria-expanded={open} className="-mx-1 flex min-h-9 items-center gap-1.5 px-1 text-meta text-fg-subtle underline decoration-fg-subtle/40 underline-offset-4 hover:text-fg">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="-mx-1 flex min-h-9 items-center gap-1.5 px-1 text-meta text-fg-subtle underline decoration-fg-subtle/40 underline-offset-4 hover:text-fg">
         {open ? "앞 대화 접기" : "앞 대화 다시 보기"}
         <Caret open={open} />
       </button>

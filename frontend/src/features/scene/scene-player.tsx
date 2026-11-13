@@ -34,7 +34,6 @@ import { recordVoice } from "@/features/progression/voice";
 import { FEATURES } from "@/features/site/lean";
 import { HeardTrio, VerdictNote } from "./verdict";
 import type { NextAsk } from "./wrap-up";
-import { noteLeadSkipped, noteLeadWatched, useStartAtQuestion } from "./lead-pref";
 
 preloadStage();
 
@@ -131,9 +130,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const [recover, setRecover] = useState<Beat | null>(null);
   const lead = step === "followUp" && recover ? [recover, ...(situation.lead ?? [])] : (situation.lead ?? []);
   const [leadAt, setLeadAt] = useState({ base: 0, followUp: 0 });
-  // 건너뛰기를 거듭한 사람은 대사 없이 질문부터 시작한다. 검수 화면에서는 늘 대사부터 본다
-  const startAtQuestion = useStartAtQuestion() && !preview;
-  const leadIdx = startAtQuestion ? lead.length : leadAt[step];
+  const leadIdx = leadAt[step];
   // 다른 탭에 가 있는 동안 멈춘 자동 넘김. 돌아와서 화면을 한 번 누르면 다시 흐른다
   const [autoPaused, setAutoPaused] = useState(false);
   const leading = phase !== "transition" && !wrapped && leadIdx < lead.length;
@@ -156,7 +153,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     if (!introDone) return setIntroDone(true);
     if (lastBeat) {
       send({ type: "lead_finished", step, choiceId: "watched" });
-      noteLeadWatched();
     }
     setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
     setAutoPaused(false);
@@ -165,15 +161,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const pickAfter = useRef(0);
   const skipLead = () => {
     send({ type: "lead_finished", step, choiceId: "skipped" });
-    noteLeadSkipped();
     pickAfter.current = performance.now() + 450;
     setLeadAt((a) => ({ ...a, [step]: lead.length }));
   };
-  // 대사 없이 시작한 장면도 지표에 남겨서, 몇 명이 바로 고르는 쪽에 자리 잡았는지 센다
-  const leadCount = lead.length;
-  useEffect(() => {
-    if (startAtQuestion && leadCount > 0 && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "auto_skipped" });
-  }, [startAtQuestion, leadCount, preview, scene.id, scene.version, attemptId, step]);
   useEffect(() => {
     if (beat) sfx.blip(beat.line === "……" ? "narration" : beat.who);
   }, [beat]);
@@ -188,7 +178,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     if (!beat || autoPaused) return;
     const t = window.setTimeout(() => {
       if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
-      if (lastBeat) noteLeadWatched();
       setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
     }, beatMs(beat));
     return () => clearTimeout(t);
@@ -617,7 +606,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               <p className="text-note leading-normal text-fg-muted md:hidden">{situation.context}</p>
               {!leading && lead.length > 0 && (
                 <div className="md:hidden">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} onOpen={noteLeadWatched} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />
                 </div>
               )}
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
@@ -726,7 +715,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {/* 데스크톱은 Mochi와 보기가 칸 맨 위에 붙어 있도록 앞 대화 다시 보기를 보기 아래에 둔다 */}
               {!leading && lead.length > 0 && (
                 <div className="hidden md:block">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} onOpen={noteLeadWatched} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />
                 </div>
               )}
             </div>
