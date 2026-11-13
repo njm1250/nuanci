@@ -5,7 +5,7 @@ import { LogoLink } from "@/features/site/logo-link";
 import { PrStatus } from "./pr-status";
 import { useRouter } from "next/navigation";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { logoSvg, wordmarkSvg } from "@/features/site/logo";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { COLOR_HEX, isUnopened, usePendingRewards, useRewards } from "@/features/rewards/rewards";
@@ -47,7 +47,7 @@ const STAGE_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+0.5rem)]";
 // 얼굴 컷인이 떠 있는 시간
 const CUT_IN_MS = 1800;
 // 상대의 영어 겉말이 말풍선에 머무는 시간. 그 뒤 속마음 생각 풍선으로 바뀐다
-const SAYS_MS = 1600;
+const SAYS_MS = 1200;
 // 이미 본 보기를 다시 누르면 겉말 없이 이만큼 뒤에 바로 속마음이 뜬다. 같은 반응을 다시 기다리게 하지 않는다
 const REACT_AGAIN = 350;
 // 장면에 들어와 첫 대사가 뜨기 전 무대만 보이는 시간
@@ -224,7 +224,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   // 생각 말풍선(imagine)이 있으면 그게 사라진 뒤에 바꾼다. 같은 자리 근처라 겹치면 둘 다 안 읽힌다
   const [reactedKey, setReactedKey] = useState<number | null>(null);
   // 이미 들어 본 보기를 다시 누른 것인지. 자주 보는 연출일수록 짧게 한다
-  const repeatView = Boolean(choice) && seenIds.filter((id) => id === choice?.id).length > 1;
+  const [heard, setHeard] = useState<Record<string, string[]>>({ base: [], followUp: [] });
+  const heardIds = heard[step];
+  const [repeatView, setRepeatView] = useState(false);
   const reactWait = !stageChoice || endingOn || beat || wrapped ? null : reduced ? 0 : repeatView ? REACT_AGAIN : stageChoice.imagine ? REACT_AFTER_IMAGINE : REACT_AFTER;
   useEffect(() => {
     if (reactWait === null) return;
@@ -233,7 +235,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   }, [stageKey, reactWait]);
   const partnerReacts = reactWait !== null && reactedKey === stageKey;
   // 결과 카드는 무대에서 상대가 반응하는 순간에 같이 채운다. 그 전에는 고른 말만 보이고 판정 색도 깔지 않는다
-  const cardRevealed = reduced || partnerReacts;
+
   // 겉말이 있는 반응은 상대가 영어로 먼저 말하고(말풍선), 잠시 뒤 속마음(생각 풍선)이 뜬다. 실제로는 속마음을 말해 주지 않는다는 걸 보여 준다
   const [thoughtKey, setThoughtKey] = useState<number | null>(null);
   const hasSays = Boolean(stageChoice?.says) && !repeatView;
@@ -242,7 +244,16 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     const t = window.setTimeout(() => setThoughtKey(stageKey), SAYS_MS + SAYS_BEAT);
     return () => clearTimeout(t);
   }, [partnerReacts, hasSays, stageKey]);
-  const speaking = partnerReacts && hasSays && thoughtKey !== stageKey;
+  const speaking = !reduced && partnerReacts && hasSays && thoughtKey !== stageKey;
+  const cardRevealed = reduced || (partnerReacts && !speaking);
+  useEffect(() => {
+    if (!cardRevealed || !choice || wrapped || leading) return;
+    const id = choice.id;
+    const frame = requestAnimationFrame(() => {
+      setHeard((prev) => prev[step].includes(id) ? prev : { ...prev, [step]: [...prev[step], id] });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [cardRevealed, choice, wrapped, leading, step]);
   // 겉말이 내려간 뒤 속마음이 뜨기 전 한 박자. 이때는 반응 기호만 남아 펀치라인 앞의 쉼이 된다
   const [beatKey, setBeatKey] = useState<number | null>(null);
   useEffect(() => {
@@ -302,14 +313,26 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
   }, [phase, wrapped]);
-  // 보기 목록은 고를 때 제자리에 그대로 있다. 카드가 도장·해설로 채워진 뒤에, 다 보이지 않으면 그때 한 번 맞춘다.
-  // 다 들어 본 순간에는 맨 아래 도장 모음으로 내려간다
-  const revealScroll = (target: "card" | "trio") => {
-    window.setTimeout(() => {
-      const el = scroller.current?.querySelector<HTMLElement>(target === "trio" ? "[data-trio]" : "[aria-current]");
-      el?.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
-    }, reduced ? 0 : 280);
-  };
+  // 사용자가 읽는 위치를 우선한다. 선택한 줄만 보존하고 결과가 나와도 자동으로 끌고 가지 않는다.
+  const choiceAnchor = useRef<{ id: string; top: number } | null>(null);
+  useEffect(() => {
+    const cancel = () => { choiceAnchor.current = null; };
+    window.addEventListener("wheel", cancel, { passive: true });
+    window.addEventListener("touchmove", cancel, { passive: true });
+    window.addEventListener("keydown", cancel);
+    return () => {
+      window.removeEventListener("wheel", cancel);
+      window.removeEventListener("touchmove", cancel);
+      window.removeEventListener("keydown", cancel);
+    };
+  }, []);
+  useLayoutEffect(() => {
+    const anchor = choiceAnchor.current;
+    choiceAnchor.current = null;
+    if (!anchor || !scroller.current) return;
+    const el = Array.from(scroller.current.querySelectorAll<HTMLElement>("[data-choice-id]")).find((el) => el.dataset.choiceId === anchor.id);
+    if (el) scroller.current.scrollTop += el.getBoundingClientRect().top - anchor.top;
+  }, [choice]);
 
   // X일 때만 무대 칸을 짧게 흔든다. 화면 전체가 아니라 무대만 흔들어서 틀렸다는 신호로만 쓴다
   const stageBox = useRef<HTMLDivElement>(null);
@@ -343,6 +366,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const play = (c: Choice, viaKey = false) => {
     if (c.id === choice?.id || performance.now() < pickAfter.current) return;
     sfx.tap();
+    const el = Array.from(scroller.current?.querySelectorAll<HTMLElement>("[data-choice-id]") ?? []).find((el) => el.dataset.choiceId === c.id);
+    choiceAnchor.current = el ? { id: c.id, top: el.getBoundingClientRect().top } : null;
+    setRepeatView(heardIds.includes(c.id));
     setKeyPick(viaKey);
     f.pick(c.id);
   };
@@ -364,7 +390,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     sfx[stageChoice.verdict]();
     if (stageChoice.verdict === "bad") shake();
     if (stageChoice.verdict !== "good" && !reduced) navigator.vibrate?.(12);
-    revealScroll(new Set(seenIds).size >= situation.choices.length ? "trio" : "card");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardRevealed, stageKey]);
   // 고르기 전, 마우스를 올리거나 키보드로 짚은 보기. 그 말을 무대의 내 생각 풍선에 미리 얹어서 오른쪽 보기와 왼쪽 무대가 한 동작으로 이어지게 한다
@@ -612,15 +638,15 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
               <div className={leading ? "hidden md:block" : undefined} onClick={leading ? (e) => e.stopPropagation() : undefined}>
                 {/* 세 가지 말을 다 해 보는 게 이 화면의 놀이다. 몇 개를 들어 봤는지 같이 보여 주고, 하나 더 들을 때마다 Mochi가 콩 뛴다 */}
-                <MochiAsk className={leading ? "" : "mt-3 md:mt-0"} cheer={choice ? seenIds.length : 0} cheerTwice={seenIds.length >= situation.choices.length}>
+                <MochiAsk className={leading ? "" : "mt-3 md:mt-0"} cheer={heardIds.length} cheerTwice={heardIds.length >= situation.choices.length}>
                   <span key={leading ? "watch" : choice ? "count" : "ask"} className="block md:animate-fade">
                     {leading ? (
                       "무슨 일인지 먼저 볼까?"
                     ) : !choice ? (
                       "너라면 뭐라고 할래?"
-                    ) : seenIds.length < situation.choices.length ? (
+                    ) : heardIds.length < situation.choices.length ? (
                       <>
-                        다른 말도 해 볼래? <span className="tabular-nums text-ink-subtle">{new Set(seenIds).size}/{situation.choices.length}</span>
+                        다른 말도 해 볼래? <span className="tabular-nums text-ink-subtle">{heardIds.length}/{situation.choices.length}</span>
                       </>
                     ) : (
                       "다 해 봤네!"
@@ -632,10 +658,15 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     바로 고르기
                   </BlockButton>
                 ) : (
-                  <ul className={`mt-2 ${choice ? "space-y-3" : "space-y-2.5"}`}>
+                  <>
+                  <div className="flex min-h-11 items-center justify-end">
+                    {choice && !cardRevealed && <button type="button" onClick={skipReaction} className="min-h-11 px-2 text-note underline">결과 바로 보기</button>}
+                  </div>
+                  <ul className="mt-2 space-y-2.5">
                     {shown.map((c, i) => (
                       <li
                         key={c.id}
+                        data-choice-id={c.id}
                         className="animate-rise"
                         // 처음 그릴 때만 올라온다. 고른 뒤에 붙는 나머지 보기도 짧게 차례로 올라온다
                         style={{ animationDelay: `${choice ? (i - core.length) * 50 : 40 + i * 40}ms` }}
@@ -670,10 +701,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                 <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} />
                                 {/* 더 보기와 메타는 카드 맨 아래 한 줄의 양 끝에 두고 힘을 뺀다 */}
                                 <span className="mt-3.5 block border-t border-ink/10 pl-9">
-                                  {detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
+                                  {cardRevealed && detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
                                   <span className="flex items-center justify-between gap-3">
                                     <button
                                       type="button"
+                                      disabled={!cardRevealed}
                                       onClick={() => setDetailOpen((v) => !v)}
                                       aria-expanded={detailOpen}
                                       className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-meta text-ink-subtle underline decoration-ink/25 underline-offset-4 hover:text-ink hover:decoration-ink"
@@ -692,16 +724,17 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                           </Panel>
                         ) : (
                           <BlockButton onClick={() => play(c)} className="w-full text-left">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={seenIds.includes(c.id)} share={shareOf(c)} />
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={heardIds.includes(c.id)} share={shareOf(c)} />
                           </BlockButton>
                         )}
                       </li>
                     ))}
                   </ul>
+                  </>
                 )}
               </div>
               {/* 세 말을 다 해 보면 도장을 나란히 모아 준다. 목록이 밀리지 않게 목록 아래에 붙는다 */}
-              {choice && new Set(seenIds).size >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
+              {choice && heardIds.length >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
               {/* 표현 출처는 선택지 카드마다가 아니라 이 상황에 한 번, 목록 아래에 작게 둔다 */}
               {choice && situation.sources && situation.sources.length > 0 && (
                 <p className="mt-3 text-meta leading-relaxed text-fg-subtle">출처 · {situation.sources.map((src) => `${src.phrase} — ${src.from}`).join(" · ")}</p>

@@ -88,6 +88,8 @@
   --animate-pop: pop 260ms steps(3, end) both;
   --animate-stamp: stamp 280ms steps(4, end) both;
   --animate-hop: hop 380ms steps(3, end);
+  --animate-mochi-hop: mochi-hop 380ms steps(3, end);
+  --animate-mochi-hop-twice: mochi-hop 380ms steps(3, jump-none) 200ms 2;
   --animate-hop-twice: hop 380ms steps(3, jump-none) 200ms 2;
   --animate-wiggle: wiggle 420ms steps(4, end);
   --animate-typing: typing 1s infinite;
@@ -439,9 +441,14 @@ label {
 
 /* 누른 캐릭터가 제자리에서 한 번 콩 뛴다 */
 @keyframes hop {
-  40% {
-    transform: translateY(-6px);
-  }
+  40% { transform: translateY(-6px); }
+}
+
+@keyframes mochi-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  18% { transform: translateY(1px) scale(1.08, 0.92); }
+  45% { transform: translateY(-6px) scale(0.96, 1.04); }
+  78% { transform: translateY(0) scale(1.06, 0.94); }
 }
 
 /* 머리줄 고양이 마크에 손을 올리면 고개를 갸웃한다 */
