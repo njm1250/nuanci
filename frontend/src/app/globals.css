@@ -99,6 +99,8 @@
   --animate-wipe: wipe 520ms ease-in-out both;
   /* 다른 말로 다시 해 볼 때 무대가 뒤로 감기는 한 번. 도트 무대에 맞게 칸칸이 끊어 지나간다 */
   --animate-rewind: rewind 300ms steps(4, end) both;
+  /* 생각 풍선: 말풍선(pop)보다 조금 느리게, 아래에서 떠오르며 나타난다 */
+  --animate-think: think-in 260ms var(--ease-snap) both;
   --animate-burst: burst 950ms steps(4, end) 70ms both;
   --animate-soul: soul 1400ms ease-out both;
   --font-sans: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
@@ -298,6 +300,17 @@ body {
 .blk-frame-sm {
   filter: drop-shadow(2px 0 0 var(--color-ink)) drop-shadow(-2px 0 0 var(--color-ink)) drop-shadow(0 2px 0 var(--color-ink)) drop-shadow(0 -2px 0 var(--color-ink));
 }
+/* 휴대폰에서 누를 때 회색 번쩍임을 없애고(누름 피드백은 블록이 직접 준다), 빠르게 두 번 눌러도 확대되지 않게 한다 */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+a,
+button,
+[role="button"],
+label {
+  touch-action: manipulation;
+}
+
 /* 누를 수 있는 블록은 만화 컷처럼 2px 먹선에 어긋난 그림자를 둔다. 누르면 그림자만큼 내려앉아 눌린 손맛이 난다 */
 .blk-btn {
   transition: transform var(--dur-press) var(--ease-snap);
@@ -531,6 +544,13 @@ body {
   }
   40% {
     opacity: 1;
+  }
+}
+
+@keyframes think-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
 }
 

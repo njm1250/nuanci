@@ -401,7 +401,8 @@ export function PixelStage({
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
       {text && (
         <div style={scaled} className="origin-top-left">
-        <div key={key} className="animate-fade">
+        {/* 말풍선은 꼬리(머리 위 기준점)에서 톡 튀어나오고, 생각 풍선은 조금 느리게 떠오른다. 움직임으로도 말과 생각이 갈린다 */}
+        <div key={key} className={think ? "animate-think" : "animate-pop"}>
           <div className="blk-frame-sm">
             {think ? (
               <ThinkCloud
@@ -445,7 +446,7 @@ export function PixelStage({
   );
 
   return (
-    <div ref={box} className={`absolute inset-0 overflow-hidden ${paused ? "[&_*]:[animation-play-state:paused]" : ""}`} style={{ background: wall }}>
+    <div ref={box} className={`absolute inset-0 animate-fade overflow-hidden ${paused ? "[&_*]:[animation-play-state:paused]" : ""}`} style={{ background: wall }}>
       <Canvas
         flat
         frameloop={paused ? "never" : "demand"}
