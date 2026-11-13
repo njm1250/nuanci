@@ -21,3 +21,7 @@ docs/
 
 # 장면 초안 (로컬 전용)
 drafts/
+
+# 효과음 만들 때 받는 사운드폰트와 중간 결과물
+scripts/sfx/sf/
+scripts/sfx/out*/
