@@ -168,7 +168,7 @@ function Play({ questions, relaxed, picked, onPick, onDone }: { questions: TestQ
     const p = { choice, ms: Math.round(performance.now() - startedAt.current) };
     setShown(p);
     if (choice) sfx[choice.verdict]();
-    else sfx.meh();
+    else sfx.meh("puzzled");
     trackTest("test_answered", { choiceId: choice?.id ?? `${q.id}-timeout` });
     // 웃긴 반응을 읽을 시간은 주되 순발력 흐름이 끊기지 않게: 자연스러운 답은 짧게, 사고는 조금 길게
     const wait = reduced ? 900 : choice?.verdict === "good" ? 1100 : 1700;

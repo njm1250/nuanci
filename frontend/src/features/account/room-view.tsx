@@ -95,7 +95,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   const cleared = useCleared();
   const [poke, setPoke] = useState<{ who: "me" | "partner"; n: number } | null>(null);
   const pokeStage = (who: "me" | "partner") => {
-    sfx.tap();
+    sfx.poke(who);
     setPoke((p) => ({ who, n: (p?.n ?? -1) + 1 }));
   };
   const mePoke = poke?.who === "me" ? ME_POKES[poke.n % ME_POKES.length] : null;
@@ -127,7 +127,11 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   const selected = items.find((i) => i.id === selectedId && i.kind === (tab === "wear" ? "wear" : "room")) ?? null;
 
   const setOn = (r: RewardItem, on: boolean) => {
-    if (r.kind === "wear") return setAvatar(on ? putOn(avatar, r, items) : takeOff(avatar, r), member);
+    if (r.kind === "wear") {
+      sfx.equip();
+      return setAvatar(on ? putOn(avatar, r, items) : takeOff(avatar, r), member);
+    }
+    sfx.place();
     setAvatar(place(avatar, look.placed, r.id, on), member);
   };
 
@@ -211,7 +215,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
               id={`tab-${t.id}`}
               aria-selected={tab === t.id}
               aria-controls={`panel-${t.id}`}
-              onClick={() => (setTab(t.id), setShowLocked(false))}
+              onClick={() => (sfx.tap(), setTab(t.id), setShowLocked(false))}
               className={`min-h-11 font-label text-ui ${tab === t.id ? "bg-fg text-page" : "text-fg-muted hover:text-fg"}`}
             >
               {t.label}

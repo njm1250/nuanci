@@ -165,7 +165,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     setLeadAt((a) => ({ ...a, [step]: lead.length }));
   };
   useEffect(() => {
-    if (beat) sfx.blip(beat.line === "……" ? "narration" : beat.who);
+    if (!beat) return;
+    return sfx.blip(beat.line === "……" ? "narration" : beat.who, beat.line);
   }, [beat]);
   // 다른 탭이나 앱으로 가 있는 동안 대사가 혼자 넘어가면 돌아와서 이야기를 놓친다. 떠나는 순간 자동 넘김을 멈춘다
   useEffect(() => {
@@ -262,6 +263,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     return () => clearTimeout(t);
   }, [partnerReacts, hasSays, stageKey]);
   const pausing = speaking && beatKey === stageKey;
+  useEffect(() => {
+    if (!speaking || pausing || !stageChoice?.says) return;
+    return sfx.blip("partner", stageChoice.says);
+  }, [speaking, pausing, stageChoice?.says]);
   // 반응을 기다리는 중에 무대를 누르면 남은 순서를 건너뛰고 속마음과 결과를 바로 보여 준다
   const skipReaction = () => {
     setReactedKey(stageKey);
@@ -375,6 +380,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
 
   // 메뉴처럼 숫자 키 1·2·3으로도 보기를 고른다. 보기가 보이는 동안(질문과 결과 비교)만 받는다
   const choosing = !leading && !wrapped && phase !== "transition";
+  // 빌드업 대사가 끝나거나 이어지는 상황으로 넘어가면 상대가 건네는 질문 대사도 길이에 맞춰 말한다
+  useEffect(() => {
+    if (!choosing || !introDone || choice || (!later && lead.length === 0)) return;
+    return sfx.blip("partner", stageSituation.partnerLine);
+  }, [choosing, introDone, choice, later, lead.length, stageSituation.partnerLine]);
   // 보기가 넷 이상인 상황은 처음엔 원래 있던 세 개로 고르게 하고, 첫 답 뒤에 나머지를 목록 끝에 붙인다. 고르기 전에 읽을 것은 적게, 구경할 것은 많게
   const origSituation = later ? original.followUp : original.base;
   const coreIds = new Set(origSituation.choices.slice(0, 3).map((c) => c.id));
@@ -387,7 +397,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   useEffect(() => {
     if (!cardRevealed || !stageChoice || wrapped || endingOn || beat || revealedAt.current === stageKey) return;
     revealedAt.current = stageKey;
-    sfx[stageChoice.verdict]();
+    sfx[stageChoice.verdict](stageChoice.expression);
     if (stageChoice.verdict === "bad") shake();
     if (stageChoice.verdict !== "good" && !reduced) navigator.vibrate?.(12);
 

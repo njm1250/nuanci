@@ -48,6 +48,8 @@ export function ReviewToday({ className = "" }: { className?: string }) {
     if (knew) {
       sfx.good();
       setKnewCount((n) => n + 1);
+    } else {
+      sfx.tap();
     }
     setRevealed(false);
     setAt((i) => i + 1);
@@ -74,7 +76,7 @@ export function ReviewToday({ className = "" }: { className?: string }) {
             // 묻는 말과 확인 버튼이 같은 행동이라 한 줄에 둔다. 질문은 왼쪽, 답을 여는 버튼은 오른쪽
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-ink/10 pt-3">
               <p className="text-ui font-bold">영어로 뭐라고 할까?</p>
-              <BlockButton onClick={() => setRevealed(true)} reading className="shrink-0" faceClassName="px-4 py-2 text-ui font-bold">
+              <BlockButton onClick={() => (sfx.flip(), setRevealed(true))} reading className="shrink-0" faceClassName="px-4 py-2 text-ui font-bold">
                 정답 보기
               </BlockButton>
             </div>

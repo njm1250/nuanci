@@ -67,7 +67,7 @@ export function MochiAsk({ children, className = "", cheer = 0, cheerTwice = fal
   return (
     <div className={`flex items-end gap-2 ${className}`}>
       {/* 누르면 제자리에서 콩 뛴다. 그냥 장식이지만 눌러 보는 사람에게 작은 대답이 된다 */}
-      <button type="button" aria-label="Mochi 쓰다듬기" onClick={() => (setHop((n) => n + 1), sfx.tap())} className="-m-1 shrink-0 p-1">
+      <button type="button" aria-label="Mochi 쓰다듬기" onClick={() => (setHop((n) => n + 1), sfx.poke("partner"))} className="-m-1 shrink-0 p-1">
         <Mascot key={hop} scale={2} className={`origin-bottom ${hop ? (cheerTwice ? "animate-mochi-hop-twice" : "animate-mochi-hop") : ""}`} />
       </button>
       <div className="blk-frame-sm mb-2 min-w-0">
