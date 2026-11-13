@@ -658,10 +658,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     바로 고르기
                   </BlockButton>
                 ) : (
-                  <>
-                  <div className="flex min-h-11 items-center justify-end">
-                    {choice && !cardRevealed && <button type="button" onClick={skipReaction} className="min-h-11 px-2 text-note underline">결과 바로 보기</button>}
-                  </div>
                   <ul className="mt-2 space-y-2.5">
                     {shown.map((c, i) => (
                       <li
@@ -730,7 +726,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                       </li>
                     ))}
                   </ul>
-                  </>
                 )}
               </div>
               {/* 세 말을 다 해 보면 도장을 나란히 모아 준다. 목록이 밀리지 않게 목록 아래에 붙는다 */}
