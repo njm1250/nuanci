@@ -393,13 +393,35 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const shown = choice || preview ? [...core, ...extra] : core;
 
   // 상대가 반응해 결과가 채워지는 순간: 판정 소리, X면 무대 흔들림, 틀린 말이면 짧은 진동(지원하는 기기만), 그리고 카드가 다 보이게 맞춘다
+  // 상대가 반응하는 순간(효과음 글자가 터지는 때) 표정에 맞춘 리액션 소리를 낸다. 놀라거나 당황한 반응이면 무대도 짧게 흔든다
+  const reactedSoundAt = useRef<number | null>(null);
+  useEffect(() => {
+    if (!stageChoice || wrapped || endingOn || beat || phase === "transition" || reactedSoundAt.current === stageKey) return;
+    reactedSoundAt.current = stageKey;
+    const expression = stageChoice.expression;
+    const t = window.setTimeout(() => {
+      sfx.react(expression);
+      if (BURSTS[expression].bad) shake();
+    }, reduced ? 0 : CUT_IN_AT);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageKey]);
+  // 다른 말까지 다 들어 보고 도장이 모두 모인 순간 한 번, 위로 뛰는 소리를 낸다
+  const collectedAt = useRef<string | null>(null);
+  const allSeen = Boolean(choice) && new Set(seenIds).size >= situation.choices.length;
+  useEffect(() => {
+    if (!allSeen || !cardRevealed || collectedAt.current === phase) return;
+    collectedAt.current = phase;
+    const t = window.setTimeout(() => sfx.collect(), reduced ? 0 : 350);
+    return () => clearTimeout(t);
+  }, [allSeen, cardRevealed, phase, reduced]);
   const revealedAt = useRef<number | null>(null);
   useEffect(() => {
     if (!cardRevealed || !stageChoice || wrapped || endingOn || beat || revealedAt.current === stageKey) return;
     revealedAt.current = stageKey;
-    sfx[stageChoice.verdict](stageChoice.expression);
-    if (stageChoice.verdict === "bad") shake();
-    if (stageChoice.verdict !== "good" && !reduced) navigator.vibrate?.(12);
+    // 도장은 어떤 결과든 같은 '쾅'과 짧은 진동(지원하는 기기만). 맞고 틀림을 소리·진동으로 따로 알리지 않는다
+    sfx.stamp();
+    if (!reduced) navigator.vibrate?.(12);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardRevealed, stageKey]);
