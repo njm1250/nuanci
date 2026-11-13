@@ -113,12 +113,17 @@ export function RewardCard({
       markRewardsSeen([item.id]);
     };
     if (reduced) return reveal();
+    sfx.boxShake();
     setShaking(true);
     window.setTimeout(reveal, 520);
   };
 
   const toggle = () => {
-    if (item.kind === "wear") return setAvatar(on ? takeOff(avatar, item) : putOn(avatar, item, all), member);
+    if (item.kind === "wear") {
+      sfx.equip();
+      return setAvatar(on ? takeOff(avatar, item) : putOn(avatar, item, all), member);
+    }
+    sfx.place();
     setAvatar(place(avatar, look.placed, item.id, !on), member);
   };
 
