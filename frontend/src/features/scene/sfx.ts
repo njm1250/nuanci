@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import type { Expression } from "./types";
 
-// 물리 모델링(마림바·우쿨렐레·우드블록·포만트 성대)으로 마스터링한 /sfx/*.mp3 에셋을 Web Audio 버퍼로 재생해
+// 악기 소리는 실제 악기 녹음 사운드폰트(GeneralUser GS, 상업 이용 자유)로 연주해 scripts/sfx/make.py로 다듬은 /sfx/*.mp3, 말소리는 포만트 성대 음절이다. 이 에셋을 Web Audio 버퍼로 재생해
 // 오실레이터 특유의 기계적 '띠링' 없이 자연스러운 나무·악기 촉감과 동물의숲식 말소리를 낸다
 const KEY = "nuanci.sound";
 const listeners = new Set<() => void>();
