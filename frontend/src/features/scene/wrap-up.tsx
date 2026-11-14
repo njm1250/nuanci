@@ -178,7 +178,7 @@ export function WrapUp({
       <div className="blk mt-5 flex items-center gap-3 bg-surface-strong px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="font-label text-ui text-fg">친구는 맞힐까?</p>
-          <p className="text-note text-fg-subtle">이 장면을 문제로 보내 보세요</p>
+          <p className="text-note text-fg-subtle">친구가 고르면 내 첫 답이 공개돼요</p>
         </div>
         <BlockButton onClick={share} className="shrink-0" faceClassName="font-label text-ui text-ink">
           {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}

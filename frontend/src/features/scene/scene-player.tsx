@@ -24,9 +24,9 @@ import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
 import { Num, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
-import { markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
-import { useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
-import { TrapChip, BURSTS, SoundToggle, MochiAsk, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
+import { FRIEND_PARAM, friendPick, markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
+import { shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
+import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
 import { spoken } from "@/features/collection/pairs";
@@ -111,9 +111,21 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
   const translate = useTranslationOn();
-  const { state: shareState, share } = useShare(`/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}`, `"${scene.title}" 너라면 영어로 뭐라고 할래?\n나는 풀어 봤어, 너도 맞혀 봐!`, () =>
-    send({ type: "share_link_copied" }),
+  // 문제를 낼 때는 첫 질문에서 내가 처음 고른 말을 링크에 싣는다. 받은 친구가 고른 뒤에 내 답과 비교해 보게 된다
+  const firstBase = scene.base.choices.find((c) => c.id === f.picked.base);
+  const { state: shareState, share } = useShare(
+    `/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}${firstBase ? `&${FRIEND_PARAM}=${encodeURIComponent(firstBase.id)}` : ""}`,
+    shareMessage(scene, firstBase),
+    (from) => send({ type: "share_link_copied", choiceId: firstBase?.id, ...(from === "card" ? { step: "base" as const } : {}) }),
   );
+  // 친구가 낸 문제로 들어왔으면 친구의 첫 답을 기억해 둔다. 내가 고르기 전에는 보여 주지 않는다
+  const [friendId, setFriendId] = useState<string | null>(null);
+  useEffect(() => {
+    const id = friendPick();
+    if (!id || !scene.base.choices.some((c) => c.id === id)) return;
+    const t = window.setTimeout(() => setFriendId(id), 0);
+    return () => clearTimeout(t);
+  }, [scene.base.choices]);
   const [showMeaning, setShowMeaning] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [wrapped, setWrapped] = useState(false);
@@ -473,6 +485,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
 
   const burst = stageChoice && !endingOn ? BURSTS[stageChoice.expression] : null;
   const stepPicks = stats?.[later ? "followUp" : "base"];
+  // 친구의 답은 첫 질문에만 있다
+  const friendOn = friendId !== null && !later;
+  const isFriend = (c: Choice) => friendOn && c.id === friendId;
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
   return (
@@ -639,7 +654,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
             <WrapUp
               key="wrap"
               scene={scene}
-              share={share}
+              share={() => share("wrap")}
               shareState={shareState}
               onBack={() => {
                 setWrapped(false);
@@ -675,7 +690,13 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     {leading ? (
                       "무슨 일인지 먼저 볼까?"
                     ) : !choice ? (
-                      "너라면 뭐라고 할래?"
+                      friendOn ? "친구가 낸 문제야. 너라면 뭐라고 할래?" : "너라면 뭐라고 할래?"
+                    ) : friendOn && pickedId === friendId && heardIds.length <= 1 ? (
+                      "친구랑 같은 말을 골랐네!"
+                    ) : friendOn && friendId && !heardIds.includes(friendId) ? (
+                      <>
+                        친구가 한 말도 들어 볼래? <span className="tabular-nums text-ink-subtle">{heardIds.length}/{situation.choices.length}</span>
+                      </>
                     ) : heardIds.length < situation.choices.length ? (
                       <>
                         다른 말도 해 볼래? <span className="tabular-nums text-ink-subtle">{heardIds.length}/{situation.choices.length}</span>
@@ -743,16 +764,30 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                     </button>
                                     <span className="flex flex-col items-end gap-1">
                                       {cardRevealed && <VerdictNote choice={c} />}
-                                      {(c.id === pickedId || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} share={shareOf(c)} className="justify-end" />}
+                                      {(c.id === pickedId || isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="justify-end" />}
                                     </span>
                                   </span>
+                                  {/* 도장이 찍힌 바로 그 순간이 남에게 보여 주고 싶은 때라, 내 첫 답 카드에 문제 내기를 둔다. 완료 화면까지 가야 보이던 자리를 앞당긴 것 */}
+                                  {cardRevealed && !later && !preview && c.id === pickedId && (
+                                    <span className="flex animate-fade items-center justify-between gap-3 border-t border-ink/10">
+                                      <span className="text-meta text-ink-subtle">친구는 뭐라고 할까?</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => share("card")}
+                                        className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-meta font-semibold text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink"
+                                      >
+                                        {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+                                        <Arrow />
+                                      </button>
+                                    </span>
+                                  )}
                                 </span>
                               </span>
                             </div>
                           </Panel>
                         ) : (
                           <BlockButton onClick={() => play(c)} className="w-full text-left">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={heardIds.includes(c.id)} share={shareOf(c)} />
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={heardIds.includes(c.id)} share={shareOf(c)} friend={isFriend(c)} />
                           </BlockButton>
                         )}
                       </li>
