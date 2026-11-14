@@ -58,6 +58,7 @@ export function WrapUp({
   reduced,
   onRewardShown,
   streak,
+  streakAt = STREAK_DELAY,
   rewardAt,
   pickedIds = [],
   nextAsk = null,
@@ -77,6 +78,8 @@ export function WrapUp({
   reduced: boolean;
   onRewardShown: (ids: string[]) => void;
   streak: StreakMoment | null;
+  // 연속 기록 줄이 뜨고 소리가 나는 때(ms). 엔딩 컷이 있으면 펀치라인 소리 뒤로 민다
+  streakAt?: number;
   rewardAt: number;
 }) {
   const { pairs } = bookEntry(scene, pickedIds);
@@ -97,7 +100,8 @@ export function WrapUp({
   useEffect(() => {
     if (!streak || streakShown.current) return;
     streakShown.current = true;
-    sfx.streak((STREAK_DELAY + 120) / 1000);
+    sfx.streak((streakAt + 120) / 1000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streak]);
   return (
     <div className="animate-rise">
@@ -170,7 +174,7 @@ export function WrapUp({
       {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
       {(streak || granted.length > 0) && (
         <div className="mt-4 space-y-2">
-          {streak && <StreakMomentCard current={streak.current} newBadge={streak.newBadge} reduced={reduced} delay={STREAK_DELAY} />}
+          {streak && <StreakMomentCard current={streak.current} newBadge={streak.newBadge} reduced={reduced} delay={streakAt} />}
           {granted.length > 0 && <RewardReveal items={granted} sceneTitle={scene.title} reduced={reduced} onShown={onRewardShown} after={rewardAt - STREAK_DELAY} />}
         </div>
       )}

@@ -17,7 +17,7 @@ import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { CORE_CHOICES, shuffleChoices } from "./choice-order";
-import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, Subtitle, type EndingStep } from "./ending";
+import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 import { primeAudio, sfx } from "./sfx";
 import { useTranslationOn } from "./translation";
@@ -303,8 +303,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const prize = stagePrize(granted);
   const [prizeStep, setPrizeStep] = useState<"wait" | "on" | "off">("wait");
   const prizeId = prize?.id;
+  // 엔딩 컷이 있으면 펀치라인 '탁'이 끝난 뒤에 연속 기록이 뜬다. 팡파르·연속 기록·펀치 소리가 겹쳐 한 덩어리로 들리지 않게 한 번에 하나씩 울린다
+  const streakAt = ending && !reduced ? PUNCH_AT + PUNCH_SOUND_MS : STREAK_DELAY;
   // 엔딩 컷이 있으면 펀치라인을 읽고 난 뒤에 새 물건이 들어온다
-  const rewardAt = Math.max(STREAK_DELAY + (streakMoment ? AFTER_STREAK : 0), ending && !reduced ? PUNCH_AT + PUNCH_HOLD : 0);
+  const rewardAt = Math.max(streakAt + (streakMoment ? AFTER_STREAK : 0), ending && !reduced ? PUNCH_AT + PUNCH_HOLD : 0);
   useEffect(() => {
     if (!wrapped || !prizeId || prizeStep === "off") return;
     const t = window.setTimeout(() => setPrizeStep(prizeStep === "wait" ? "on" : "off"), prizeStep === "wait" ? rewardAt : PRIZE_MS);
@@ -677,6 +679,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               reduced={reduced}
               onRewardShown={(ids) => ids.forEach((id) => send({ type: "reward_shown", choiceId: id }))}
               streak={streakMoment}
+              streakAt={streakAt}
               rewardAt={rewardAt}
               pickedIds={pickedIdsAll}
               nextAsk={nextAsk}
