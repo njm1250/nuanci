@@ -12,6 +12,8 @@ const VISITOR_KEY = "nuanci.visitor";
 const ENTRY_KEY = "nuanci.entry";
 const PLAYED_KEY = "nuanci.played";
 export const SHARE_PARAM = "s";
+// 문제를 낸 사람이 첫 질문에서 처음 고른 보기 id. 받은 사람이 고른 뒤 그 보기에 "친구 선택"으로 표시한다
+export const FRIEND_PARAM = "f";
 // 홈에서 보기를 바로 고르고 들어올 때 고른 보기 id를 싣는 주소 꼬리표
 export const PICK_PARAM = "pick";
 // 공유 링크로 연 장면이면 링크 주인의 공유 코드를 남겨 둔다. 그 장면을 끝낼 때 보상 서버에 함께 보낸다
@@ -136,8 +138,17 @@ export function markEntry(entry: "home" | "next") {
   } catch {}
 }
 
+// 공유 링크에 실려 온 친구의 첫 답. 주소창에서 지운 뒤에도 그 장면에 있는 동안은 기억한다
+let friend: { path: string; id: string } | null = null;
+export function friendPick(): string | null {
+  const id = new URLSearchParams(location.search).get(FRIEND_PARAM);
+  if (id) friend = { path: location.pathname, id: id.slice(0, 80) };
+  return friend?.path === location.pathname ? friend.id : null;
+}
+
 // 장면을 연 경로를 한 번만 읽는다. 공유 링크 표시는 읽은 뒤 주소창에서 지운다
 export function takeEntry(): TrackEvent["entry"] {
+  friendPick();
   const url = new URL(location.href);
   const code = url.searchParams.get(SHARE_PARAM);
   try {
@@ -146,6 +157,7 @@ export function takeEntry(): TrackEvent["entry"] {
   } catch {}
   if (code !== null) {
     url.searchParams.delete(SHARE_PARAM);
+    url.searchParams.delete(FRIEND_PARAM);
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     return "share";
   }

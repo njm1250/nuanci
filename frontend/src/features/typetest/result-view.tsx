@@ -253,7 +253,7 @@ function Share({ type }: { type: TypeId }) {
     <section className="mt-5">
       <p className="font-label text-ui text-fg-subtle">친구는 무슨 유형일까?</p>
       <div className="mt-2 space-y-3">
-        <BlockButton primary onClick={share} className="w-full" faceClassName="py-3.5 text-center">
+        <BlockButton primary onClick={() => share()} className="w-full" faceClassName="py-3.5 text-center">
           {state === "copied" ? "복사했어요! 친구에게 붙여 넣어 주세요" : "친구에게 보내기"}
         </BlockButton>
         <div className="grid grid-cols-2 gap-3">

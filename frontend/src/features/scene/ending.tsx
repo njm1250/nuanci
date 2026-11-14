@@ -8,6 +8,8 @@ export const BEAT_AT = 1500;
 export const PUNCH_AT = 2400;
 // 펀치라인을 읽을 시간. 새 물건은 그 뒤에 무대에 올라온다
 export const PUNCH_HOLD = 2200;
+// 펀치라인 '두둥탁' 소리 길이(약 0.95초)에 숨 한 번을 더한 것. 연속 기록 소리는 이 뒤에 울린다
+export const PUNCH_SOUND_MS = 1050;
 
 // 무대 대사(빌드업·이음·펀치라인)의 한국어 자막. 무대 아래쪽에 붙인다. 무대가 넓은 데스크톱에서는 영화 자막처럼 한 단계 크게 쓴다
 export function Subtitle({ text, className = "" }: { text: string; className?: string }) {

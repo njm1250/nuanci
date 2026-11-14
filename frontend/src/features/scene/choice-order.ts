@@ -1,5 +1,8 @@
 import type { Scene, Situation } from "./types";
 
+// 보기가 넷 이상인 상황도 처음에는 원래 순서의 앞 세 개만 보여 준다. 나머지는 첫 답 뒤에 붙는다
+export const CORE_CHOICES = 3;
+
 function hash(text: string) {
   let h = 2166136261;
   for (let i = 0; i < text.length; i++) {

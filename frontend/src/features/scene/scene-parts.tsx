@@ -132,7 +132,10 @@ export function ResultBody({
   meta = true,
   intent,
   waiting = false,
+  friend = false,
 }: {
+  // 문제를 낸 친구가 처음 고른 보기. 아직 안 들어 본 보기여도 표시해서 눌러 보게 한다
+  friend?: boolean;
   // 지금 펼친 카드에서 "하고 싶던 말 → 들린 느낌" 줄을 만드는 데 쓴다
   intent?: string;
   // 무대에서 상대가 아직 반응하기 전. 반응·인상·해설을 비워 두고 무대에 눈이 가게 한다. 반응이 뜨면 인상과 해설은 한 박자 뒤에 온다
@@ -192,7 +195,7 @@ export function ResultBody({
             {choice.why}
           </span>
         )}
-        {meta && revealed && (mine || (share ?? 0) > 0) && <PickMeta mine={mine} share={share} className="mt-1.5" />}
+        {meta && (friend || (revealed && (mine || (share ?? 0) > 0))) && <PickMeta mine={mine} friend={friend} share={revealed ? share : undefined} className="mt-1.5" />}
       </span>
     </span>
   );
@@ -200,10 +203,11 @@ export function ResultBody({
 
 
 // 내가 고른 보기인지, 첫 답으로 몇 %가 골랐는지. 본문보다 두 단계 작고 흐리게 둔다
-export function PickMeta({ mine, share, className = "" }: { mine: boolean; share?: number; className?: string }) {
+export function PickMeta({ mine, friend = false, share, className = "" }: { mine: boolean; friend?: boolean; share?: number; className?: string }) {
   return (
-    <span className={`flex flex-wrap items-center gap-x-1.5 text-meta tabular-nums text-ink-subtle ${className}`}>
+    <span className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 text-meta tabular-nums text-ink-subtle ${className}`}>
       {mine && <span className="border border-ink/25 px-1 py-px font-semibold text-ink-muted">내 선택</span>}
+      {friend && <span className="border border-ink px-1 py-px font-semibold text-ink">친구 선택</span>}
       {/* 0%는 새로 넣어 아직 아무도 못 본 보기일 수 있어서 적지 않는다 */}
       {share !== undefined && share > 0 && <span>첫 답으로 {share}%가 골랐어요</span>}
     </span>

@@ -17,6 +17,8 @@ export const CARD = "#ffffff";
 export const SUBTLE = "#425075";
 export const ACCENT = "#fd91cc";
 export const BAD = "#ff5533";
+const WARN = "#ffc24b";
+const MERGED = "#8250df";
 
 // 테두리 굵기이자 계단 모서리·말꼬리의 한 칸
 const CELL = 6;
@@ -161,6 +163,51 @@ export function homeCard() {
         <div style={{ display: "flex", marginTop: 54, fontSize: 24, color: SUBTLE, alignSelf: "flex-end" }}>Alex 속마음</div>
         <Block bg={RULE} style={{ marginTop: 8, padding: "12px 22px", alignSelf: "flex-end", fontSize: 30 }}>
           쏜다고?! 뭘?! 여기서?!
+          <Tail bg={RULE} flip />
+        </Block>
+      </div>
+    </>,
+  );
+}
+
+// 개발자 팩 입구(/dev)를 공유했을 때 보이는 카드. 개발자 방에 붙는 주소라, 홈 카드 대신 팩 안의 실제 리뷰 댓글 한 줄과 그 말이 들린 느낌을 보여 준다(7화 "알림 0개, 9일째")
+export function devCard() {
+  const chip = (label: string, merged = false) => (
+    <div style={{ display: "flex", fontSize: 24, padding: "4px 16px 2px", borderRadius: 999, ...(merged ? { background: MERGED, color: PAPER, border: `3px solid ${MERGED}` } : { border: `3px solid ${SUBTLE}`, color: SUBTLE }) }}>{label}</div>
+  );
+  return render(
+    <>
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 570 }}>
+        <Lockup />
+        <div style={{ display: "flex", flexDirection: "column", fontSize: 64, lineHeight: 1.25 }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
+            {chip("Open")}
+            <div style={{ display: "flex", margin: "0 12px", fontSize: 24, color: SUBTLE }}>→</div>
+            {chip("Merged", true)}
+          </div>
+          <div style={{ display: "flex" }}>내 첫 PR,</div>
+          <div style={{ display: "flex" }}>
+            <Marker>머지까지</Marker>
+            <div style={{ display: "flex", marginLeft: 22 }}>가 볼까?</div>
+          </div>
+          <div style={{ display: "flex", marginTop: 18, fontSize: 26, lineHeight: 1.4, color: SUBTLE }}>리뷰 댓글 한 줄이 어떻게 들리는지</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end" }}>
+          <Cta>개발자용 10문제 →</Cta>
+          <Mochi scale={6} style={{ marginLeft: 36, marginBottom: -8 }} />
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: 466, marginLeft: 36 }}>
+        <div style={{ display: "flex", fontSize: 24, color: SUBTLE }}>하고 싶은 말</div>
+        <div style={{ display: "flex", marginTop: 8, fontSize: 36 }}>“혹시 보셨을까요?”</div>
+        <Block style={{ marginTop: 52, padding: "14px 24px 18px", alignSelf: "flex-start" }}>
+          <div style={{ display: "flex", fontFamily: "Pangolin", fontSize: 44 }}>Did you see my PR?</div>
+          <Tail />
+          <div style={{ position: "absolute", right: -40, top: -46, display: "flex", transform: "rotate(-6deg)", background: WARN, border: `5px solid ${INK}`, boxShadow: `0 0 0 4px ${CARD}, 0 0 0 9px ${INK}`, padding: "6px 12px 4px", fontSize: 22 }}>왜 답 안 하냐는 말로 들림</div>
+        </Block>
+        <div style={{ display: "flex", marginTop: 54, fontSize: 24, color: SUBTLE, alignSelf: "flex-end" }}>메인테이너 속마음</div>
+        <Block bg={RULE} style={{ marginTop: 8, padding: "12px 22px", alignSelf: "flex-end", fontSize: 26, width: 440, lineHeight: 1.35 }}>
+          <div style={{ display: "block", wordBreak: "keep-all" }}>봤냐고…? 왜 답 안 하냐고 따지는 것 같은데.</div>
           <Tail bg={RULE} flip />
         </Block>
       </div>
