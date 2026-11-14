@@ -466,10 +466,11 @@ function NextGoal() {
 function TodayGoals() {
   const streak = useStreak();
   const reviewed = useReviewedToday();
-  // 오늘 물을 말이 없는 날은 복습을 목표에서 아예 뺀다. 빈 체크 칸으로 남기면 안 한 숙제처럼 보이고, 체크해 두면 거짓말이 된다
+  // 오늘 물을 말이 없는 날은 복습을 목표에서 아예 뺀다. 빈 체크 칸으로 남기면 안 한 숙제처럼 보이고, 체크해 두면 거짓말이 된다.
+  // 복습 입구를 닫아 둔 동안에도 뺀다. 할 곳이 없는 목표는 끝낼 수 없다
   const goals = [
     { label: "장면 하나 끝내기", done: Boolean(streak?.today) },
-    ...(reviewed === "none" ? [] : [{ label: "오늘의 복습 끝내기", done: reviewed === "done" }]),
+    ...(!FEATURES.review || reviewed === "none" ? [] : [{ label: "오늘의 복습 끝내기", done: reviewed === "done" }]),
   ];
   const done = goals.filter((g) => g.done).length;
   return (

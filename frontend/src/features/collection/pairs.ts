@@ -6,11 +6,13 @@ export type ExpressionPair = { intent: string; who: string; when: string; wrong:
 export type BookEntry = { id: string; number: number; title: string; relation: string; place: string; pairs: ExpressionPair[] };
 
 // 상황마다 "이렇게 말하면 사고 나고 → 이렇게 말하면 돼요" 한 쌍을 뽑는다. 틀린 쪽은 X를 먼저, 없으면 △를 쓴다.
-// 자연스러운 말이 둘 이상이면 내가 고른 말을 앞에 둔다. 다른 말을 앞세우면 내 답이 틀린 것처럼 보인다
+// 자연스러운 말이 둘 이상이면 내가 고른 말을 앞에 둔다. 다른 말을 앞세우면 내 답이 틀린 것처럼 보인다.
+// 틀린 쪽도 내가 고른 말이 있으면 그 말을 쓴다. 하지 않은 말에 줄이 그어져 있으면 내 기록이 아니게 된다
 function pair(situation: Situation, who: string, when: string, picked: string[] = []): ExpressionPair | null {
   const goods = situation.choices.filter((c) => c.verdict === "good");
   const right = goods.find((c) => picked.includes(c.id)) ?? goods[0];
-  const wrong: Choice | undefined = situation.choices.find((c) => c.verdict === "bad") ?? situation.choices.find((c) => c.verdict === "meh");
+  const wrong: Choice | undefined =
+    situation.choices.find((c) => c.verdict !== "good" && picked.includes(c.id)) ?? situation.choices.find((c) => c.verdict === "bad") ?? situation.choices.find((c) => c.verdict === "meh");
   if (!right || !wrong) return null;
   const alts = situation.choices.filter((c) => c.verdict === "good" && c !== right).map((c) => c.line);
   return { intent: situation.intent, who, when, wrong: wrong.line, trap: wrong.trap, right: right.line, alts, sources: situation.sources };

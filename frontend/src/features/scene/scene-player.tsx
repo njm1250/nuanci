@@ -16,7 +16,7 @@ import { preloadStage, Stage } from "@/features/stage/stage";
 import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
-import { shuffleChoices } from "./choice-order";
+import { CORE_CHOICES, shuffleChoices } from "./choice-order";
 import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 import { primeAudio, sfx } from "./sfx";
@@ -44,6 +44,8 @@ const NO_REWARDS: ReturnType<typeof usePendingRewards> = [];
 const STAGE_VARS = { "--stage-h": "max(36dvh, min(58dvh, 100dvh - 26rem))", "--stage-tuck": "max(0px, min(29dvh, 50dvh - 13rem) - 110px)" } as React.CSSProperties;
 const STAGE_TUCK = "max-md:-mt-[var(--stage-tuck)]";
 const STAGE_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+0.5rem)]";
+// 결과 카드를 보이게 올릴 때 카드 아래에 남기는 틈. 글 칸 아래 끝이 흐려지는 높이(32px)보다 조금 크다
+const CARD_CLEAR = 36;
 // 얼굴 컷인이 떠 있는 시간
 const CUT_IN_MS = 1800;
 // 상대의 영어 겉말이 말풍선에 머무는 시간. 그 뒤 속마음 생각 풍선으로 바뀐다
@@ -399,7 +401,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   }, [choosing, introDone, choice, later, lead.length, stageSituation.partnerLine]);
   // 보기가 넷 이상인 상황은 처음엔 원래 있던 세 개로 고르게 하고, 첫 답 뒤에 나머지를 목록 끝에 붙인다. 고르기 전에 읽을 것은 적게, 구경할 것은 많게
   const origSituation = later ? original.followUp : original.base;
-  const coreIds = new Set(origSituation.choices.slice(0, 3).map((c) => c.id));
+  const coreIds = new Set(origSituation.choices.slice(0, CORE_CHOICES).map((c) => c.id));
   const core = situation.choices.filter((c) => coreIds.has(c.id));
   const extra = situation.choices.filter((c) => !coreIds.has(c.id));
   const shown = choice || preview ? [...core, ...extra] : core;
@@ -434,6 +436,17 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     // 도장은 어떤 결과든 같은 '쾅'과 짧은 진동(지원하는 기기만). 맞고 틀림을 소리·진동으로 따로 알리지 않는다
     sfx.stamp();
     if (!reduced) navigator.vibrate?.(12);
+    // 채워진 카드가 아래 버튼에 가리면 해설 끝까지 보이게 올린다. 카드가 칸보다 길면 카드 머리가 칸 맨 위에 닿는 데까지만 올려서 고른 말이 밀려 나가지 않게 한다
+    requestAnimationFrame(() => {
+      const box = scroller.current;
+      const card = box?.querySelector("[aria-current='true']")?.closest("li");
+      if (!box || !card) return;
+      const boxRect = box.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      const hidden = cardRect.bottom + CARD_CLEAR - boxRect.bottom;
+      const room = cardRect.top - boxRect.top - CARD_CLEAR / 2;
+      if (hidden > 0 && room > 0) box.scrollBy({ top: Math.min(hidden, room), behavior: reduced ? "auto" : "smooth" });
+    });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardRevealed, stageKey]);
@@ -748,8 +761,13 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                               )}
                               <span className="relative block">
                                 <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} />
-                                {/* 더 보기와 메타는 카드 맨 아래 한 줄의 양 끝에 두고 힘을 뺀다 */}
+                                {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(판정, 내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기).
+                                    한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
                                 <span className="mt-3.5 block border-t border-ink/10 pl-9">
+                                  <span className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 pt-2.5">
+                                    {cardRevealed && <VerdictNote choice={c} />}
+                                    {(c.id === pickedId || isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="ml-auto justify-end" />}
+                                  </span>
                                   {cardRevealed && detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
                                   <span className="flex items-center justify-between gap-3">
                                     <button
@@ -757,30 +775,23 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                       disabled={!cardRevealed}
                                       onClick={() => setDetailOpen((v) => !v)}
                                       aria-expanded={detailOpen}
-                                      className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-meta text-ink-subtle underline decoration-ink/25 underline-offset-4 hover:text-ink hover:decoration-ink"
+                                      className="-mx-1 flex min-h-11 items-center gap-1.5 whitespace-nowrap px-1 text-meta text-ink-subtle underline decoration-ink/25 underline-offset-4 hover:text-ink hover:decoration-ink"
                                     >
                                       {detailOpen ? "접기" : "왜 그런지 더 보기"}
                                       <Caret open={detailOpen} />
                                     </button>
-                                    <span className="flex flex-col items-end gap-1">
-                                      {cardRevealed && <VerdictNote choice={c} />}
-                                      {(c.id === pickedId || isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="justify-end" />}
-                                    </span>
-                                  </span>
-                                  {/* 도장이 찍힌 바로 그 순간이 남에게 보여 주고 싶은 때라, 내 첫 답 카드에 문제 내기를 둔다. 완료 화면까지 가야 보이던 자리를 앞당긴 것 */}
-                                  {cardRevealed && !later && !preview && c.id === pickedId && (
-                                    <span className="flex animate-fade items-center justify-between gap-3 border-t border-ink/10">
-                                      <span className="text-meta text-ink-subtle">친구는 뭐라고 할까?</span>
+                                    {/* 도장이 찍힌 바로 그 순간이 남에게 보여 주고 싶은 때라, 내 첫 답 카드에 문제 내기를 둔다. 완료 화면까지 가야 보이던 자리를 앞당긴 것 */}
+                                    {cardRevealed && !later && !preview && c.id === pickedId && (
                                       <button
                                         type="button"
                                         onClick={() => share("card")}
-                                        className="-mx-1 flex min-h-11 items-center gap-1.5 px-1 text-meta font-semibold text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink"
+                                        className="-mx-1 flex min-h-11 animate-fade items-center gap-1.5 whitespace-nowrap px-1 text-meta font-semibold text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink"
                                       >
-                                        {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+                                        {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "친구에게 문제 내기"}
                                         <Arrow />
                                       </button>
-                                    </span>
-                                  )}
+                                    )}
+                                  </span>
                                 </span>
                               </span>
                             </div>
