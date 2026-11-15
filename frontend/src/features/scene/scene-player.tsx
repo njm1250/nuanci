@@ -24,6 +24,8 @@ import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
 import { Num, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
+import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
+import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
@@ -76,15 +78,22 @@ export function ScenePlayer(props: PlayerProps) {
 function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry, packStep }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
+  // 개발자 팩은 PR 단계가 진행 표시라서 판으로 묶지 않는다
+  const runOn = FEATURES.run && !preview && original.category !== "dev";
+  const run = useRun();
+  const runFresh = run.scenes.length >= RUN_SIZE && !run.scenes.includes(original.id);
   const send = (e: Omit<TrackEvent, "sceneId" | "sceneVersion" | "attemptId">) => {
     if (preview) return;
     // 질문마다 첫 답이 어떤 함정에 걸렸는지 "내 영어 말투"에 모은다
     if (e.type === "choice_selected" && e.step && e.choiceId) {
-      const trap = (e.step === "base" ? scene.base : scene.followUp).choices.find((c) => c.id === e.choiceId)?.trap;
-      recordVoice(scene.id, e.step, trap);
+      const situation = e.step === "base" ? scene.base : scene.followUp;
+      const picked = situation.choices.find((c) => c.id === e.choiceId);
+      recordVoice(scene.id, e.step, picked?.trap);
+      if (runOn && picked) recordRunPick(scene.id, e.step, situation.intent, picked);
     }
     if (e.type === "scene_completed") {
       markCleared(scene.id);
+      if (runOn) completeRunScene(scene.id);
       void playStreak(scene.id);
     }
     track({ ...e, sceneId: scene.id, sceneVersion: scene.version, attemptId });
@@ -527,6 +536,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           <h1 className="min-w-0 truncate text-fg">{scene.title}</h1>
           {/* 개발자 팩은 몇 화인지 대신 PR이 지금 어느 단계인지 보여 준다 */}
           {packStep !== undefined && <PrStatus step={packStep} />}
+          {/* 끝이 어디인지 처음부터 보이게, 세 장면 중 몇 번째인지 둔다 */}
+          {runOn && <RunChip at={runFresh ? 1 : runPosition(run, scene.id)} />}
           {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && !leading && phase !== "transition" && (
@@ -685,6 +696,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               nextAsk={nextAsk}
               askAt={ending && !reduced ? PUNCH_AT + PUNCH_HOLD : 600}
               onNext={() => send({ type: "next_clicked" })}
+              runOn={runOn}
+              onRunShared={() => send({ type: "share_link_copied", choiceId: "run" })}
             />
           ) : (
             // 대사가 흐르는 동안, 고르는 동안, 결과를 비교하는 동안을 한 칸으로 잇는다. 보기 목록은 고를 때 다시 그리지 않고 제자리에 둔 채,
