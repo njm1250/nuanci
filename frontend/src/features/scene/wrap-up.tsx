@@ -17,6 +17,9 @@ import { Num } from "./verdict";
 import { sfx } from "./sfx";
 import { type Scene } from "./types";
 import { Arrow } from "./scene-parts";
+import { RUN_SIZE, runDoneAt, runShareMessage, useRun } from "./run";
+import { RunResult, RunResultWaiting, RunSteps, WaitDots } from "./run-ui";
+import { useShare } from "./use-scene-flow";
 
 // 다음 장면의 첫 질문. 완료 화면 끝에 밀려 올라와 장면 사이에 홈 화면 없이 질문이 이어진다
 export type NextAsk = { number: number; partnerName: string; partnerLine: string; intent: string; choices: { id: string; line: string }[] };
@@ -64,8 +67,13 @@ export function WrapUp({
   nextAsk = null,
   askAt = 600,
   onNext,
+  runOn = false,
+  onRunShared,
 }: {
   onNext?: () => void;
+  // 이 장면을 판(장면 셋)으로 세는지. 판이 끝나는 장면에서는 결과 장이 맨 위에 온다
+  runOn?: boolean;
+  onRunShared?: () => void;
   pickedIds?: string[];
   nextAsk?: NextAsk | null;
   // 엔딩 컷을 다 본 뒤에 다음 질문이 올라오도록 기다리는 시간(ms)
@@ -83,12 +91,15 @@ export function WrapUp({
   rewardAt: number;
 }) {
   const { pairs } = bookEntry(scene, pickedIds);
+  const run = useRun();
+  const runDone = runOn && runDoneAt(run, scene.id);
+  const { state: runShareState, share: shareRun } = useShare("/?utm_source=share&utm_medium=run", runShareMessage(run), onRunShared);
   const [askShown, setAskShown] = useState(false);
   useEffect(() => {
-    if (!nextAsk) return;
+    if (!nextAsk && !runDone) return;
     const t = window.setTimeout(() => setAskShown(true), askAt);
     return () => clearTimeout(t);
-  }, [nextAsk, askAt]);
+  }, [nextAsk, runDone, askAt]);
   // 개발자 팩에서는 팩 안의 답만 센 "내 리뷰 말투"를 보여 준다
   const pack = scene.category === "dev";
   const allVoice = useVoice();
@@ -107,8 +118,40 @@ export function WrapUp({
     <div className="animate-rise">
       {/* 끝났다는 말을 크게 두면 화면을 닫는 신호로 읽혀서(첫 방문 9명 중 2명이 여기서 나감), 다음 질문이 있으면 그 질문을 맨 위 주인공으로 둔다.
           질문은 엔딩 컷을 본 뒤 올라오되, 자리는 미리 잡아 두어 아래 카드가 밀려 내려가지 않게 한다 */}
-      {nextAsk ? (
-        <section aria-label="다음 질문" className={askShown ? "animate-rise" : "invisible"}>
+      {/* 판을 끝낸 장면에서는 결과 장이 주인공이다. 엔딩 컷을 본 뒤에 올라오고, 다음 판의 첫 질문은 그 아래로 내려간다 */}
+      {/* 세 장면 중 어디까지 왔고 끝에 무엇이 나오는지. 기다리지 않고 바로 보여서, 무대에서 엔딩 컷이 도는 동안에도 이 칸이 비어 있지 않다 */}
+      {runOn && !runDone && run.scenes.length < RUN_SIZE && <RunSteps done={run.scenes.length} />}
+      {runDone && (
+        <section aria-label="내 영어 말투 결과" aria-busy={!askShown} className="mb-6">
+          {askShown ? (
+            <div className="animate-fade">
+              <RunResult run={run} onShare={() => shareRun()} shareState={runShareState} />
+            </div>
+          ) : (
+            <RunResultWaiting reduced={reduced} onSkip={() => setAskShown(true)} />
+          )}
+        </section>
+      )}
+      {nextAsk && !askShown ? (
+        // 엔딩 컷을 보는 동안 다음 질문 자리는 비워 두지 않고 틀을 먼저 둔다. 보기 셋이 올 자리가 보이고, 누르면 기다리지 않고 바로 뜬다
+        <button type="button" onClick={() => setAskShown(true)} aria-label="다음 질문 바로 보기" className="block w-full text-left">
+          <span className="flex items-end gap-3">
+            <Mascot scale={3} className="shrink-0" />
+            <span className="flex items-center gap-2 pb-1 text-note text-fg-subtle">
+              다음 질문
+              {!runDone && <WaitDots reduced={reduced} />}
+            </span>
+          </span>
+          <span aria-hidden className="mt-4 block h-6 w-2/3 bg-surface-strong" />
+          <span aria-hidden className="mt-2.5 block h-5 w-4/5 bg-surface" />
+          <span aria-hidden className="mt-3.5 block space-y-2.5">
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="block h-[52px] border-2 border-line/50 bg-surface/60" />
+            ))}
+          </span>
+        </button>
+      ) : nextAsk ? (
+        <section aria-label="다음 질문" className="animate-fade">
           <div className="flex items-end gap-3">
             <Mascot scale={3} className="shrink-0" />
             <p className="pb-1 text-note text-fg-subtle">다음 질문</p>
@@ -161,15 +204,14 @@ export function WrapUp({
         </div>
       </div>
 
-      {/* 방금 고른 답까지 반영한 "내 영어 말투" 한 줄. 진행 체계를 이것 하나로 모았다 */}
-      <Link href="/me" className="-mx-1 mt-3 flex min-h-11 items-center justify-between gap-3 px-1 hover:text-fg">
+      {/* 방금 고른 답까지 반영한 "내 영어 말투" 한 줄. 판으로 세는 장면에서는 결과 장이 이 자리를 맡아서, 판이 끝나기 전에 미리 보여 주지 않는다 */}
+      {!runOn && <Link href="/me" className="-mx-1 mt-3 flex min-h-11 items-center justify-between gap-3 px-1 hover:text-fg">
         <span className="min-w-0">
           <span className="block text-meta text-fg-subtle">{pack ? "내 리뷰 말투" : "내 영어 말투"}</span>
           <span className={`block text-ui ${voice.answered >= VOICE_MIN ? "font-bold text-fg" : "text-fg-muted"}`}>{voice.headline}</span>
         </span>
         <Arrow />
-      </Link>
-
+      </Link>}
 
       {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
       {(streak || granted.length > 0) && (
@@ -179,7 +221,7 @@ export function WrapUp({
         </div>
       )}
 
-      <div className="blk mt-5 flex items-center gap-3 bg-surface-strong px-4 py-3">
+      {!runDone && <div className="blk mt-5 flex items-center gap-3 bg-surface-strong px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="font-label text-ui text-fg">친구는 맞힐까?</p>
           <p className="text-note text-fg-subtle">친구가 고르면 내 첫 답이 공개돼요</p>
@@ -187,7 +229,7 @@ export function WrapUp({
         <BlockButton onClick={share} className="shrink-0" faceClassName="font-label text-ui text-ink">
           {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
         </BlockButton>
-      </div>
+      </div>}
 
       <button type="button" onClick={onBack} className="-mx-1 mt-4 flex min-h-11 items-center gap-2 px-1 font-label text-ui text-fg-muted hover:text-fg">
         <span className="-scale-x-100">

@@ -6,6 +6,8 @@ export const FEATURES = {
   rewards: true,
   typetest: false,
   streak: true,
+  // 장면 셋을 한 판으로 묶고 끝에 결과 장을 보여 준다(scene/run.ts)
+  run: true,
 } as const;
 
 // 입구를 닫은 기능의 주소로 들어오면 홈으로 보낸다(proxy.ts)
