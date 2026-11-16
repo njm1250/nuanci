@@ -52,6 +52,7 @@ export type TestMetrics = {
 export type SourceMetrics = {
   channel: string | null;
   visitors: number;
+  engaged?: number;
   sceneStarted: number;
   sceneCompleted: number;
   testStarted: number;
