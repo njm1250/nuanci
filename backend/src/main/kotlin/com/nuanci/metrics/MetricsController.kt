@@ -64,6 +64,9 @@ data class TestMetrics(val viewed: Int, val started: Int, val completed: Int, va
 // 처음 들어온 채널별 방문자와 핵심 단계. 채널은 utm_source, 없으면 들어오기 전 사이트 주소, 둘 다 없으면 null(출처 없음)
 data class SourceMetrics(val channel: String?, val visitors: Int, val engaged: Int, val sceneStarted: Int, val sceneCompleted: Int, val testStarted: Int, val testCompleted: Int, val shared: Int)
 
+// 이용 기기별 방문자와 그중 화면에 반응한 수. User-Agent로 나누고, 기기 기록이 없던 예전 방문은 "알 수 없음"
+data class DeviceMetrics(val device: String, val visitors: Int, val engaged: Int)
+
 data class MetricsResponse(
 	val funnel: Funnel,
 	val visitors: Int,
@@ -82,6 +85,7 @@ data class MetricsResponse(
 	val unknownEvents: Int,
 	val test: TestMetrics,
 	val sources: List<SourceMetrics>,
+	val devices: List<DeviceMetrics>,
 	val daily: List<DailyMetrics>,
 	val period: String,
 )
@@ -226,6 +230,25 @@ class MetricsController(
 		).query { rs, _ ->
 			SourceMetrics(rs.getString("channel"), rs.getInt("visitors"), rs.getInt("engaged"), rs.getInt("scene_started"), rs.getInt("scene_completed"), rs.getInt("test_started"), rs.getInt("test_completed"), rs.getInt("shared"))
 		}.list()
+		val devices = query(
+			"""
+			with v as (
+				select e.visitor_id, bool_or(e.type in ($HUMAN_SIGNALS)) as engaged
+				from scene_event e where $filter group by e.visitor_id
+			)
+			select case
+					 when c.user_agent is null then '알 수 없음'
+					 when c.user_agent ~* 'ipad|tablet|kindle|silk/' or (c.user_agent ~* 'android' and c.user_agent !~* 'mobile') then '태블릿'
+					 when c.user_agent ~* 'iphone|ipod|android|mobile' then '모바일'
+					 else '데스크톱'
+				   end as device,
+				   count(*) as visitors,
+				   count(*) filter (where v.engaged) as engaged
+			from v left join visitor_client c on c.visitor_id = v.visitor_id
+			group by 1
+			order by visitors desc
+			""",
+		).query { rs, _ -> DeviceMetrics(rs.getString("device"), rs.getInt("visitors"), rs.getInt("engaged")) }.list()
 		val journey = query(
 			"""
 			with v as (
@@ -289,7 +312,7 @@ class MetricsController(
 			.param("chartEnd", range.end.atZone(java.time.ZoneId.of("Asia/Seoul")).toLocalDate())
 			.param("chartInstant", java.sql.Timestamp.from(range.chartStart))
 			.query { rs, _ -> DailyMetrics(rs.getString("day"), rs.getInt("visitors"), rs.getInt("new_visitors"), rs.getInt("accounts"), rs.getInt("completed")) }.list()
-		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, aiVisitors, botVisitors, journey, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources, daily, period)
+		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, aiVisitors, botVisitors, journey, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources, devices, daily, period)
 	}
 
 	@PostMapping("/internal-visitors")

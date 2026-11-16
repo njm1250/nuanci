@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { loadMetricScene } from "./actions";
 import type { AdminSceneContent } from "./api";
-import type { ChoiceCount, Journey, Metrics, SceneMetrics } from "./metrics-types";
+import type {
+  ChoiceCount,
+  DeviceMetrics,
+  Journey,
+  Metrics,
+  SceneMetrics,
+} from "./metrics-types";
 import { AdminEmpty, AdminPanel, AdminStat, number, percent } from "./ui";
 import { TRAP_LABELS, type Choice } from "@/features/scene/types";
 import { TYPES, type TypeId } from "@/features/typetest/types";
@@ -34,7 +40,8 @@ const EASY_MIN_TRIES = 5;
 // 표의 한 칸 값. 비율 칸은 계산해서, 나머지는 장면 지표 그대로 쓴다
 function columnValue(s: SceneMetrics, key: Column) {
   if (key === "rate") return s.viewed ? s.completed / s.viewed : -1;
-  if (key === "wrongRate") return s.firstTries ? s.firstWrong / s.firstTries : -1;
+  if (key === "wrongRate")
+    return s.firstTries ? s.firstWrong / s.firstTries : -1;
   return s[key];
 }
 
@@ -42,7 +49,9 @@ function columnText(s: SceneMetrics, key: Column) {
   if (key === "rate") return ratio(s.completed, s.viewed);
   if (key === "wrongRate") {
     if (!s.firstTries) return "—";
-    const easy = s.firstTries >= EASY_MIN_TRIES && s.firstWrong / s.firstTries < EASY_BELOW;
+    const easy =
+      s.firstTries >= EASY_MIN_TRIES &&
+      s.firstWrong / s.firstTries < EASY_BELOW;
     return `${ratio(s.firstWrong, s.firstTries)} (${s.firstTries})${easy ? " 쉬움" : ""}`;
   }
   return number(s[key]);
@@ -296,9 +305,17 @@ function SceneDetail({ row }: { row: SceneMetrics | undefined }) {
 // 사람 방문자가 가장 깊이 간 단계. 앞쪽(얕은 단계)에서 많이 멈출수록 그 단계가 구멍이다
 function JourneyPanel({ journey: j }: { journey: Journey }) {
   const stages = [
-    ["홈에서 반응 없이 나감", j.silentHome, "누르거나 스크롤하지 않음 · 잠깐 보고 닫았거나 봇"],
+    [
+      "홈에서 반응 없이 나감",
+      j.silentHome,
+      "누르거나 스크롤하지 않음 · 잠깐 보고 닫았거나 봇",
+    ],
     ["홈만 둘러보고 나감", j.browsed, "반응은 했지만 장면을 열지 않음"],
-    ["장면을 열고 반응 없이 나감", j.silentScene, "링크로 바로 열고 닫음 · 봇일 수 있음"],
+    [
+      "장면을 열고 반응 없이 나감",
+      j.silentScene,
+      "링크로 바로 열고 닫음 · 봇일 수 있음",
+    ],
     ["빌드업 대사 중에 나감", j.leftInLead, "대사가 끝나기 전에 떠남"],
     ["질문에서 나감", j.leftAtQuestion, "대사는 다 봤지만 답을 안 고름"],
     ["답을 고르고 장면 중간에 나감", j.leftMidScene, "장면을 끝내지 않음"],
@@ -331,6 +348,44 @@ function JourneyPanel({ journey: j }: { journey: Journey }) {
           {j.engagementTracked
             ? "반응은 화면을 처음 누르거나 스크롤한 순간입니다. 대사 단계는 빌드업이 끝날 때 남깁니다."
             : "이 기간에는 반응·대사 기록이 아직 없어서 답을 안 고른 방문이 모두 ‘반응 없이 나감’으로 잡힙니다. 기록을 넣은 뒤부터 정확해집니다."}
+        </p>
+      </div>
+    </AdminPanel>
+  );
+}
+
+// 이용 기기 비율. 열린 수와 화면에 반응한 수를 나란히 둔다. 봇은 반응이 없어 두 비율이 갈리는 기기를 보면 된다
+function DevicePanel({ devices }: { devices: DeviceMetrics[] }) {
+  const total = devices.reduce((n, d) => n + d.visitors, 0);
+  const engagedTotal = devices.reduce((n, d) => n + d.engaged, 0);
+  const max = Math.max(...devices.map((d) => d.visitors), 1);
+  return (
+    <AdminPanel
+      title="이용 기기"
+      description="브라우저 User-Agent 기준 · 내부·봇 제외 · 선택 기간 · iPad 사파리는 데스크톱으로 잡힘"
+    >
+      <div className="adm-panel-body">
+        {devices.map((d) => (
+          <div
+            className="adm-funnel-row"
+            key={d.device}
+            data-tone="informative"
+          >
+            <span>{d.device}</span>
+            <div className="adm-bar">
+              <span style={{ width: `${(d.visitors / max) * 100}%` }} />
+            </div>
+            <strong>{number(d.visitors)}</strong>
+            <small>
+              {ratio(d.visitors, total)} · 반응 {number(d.engaged)}(
+              {ratio(d.engaged, engagedTotal)})
+            </small>
+          </div>
+        ))}
+        {!devices.length && <AdminEmpty>기기 데이터가 없습니다.</AdminEmpty>}
+        <p className="adm-muted" style={{ marginTop: 12 }}>
+          앞 비율은 열린 브라우저 중, 괄호 비율은 화면을 누르거나 답을 고른
+          브라우저 중 비중입니다.
         </p>
       </div>
     </AdminPanel>
@@ -425,6 +480,11 @@ export function MetricsDashboard({
       {m.journey && (
         <div style={{ marginBottom: 20 }}>
           <JourneyPanel journey={m.journey} />
+        </div>
+      )}
+      {m.devices && (
+        <div style={{ marginBottom: 20 }}>
+          <DevicePanel devices={m.devices} />
         </div>
       )}
       <div className="adm-grid adm-grid-2">
@@ -752,7 +812,8 @@ export function MetricsDashboard({
             중복 포함될 수 있습니다.
           </p>
           <p className="adm-muted" style={{ marginTop: 8 }}>
-            전체 기간 내부 브라우저 {m.internalVisitors}개(그중 AI 확인 {m.aiVisitors}개), 봇 {number(m.botVisitors ?? 0)}개 · 내부 이벤트{" "}
+            전체 기간 내부 브라우저 {m.internalVisitors}개(그중 AI 확인{" "}
+            {m.aiVisitors}개), 봇 {number(m.botVisitors ?? 0)}개 · 내부 이벤트{" "}
             {number(m.internalEvents)}건 제외. 당시 로그인 상태를 모르는 과거
             이벤트 {number(m.unknownEvents)}건은 ‘과거 기록’ 탭에 포함됩니다.
             탈퇴 시 이벤트의 계정 연결은 해제됩니다.
@@ -770,8 +831,10 @@ export function MetricsDashboard({
             판정이 아닙니다.
           </p>
           <p className="adm-muted" style={{ marginTop: 8 }}>
-            첫 답 오답률은 시도마다 질문 1에서 처음 고른 답 중 O가 아닌 비율입니다(괄호는 첫 답 수). {EASY_MIN_TRIES}건 이상에서{" "}
-            {EASY_BELOW * 100}% 미만이면 ‘쉬움’으로 표시합니다. 맞혀도 처음 알게 되는 게 없는 장면일 수 있습니다.
+            첫 답 오답률은 시도마다 질문 1에서 처음 고른 답 중 O가 아닌
+            비율입니다(괄호는 첫 답 수). {EASY_MIN_TRIES}건 이상에서{" "}
+            {EASY_BELOW * 100}% 미만이면 ‘쉬움’으로 표시합니다. 맞혀도 처음 알게
+            되는 게 없는 장면일 수 있습니다.
           </p>
         </div>
       </details>
