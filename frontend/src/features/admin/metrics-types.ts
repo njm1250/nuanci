@@ -59,8 +59,14 @@ export type SourceMetrics = {
   testCompleted: number;
   shared: number;
 };
+export type DeviceMetrics = {
+  device: string;
+  visitors: number;
+  engaged: number;
+};
 export type Metrics = {
   period?: string;
+  devices?: DeviceMetrics[];
   daily?: DailyMetrics[];
   sources?: SourceMetrics[];
   funnel: Funnel;
