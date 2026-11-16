@@ -99,8 +99,8 @@ export function trackHome() {
 }
 
 // 화면을 처음 누르거나 스크롤하는 순간 한 번 알린다. 사람이 보고 나간 방문과, 열리기만 하고 아무 반응이 없는 방문(봇·미리보기일 수 있음)을 나눠 보려는 것이다.
-// 정리 함수를 돌려주어 effect에서 쓴다
-const ENGAGE_EVENTS = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
+// scroll은 코드가 위치를 옮겨도 생겨서 쓰지 않고, 손이 닿아야 생기는 입력(휠·터치·클릭·키)만 본다. 정리 함수를 돌려주어 effect에서 쓴다
+const ENGAGE_EVENTS = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
 export function watchEngagement(extra: Record<string, unknown> = {}) {
   const stop = () => ENGAGE_EVENTS.forEach((t) => window.removeEventListener(t, once, true));
   const once = () => {

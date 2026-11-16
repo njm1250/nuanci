@@ -104,7 +104,7 @@ class EventController(
 			on conflict (visitor_id) do update set client = excluded.client, user_agent = excluded.user_agent
 			where excluded.client = '${ClientKind.BOT}' and visitor_client.client <> '${ClientKind.BOT}'
 			""",
-		).param("v", req.visitorId).param("c", ClientKind.of(userAgent, req.automated == true)).param("ua", userAgent?.take(300)).update()
+		).param("v", req.visitorId).param("c", ClientKind.of(userAgent, req.automated == true, req.utmSource, req.referrer)).param("ua", userAgent?.take(300)).update()
 		// utm_source=ai로 들어온 방문은 AI가 화면을 확인한 것이라 내부 방문자로 돌려 이용 지표에서 뺀다
 		if (req.utmSource?.lowercase() == AI_SOURCE) {
 			jdbc.sql("insert into internal_visitor (visitor_id) values (:v) on conflict do nothing").param("v", req.visitorId).update()

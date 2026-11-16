@@ -62,7 +62,7 @@ data class Journey(
 data class TestMetrics(val viewed: Int, val started: Int, val completed: Int, val shared: Int, val friendViewed: Int, val fromFriend: Int, val types: Map<String, Int>)
 
 // 처음 들어온 채널별 방문자와 핵심 단계. 채널은 utm_source, 없으면 들어오기 전 사이트 주소, 둘 다 없으면 null(출처 없음)
-data class SourceMetrics(val channel: String?, val visitors: Int, val sceneStarted: Int, val sceneCompleted: Int, val testStarted: Int, val testCompleted: Int, val shared: Int)
+data class SourceMetrics(val channel: String?, val visitors: Int, val engaged: Int, val sceneStarted: Int, val sceneCompleted: Int, val testStarted: Int, val testCompleted: Int, val shared: Int)
 
 data class MetricsResponse(
 	val funnel: Funnel,
@@ -210,6 +210,7 @@ class MetricsController(
 			"""
 			select coalesce(vs.source, vs.referrer) as channel,
 				   count(distinct e.visitor_id) as visitors,
+				   count(distinct e.visitor_id) filter (where e.type in ($HUMAN_SIGNALS)) as engaged,
 				   count(distinct e.visitor_id) filter (where e.type = 'scene_viewed') as scene_started,
 				   count(distinct e.visitor_id) filter (where e.type = 'scene_completed') as scene_completed,
 				   count(distinct e.visitor_id) filter (where e.type = 'test_started') as test_started,
@@ -223,7 +224,7 @@ class MetricsController(
 			limit 30
 			""",
 		).query { rs, _ ->
-			SourceMetrics(rs.getString("channel"), rs.getInt("visitors"), rs.getInt("scene_started"), rs.getInt("scene_completed"), rs.getInt("test_started"), rs.getInt("test_completed"), rs.getInt("shared"))
+			SourceMetrics(rs.getString("channel"), rs.getInt("visitors"), rs.getInt("engaged"), rs.getInt("scene_started"), rs.getInt("scene_completed"), rs.getInt("test_started"), rs.getInt("test_completed"), rs.getInt("shared"))
 		}.list()
 		val journey = query(
 			"""
@@ -307,6 +308,8 @@ class MetricsController(
 
 	companion object {
 		// 이용 지표에 세는 방문: 내부(관리자·AI 확인) 방문자와 봇으로 분류된 방문자를 뺀다
+		// 사람이 직접 누르거나 고른 흔적. 열리기만 하고 끝난 방문(링크 검사·미리보기 봇이 대부분)과 나눠 채널을 비교할 때 쓴다
+		const val HUMAN_SIGNALS = "'page_engaged', 'choice_selected', 'test_started'"
 		const val EXTERNAL = "not exists (select 1 from internal_visitor i where i.visitor_id = e.visitor_id) " +
 			"and not exists (select 1 from visitor_client c where c.visitor_id = e.visitor_id and c.client = 'bot')"
 	}

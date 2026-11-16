@@ -529,7 +529,7 @@ export function MetricsDashboard({
       </div>
       <AdminPanel
         title="유입 채널"
-        description="최초 utm_source, 없으면 리퍼러 기준 · 최대 30개"
+        description="최초 utm_source, 없으면 리퍼러 기준 · 반응은 화면을 누르거나 답을 고른 브라우저 · 최대 30개"
       >
         <div className="adm-table-scroll" style={{ maxHeight: 320 }}>
           <table className="adm-table" style={{ minWidth: 800 }}>
@@ -538,6 +538,7 @@ export function MetricsDashboard({
                 <th>채널</th>
                 {[
                   "브라우저",
+                  "반응",
                   "장면 시작",
                   "장면 완료",
                   "완료 / 시작",
@@ -560,6 +561,7 @@ export function MetricsDashboard({
                   </td>
                   {[
                     number(s.visitors),
+                    s.engaged === undefined ? "-" : number(s.engaged),
                     number(s.sceneStarted),
                     number(s.sceneCompleted),
                     ratio(s.sceneCompleted, s.sceneStarted),
