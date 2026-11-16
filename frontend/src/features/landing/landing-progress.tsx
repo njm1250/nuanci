@@ -317,8 +317,8 @@ function BlockCount({ progress }: { progress: Progress }) {
         </>
       ) : (
         <>
-          다음 {BLOCK_SIZE}화까지{" "}
-          <span className="font-bold text-fg">{progress.left}개</span>
+          다음 {BLOCK_SIZE}화까지 장면{" "}
+          <span className="font-bold text-fg">{progress.left}개</span> 더
         </>
       )}
     </p>
@@ -574,7 +574,7 @@ export function SceneShelf({
     <section className="flex animate-fade flex-col px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
       <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-1">
         {/* 모바일에서는 제목이 장면 카드 바로 위에 온다. 데스크톱은 오른쪽 진행도 칸의 제목이 같은 말을 한다 */}
-        <h2 className="mb-2 text-body font-bold lg:hidden">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</h2>
+        <h2 className="mb-2 text-body font-bold lg:hidden">{upNext.length > 0 ? "이어서 할 장면" : "모든 장면을 다 해 봤어요"}</h2>
         {upNext.length > 0 ? (
           <>
             <FeaturedScene
@@ -628,7 +628,7 @@ export function SceneShelf({
         <div className="flex items-baseline justify-between">
             <h2 className="text-body font-bold">
               <span className="lg:hidden">진행도</span>
-              <span className="max-lg:hidden">{upNext.length > 0 ? "다음에 볼 장면" : "모든 장면을 다 해 봤어요"}</span>
+              <span className="max-lg:hidden">{upNext.length > 0 ? "이어서 할 장면" : "모든 장면을 다 해 봤어요"}</span>
             </h2>
             <BlockCount progress={progress} />
           </div>

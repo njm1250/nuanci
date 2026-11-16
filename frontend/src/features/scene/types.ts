@@ -44,11 +44,11 @@ export type Trap = "literal" | "konglish" | "answer" | "textbook" | "blunt" | "f
 export const TRAP_LABELS: Record<Trap, string> = {
   literal: "직역",
   konglish: "콩글리시",
-  answer: "대답 방식",
+  answer: "어긋난 대답",
   textbook: "교과서식",
   blunt: "너무 직설적",
-  formal: "너무 격식",
-  context: "맥락 어긋남",
+  formal: "과한 격식",
+  context: "상황에 안 맞음",
   misread: "다른 뜻으로 들림",
   culture: "문화 차이",
 };

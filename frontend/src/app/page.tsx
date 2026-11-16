@@ -59,7 +59,7 @@ export default async function Home() {
         <div className="relative mx-auto max-w-[1440px] px-4 pb-6 pt-3 md:px-8 min-[960px]:pb-6 returning:hidden">
           <h1 className="poster-home font-poster">
             <span className="poster-rise block min-[960px]:inline-block">직역하면</span>{" "}
-            <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block">사고 나는 순간들</span>
+            <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block">오해받는 순간들</span>
           </h1>
           <p aria-hidden className="poster-scrawl absolute right-4 top-3 font-scrawl text-[clamp(32px,6vw,60px)] leading-none text-fg [--lean:-4deg] md:right-8 min-[960px]:hidden">
             골라 보면 알아요
@@ -69,7 +69,7 @@ export default async function Home() {
         <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 lg:max-w-[1200px] returning:block">
           {/* 첫 방문 제목이 숨는 재방문 화면의 h1. 둘 중 보이는 하나만 읽힌다 */}
           <h1 className="font-poster text-display-sm leading-none text-fg md:text-display">
-            직역하면 사고 나는 순간들
+            직역하면 오해받는 순간들
           </h1>
         </div>
       </div>

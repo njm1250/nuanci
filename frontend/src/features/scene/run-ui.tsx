@@ -23,7 +23,7 @@ export function RunSteps({ done }: { done: number }) {
     <div className="mb-5">
       <p className="flex items-baseline justify-between gap-3 text-note text-fg-muted">
         <span>
-          {left === 1 ? "한 장면만 더 하면" : `장면 ${RUN_SIZE}개를 하면`} <b className="font-bold text-fg">내 영어 말투</b>가 나와요
+          {left === 1 ? "한 장면만 더 하면" : "두 장면 더 하면"} <b className="font-bold text-fg">내 영어 말투</b>가 나와요
         </span>
         <span className="shrink-0 text-meta tabular-nums text-fg-subtle">
           {done}/{RUN_SIZE}
@@ -55,7 +55,6 @@ function Band() {
       <span>
         <span className="text-pink">nuanci</span> 내 영어 말투
       </span>
-      <span className="text-fg/70">장면 {RUN_SIZE}개 결과</span>
     </div>
   );
 }
@@ -88,14 +87,14 @@ export function RunResult({ run, onShare, shareState }: { run: Run; onShare: () 
     <Panel className="blk-strong">
       <Band />
       <div className="px-4 pb-1 pt-4">
-        <p className="text-meta text-ink-subtle">방금 세 장면에서 들린 느낌</p>
+        <p className="text-meta text-ink-subtle">방금 세 장면에서 내 영어는</p>
         <p className="mt-0.5 text-say font-bold leading-snug">{headline}</p>
         <p className="mt-1 text-meta text-ink-subtle">
-          {picks.length}번 중 {good}번 의도대로 들림
+          {picks.length}번 중 {good}번 의도대로 들렸어요
         </p>
         {mishaps.length > 0 ? (
           <>
-            <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-meta text-ink-subtle">방금 낸 사고</p>
+            <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-meta text-ink-subtle">의도와 다르게 들린 말</p>
             <ul className="mt-2 space-y-3">
               {mishaps.map((p, i) => (
                 <li key={`${p.sceneId}:${p.step}`}>
@@ -114,10 +113,10 @@ export function RunResult({ run, onShare, shareState }: { run: Run; onShare: () 
             </ul>
           </>
         ) : (
-          <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-body leading-snug">사고 없이 다 통했어요.</p>
+          <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-body leading-snug">모두 의도대로 들렸어요.</p>
         )}
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink/10 py-2.5">
-          <p className="min-w-0 text-meta text-ink-subtle">친구는 몇 번 날까?</p>
+          <p className="min-w-0 text-meta text-ink-subtle">친구에게 내 결과를 보내 볼까요?</p>
           <BlockButton onClick={onShare} className="shrink-0" faceClassName="font-label text-ui text-ink">
             {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "결과 보내기"}
           </BlockButton>

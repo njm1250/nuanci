@@ -11,7 +11,7 @@ import { heardAs, Num, StakesNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
-  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-label-strong text-meta leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "전달됨"}</span>;
+  return <span className="shrink-0 border-2 border-current px-1 py-0.5 font-label-strong text-meta leading-none opacity-80">{choice.trap ? TRAP_LABELS[choice.trap] : "자연스러움"}</span>;
 }
 
 // 상대 반응 위로 튀어나오는 만화 효과음 글자

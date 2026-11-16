@@ -3,7 +3,7 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { quotedIntent } from "@/features/collection/pairs";
 import type { Choice, Scene, Situation } from "./types";
-import { heardAs } from "./verdict";
+import { heardSaid } from "./verdict";
 
 export type Phase = "base" | "transition" | "followUp";
 type Step = "base" | "followUp";
@@ -74,7 +74,7 @@ export function shareMessage(scene: Scene, first: Choice | undefined) {
   if (!first) return `"${scene.title}" ${ask}`;
   const intent = scene.base.intent;
   const said = intent.lastIndexOf(" 하고 ") > 0 ? `${quotedIntent(intent)} ${first.verdict === "good" ? "했는데" : "했다가"}` : `"${scene.title}"에서 ${first.verdict === "good" ? "말했는데" : "말했다가"}`;
-  return `나 방금 영어로 ${said} "${heardAs(first)}" 나왔어.\n${ask}`;
+  return `나 방금 영어로 ${said} ${heardSaid(first)}.\n${ask}`;
 }
 
 // 휴대폰에서는 공유 시트(카톡·인스타 등)를 열고, 지원하지 않는 브라우저에서는 문구와 링크를 복사한다.

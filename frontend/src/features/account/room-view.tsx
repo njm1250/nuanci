@@ -80,7 +80,7 @@ function memoryScene(item: RewardItem, cleared: string[]) {
 const ME_POKES: { motion: Motion; line: string }[] = [
   { motion: "bounce", line: "간지러워!" },
   { motion: "spin", line: "이 방 꽤 괜찮지?" },
-  { motion: "nod", line: "오늘도 사고 치러 가 볼까?" },
+  { motion: "nod", line: "오늘도 한마디 해 볼까?" },
   { motion: "tilt", line: "왜, 할 말 있어?" },
   { motion: "clap", line: "새 물건 또 받고 싶다!" },
 ];
@@ -386,7 +386,7 @@ function Detail({
           aria-pressed={on}
           className={`blk flex min-h-11 items-center gap-1.5 px-3 font-label text-ui ${on ? "bg-fg text-page" : "bg-surface-strong text-fg"}`}
         >
-          {item.kind === "wear" ? "쓰기" : "두기"}
+          {item.kind === "wear" ? "착용하기" : "두기"}
           {on && <Check size={12} />}
         </button>
       )}

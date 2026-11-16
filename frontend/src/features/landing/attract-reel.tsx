@@ -81,7 +81,7 @@ export function AttractReel({ beats }: { beats: ReelBeat[] }) {
         <button
           type="button"
           onClick={() => setPaused((v) => !v)}
-          aria-label={paused ? "데모 다시 재생" : "데모 멈추기"}
+          aria-label={paused ? "미리보기 다시 재생" : "미리보기 멈추기"}
           className="absolute right-0 top-0 grid size-11 place-items-center"
         >
           <span className="grid size-7 place-items-center bg-ink/70 text-fg">
