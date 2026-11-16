@@ -167,11 +167,11 @@ export function lockHint(lock: Lock) {
     case "milestone":
       return `장면 ${lock.remaining}개 더`;
     case "scene":
-      return "어떤 장면에서";
+      return "특정 장면을 끝내면";
     case "bundle":
       return `${lock.group} 장면 ${lock.remaining}개 더`;
     case "share":
-      return "친구와 함께";
+      return "친구가 보낸 장면을 풀면";
     case "box":
       return "깜짝 상자";
   }

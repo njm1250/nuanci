@@ -132,7 +132,7 @@ export async function render(children: ReactNode, size: { width: number; height:
   );
 }
 
-// 메인 주소를 공유했을 때 보이는 카드. 직역 한 줄이 사고로 이어지는 걸 한 장면으로 보여준다
+// 메인 주소를 공유했을 때 보이는 카드. 직역 한 줄이 오해로 이어지는 걸 한 장면으로 보여준다
 // 카드 그리는 엔진(satori)은 flex: 1 칸의 너비를 글자 줄바꿈에 반영하지 못해서, 칸마다 너비를 정해 둔다
 export function homeCard() {
   return render(
@@ -142,7 +142,7 @@ export function homeCard() {
         <div style={{ display: "flex", flexDirection: "column", fontSize: 72, lineHeight: 1.25 }}>
           <div style={{ display: "flex" }}>직역하면</div>
           <div style={{ display: "flex" }}>
-            <Marker>사고 나는</Marker>
+            <Marker>오해받는</Marker>
             <div style={{ display: "flex", marginLeft: 24 }}>순간들</div>
           </div>
           <div style={{ display: "flex", marginTop: 20, fontSize: 28, lineHeight: 1.4, color: SUBTLE }}>골라 보면 상대 속마음이 바로 보여요</div>
@@ -158,7 +158,7 @@ export function homeCard() {
         <Block style={{ marginTop: 44, padding: "14px 26px 18px", alignSelf: "flex-start" }}>
           <div style={{ display: "flex", fontFamily: "Pangolin", fontSize: 50 }}>I&apos;ll shoot today!</div>
           <Tail />
-          <div style={{ position: "absolute", right: -64, top: -40, display: "flex", transform: "rotate(-8deg)", background: BAD, border: `5px solid ${INK}`, boxShadow: `0 0 0 4px ${CARD}, 0 0 0 9px ${INK}`, padding: "6px 12px 4px", fontSize: 26 }}>사고 발생</div>
+          <div style={{ position: "absolute", right: -64, top: -40, display: "flex", transform: "rotate(-8deg)", background: BAD, border: `5px solid ${INK}`, boxShadow: `0 0 0 4px ${CARD}, 0 0 0 9px ${INK}`, padding: "6px 12px 4px", fontSize: 26 }}>다르게 들려요</div>
         </Block>
         <div style={{ display: "flex", marginTop: 54, fontSize: 24, color: SUBTLE, alignSelf: "flex-end" }}>Alex 속마음</div>
         <Block bg={RULE} style={{ marginTop: 8, padding: "12px 22px", alignSelf: "flex-end", fontSize: 30 }}>

@@ -10,7 +10,7 @@ import { spoken, type BookEntry, type ExpressionPair } from "./pairs";
 
 export function Mark({ good }: { good: boolean }) {
   return (
-    <span aria-label={good ? "전달됨" : "사고"} className={`grid size-5 shrink-0 place-items-center font-label text-ui leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
+    <span aria-label={good ? "의도대로 들림" : "다르게 들림"} className={`grid size-5 shrink-0 place-items-center font-label text-ui leading-none text-ink ${good ? "bg-good" : "bg-bad"}`}>
       {good ? "O" : "X"}
     </span>
   );
@@ -153,7 +153,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
 
           {/* 틀리는 이유: 열어 봐야 보이는 목록 대신, 이유마다 몇 개인지 붙은 칸을 한 줄로 늘어놓는다. 모바일은 옆으로 넘긴다 */}
           {traps.length > 1 && (
-            <div role="radiogroup" aria-label="틀리는 이유" className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+            <div role="radiogroup" aria-label="어색한 이유" className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
               {[{ value: null, label: "전체", n: count }, ...traps.map((t) => ({ value: t, label: TRAP_LABELS[t], n: trapCount.get(t) ?? 0 }))].map((o) => {
                 const on = trap === o.value;
                 return (

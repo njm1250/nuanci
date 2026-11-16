@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { quotedIntent } from "@/features/collection/pairs";
 import { voiceOf, VOICE_MIN } from "@/features/progression/voice";
 import type { Choice, Trap, Verdict } from "./types";
-import { heardAs } from "./verdict";
+import { heardAs, heardSaid } from "./verdict";
 
 // "한 판": 장면 셋을 한 묶음으로 세고, 셋을 끝내면 그 판에서 내 말이 어떻게 들렸는지 한 장으로 보여 준다.
 // 끝이 안 보이는 장면 목록 대신 가까운 끝과 내 결과를 걸어 둔다. 판은 이 브라우저에 남아서 중간에 나갔다 와도 이어진다
@@ -95,8 +95,8 @@ export function runSummary(run: Run) {
 // 결과를 친구에게 보내는 한마디. 문제 내기와 같은 말투로, 내가 낸 사고 하나를 그대로 적는다
 export function runShareMessage(run: Run) {
   const { picks, mishaps } = runSummary(run);
-  if (mishaps.length === 0) return `나 방금 영어로 ${picks.length}번 말했는데 다 통했어.\n너는 몇 번 통하는지 해 볼래?`;
+  if (mishaps.length === 0) return `나 방금 영어로 ${picks.length}번 말했는데 다 의도대로 들렸어.\n너도 해 볼래?`;
   const quoted = mishaps.find((p) => p.intent.lastIndexOf(" 하고 ") > 0);
-  const example = quoted ? `\n${quotedIntent(quoted.intent)} 했다가 "${quoted.heard}" 나왔어.` : "";
-  return `나 방금 영어로 ${picks.length}번 말했는데 ${mishaps.length}번 사고 났어.${example}\n너는 몇 번 나는지 해 볼래?`;
+  const example = quoted ? `\n${quotedIntent(quoted.intent)} 했다가 ${heardSaid(quoted.heard)}.` : "";
+  return `나 방금 영어로 ${picks.length}번 말했는데 ${mishaps.length}번은 다르게 들렸대.${example}\n너도 해 볼래?`;
 }

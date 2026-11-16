@@ -47,7 +47,7 @@ export function VoiceCard({ compact = false, name }: { compact?: boolean; name?:
           )}
           <p className={`${compact ? "" : "mt-3.5"} text-meta text-ink-subtle`}>지금까지 들린 느낌</p>
           <p className={`mt-0.5 font-bold leading-snug ${ready ? "text-title text-ink" : "text-body text-ink-muted"}`}>{voice.headline}</p>
-          {ready && voice.top && <p className="mt-1 text-meta text-ink-subtle">가장 자주 걸린 함정 · {TRAP_LABELS[voice.top.trap]} {voice.top.count}번</p>}
+          {ready && voice.top && <p className="mt-1 text-meta text-ink-subtle">자주 다르게 들린 이유 · {TRAP_LABELS[voice.top.trap]} {voice.top.count}번</p>}
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 divide-x-2 divide-ink/10 border-y-2 border-ink/10">
@@ -65,7 +65,7 @@ export function VoiceCard({ compact = false, name }: { compact?: boolean; name?:
           {BARCODE.map((w, i) => (
             <span key={i} className="bg-current" style={{ width: w * 2 }} />
           ))}
-          <span className="ml-auto self-end font-label text-ui leading-none text-ink-subtle">질문 {voice.answered}</span>
+          <span className="ml-auto self-end font-label text-ui leading-none text-ink-subtle">답한 질문 {voice.answered}개</span>
         </div>
       )}
     </Panel>

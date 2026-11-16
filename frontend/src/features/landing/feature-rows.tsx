@@ -9,7 +9,7 @@ export function FeatureRows({ scene }: { scene: Scene }) {
   const rows = [
     {
       title: "말 한마디에 반응이 갈려요",
-      body: "보기 셋 중 하나를 고르면 그 말을 들은 상대가 바로 반응해요. 사고가 나면 왜 그렇게 들리는지도 알려 줘요.",
+      body: "보기 셋 중 하나를 고르면 그 말을 들은 상대가 바로 반응해요. 왜 그렇게 들리는지도 알려 줘요.",
       art: <TalkArt partnerName={scene.partnerName} partnerLine={scene.base.partnerLine} choices={scene.base.choices} />,
     },
     {

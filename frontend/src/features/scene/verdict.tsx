@@ -17,12 +17,18 @@ export function Num({ n, dark = false, hover = false }: { n: number; dark?: bool
 export const VERDICTS: Record<Verdict, { label: string; color: string; stamp: string }> = {
   good: { label: "자연스러워요", color: "bg-good", stamp: "참 잘했어요" },
   meh: { label: "상황에 따라 어색해요", color: "bg-warn", stamp: "애매해요" },
-  bad: { label: "어색해요", color: "bg-bad", stamp: "사고 발생" },
+  bad: { label: "어색해요", color: "bg-bad", stamp: "다르게 들려요" },
 };
 
 // 그 말이 상대에게 어떻게 들렸는지. 보기마다 붙은 태그의 두 번째(들린 느낌)를 쓰고, 없으면 판정 도장 글자를 쓴다
 export function heardAs(choice: Choice) {
   return choice.tags[1] ?? choice.tags[0] ?? VERDICTS[choice.verdict].stamp;
+}
+
+// 공유 문구에 넣는 "~로 들렸대". 들린 느낌 태그가 "~로 들림"으로 끝나면 그 말을 이어 쓰고, 아니면 태그를 따옴표로 옮긴다
+export function heardSaid(choice: Pick<Choice, "tags" | "verdict"> | string) {
+  const heard = typeof choice === "string" ? choice : heardAs(choice as Choice);
+  return heard.endsWith("들림") ? `${heard.slice(0, -2)}들렸대` : `"${heard}"래`;
 }
 
 // 살짝 기운 채로 찍히는 인상 도장. 픽셀 무대에 맞게 부드럽게 커지지 않고 몇 프레임으로 끊어서 쾅 찍힌다
@@ -75,7 +81,7 @@ export function StakesNote({ stakes }: { stakes: "small" | "big" }) {
   const s = STAKES[stakes];
   return (
     <span className="flex items-center gap-2 text-meta text-ink-subtle">
-      <span role="img" aria-label={`사고 크기 ${stakes === "big" ? "큼" : "작음"}`} className="flex gap-0.5">
+      <span role="img" aria-label={`오해 가능성 ${stakes === "big" ? "큼" : "작음"}`} className="flex gap-0.5">
         {[1, 2, 3].map((n) => (
           <span key={n} className={`size-1.5 border border-ink ${n <= s.dots ? "bg-ink" : ""}`} />
         ))}

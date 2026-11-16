@@ -208,7 +208,7 @@ export function RewardCard({
             className="blk-btn"
           >
             <span className={`blk flex min-h-11 items-center gap-2 px-3 text-ui font-bold ${on ? "bg-cta text-cta-text" : "bg-card-raised text-ink"}`}>
-              {item.kind === "wear" ? "쓰기" : "방에 두기"}
+              {item.kind === "wear" ? "착용하기" : "방에 두기"}
               {on && <Check />}
             </span>
           </button>

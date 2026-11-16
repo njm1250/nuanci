@@ -9,7 +9,7 @@ import { FEATURES } from "./lean";
 
 const ASK = "어디로 갈까?";
 const ALL_ITEMS = [
-  { href: "/scenes", title: "전체 장면", desc: "순서대로 · 상황별로 고르기", reply: "오늘은 또 무슨 사고 치게?", on: true },
+  { href: "/scenes", title: "전체 장면", desc: "순서대로 · 상황별로 고르기", reply: "오늘은 누구랑 얘기해 볼래?", on: true },
   { href: "/expressions", title: "표현 모음", desc: "해 본 장면의 표현 복습", reply: "그 말, 이번엔 써먹어 봐", on: true },
   { href: "/test", title: "유형 테스트", desc: "내 영어 사고 유형 찾기", reply: "넌 무슨 유형이려나~", on: FEATURES.typetest },
   { href: "/me/room", title: "아지트", desc: "옷 입히기 · 방 꾸미기", reply: "내 자리도 하나 만들어 줘", on: FEATURES.rewards },

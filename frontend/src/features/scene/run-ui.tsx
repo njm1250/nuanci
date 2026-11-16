@@ -95,7 +95,7 @@ export function RunResult({ run, onShare, shareState }: { run: Run; onShare: () 
         </p>
         {mishaps.length > 0 ? (
           <>
-            <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-meta text-ink-subtle">방금 낸 사고</p>
+            <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-meta text-ink-subtle">의도와 다르게 들린 말</p>
             <ul className="mt-2 space-y-3">
               {mishaps.map((p, i) => (
                 <li key={`${p.sceneId}:${p.step}`}>
@@ -114,10 +114,10 @@ export function RunResult({ run, onShare, shareState }: { run: Run; onShare: () 
             </ul>
           </>
         ) : (
-          <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-body leading-snug">사고 없이 다 통했어요.</p>
+          <p className="mt-4 border-t-2 border-dashed border-ink/20 pt-3 text-body leading-snug">모두 의도대로 들렸어요.</p>
         )}
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink/10 py-2.5">
-          <p className="min-w-0 text-meta text-ink-subtle">친구는 몇 번 날까?</p>
+          <p className="min-w-0 text-meta text-ink-subtle">친구 영어는 어떻게 들릴까요?</p>
           <BlockButton onClick={onShare} className="shrink-0" faceClassName="font-label text-ui text-ink">
             {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "결과 보내기"}
           </BlockButton>
