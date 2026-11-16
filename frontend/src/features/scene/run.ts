@@ -88,7 +88,7 @@ export function runSummary(run: Run) {
   const picks = run.picks.filter((p) => run.scenes.includes(p.sceneId));
   const mishaps = picks.filter((p) => p.verdict !== "good");
   const voice = voiceOf(Object.fromEntries(picks.map((p) => [`${p.sceneId}:${p.step}`, p.trap ?? "good"])));
-  const headline = voice.answered >= VOICE_MIN ? voice.headline : mishaps.length ? "아직은 엇갈려 들리는 편" : "대체로 의도대로 들리는 편";
+  const headline = voice.answered >= VOICE_MIN ? voice.headline : mishaps.length ? "아직은 엇갈려 들리는 편이에요" : "대체로 의도대로 들리는 편이에요";
   return { picks, mishaps, good: picks.length - mishaps.length, headline };
 }
 

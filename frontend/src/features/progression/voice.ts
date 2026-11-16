@@ -49,11 +49,11 @@ export function recordVoice(sceneId: string, step: "base" | "followUp", trap: Tr
 const LEANS: Record<Trap, string> = {
   literal: "한국어를 그대로 옮긴 말로 들리는 편",
   konglish: "콩글리시가 섞여 엉뚱하게 들리는 편",
-  answer: "대답이 엇갈려 들리는 편",
+  answer: "질문과 맞지 않는 대답으로 들리는 편",
   textbook: "교과서를 읽는 것처럼 딱딱하게 들리는 편",
   blunt: "의도보다 차갑고 세게 들리는 편",
   formal: "의도보다 거리감 있게 들리는 편",
-  context: "분위기와 엇나가 들리는 편",
+  context: "분위기에 안 맞게 들리는 편",
   misread: "다른 뜻으로 오해받는 편",
   culture: "문화 차이로 어색하게 들리는 편",
 };
@@ -81,7 +81,7 @@ export function voiceOf(store: Store): Voice {
   const top = trap ? { trap, count: count!, lean: LEANS[trap] } : null;
   const clear = answered ? Math.round((good / answered) * 100) : 0;
   const headline =
-    answered < VOICE_MIN ? `질문 ${VOICE_MIN - answered}개 더 답하면 보여요` : top && clear < 70 ? `영어로는 ${top.lean}` : "대체로 의도대로 들리는 편";
+    answered < VOICE_MIN ? `질문 ${VOICE_MIN - answered}개에 더 답하면 보여요` : top && clear < 70 ? `${top.lean}이에요` : "대체로 의도대로 들리는 편이에요";
   return { answered, good, clear, top, headline };
 }
 
@@ -113,8 +113,8 @@ function packSnapshot() {
       v.answered < VOICE_MIN
         ? v.headline
         : v.top && v.clear < 70
-          ? `리뷰에서 ${v.top.lean}(${v.answered}번 중 ${v.top.count}번)`
-          : `리뷰에서도 대체로 의도대로 들리는 편(${v.answered}번 중 ${v.good}번)`;
+          ? `리뷰에서 ${v.top.lean}이에요 (${v.answered}번 중 ${v.top.count}번)`
+          : `리뷰에서도 대체로 의도대로 들리는 편이에요 (${v.answered}번 중 ${v.good}번)`;
     packCache.voice = { ...v, headline };
   }
   return packCache.voice;

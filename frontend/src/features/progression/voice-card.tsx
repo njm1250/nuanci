@@ -45,7 +45,7 @@ export function VoiceCard({ compact = false, name }: { compact?: boolean; name?:
               <p className="mt-0.5 truncate text-body font-semibold">{name ?? "손님"}</p>
             </>
           )}
-          <p className={`${compact ? "" : "mt-3.5"} text-meta text-ink-subtle`}>지금까지 들린 느낌</p>
+          <p className={`${compact ? "" : "mt-3.5"} text-meta text-ink-subtle`}>지금까지 내 영어는</p>
           <p className={`mt-0.5 font-bold leading-snug ${ready ? "text-title text-ink" : "text-body text-ink-muted"}`}>{voice.headline}</p>
           {ready && voice.top && <p className="mt-1 text-meta text-ink-subtle">자주 다르게 들린 이유 · {TRAP_LABELS[voice.top.trap]} {voice.top.count}번</p>}
         </div>
