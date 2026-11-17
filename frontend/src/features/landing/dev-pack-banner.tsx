@@ -8,7 +8,8 @@ import { PrStatus } from "@/features/scene/pr-status";
 export function DevPackBanner({ className = "" }: { className?: string }) {
   return (
     <div className={`blk-frame ${className}`}>
-      <Link href="/dev" className="blk block bg-card-raised px-4 pb-3 pt-4 text-ink hover:bg-ink/5">
+      {/* 호버 색은 불투명이어야 한다. 반투명이면 뒤의 먹선 층(blk-frame::before)이 비쳐 카드 전체가 남색이 된다 */}
+      <Link href="/dev" className="blk block bg-card-raised px-4 pb-3 pt-4 text-ink hover:bg-surface">
         <span className="flex items-center gap-1.5 text-ink-subtle">
           <PrStatus step={4} />
           <span aria-hidden className="text-meta">→</span>

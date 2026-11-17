@@ -25,11 +25,7 @@ import { useReviewedToday } from "@/features/review/reviewed";
 import { useStreak } from "@/features/streak/streak";
 import { useIntroMode } from "./returning-sync";
 import { answerCta } from "@/features/scene/teaser";
-import {
-  isUnopened,
-  nextGoalParts,
-  useRewards,
-} from "@/features/rewards/rewards";
+import { isUnopened, useRewards } from "@/features/rewards/rewards";
 import type { StageSpec } from "@/features/stage/types";
 import { FEATURES } from "@/features/site/lean";
 import { VoiceCard } from "@/features/progression/voice-card";
@@ -442,36 +438,40 @@ function FeaturedScene({
   );
 }
 
-// 다음 꾸미기 아이템까지 남은 장면 수. 진행도를 다음에 할 이유로 이어 주고 아지트로 보낸다
+// 아지트로 가는 줄. 안 연 상자가 있으면 그게 먼저다(지금 할 수 있는 일). 없으면 다음 보상 물건을 이름과 남은 장면 수로 나눠 적는다.
+// "장면 10개 더 하면 꽃 핀"처럼 한 문장에 이으면 물건 이름이 "꽃이 핀다"로 읽힐 수 있어서, 이름은 따로 굵게 둔다
 function NextGoal() {
   const rewards = useRewards();
   const next = rewards?.next;
-  if (!next) return null;
-  const [before, em, after] = nextGoalParts(next);
+  const box = rewards?.items.some(isUnopened) ?? false;
+  if (!rewards || (!next && !box)) return null;
   // 아지트에서 아직 안 본 물건이 있으면 점으로 알린다
   const unseen = rewards.items.some((i) => i.owned && !i.owned.seen);
-  const box = rewards.items.some(isUnopened);
+  const prize = next ? (next.type === "box" ? "깜짝 상자" : next.name) : "";
   return (
-    <Link
-      href="/me/room"
-      className="mt-3 flex items-center gap-3 bg-surface px-3 py-2 hover:bg-surface-strong"
-    >
-      {/* 다음에 받을 물건을 실제 도트 그림으로 보여 준다. 상자거나 그림이 없는 물건이면 Mochi가 대신 선다 */}
-      {next.type === "item" && next.id ? <RewardIcon id={next.id} size={32} className="shrink-0" /> : <Mascot scale={2} className="shrink-0" />}
-      <span className="min-w-0 flex-1 text-note text-fg-muted">
-        {before}
-        <span className="mx-0.5 font-bold text-fg">{em}</span>
-        {after}
+    <Link href="/me/room" className="group mt-3 flex items-center gap-3 bg-surface px-3 py-2.5 hover:bg-surface-strong">
+      <span className="shrink-0">
+        {box ? <RewardIcon id="box" size={32} /> : next?.type === "item" && next.id ? <RewardIcon id={next.id} size={32} /> : <Mascot scale={2} />}
       </span>
-      <span className="flex shrink-0 items-center gap-1.5 font-label text-ui text-fg-subtle">
+      <span className="min-w-0 flex-1 leading-[1.35]">
         {box ? (
-          <span className="hl font-label-strong text-meta leading-[1.4]">
-            새 상자
-          </span>
+          <>
+            <span className="block text-meta text-fg-subtle">아지트에</span>
+            <span className="block truncate text-ui font-bold text-fg">안 연 상자</span>
+          </>
         ) : (
-          unseen && <span aria-label="새 물건" className="size-2 bg-pink" />
+          <>
+            <span className="block text-meta text-fg-subtle">다음 보상</span>
+            <span className="flex min-w-0 items-baseline gap-2">
+              <span className="truncate text-ui font-bold text-fg">{prize}</span>
+              {next && <span className="shrink-0 text-meta text-fg-subtle">장면 {next.remaining}개 남음</span>}
+            </span>
+          </>
         )}
-        아지트
+      </span>
+      <span className="flex shrink-0 items-center gap-1.5 font-label text-ui text-fg-muted group-hover:text-fg">
+        {unseen && !box && <span aria-label="새 물건" className="size-2 bg-pink" />}
+        {box ? "열기" : "아지트"}
         <Arrow />
       </span>
     </Link>
