@@ -111,7 +111,7 @@ export default async function Home() {
               골라 보면 알아요
             </p>
             <HeroAsk first={pick}>
-              <p className="text-body leading-relaxed text-fg-muted">하고 싶은 말을 영어 보기 셋 중에 고르면, 그 말을 들은 상대 반응이 바로 나와요.</p>
+              <p className="text-body leading-relaxed text-fg-muted">하고 싶은 말을 영어 보기 중에 고르면 상대의 표정과 속마음이 나와요.</p>
             </HeroAsk>
           </div>
 

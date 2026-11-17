@@ -112,7 +112,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
       ? "다음 장면 해 보기"
       : "처음부터 다시 하기";
   const note = !returning
-    ? "가입 없이 바로, 한 장면에 1분"
+    ? "한 장면에 1~2분"
     : next
       ? `다음은 ${sceneLine(next.relation, next.place)}`
       : "모든 장면을 다 해 봤어요";
@@ -663,7 +663,7 @@ export function SceneShelf({
                   <span>
                     <span className="block text-body font-semibold">표현 모음</span>
                     <span className="mt-0.5 block text-meta text-ink-subtle">
-                      모은 표현 {done * PAIRS_PER_SCENE}개를 다시 봐요
+                      모은 표현 {done * PAIRS_PER_SCENE}개
                     </span>
                   </span>
                   <Arrow />
@@ -677,7 +677,7 @@ export function SceneShelf({
                   <span>
                     <span className="block text-body font-semibold">전체 장면</span>
                     <span className="mt-0.5 block text-meta text-ink-subtle">
-                      {progress.openEnd}화까지 열려 있어요
+                      {progress.openEnd}화까지 열림
                     </span>
                   </span>
                   <Arrow />

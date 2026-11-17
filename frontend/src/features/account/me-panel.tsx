@@ -186,7 +186,7 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
         <span className="blk flex items-center justify-between gap-3 bg-card-raised px-4 py-4 text-ink">
           <span>
             <span className="block text-title font-bold leading-tight">내 아지트</span>
-            <span className="mt-1 block text-meta text-ink-subtle">받은 옷을 입히고 방에 물건을 둬요</span>
+            <span className="mt-1 block text-meta text-ink-subtle">장면에서 받은 옷과 방 물건</span>
           </span>
           <Arrow />
         </span>
