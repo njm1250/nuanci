@@ -297,7 +297,9 @@ function BlockBar({ progress }: { progress: Progress }) {
   const filled = progress.left === 0 ? BLOCK_SIZE : progress.into;
   const next = filled < BLOCK_SIZE ? filled : -1;
   return (
-    <div className="mt-2 pt-8" role="progressbar" aria-valuenow={filled} aria-valuemax={BLOCK_SIZE} aria-label="다음 10화까지">
+    <div className="relative mt-2 pt-8">
+      <UnlockBubble progress={progress} next={next} />
+      <div role="progressbar" aria-valuenow={filled} aria-valuemax={BLOCK_SIZE} aria-label="다음 10화까지">
       <ol className="grid grid-cols-10 gap-1.5">
         {Array.from({ length: BLOCK_SIZE }, (_, i) => (
           <li key={i} className="relative">
@@ -316,7 +318,35 @@ function BlockBar({ progress }: { progress: Progress }) {
           </li>
         ))}
       </ol>
+      </div>
     </div>
+  );
+}
+
+// 새 10화가 열린 순간, 말판 위 Mochi가 말풍선으로 한 번 알려 준다. 누르면 전체 장면으로 간다.
+// 처음 본 순간 본 것으로 적어 두므로 다음 방문부터는 뜨지 않는다. 닫기 버튼 없이 한 번 지나가는 소식으로 둔다
+function UnlockBubble({ progress, next }: { progress: Progress; next: number }) {
+  const seen = useSeenOpenEnd();
+  const [from] = useState(seen);
+  const fresh = progress.openEnd > from;
+  useEffect(() => {
+    if (fresh) markOpenSeen(progress.openEnd);
+  }, [fresh, progress.openEnd]);
+  if (!fresh) return null;
+  // Mochi가 왼쪽 절반에 있으면 말풍선을 오른쪽에, 오른쪽 절반이면 왼쪽에 둔다
+  const left = next < 0 || next >= BLOCK_SIZE / 2;
+  const at = next < 0 ? BLOCK_SIZE : next;
+  return (
+    <Link
+      href="/scenes"
+      className="blk-frame-sm absolute top-0 z-20 animate-pop"
+      style={left ? { right: `calc(${((BLOCK_SIZE - at) / BLOCK_SIZE) * 100}% + 6px)` } : { left: `calc(${((at + 1) / BLOCK_SIZE) * 100}% + 2px)` }}
+    >
+      <span className="blk flex items-center gap-1.5 whitespace-nowrap bg-white px-2.5 py-1.5 text-note font-bold leading-none text-ink-fixed">
+        {from + 1}~{progress.openEnd}화가 열렸어!
+        <Arrow />
+      </span>
+    </Link>
   );
 }
 
@@ -327,34 +357,6 @@ function BlockCount({ progress }: { progress: Progress }) {
     <p className="shrink-0 text-note tabular-nums text-fg-subtle">
       <span className="font-bold text-fg">{progress.into}</span>/{BLOCK_SIZE}
     </p>
-  );
-}
-
-// 장면 10개를 채워 새 10화가 열린 순간을 홈에서 한 번 알려 준다. 누르면 전체 장면으로 가고, 누르거나 닫으면 다시 뜨지 않는다
-function Unlocked({ progress }: { progress: Progress }) {
-  const seen = useSeenOpenEnd();
-  if (progress.openEnd <= seen) return null;
-  return (
-    <div className="mt-3 flex items-center gap-2 border-2 border-ink bg-card px-3 py-2 text-ink">
-      <Link
-        href="/scenes"
-        onClick={() => markOpenSeen(progress.openEnd)}
-        className="flex min-w-0 flex-1 items-center justify-between gap-2 font-label text-ui"
-      >
-        <span>
-          {seen + 1}~{progress.openEnd}화가 열렸어요
-        </span>
-        <Arrow />
-      </Link>
-      <button
-        type="button"
-        onClick={() => markOpenSeen(progress.openEnd)}
-        aria-label="닫기"
-        className="grid size-8 shrink-0 place-items-center font-label text-ui"
-      >
-        ✕
-      </button>
-    </div>
   );
 }
 
@@ -652,7 +654,6 @@ export function SceneShelf({
             <BlockCount progress={progress} />
           </div>
           <BlockBar progress={progress} />
-          <Unlocked progress={progress} />
           {FEATURES.rewards && <NextGoal />}
         </div>
         <div className="order-4 mt-8 lg:mt-0">
