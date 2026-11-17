@@ -338,6 +338,94 @@ label {
   }
 }
 
+/* 홈 대표 장면 카드. 카드는 4px 그림자로 단단히 서 있고, 누르는 손맛은 분홍 키가 맡는다.
+   카드 어디에 손을 올려도 키가 한 칸 떠오르고, 화살표가 칸 단위로 밀리고, Mochi가 카드 위로 고개를 내민다. 움직임은 도트 그림처럼 계단(steps)으로 끊는다 */
+.feat-card {
+  position: relative;
+  isolation: isolate;
+}
+.feat-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  background: var(--color-fg);
+  box-shadow: 4px 4px 0 var(--color-fg);
+  pointer-events: none;
+}
+.feat-key {
+  position: relative;
+  isolation: isolate;
+  transition: transform var(--dur-press) steps(2, end);
+}
+.feat-key::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  background: var(--color-ink);
+  box-shadow: 3px 3px 0 var(--color-ink);
+  transition: box-shadow var(--dur-press) steps(2, end);
+}
+.feat-arrow {
+  transition: transform var(--dur-fast) steps(2, end);
+}
+.feat-thumb {
+  transition: border-color var(--dur-fast) steps(1, end);
+}
+/* 카드 뒤에 숨어 있다가 손을 올리면 위로 올라온다. 카드 면보다 뒤(z -2)라 내려가 있을 때는 보이지 않는다 */
+.feat-peek {
+  position: absolute;
+  top: 0;
+  right: 32px;
+  z-index: -2;
+  line-height: 0;
+  transition: transform var(--dur-base) steps(3, end);
+}
+@media (hover: hover) and (pointer: fine) {
+  .feat-card:hover .feat-key {
+    transform: translate(-2px, -2px);
+  }
+  .feat-card:hover .feat-key::before {
+    box-shadow: 5px 5px 0 var(--color-ink);
+  }
+  .feat-card:hover .feat-arrow {
+    transform: translateX(4px);
+  }
+  .feat-card:hover .feat-thumb {
+    border-color: var(--color-ink);
+  }
+  .feat-card:hover .feat-peek {
+    transform: translateY(-26px);
+  }
+}
+/* 손가락이나 마우스로 누르는 순간 키가 그림자 자리까지 내려앉는다 */
+.feat-card:active .feat-key {
+  transform: translate(3px, 3px);
+}
+.feat-card:active .feat-key::before {
+  box-shadow: 0 0 0 var(--color-ink);
+}
+.feat-card:focus-visible {
+  outline: 3px solid var(--color-pink);
+  outline-offset: 6px;
+}
+/* 마우스가 없는 폰에서는 손을 올릴 수 없으니, 화살표가 혼자 살짝 밀려 누를 곳임을 알린다 */
+@media (hover: none) {
+  .feat-arrow {
+    animation: nudge 1.2s steps(1, end) infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feat-arrow,
+  .feat-key,
+  .feat-key::before,
+  .feat-peek {
+    animation: none;
+    transition: none;
+  }
+}
+
 /* 종이 바탕에 아주 옅은 인쇄 알갱이를 깐다. 포스터 글꼴·낙서·도장이 매끈한 화면 위에 떠 보이지 않게 한다 */
 .bg-page {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.12 0 0 0 -0.04'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");

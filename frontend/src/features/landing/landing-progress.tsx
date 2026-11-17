@@ -382,47 +382,48 @@ function FeaturedScene({
   label: string;
 }) {
   return (
-    <EntryLink
-      href={`/scenes/${scene.number}`}
-      entry="home"
-      className="group blk-btn blk-strong mt-2 block lg:mt-0"
-    >
-      {/* 그림·제목·버튼이 모두 같은 12px 안쪽 선에서 시작하고 끝난다. 그림만 8px, 글자는 16px이던 두 선을 하나로 */}
-      <span className="blk block bg-card-raised p-3 text-ink md:grid md:grid-cols-2 md:gap-8">
+    // 카드는 단단히 고정하고, 누르는 손맛은 분홍 키 하나가 맡는다. 카드 어디에 손을 올려도 키가 떠오르고 Mochi가 카드 위로 고개를 내민다
+    <EntryLink href={`/scenes/${scene.number}`} entry="home" className="feat-card group mt-2 block lg:mt-0">
+      <span aria-hidden className="feat-peek">
+        <Mascot scale={2} />
+      </span>
+      <span className="relative block bg-card-raised p-3 text-ink md:grid md:grid-cols-2 md:gap-7 md:p-4">
         <span className="relative block">
           <SceneThumb
             stage={scene.stage}
-            className="aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
+            className="feat-thumb aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
           />
           <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-label text-ui leading-none text-fg">
             {label}
             {fresh && <span className="ml-1.5 text-pink">NEW</span>}
           </span>
         </span>
-        {/* 데스크톱은 제목을 위에, 버튼을 아래에 붙여 오른쪽 칸이 그림 높이를 꽉 채우게 한다. 가운데에 떠 있으면 위아래가 비어 보인다 */}
-        <span className="block md:flex md:flex-col md:justify-between">
+        {/* 데스크톱 오른쪽 칸: 위에는 읽을 것(제목·누구와·어디서), 아래에는 누를 것(키). 둘 사이는 선 대신 여백으로 나눈다 */}
+        <span className="block md:flex md:flex-col md:justify-between md:py-0.5">
           <span className="block">
             <span className="mt-3.5 block font-poster text-display-sm leading-[1.2] md:mt-0 md:text-display md:leading-[1.15]">
               {scene.title}
             </span>
-            <span className="mt-1 block text-meta text-ink-subtle md:hidden">
+            <span className="mt-1.5 block text-note leading-[1.4] text-ink-subtle md:hidden">
               {scene.relation} · {scene.place}
             </span>
-            {/* 데스크톱은 넓은 칸에 맞게 누구와·어디서를 표처럼 나눠 적는다 */}
-            <span className="mt-5 hidden grid-cols-[auto_minmax(0,1fr)] border-t border-line/60 md:grid">
-              <span className="border-b border-line/60 py-2 pr-4 text-meta text-ink-subtle">누구와</span>
-              <span className="truncate border-b border-line/60 py-2 text-ui font-semibold">{scene.relation}</span>
-              <span className="border-b border-line/60 py-2 pr-4 text-meta text-ink-subtle">어디서</span>
-              <span className="truncate border-b border-line/60 py-2 text-ui font-semibold">{scene.place}</span>
+            <span className="mt-4 hidden grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-note leading-[1.4] md:grid">
+              <span className="text-ink-subtle">누구와</span>
+              <span className="truncate font-semibold">{scene.relation}</span>
+              <span className="text-ink-subtle">어디서</span>
+              <span className="truncate font-semibold">{scene.place}</span>
             </span>
           </span>
-          <span className="mt-5 flex items-center justify-between border-2 border-ink bg-pink px-4 py-3 font-poster text-say text-ink transition-transform duration-fast group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
-            {/* 포스터 글꼴은 글자가 줄 상자 안에서 위로 치우쳐 그려져서, 줄 높이를 글자 크기에 맞추고 화살표를 3px 올려야 눈으로 본 가운데가 맞는다 */}
-            <span className="leading-none">{answerCta(scene.relation)}</span>
-            {/* 주요 버튼 화살표는 몸통이 있는 도트 화살표로 크게 그려야 움직이는 게 보인다 */}
-            <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="nudge relative -top-[3px] shrink-0 fill-current">
-              <path d="M0 3h4v2H0zM4 1h1v6H4zM5 2h1v4H5zM6 3h1v2H6z" />
-            </svg>
+          {/* 키의 2px 먹선이 그림 테두리와 같은 세로선에 오게 왼쪽을 2px 들이고, 오른쪽은 먹선 2px + 그림자 3px 자리를 비운다 */}
+          {/* 바깥 칸은 먹선·그림자, 안쪽 칸이 분홍 면. 한 칸에 두면 먹선 층이 분홍 면을 덮는다 */}
+          <span className="feat-key ml-0.5 mr-[5px] mt-5 block md:mt-4">
+            <span className="flex items-center justify-between bg-pink px-4 py-3.5 font-poster text-say text-ink">
+              {/* 포스터 글꼴은 줄 상자 안에서 위로 치우쳐 그려져서, 줄 높이를 글자 크기에 맞추고 화살표를 3px 올려야 눈으로 본 가운데가 맞는다 */}
+              <span className="leading-none">{answerCta(scene.relation)}</span>
+              <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="feat-arrow relative -top-[3px] shrink-0 fill-current">
+                <path d="M0 3h4v2H0zM4 1h1v6H4zM5 2h1v4H5zM6 3h1v2H6z" />
+              </svg>
+            </span>
           </span>
         </span>
       </span>
