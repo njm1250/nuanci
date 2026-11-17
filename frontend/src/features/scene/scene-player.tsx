@@ -1,5 +1,6 @@
 "use client";
 
+import { sourcesLine } from "./where";
 import Link from "next/link";
 import { LogoLink } from "@/features/site/logo-link";
 import { PrStatus } from "./pr-status";
@@ -826,7 +827,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {choice && heardIds.length >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
               {/* 표현 출처는 선택지 카드마다가 아니라 이 상황에 한 번, 목록 아래에 작게 둔다 */}
               {choice && situation.sources && situation.sources.length > 0 && (
-                <p className="mt-3 text-meta leading-relaxed text-fg-subtle">출처 · {situation.sources.map((src) => `${src.phrase} — ${src.from}`).join(" · ")}</p>
+                <p className="mt-3 text-meta leading-relaxed text-fg-subtle">표현 출처 {sourcesLine(situation.sources)}</p>
               )}
               {f.done && preview && (
                 <div className="blk mt-6 bg-surface px-4 py-3">

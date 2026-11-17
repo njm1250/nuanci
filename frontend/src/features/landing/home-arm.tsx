@@ -85,7 +85,7 @@ export function HeroAsk({ first, children }: { first: FirstPick | null; children
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-note text-fg-subtle">가입 없이 바로 · 고르면 상대가 반응해요</p>
+      <p className="mt-3 text-note text-fg-subtle">가입 없이 바로, 고르면 상대가 반응해요</p>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from "@/features/scene/progress";
 import { hasPlayed, trackHome, visitorId, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
+import { sceneLine, splitPlace } from "@/features/scene/where";
 import { ReviewToday } from "@/features/review/review-today";
 import { useReviewedToday } from "@/features/review/reviewed";
 import { useStreak } from "@/features/streak/streak";
@@ -111,9 +112,9 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
       ? "다음 장면 해 보기"
       : "처음부터 다시 하기";
   const note = !returning
-    ? "가입 없이 바로 · 한 장면에 1분"
+    ? "가입 없이 바로, 한 장면에 1분"
     : next
-      ? `다음 · ${next.relation} · ${next.place}`
+      ? `다음은 ${sceneLine(next.relation, next.place)}`
       : "모든 장면을 다 해 봤어요";
   return (
     <>
@@ -183,7 +184,7 @@ function SceneCard({
             {scene.title}
           </span>
           <span className="mt-0.5 block truncate text-meta text-ink-subtle">
-            {scene.relation} · {scene.place}
+            {sceneLine(scene.relation, scene.place)}
           </span>
         </span>
         {next ? (
@@ -243,7 +244,7 @@ function SceneRow({
           {scene.title}
         </span>
         <span className="mt-0.5 block truncate text-meta text-fg-subtle group-hover:text-page/70">
-          {scene.relation} · {scene.place}
+          {sceneLine(scene.relation, scene.place)}
         </span>
       </span>
       {fresh && <NewChip />}
@@ -273,7 +274,7 @@ function LockedSceneRow({
           {scene.title}
         </span>
         <span className="mt-0.5 block truncate text-meta">
-          {scene.relation} · {scene.place}
+          {sceneLine(scene.relation, scene.place)}
         </span>
       </span>
     </div>
@@ -405,13 +406,19 @@ function FeaturedScene({
               {scene.title}
             </span>
             <span className="mt-1.5 block text-note leading-[1.4] text-ink-subtle md:hidden">
-              {scene.relation} · {scene.place}
+              {sceneLine(scene.relation, scene.place)}
             </span>
             <span className="mt-4 hidden grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-note leading-[1.4] md:grid">
               <span className="text-ink-subtle">누구와</span>
               <span className="truncate font-semibold">{scene.relation}</span>
               <span className="text-ink-subtle">어디서</span>
-              <span className="truncate font-semibold">{scene.place}</span>
+              <span className="truncate font-semibold">{splitPlace(scene.place).loc}</span>
+              {splitPlace(scene.place).time && (
+                <>
+                  <span className="text-ink-subtle">언제</span>
+                  <span className="truncate font-semibold">{splitPlace(scene.place).time}</span>
+                </>
+              )}
             </span>
           </span>
           {/* 키의 2px 먹선이 그림 테두리와 같은 세로선에 오게 왼쪽을 2px 들이고, 오른쪽은 먹선 2px + 그림자 3px 자리를 비운다 */}
@@ -656,7 +663,7 @@ export function SceneShelf({
                   <span>
                     <span className="block text-body font-semibold">표현 모음</span>
                     <span className="mt-0.5 block text-meta text-ink-subtle">
-                      모은 표현 {done * PAIRS_PER_SCENE}개 · 복습하기
+                      모은 표현 {done * PAIRS_PER_SCENE}개를 다시 봐요
                     </span>
                   </span>
                   <Arrow />
@@ -670,7 +677,7 @@ export function SceneShelf({
                   <span>
                     <span className="block text-body font-semibold">전체 장면</span>
                     <span className="mt-0.5 block text-meta text-ink-subtle">
-                      {progress.openEnd}화까지 열림 · 상황별로도 골라 보기
+                      {progress.openEnd}화까지 열려 있어요
                     </span>
                   </span>
                   <Arrow />
