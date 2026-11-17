@@ -291,14 +291,31 @@ const SCENE_ROW_ITEM_CLASS = "list-row-lazy border-b border-line/40";
 
 type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
 
-// 다음 10화가 열리기까지 채운 만큼. 매끈한 막대 대신 장면 하나가 한 칸인 도트 칸으로 둬서, 몇 개 남았는지 세어 볼 수 있다. 다음에 채울 칸만 먹선으로 둔다
+// 다음 10화까지를 보드게임 말판처럼 보여 준다. 장면 하나가 한 칸이고, Mochi가 말이 되어 다음 칸 위에 서 있다.
+// 화면에 들어오면 채운 칸에 도장이 하나씩 찍히고, 다 찍힌 뒤 Mochi가 한 번 뛴다(동작 줄이기면 바로 끝 상태)
 function BlockBar({ progress }: { progress: Progress }) {
   const filled = progress.left === 0 ? BLOCK_SIZE : progress.into;
+  const next = filled < BLOCK_SIZE ? filled : -1;
   return (
-    <div className="mt-2.5 grid grid-cols-10 gap-1" role="progressbar" aria-valuenow={filled} aria-valuemax={BLOCK_SIZE} aria-label="다음 10화까지">
-      {Array.from({ length: BLOCK_SIZE }, (_, i) => (
-        <span key={i} className={`aspect-square border-2 ${i < filled ? "border-ink bg-pink" : i === filled ? "border-ink bg-card" : "border-line bg-card"}`} />
-      ))}
+    <div className="mt-2 pt-8" role="progressbar" aria-valuenow={filled} aria-valuemax={BLOCK_SIZE} aria-label="다음 10화까지">
+      <ol className="grid grid-cols-10 gap-1.5">
+        {Array.from({ length: BLOCK_SIZE }, (_, i) => (
+          <li key={i} className="relative">
+            {i === next && (
+              <span aria-hidden className="pointer-events-none absolute bottom-[calc(100%-4px)] left-1/2 z-10 -translate-x-1/2">
+                <span className="block origin-bottom animate-hop" style={{ animationDelay: `${filled * 70 + 120}ms` }}>
+                  <Mascot scale={2} className="block" />
+                </span>
+              </span>
+            )}
+            <span
+              // 채운 칸은 위·왼쪽이 밝고 아래·오른쪽이 어두운 도트 블록. 체크 표시를 넣으면 할 일 목록 체크박스처럼 보여서 뺐다
+              className={`block aspect-square border-2 ${i < filled ? "animate-stamp border-ink bg-pink shadow-[inset_3px_3px_0_rgb(255_255_255/0.6),inset_-3px_-3px_0_rgb(11_26_68/0.18)]" : i === next ? "border-ink bg-card" : "border-line bg-surface shadow-[inset_-2px_-2px_0_rgb(11_26_68/0.06)]"}`}
+              style={i < filled ? { animationDelay: `${i * 70}ms` } : undefined}
+            />
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
@@ -318,7 +335,7 @@ function Unlocked({ progress }: { progress: Progress }) {
   const seen = useSeenOpenEnd();
   if (progress.openEnd <= seen) return null;
   return (
-    <div className="mt-3 flex items-center gap-2 border border-line bg-card px-3 py-2 text-ink">
+    <div className="mt-3 flex items-center gap-2 border-2 border-ink bg-card px-3 py-2 text-ink">
       <Link
         href="/scenes"
         onClick={() => markOpenSeen(progress.openEnd)}
@@ -470,7 +487,7 @@ function TodayGoals() {
   const reviewed = useReviewedToday();
   const review = FEATURES.review && reviewed !== "none" ? reviewed === "done" : null;
   return (
-    <div className="lg:border lg:border-line lg:bg-card-raised lg:p-4">
+    <div className="lg:border-2 lg:border-ink lg:bg-card-raised lg:p-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-1.5 text-body font-bold">
           <Flame lit={today} size={18} />
@@ -627,7 +644,7 @@ export function SceneShelf({
       <div className="contents lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-6">
         {/* 복습을 장면보다 먼저 보여 줄지 실험 중이다. 방문자 id로 반씩 나눠서, 서버에 이미 남는 방문자 id만으로 두 묶음의 장면 시작률·복습 참여율을 비교할 수 있다. 데스크톱은 오른쪽 칸의 위·아래로 나뉜다 */}
         {FEATURES.review && !reviewAfter && <ReviewToday className="order-1 mb-7 lg:mb-0" />}
-        <div className="order-4 mt-8 lg:mt-0 lg:border lg:border-line lg:bg-card-raised lg:p-4">
+        <div className="order-4 mt-8 lg:mt-0 lg:border-2 lg:border-ink lg:bg-card-raised lg:p-4">
         <div className="flex items-baseline justify-between">
             <h2 className="text-body font-bold">
               {progress.left === 0 ? "모든 화가 열렸어요" : `다음 ${BLOCK_SIZE}화까지`}
@@ -644,7 +661,7 @@ export function SceneShelf({
         </div>
         {FEATURES.review && reviewAfter && <ReviewToday className="order-3 mt-8 lg:mt-0" />}
         <div className="order-5">
-        <div className="blk-frame mt-6 lg:mt-0">
+        <div className="blk-frame blk-strong mt-6 lg:mt-0">
             <ul className="blk divide-y-2 divide-ink/10 bg-card-raised text-ink">
               <li>
                 <Link
@@ -678,7 +695,7 @@ export function SceneShelf({
           </div>
         </div>
         {/* 개발자 팩 캠페인. 오른쪽 칸(모바일은 바로 가기 아래) 맨 아래에 작게 둔다. 팩으로 사람을 데려오는 주 경로는 개발자 채널의 /dev 링크다 */}
-        <DevPackBanner className="order-6 mt-5 lg:mt-0" />
+        <DevPackBanner className="blk-strong order-6 mt-5 lg:mt-0" />
       </div>
       <ThumbStudio />
     </section>
