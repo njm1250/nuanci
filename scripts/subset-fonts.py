@@ -1,6 +1,7 @@
 """실제로 쓰는 글자만 담아 글꼴 파일을 만든다. 페이지마다 조각을 여러 개 받는 대신, 작은 파일 하나로 모든 화면을 처리한다.
 
-- 본문(Pretendard), 제목(Black Han Sans): 코드의 한글과 운영 장면의 한글 전부
+- 본문(Pretendard), 제목(던파 비트비트체 v2, NEOPLE): 코드의 한글과 운영 장면의 한글 전부.
+  비트비트체는 수정한 파일에 원래 이름을 쓰지 않는 조건이라, 글자를 줄인 파일 안의 이름을 nuanci title로 바꾼다
 - 낙서(Nanum Pen Script): 정해진 문구 / 영어 대사(Pangolin): 대사에 쓰는 글자. 로고는 글꼴이 아니라 site/logo.ts의 도트 그림이다
 - 무대 말풍선(Galmuri14): 본문과 같은 글자. 원본은 550KB가 넘어서 통째로 넣으면 무대가 늦게 뜬다
 
@@ -48,7 +49,16 @@ def scene_text():
     return "".join(json.dumps(get(f"{API}/{s['id']}"), ensure_ascii=False) for s in get(API))
 
 
-def save(source, chars, name):
+NEXON = "https://cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf"
+
+
+def rename(font, family):
+    for record in font["name"].names:
+        if record.nameID in (1, 3, 4, 6, 16):
+            record.string = family.replace(" ", "") if record.nameID == 6 else family
+
+
+def save(source, chars, name, family=None):
     options = subset.Options()
     options.flavor = "woff2"
     options.hinting = False
@@ -57,6 +67,8 @@ def save(source, chars, name):
     subsetter = subset.Subsetter(options)
     subsetter.populate(unicodes=[ord(c) for c in chars])
     subsetter.subset(font)
+    if family:
+        rename(font, family)
     subset.save_font(font, str(OUT / name), options)
     print(f"{name}: {(OUT / name).stat().st_size // 1024}KB ({len(chars)}자)")
 
@@ -68,14 +80,15 @@ def main():
     everything = words | ascii_chars | set(SYMBOLS)
     with TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        for name, url in {"black-han.ttf": f"{GOOGLE}/blackhansans/BlackHanSans-Regular.ttf", "nanum-pen.ttf": f"{GOOGLE}/nanumpenscript/NanumPenScript-Regular.ttf"}.items():
+        for name, url in {"nanum-pen.ttf": f"{GOOGLE}/nanumpenscript/NanumPenScript-Regular.ttf"}.items():
             urllib.request.urlretrieve(url, tmp / name)
         # 쓰는 굵기(400~800)만 남겨 가변 글꼴을 줄인다
         text = instancer.instantiateVariableFont(TTFont(FRONT / "node_modules/pretendard/dist/public/variable/PretendardVariable.ttf"), {"wght": (400, 800)})
         text.save(tmp / "text.ttf")
 
         save(tmp / "text.ttf", everything, "text.woff2")
-        save(tmp / "black-han.ttf", everything, "poster.woff2")
+        urllib.request.urlretrieve(NEXON, tmp / "bitbit.otf")
+        save(tmp / "bitbit.otf", everything, "title.woff2", family="nuanci title")
         save(tmp / "nanum-pen.ttf", set(SCRAWL), "scrawl.woff2")
     save(FRONT / "node_modules/galmuri/dist/Galmuri14.ttf", everything, "stage.woff2")
     save(FRONT / "node_modules/@fontsource/pangolin/files/pangolin-latin-400-normal.woff2", ascii_chars | set(LINE_EXTRA), "pangolin-line.woff2")
