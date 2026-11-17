@@ -15,6 +15,10 @@ import {
 } from "@/features/scene/progress";
 import { hasPlayed, trackHome, visitorId, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
+import { RewardIcon } from "@/features/rewards/reward-icon";
+import { StampSlot, STAMP_TILTS, weekLabels } from "@/features/streak/streak-section";
+import { Flame } from "@/features/streak/streak-ui";
+import { useKstDay } from "@/features/streak/kst-day";
 import { sceneLine, splitPlace } from "@/features/scene/where";
 import { ReviewToday } from "@/features/review/review-today";
 import { useReviewedToday } from "@/features/review/reviewed";
@@ -287,43 +291,24 @@ const SCENE_ROW_ITEM_CLASS = "list-row-lazy border-b border-line/40";
 
 type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
 
-// 다음 10화가 열리기까지 채운 만큼을 한 줄로 보여 준다. 전체 장면 수 대신 가까운 목표를 보여 준다
+// 다음 10화가 열리기까지 채운 만큼. 매끈한 막대 대신 장면 하나가 한 칸인 도트 칸으로 둬서, 몇 개 남았는지 세어 볼 수 있다. 다음에 채울 칸만 먹선으로 둔다
 function BlockBar({ progress }: { progress: Progress }) {
   const filled = progress.left === 0 ? BLOCK_SIZE : progress.into;
   return (
-    <div
-      className="mt-2 h-3 border-2 border-fg"
-      role="progressbar"
-      aria-valuenow={filled}
-      aria-valuemax={BLOCK_SIZE}
-      aria-label="다음 10화까지"
-    >
-      <div
-        className="h-full origin-left animate-fill bg-pink"
-        style={{ width: `${(filled / BLOCK_SIZE) * 100}%` }}
-      />
+    <div className="mt-2.5 grid grid-cols-10 gap-1" role="progressbar" aria-valuenow={filled} aria-valuemax={BLOCK_SIZE} aria-label="다음 10화까지">
+      {Array.from({ length: BLOCK_SIZE }, (_, i) => (
+        <span key={i} className={`aspect-square border-2 ${i < filled ? "border-ink bg-pink" : i === filled ? "border-ink bg-card" : "border-line bg-card"}`} />
+      ))}
     </div>
   );
 }
 
-// 진행도 문구는 작은 쪽을 보여 준다. 10개 중 절반 전에는 한 개수를, 절반이 넘으면 남은 개수를 보여 줘야 빨리 나아가는 느낌이 든다
+// 칸 옆 숫자. 제목이 "다음 10화까지"라서 숫자는 채운 칸만 적는다
 function BlockCount({ progress }: { progress: Progress }) {
+  if (progress.left === 0) return null;
   return (
-    <p className="shrink-0 text-note text-fg-subtle">
-      {progress.left === 0 ? (
-        "모든 화가 열렸어요"
-      ) : progress.into < BLOCK_SIZE / 2 ? (
-        <>
-          다음 {BLOCK_SIZE}화 열기{" "}
-          <span className="font-bold text-fg">{progress.into}</span>/
-          {BLOCK_SIZE}
-        </>
-      ) : (
-        <>
-          다음 {BLOCK_SIZE}화까지 장면{" "}
-          <span className="font-bold text-fg">{progress.left}개</span> 더
-        </>
-      )}
+    <p className="shrink-0 text-note tabular-nums text-fg-subtle">
+      <span className="font-bold text-fg">{progress.into}</span>/{BLOCK_SIZE}
     </p>
   );
 }
@@ -452,7 +437,8 @@ function NextGoal() {
       href="/me/room"
       className="mt-3 flex items-center gap-3 bg-surface px-3 py-2 hover:bg-surface-strong"
     >
-      <Mascot scale={2} className="shrink-0" />
+      {/* 다음에 받을 물건을 실제 도트 그림으로 보여 준다. 상자거나 그림이 없는 물건이면 Mochi가 대신 선다 */}
+      {next.type === "item" && next.id ? <RewardIcon id={next.id} size={32} className="shrink-0" /> : <Mascot scale={2} className="shrink-0" />}
       <span className="min-w-0 flex-1 text-note text-fg-muted">
         {before}
         <span className="mx-0.5 font-bold text-fg">{em}</span>
@@ -473,35 +459,41 @@ function NextGoal() {
   );
 }
 
-// 오늘 할 일 두 가지를 체크 목록으로 보여 준다. 연속 기록과 복습이 같은 하루 단위로 이어진다
+// 오늘의 목표 자리. 체크박스 대신 내 정보와 같은 도장판(최근 7일)을 작게 둔다. 장면 하나를 끝내면 오늘 칸에 도장이 찍힌다
 function TodayGoals() {
   const streak = useStreak();
+  const labels = weekLabels(useKstDay());
+  const week = streak?.week ?? Array<boolean>(7).fill(false);
+  const current = streak?.current ?? 0;
+  const today = Boolean(streak?.today);
+  // 복습 입구를 다시 열면 도장판 아래에 오늘의 복습 한 줄이 붙는다. 오늘 물을 말이 없는 날은 뺀다
   const reviewed = useReviewedToday();
-  // 오늘 물을 말이 없는 날은 복습을 목표에서 아예 뺀다. 빈 체크 칸으로 남기면 안 한 숙제처럼 보이고, 체크해 두면 거짓말이 된다.
-  // 복습 입구를 닫아 둔 동안에도 뺀다. 할 곳이 없는 목표는 끝낼 수 없다
-  const goals = [
-    { label: "장면 하나 끝내기", done: Boolean(streak?.today) },
-    ...(!FEATURES.review || reviewed === "none" ? [] : [{ label: "오늘의 복습 끝내기", done: reviewed === "done" }]),
-  ];
-  const done = goals.filter((g) => g.done).length;
+  const review = FEATURES.review && reviewed !== "none" ? reviewed === "done" : null;
   return (
     <div className="lg:border lg:border-line lg:bg-card-raised lg:p-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-body font-bold">오늘의 목표</h2>
-        <span className="text-meta tabular-nums text-fg-subtle lg:text-ink-subtle">
-          {done}/{goals.length}
-        </span>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-1.5 text-body font-bold">
+          <Flame lit={today} size={18} />
+          {current > 0 ? `${current}일 연속` : "오늘의 도장"}
+        </h2>
+        <span className="text-meta text-fg-subtle lg:text-ink-subtle">{today ? `내일도 하면 ${current + 1}일` : "장면 하나 끝내면 도장"}</span>
       </div>
-      <ul className="mt-2 space-y-1.5">
-        {goals.map((g) => (
-          <li key={g.label} className="flex items-center gap-2.5 text-ui">
-            <span aria-hidden className={`grid size-5 shrink-0 place-items-center border-2 ${g.done ? "border-ink bg-good" : "border-line"}`}>
-              {g.done && <Check />}
-            </span>
-            <span className={g.done ? "text-fg-subtle line-through decoration-2 lg:text-ink-subtle" : ""}>{g.label}</span>
+      <ol className="mt-2.5 grid grid-cols-7 gap-1" aria-label="최근 7일 도장">
+        {week.map((done, i) => (
+          <li key={i} className="flex flex-col items-center gap-1" aria-label={`${labels[i]}요일${i === 6 ? " 오늘" : ""}, ${done ? "도장 찍음" : "안 함"}`}>
+            <span className={`text-meta leading-none ${i === 6 ? "font-semibold text-fg lg:text-ink" : "text-fg-subtle lg:text-ink-subtle"}`}>{labels[i]}</span>
+            <StampSlot done={done} today={i === 6} tilt={STAMP_TILTS[i]} />
           </li>
         ))}
-      </ul>
+      </ol>
+      {review !== null && (
+        <p className="mt-2.5 flex items-center gap-2.5 text-ui">
+          <span aria-hidden className={`grid size-5 shrink-0 place-items-center border-2 ${review ? "border-ink bg-good" : "border-line"}`}>
+            {review && <Check />}
+          </span>
+          <span className={review ? "text-fg-subtle line-through decoration-2 lg:text-ink-subtle" : ""}>오늘의 복습 끝내기</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -638,8 +630,7 @@ export function SceneShelf({
         <div className="order-4 mt-8 lg:mt-0 lg:border lg:border-line lg:bg-card-raised lg:p-4">
         <div className="flex items-baseline justify-between">
             <h2 className="text-body font-bold">
-              <span className="lg:hidden">진행도</span>
-              <span className="max-lg:hidden">{upNext.length > 0 ? "이어서 할 장면" : "모든 장면을 다 해 봤어요"}</span>
+              {progress.left === 0 ? "모든 화가 열렸어요" : `다음 ${BLOCK_SIZE}화까지`}
             </h2>
             <BlockCount progress={progress} />
           </div>

@@ -9,7 +9,7 @@ import { useStreak } from "./streak";
 const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "narrow", timeZone: "Asia/Seoul" });
 
 // 최근 7일의 요일 이름(한국 시간). 마지막이 오늘이다. 날짜를 모르는 서버에서는 비워 둔다
-function weekLabels(today: number | null) {
+export function weekLabels(today: number | null) {
   return Array.from({ length: 7 }, (_, i) => (today === null ? "" : weekday.format(kstNoon(today - 6 + i))));
 }
 
@@ -99,7 +99,7 @@ export function StreakSection({ member }: { member: boolean }) {
 
 // 도장 칸의 둥근 테두리(12×12 도트)
 const RING = ["....xxxx....", "..xx....xx..", ".x........x.", ".x........x.", "x..........x", "x..........x", "x..........x", "x..........x", ".x........x.", ".x........x.", "..xx....xx..", "....xxxx...."];
-const STAMP_TILTS = [-8, 5, -3, 9, -6, 3, -10];
+export const STAMP_TILTS = [-8, 5, -3, 9, -6, 3, -10];
 
 function Ring({ color, size }: { color: string; size: number }) {
   return (
@@ -110,7 +110,7 @@ function Ring({ color, size }: { color: string; size: number }) {
 }
 
 // 하루 한 칸. 한 날에는 빨간 "참" 도장이 찍히고, 오늘 아직 안 했으면 점선 칸으로 남는다
-function StampSlot({ done, today, tilt }: { done: boolean; today: boolean; tilt: number }) {
+export function StampSlot({ done, today, tilt }: { done: boolean; today: boolean; tilt: number }) {
   return (
     <span className="relative grid size-9 place-items-center" style={done ? { rotate: `${tilt}deg` } : undefined}>
       <Ring color={done ? "#c42b2b" : today ? "rgb(20 19 23 / 0.45)" : "rgb(20 19 23 / 0.15)"} size={36} />
