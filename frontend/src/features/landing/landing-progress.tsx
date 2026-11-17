@@ -73,7 +73,7 @@ function useVisitor(scenes: ShelfScene[] = []) {
 
 function NewChip() {
   return (
-    <span className="shrink-0 bg-ink px-1.5 py-1 font-label-strong text-meta leading-none text-white">
+    <span className="shrink-0 bg-ink px-1 py-0.5 font-label-strong text-meta leading-none text-white">
       NEW
     </span>
   );
@@ -172,9 +172,11 @@ function SceneCard({
           )}
         </span>
         <span className="min-w-0 flex-1">
+          {/* 화수와 NEW를 한 줄에 둔다. NEW가 오른쪽 끝 큰 블록이면 제목보다 무거워 눈이 먼저 간다(대표 카드의 "4화 NEW"와 같은 짝) */}
           {!inRow && (
-            <span className="mb-1 block text-meta font-medium leading-none text-ink-subtle">
+            <span className="mb-1 flex items-center gap-1.5 text-meta font-medium leading-none text-ink-subtle">
               {label}
+              {fresh && !next && <NewChip />}
             </span>
           )}
           <span className="block truncate text-body font-bold leading-snug">
@@ -189,7 +191,7 @@ function SceneCard({
             다음
           </span>
         ) : (
-          fresh && <NewChip />
+          fresh && inRow && <NewChip />
         )}
       </span>
     </EntryLink>
@@ -383,9 +385,10 @@ function FeaturedScene({
     <EntryLink
       href={`/scenes/${scene.number}`}
       entry="home"
-      className="group blk-btn blk-strong mt-4 block"
+      className="group blk-btn blk-strong mt-2 block lg:mt-0"
     >
-      <span className="blk block bg-card-raised p-2 pb-4 text-ink md:grid md:grid-cols-2 md:gap-8 md:p-3">
+      {/* 그림·제목·버튼이 모두 같은 12px 안쪽 선에서 시작하고 끝난다. 그림만 8px, 글자는 16px이던 두 선을 하나로 */}
+      <span className="blk block bg-card-raised p-3 text-ink md:grid md:grid-cols-2 md:gap-8">
         <span className="relative block">
           <SceneThumb
             stage={scene.stage}
@@ -397,23 +400,23 @@ function FeaturedScene({
           </span>
         </span>
         {/* 데스크톱은 제목을 위에, 버튼을 아래에 붙여 오른쪽 칸이 그림 높이를 꽉 채우게 한다. 가운데에 떠 있으면 위아래가 비어 보인다 */}
-        <span className="block md:flex md:flex-col md:justify-between md:py-2">
+        <span className="block md:flex md:flex-col md:justify-between">
           <span className="block">
-            <span className="mt-3 block px-2 font-poster text-say-lg leading-[1.25] md:mt-0 md:text-display md:leading-[1.15]">
+            <span className="mt-3.5 block font-poster text-display-sm leading-[1.2] md:mt-0 md:text-display md:leading-[1.15]">
               {scene.title}
             </span>
-            <span className="mt-1.5 block px-2 text-meta text-ink-subtle md:hidden">
+            <span className="mt-1 block text-meta text-ink-subtle md:hidden">
               {scene.relation} · {scene.place}
             </span>
             {/* 데스크톱은 넓은 칸에 맞게 누구와·어디서를 표처럼 나눠 적는다 */}
-            <span className="mx-2 mt-5 hidden grid-cols-[auto_minmax(0,1fr)] border-t border-line/60 md:grid">
-              <span className="border-b border-line/60 py-2.5 pr-4 text-meta text-ink-subtle">누구와</span>
-              <span className="truncate border-b border-line/60 py-2.5 text-ui font-semibold">{scene.relation}</span>
-              <span className="border-b border-line/60 py-2.5 pr-4 text-meta text-ink-subtle">어디서</span>
-              <span className="truncate border-b border-line/60 py-2.5 text-ui font-semibold">{scene.place}</span>
+            <span className="mt-5 hidden grid-cols-[auto_minmax(0,1fr)] border-t border-line/60 md:grid">
+              <span className="border-b border-line/60 py-2 pr-4 text-meta text-ink-subtle">누구와</span>
+              <span className="truncate border-b border-line/60 py-2 text-ui font-semibold">{scene.relation}</span>
+              <span className="border-b border-line/60 py-2 pr-4 text-meta text-ink-subtle">어디서</span>
+              <span className="truncate border-b border-line/60 py-2 text-ui font-semibold">{scene.place}</span>
             </span>
           </span>
-          <span className="mx-2 mt-4 flex items-center justify-between border-2 border-ink bg-pink px-4 py-3 font-poster text-say text-ink transition-transform duration-fast group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
+          <span className="mt-5 flex items-center justify-between border-2 border-ink bg-pink px-4 py-3 font-poster text-say text-ink transition-transform duration-fast group-hover:translate-x-0.5 md:mt-0 md:py-3.5">
             {/* 포스터 글꼴은 글자가 줄 상자 안에서 위로 치우쳐 그려져서, 줄 높이를 글자 크기에 맞추고 화살표를 3px 올려야 눈으로 본 가운데가 맞는다 */}
             <span className="leading-none">{answerCta(scene.relation)}</span>
             {/* 주요 버튼 화살표는 몸통이 있는 도트 화살표로 크게 그려야 움직이는 게 보인다 */}
@@ -571,7 +574,7 @@ export function SceneShelf({
   return (
     // 데스크톱은 왼쪽 넓은 칸에 할 장면을, 오른쪽 좁은 칸에 진행도·복습·바로 가기를 둔다.
     // 모바일은 할 장면을 먼저 두고 진행도와 목표는 그 아래로 내린다. 다시 온 사람이 하러 온 일이 상태 칸 뒤로 밀리지 않게 한다
-    <section className="flex animate-fade flex-col px-4 pb-2 pt-2 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
+    <section className="flex animate-fade flex-col px-4 pb-2 pt-7 md:px-0 md:pb-6 md:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-x-10">
       <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-1">
         {/* 모바일에서는 제목이 장면 카드 바로 위에 온다. 데스크톱은 오른쪽 진행도 칸의 제목이 같은 말을 한다 */}
         <h2 className="mb-2 text-body font-bold lg:hidden">{upNext.length > 0 ? "이어서 할 장면" : "모든 장면을 다 해 봤어요"}</h2>
@@ -584,10 +587,10 @@ export function SceneShelf({
             />
             {upNext.length > 1 && (
               <>
-                <p className="mt-6 text-body font-bold">
+                <p className="mt-8 text-body font-bold">
                   다른 장면
                 </p>
-                <ul className="stagger mt-2 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <ul className="stagger mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
                   {/* 모바일은 두 개만, 넓은 왼쪽 칸이 생기는 데스크톱은 네 개까지 보여 준다 */}
                   {upNext.slice(1).map((s, i) => (
                     <li key={s.id} className={i >= 2 ? "max-lg:hidden" : undefined}>
@@ -636,13 +639,13 @@ export function SceneShelf({
           <Unlocked progress={progress} />
           {FEATURES.rewards && <NextGoal />}
         </div>
-        <div className="order-4 mt-6 lg:mt-0">
+        <div className="order-4 mt-8 lg:mt-0">
           {/* 오늘의 목표는 연속 기록과 복습으로 이뤄져서, 둘을 닫아 둔 동안에는 "내 영어 말투" 카드가 그 자리를 맡는다 */}
           {FEATURES.streak ? <TodayGoals /> : <VoiceCard compact />}
         </div>
         {FEATURES.review && reviewAfter && <ReviewToday className="order-3 mt-8 lg:mt-0" />}
         <div className="order-5">
-        <div className="blk-frame mt-5 lg:mt-0">
+        <div className="blk-frame mt-6 lg:mt-0">
             <ul className="blk divide-y-2 divide-ink/10 bg-card-raised text-ink">
               <li>
                 <Link

@@ -11,8 +11,9 @@ export function SiteFooter() {
   return (
     <footer className="mx-4 mt-auto pb-6 md:mx-0 md:mt-6 md:pb-0">
       {/* 제보는 법적 안내 사이에 묻히지 않게, 눌러서 바로 여는 띠로 따로 둔다. 아직 영어를 안 본 첫 방문자에게는 이른 질문이라 장면을 해 본 사람에게만 보인다 */}
-      <button type="button" onClick={() => openInquiry("scene")} className="blk-btn mb-3 hidden w-full text-left returning:block">
-        <span className="blk flex items-center justify-between gap-3 bg-surface-strong px-4 py-3 text-fg">
+      {/* 보조 기능이라 위 표현 모음·전체 장면 칸과 같은 얇은 테두리로 둔다. 굵은 남색 그림자는 할 장면 카드에만 쓴다 */}
+      <button type="button" onClick={() => openInquiry("scene")} className="mb-3 hidden w-full text-left returning:block">
+        <span className="flex items-center justify-between gap-3 border border-line bg-surface px-4 py-3 text-fg hover:bg-surface-strong">
           <span>
             <span className="block text-body font-semibold">이상한 영어를 발견했나요?</span>
             <span className="mt-0.5 block text-meta text-fg-subtle">알려 주시면 바로 고칠게요</span>

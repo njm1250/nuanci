@@ -68,7 +68,7 @@ export default async function Home() {
         {/* 다시 온 방문자에게도 첫 화면의 포스터 제목을 작게 남겨서 두 화면의 인상이 이어진다 */}
         <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 lg:max-w-[1200px] returning:block">
           {/* 첫 방문 제목이 숨는 재방문 화면의 h1. 둘 중 보이는 하나만 읽힌다 */}
-          <h1 className="font-poster text-display-sm leading-none text-fg md:text-display">
+          <h1 className="font-poster text-say leading-none text-fg md:text-display-sm">
             직역하면 오해받는 순간들
           </h1>
         </div>
