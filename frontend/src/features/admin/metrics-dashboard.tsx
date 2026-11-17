@@ -439,10 +439,14 @@ export function MetricsDashboard({
     <>
       <div className="adm-stats">
         <AdminStat
-          label="고유 브라우저"
+          label="사람 브라우저"
           tone="informative"
-          value={m.visitors}
-          note="저장 ID 기준 · 내부 방문 제외"
+          value={m.humanVisitors ?? m.visitors}
+          note={
+            m.humanVisitors === undefined
+              ? "저장 ID 기준 · 내부 방문 제외"
+              : `화면을 누르거나 답을 고른 브라우저 · 열리기만 한 것까지 ${number(m.visitors)}`
+          }
         />
         <AdminStat
           label="장면 시도"

@@ -19,7 +19,7 @@ export function ActivityTrend({
   return (
     <AdminPanel
       title="일별 활동 추이"
-      description={`한국 시간 기준 · ${period === "all" ? "전체 기간 선택 시 그래프는 최근 30일" : "선택 기간"} · 막대를 눌러 날짜별 수치를 확인하세요.`}
+      description={`화면을 누르거나 답을 고른 브라우저 · 한국 시간 기준 · ${period === "all" ? "전체 기간 선택 시 그래프는 최근 30일" : "선택 기간"} · 막대를 눌러 날짜별 수치를 확인하세요.`}
       action={
         <Link
           className="adm-btn adm-btn-sm"
