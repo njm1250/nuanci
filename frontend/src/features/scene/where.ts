@@ -15,18 +15,17 @@ export function splitPlace(place: string) {
   return { loc, time: rest.join(" ") || undefined };
 }
 
-// 장면 카드: "친한 친구와 오후 동네 공원에서"
+// 장면 카드: "친한 친구와 동네 공원에서". 때(오후·밤)까지 붙이면 "오후 동네 공원"처럼 명사가 쌓여 읽기 어렵다.
+// 때는 썸네일의 하늘·조명이 이미 보여 주므로 줄에서는 빼고, 칸이 나뉜 곳(대표 카드의 "언제")에만 둔다
 export function sceneLine(relation: string, place: string) {
-  const { loc, time } = splitPlace(place);
-  return `${relation}${josa(relation, "와", "과")} ${time ? `${time} ` : ""}${loc}에서`;
+  return `${relation}${josa(relation, "와", "과")} ${splitPlace(place).loc}에서`;
 }
 
-// 표현 모음: 누구에게 언제 한 말인지. "오후 동네 공원에서 친한 친구에게", 후속 상황은 "조회수 3을 확인한 뒤, 친한 친구에게"
+// 표현 모음: 누구에게 한 말인지. "동네 공원에서 친한 친구에게", 후속 상황은 "조회수 3을 확인한 뒤, 친한 친구에게"
 // 미리 만든 표현 모음(백엔드)에는 장소인지 표시가 없어서, 그때는 "장소 · 때" 꼴인지로 가른다
 export function pairLine(who: string, when: string, whenIsPlace = when.includes("·")) {
   if (!whenIsPlace) return `${when}, ${who}에게`;
-  const { loc, time } = splitPlace(when);
-  return `${time ? `${time} ` : ""}${loc}에서 ${who}에게`;
+  return `${splitPlace(when).loc}에서 ${who}에게`;
 }
 
 // 완료 화면: 하고 싶던 말을 "~할 때"로. 따옴말이 있으면 「화이팅!」 할 때, 서술이면 "~싶을 때"
