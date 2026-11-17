@@ -2,6 +2,7 @@
 
 import { quotedIntent } from "@/features/collection/pairs";
 import { BlockButton, Panel } from "./block-ui";
+import { MochiAsk } from "./scene-parts";
 import { RUN_SIZE, runSummary, type Run } from "./run";
 import { VERDICTS } from "./verdict";
 
@@ -87,8 +88,9 @@ export function RunResult({ run, onShare, shareState }: { run: Run; onShare: () 
     <Panel className="blk-strong">
       <Band />
       <div className="px-4 pb-1 pt-4">
-        <p className="text-meta text-ink-subtle">방금 세 장면에서 내 영어는</p>
-        <p className="mt-0.5 text-say font-bold leading-snug">{headline}</p>
+        {/* 질문 화면에서 "너라면 뭐라고 할래?"를 묻던 Mochi가 결과도 말해 준다. 머리말이 안내문이 아니라 한 사람의 말로 읽히게 */}
+        <MochiAsk>방금 세 장면에서 네 영어는…</MochiAsk>
+        <p className="mt-2 text-say font-bold leading-snug">{headline}</p>
         <p className="mt-1 text-meta text-ink-subtle">
           {picks.length}번 중 {good}번 의도대로 들렸어요
         </p>
