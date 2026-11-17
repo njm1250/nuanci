@@ -1,26 +1,26 @@
 import type { Choice, Scene, Situation, Trap } from "@/features/scene/types";
 
 // intent는 그때 하고 싶던 말, who·when은 누구에게 어떤 상황에서였는지. 같은 영어도 상대와 상황에 따라 달라져서, 표현만 떼어 외우지 않게 함께 남긴다
-export type ExpressionPair = { intent: string; who: string; when: string; wrong: string; trap?: Trap; right: string; alts: string[]; sources: Situation["sources"] };
+export type ExpressionPair = { intent: string; who: string; when: string; whenIsPlace?: boolean; wrong: string; trap?: Trap; right: string; alts: string[]; sources: Situation["sources"] };
 
 export type BookEntry = { id: string; number: number; title: string; relation: string; place: string; pairs: ExpressionPair[] };
 
 // 상황마다 "이렇게 말하면 사고 나고 → 이렇게 말하면 돼요" 한 쌍을 뽑는다. 틀린 쪽은 X를 먼저, 없으면 △를 쓴다.
 // 자연스러운 말이 둘 이상이면 내가 고른 말을 앞에 둔다. 다른 말을 앞세우면 내 답이 틀린 것처럼 보인다.
 // 틀린 쪽도 내가 고른 말이 있으면 그 말을 쓴다. 하지 않은 말에 줄이 그어져 있으면 내 기록이 아니게 된다
-function pair(situation: Situation, who: string, when: string, picked: string[] = []): ExpressionPair | null {
+function pair(situation: Situation, who: string, when: string, picked: string[] = [], whenIsPlace = false): ExpressionPair | null {
   const goods = situation.choices.filter((c) => c.verdict === "good");
   const right = goods.find((c) => picked.includes(c.id)) ?? goods[0];
   const wrong: Choice | undefined =
     situation.choices.find((c) => c.verdict !== "good" && picked.includes(c.id)) ?? situation.choices.find((c) => c.verdict === "bad") ?? situation.choices.find((c) => c.verdict === "meh");
   if (!right || !wrong) return null;
   const alts = situation.choices.filter((c) => c.verdict === "good" && c !== right).map((c) => c.line);
-  return { intent: situation.intent, who, when, wrong: wrong.line, trap: wrong.trap, right: right.line, alts, sources: situation.sources };
+  return { intent: situation.intent, who, when, whenIsPlace, wrong: wrong.line, trap: wrong.trap, right: right.line, alts, sources: situation.sources };
 }
 
 export function bookEntry(scene: Scene, picked: string[] = []): BookEntry {
   const { id, number, title, relation, place } = scene;
-  const pairs = [pair(scene.base, relation, place, picked), pair(scene.followUp, relation, scene.followUp.to, picked)];
+  const pairs = [pair(scene.base, relation, place, picked, true), pair(scene.followUp, relation, scene.followUp.to, picked)];
   return { id, number, title, relation, place, pairs: pairs.filter((p): p is ExpressionPair => p !== null) };
 }
 

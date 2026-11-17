@@ -71,6 +71,7 @@ export type Metrics = {
   sources?: SourceMetrics[];
   funnel: Funnel;
   visitors: number;
+  humanVisitors?: number;
   attempts: number;
   events: number;
   internalVisitors: number;

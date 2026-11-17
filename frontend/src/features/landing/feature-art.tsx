@@ -1,5 +1,6 @@
 "use client";
 
+import { pairLine } from "@/features/scene/where";
 import "./feature-art.css";
 import { Stage } from "@/vendor/stageshow/stage";
 import type { Script } from "@/vendor/stageshow/act";
@@ -123,10 +124,10 @@ export function BookArt({ title, pair, next }: { title: string; pair: Expression
               <div className="mt-1.5 flex items-center gap-2 text-note text-ink-subtle">
                 <Mark good={false} />
                 <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
-                {pair.trap && <span className="shrink-0 text-meta">· {TRAP_LABELS[pair.trap]}</span>}
+                {pair.trap && <span className="shrink-0 text-meta">{TRAP_LABELS[pair.trap]}</span>}
               </div>
               <div className="mt-3.5 text-meta leading-relaxed text-ink-subtle">
-                {pair.who} · {pair.when}
+                {pairLine(pair.who, pair.when, pair.whenIsPlace)}
               </div>
             </div>
             {/* 같은 장면의 다음 표현은 자리만 보여 주고 무대 아래로 잘려 나간다 */}

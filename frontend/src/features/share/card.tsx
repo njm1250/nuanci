@@ -145,7 +145,7 @@ export function homeCard() {
             <Marker>오해받는</Marker>
             <div style={{ display: "flex", marginLeft: 24 }}>순간들</div>
           </div>
-          <div style={{ display: "flex", marginTop: 20, fontSize: 28, lineHeight: 1.4, color: SUBTLE }}>골라 보면 상대 속마음이 바로 보여요</div>
+          <div style={{ display: "flex", marginTop: 20, fontSize: 28, lineHeight: 1.4, color: SUBTLE }}>영어 보기를 고르면 상대 속마음이 보여요</div>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end" }}>
           <Cta>가입 없이 1분 →</Cta>

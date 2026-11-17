@@ -8,8 +8,8 @@ export function FeatureRows({ scene }: { scene: Scene }) {
   const book = bookEntry(scene);
   const rows = [
     {
-      title: "말 한마디에 반응이 갈려요",
-      body: "보기 셋 중 하나를 고르면 그 말을 들은 상대가 바로 반응해요. 왜 그렇게 들리는지도 알려 줘요.",
+      title: "고른 말대로 바뀌는 표정과 속마음",
+      body: "영어 보기를 고르면 상대의 표정과 속마음이 나와요. 왜 그렇게 들리는지 해설도 함께 나와요.",
       art: <TalkArt partnerName={scene.partnerName} partnerLine={scene.base.partnerLine} choices={scene.base.choices} />,
     },
     {

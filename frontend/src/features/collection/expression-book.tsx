@@ -1,5 +1,6 @@
 "use client";
 
+import { pairLine, sourcesLine } from "@/features/scene/where";
 import Link from "next/link";
 import { useState } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
@@ -63,11 +64,11 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
       <p className="mt-1.5 flex items-center gap-2 text-note text-fg-subtle">
         <Mark good={false} />
         <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
-        {pair.trap && <span className="shrink-0 text-meta">· {TRAP_LABELS[pair.trap]}</span>}
+        {pair.trap && <span className="shrink-0 text-meta">{TRAP_LABELS[pair.trap]}</span>}
       </p>
       <p className="mt-3.5 text-meta leading-relaxed text-fg-subtle">
-        {pair.who} · {pair.when}
-        {!hidden && pair.sources && pair.sources.length > 0 && <span className="block">출처 · {pair.sources.map((s) => `${s.phrase} — ${s.from}`).join(" · ")}</span>}
+        {pairLine(pair.who, pair.when, pair.whenIsPlace)}
+        {!hidden && pair.sources && pair.sources.length > 0 && <span className="block">표현 출처 {sourcesLine(pair.sources)}</span>}
       </p>
     </li>
   );

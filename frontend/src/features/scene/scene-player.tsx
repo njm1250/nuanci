@@ -1,5 +1,6 @@
 "use client";
 
+import { sourcesLine } from "./where";
 import Link from "next/link";
 import { LogoLink } from "@/features/site/logo-link";
 import { PrStatus } from "./pr-status";
@@ -34,7 +35,7 @@ import { beatMs, BeatDots, LeadRecap } from "./beat-log";
 import { spoken } from "@/features/collection/pairs";
 import { recordVoice } from "@/features/progression/voice";
 import { FEATURES } from "@/features/site/lean";
-import { HeardTrio, VerdictNote } from "./verdict";
+import { HeardTrio } from "./verdict";
 import type { NextAsk } from "./wrap-up";
 
 preloadStage();
@@ -530,7 +531,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           ) : (
             <LogoLink className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
               <span aria-hidden className="block size-6 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
-              <span aria-hidden className="block h-[18px] w-[67px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
+              {/* 좁은 폰에서는 글자 로고를 빼고 마크만 둔다. 뜻 보기 버튼까지 서면 장면 제목이 "유튜브 …"로 잘려 무슨 장면인지 안 보였다 */}
+              <span aria-hidden className="block h-[18px] w-[67px] max-[419px]:hidden [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
             </LogoLink>
           )}
           <h1 className="min-w-0 truncate text-fg">{scene.title}</h1>
@@ -777,11 +779,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                               )}
                               <span className="relative block">
                                 <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} />
-                                {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(판정, 내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기).
+                                {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기). 판정은 도장 아래로 옮겼다.
                                     한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
                                 <span className="mt-3.5 block border-t border-ink/10 pl-9">
                                   <span className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 pt-2.5">
-                                    {cardRevealed && <VerdictNote choice={c} />}
                                     {(c.id === pickedId || isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="ml-auto justify-end" />}
                                   </span>
                                   {cardRevealed && detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
@@ -826,7 +827,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {choice && heardIds.length >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
               {/* 표현 출처는 선택지 카드마다가 아니라 이 상황에 한 번, 목록 아래에 작게 둔다 */}
               {choice && situation.sources && situation.sources.length > 0 && (
-                <p className="mt-3 text-meta leading-relaxed text-fg-subtle">출처 · {situation.sources.map((src) => `${src.phrase} — ${src.from}`).join(" · ")}</p>
+                <p className="mt-3 text-meta leading-relaxed text-fg-subtle">표현 출처 {sourcesLine(situation.sources)}</p>
               )}
               {f.done && preview && (
                 <div className="blk mt-6 bg-surface px-4 py-3">

@@ -1,8 +1,9 @@
 "use client";
 
+import { whenSaying } from "./where";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { bookEntry, quotedIntent, spoken } from "@/features/collection/pairs";
+import { bookEntry, quotedIntent } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Mascot } from "@/features/mascot/mascot";
 import { RewardIcon } from "@/features/rewards/reward-icon";
@@ -185,14 +186,14 @@ export function WrapUp({
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-6">
         <div className="blk bg-card-raised px-4 py-4 text-ink">
-          {nextAsk && <p className="mb-1.5 text-meta text-ink-subtle">방금 장면 · {scene.title}</p>}
+          {nextAsk && <p className="mb-1.5 text-meta text-ink-subtle">{scene.title}에서</p>}
           <p className="text-ui leading-[1.6]">{scene.discovery}</p>
           <ul className="mt-3.5 space-y-3.5 border-t-2 border-dashed border-ink/20 pt-3">
             {pairs.map((p) => (
               <li key={p.right}>
                 <p className="font-line text-say leading-snug">{p.right}</p>
                 <p className="mt-0.5 text-meta leading-snug text-ink-subtle">
-                  {spoken(p.intent)} · <s className="decoration-rust decoration-2">{p.wrong}</s>
+                  {whenSaying(p.intent)} <s className="decoration-rust decoration-2">{p.wrong}</s> 말고
                 </p>
               </li>
             ))}

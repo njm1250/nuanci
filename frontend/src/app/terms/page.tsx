@@ -44,6 +44,7 @@ export default function TermsPage() {
       <section>
         <h2>5. 콘텐츠의 권리</h2>
         <p>장면, 문구, 캐릭터, 그림 등 서비스 안의 콘텐츠에 대한 권리는 운영자에게 있어요. 개인적인 학습 목적의 이용과 공유 기능을 통한 링크 공유는 자유롭게 할 수 있어요.</p>
+        <p>제목 글꼴은 NEOPLE의 던파 비트비트체 v2, 본문 글꼴은 Pretendard, 무대 글꼴은 Galmuri를 써요.</p>
       </section>
 
       <section>

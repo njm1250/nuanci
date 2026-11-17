@@ -70,6 +70,8 @@ data class DeviceMetrics(val device: String, val visitors: Int, val engaged: Int
 data class MetricsResponse(
 	val funnel: Funnel,
 	val visitors: Int,
+	// 그중 화면을 누르거나 답을 고른 적이 있는 브라우저. 열리기만 하는 봇·미리보기를 빼고 보는 대표 숫자
+	val humanVisitors: Int,
 	val attempts: Int,
 	val events: Int,
 	val internalVisitors: Int,
@@ -278,6 +280,7 @@ class MetricsController(
 				rs.getInt("left_mid_scene"), rs.getInt("one_scene"), rs.getInt("more_scenes"), rs.getBoolean("tracked"),
 			)
 		}.single()
+		val humanVisitors = query("select count(distinct e.visitor_id) from scene_event e where $filter and $HUMAN_ONLY").query(Int::class.java).single()
 		val botVisitors = query("select count(*) from visitor_client where client = 'bot'").query(Int::class.java).single()
 		val internalVisitors = query("select count(*) from internal_visitor").query(Int::class.java).single()
 		val internalEvents = query("select count(*) from scene_event e where exists (select 1 from internal_visitor i where i.visitor_id = e.visitor_id)").query(Int::class.java).single()
@@ -302,7 +305,7 @@ class MetricsController(
 					count(distinct e.user_id) as accounts,
 					count(distinct e.attempt_id) filter (where e.type = 'scene_completed') as completed
 				from scene_event e join first_seen f on f.visitor_id = e.visitor_id
-				where $filter and e.created_at >= :chartInstant
+				where $filter and $HUMAN_ONLY and e.created_at >= :chartInstant
 				group by 1
 			)
 			select d.day::text, coalesce(a.visitors, 0) as visitors, coalesce(a.new_visitors, 0) as new_visitors,
@@ -312,7 +315,7 @@ class MetricsController(
 			.param("chartEnd", range.end.atZone(java.time.ZoneId.of("Asia/Seoul")).toLocalDate())
 			.param("chartInstant", java.sql.Timestamp.from(range.chartStart))
 			.query { rs, _ -> DailyMetrics(rs.getString("day"), rs.getInt("visitors"), rs.getInt("new_visitors"), rs.getInt("accounts"), rs.getInt("completed")) }.list()
-		return MetricsResponse(funnel, totals.first, totals.second, totals.third, internalVisitors, internalEvents, aiVisitors, botVisitors, journey, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources, devices, daily, period)
+		return MetricsResponse(funnel, totals.first, humanVisitors, totals.second, totals.third, internalVisitors, internalEvents, aiVisitors, botVisitors, journey, scenes, activeAccounts, registeredAccounts, unknownEvents, testMetrics, sources, devices, daily, period)
 	}
 
 	@PostMapping("/internal-visitors")
@@ -333,6 +336,8 @@ class MetricsController(
 		// 이용 지표에 세는 방문: 내부(관리자·AI 확인) 방문자와 봇으로 분류된 방문자를 뺀다
 		// 사람이 직접 누르거나 고른 흔적. 열리기만 하고 끝난 방문(링크 검사·미리보기 봇이 대부분)과 나눠 채널을 비교할 때 쓴다
 		const val HUMAN_SIGNALS = "'page_engaged', 'choice_selected', 'test_started'"
+		// 한 번이라도 사람 신호를 남긴 브라우저만. 대표 숫자와 일별 추이에 쓴다
+		const val HUMAN_ONLY = "exists (select 1 from scene_event h where h.visitor_id = e.visitor_id and h.type in ($HUMAN_SIGNALS))"
 		const val EXTERNAL = "not exists (select 1 from internal_visitor i where i.visitor_id = e.visitor_id) " +
 			"and not exists (select 1 from visitor_client c where c.visitor_id = e.visitor_id and c.client = 'bot')"
 	}

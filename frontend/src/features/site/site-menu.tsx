@@ -9,11 +9,11 @@ import { FEATURES } from "./lean";
 
 const ASK = "어디로 갈까?";
 const ALL_ITEMS = [
-  { href: "/scenes", title: "전체 장면", desc: "순서대로 · 상황별로 고르기", reply: "오늘은 누구랑 얘기해 볼래?", on: true },
+  { href: "/scenes", title: "전체 장면", desc: "순서대로 또는 상황별로", reply: "오늘은 누구랑 얘기해 볼래?", on: true },
   { href: "/expressions", title: "표현 모음", desc: "해 본 장면의 표현 복습", reply: "그 말, 이번엔 써먹어 봐", on: true },
   { href: "/test", title: "유형 테스트", desc: "내 영어 사고 유형 찾기", reply: "넌 무슨 유형이려나~", on: FEATURES.typetest },
-  { href: "/me/room", title: "아지트", desc: "옷 입히기 · 방 꾸미기", reply: "내 자리도 하나 만들어 줘", on: FEATURES.rewards },
-  { href: "/me", title: "내 영어 말투", desc: "내 영어가 어떻게 들리는지 보기 · 설정", reply: "넌 영어로 어떻게 들려?", on: true },
+  { href: "/me/room", title: "아지트", desc: "옷 입히기와 방 꾸미기", reply: "내 자리도 하나 만들어 줘", on: FEATURES.rewards },
+  { href: "/me", title: "내 영어 말투", desc: "영어 말투 결과와 설정", reply: "넌 영어로 어떻게 들려?", on: true },
 ];
 const ITEMS = ALL_ITEMS.filter((i) => i.on);
 

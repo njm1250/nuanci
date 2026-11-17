@@ -7,7 +7,7 @@ import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
 import { quotedIntent } from "@/features/collection/pairs";
-import { heardAs, Num, StakesNote, VerdictStamp } from "./verdict";
+import { heardAs, Num, StakesNote, VerdictNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
@@ -179,19 +179,21 @@ export function ResultBody({
         {/* 지금 고른 말의 주인공 줄: 하고 싶던 말이 어떤 느낌으로 들렸는지. 웃음(반응)이 먼저 오고 설명은 한 박자 뒤에 온다 */}
         {active && !waiting && intent && (
           <span key={`heard-${verdictKey}`} className="mt-3 flex animate-fade flex-wrap items-center gap-x-2 gap-y-1.5" style={{ animationDelay: `${heardAt}ms` }}>
-            <span className="text-note text-ink-muted">{quotedIntent(intent)}</span>
-            <span aria-hidden className="text-note text-ink-subtle">→</span>
+            <span className="text-body text-ink-muted">{quotedIntent(intent)}</span>
+            <span aria-hidden className="text-body text-ink-subtle">→</span>
             <VerdictStamp choice={choice} pop delay={heardAt} />
           </span>
         )}
-        {active && !waiting && choice.stakes && (
-          <span key={`stakes-${verdictKey}`} className="mt-2 block animate-fade" style={{ animationDelay: `${heardAt + 150}ms` }}>
-            <StakesNote stakes={choice.stakes} />
+        {/* 판정은 도장 바로 아래 한 줄에 모은다. 판정 이름과 오해 크기를 따로 흩어 두면 눈이 카드 위아래를 오가며 "그래서 틀린 거야?"를 맞춰야 한다 */}
+        {active && !waiting && (
+          <span key={`stakes-${verdictKey}`} className="mt-2 flex animate-fade flex-wrap items-center gap-x-2.5 gap-y-1" style={{ animationDelay: `${heardAt + 150}ms` }}>
+            <VerdictNote choice={choice} />
+            {choice.stakes && <StakesNote stakes={choice.stakes} />}
           </span>
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
         {active && !waiting && (
-          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted" style={{ animationDelay: `${heardAt + 250}ms` }}>
+          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-body leading-[1.7] text-ink" style={{ animationDelay: `${heardAt + 250}ms` }}>
             {choice.why}
           </span>
         )}
