@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useEffectEvent, useSyncExternalStore } from "react";
 import type { StageSpec } from "./types";
 
 // 장면 목록 카드에 쓰는 무대 썸네일. 화면 밖 무대 하나(thumb-studio)가 차례로 그려 그림으로 남기고, 이 기기에 저장해 두어 다음에 와도 다시 그리지 않는다.
@@ -49,11 +49,12 @@ export function useThumb(spec: StageSpec | null, wanted = true) {
     },
     () => null,
   );
-  useEffect(() => {
+  const enqueueThumb = useEffectEvent(() => {
     if (!wanted || !spec || !key || urls.has(key) || queue.some((j) => j.key === key)) return;
     queue.push({ key, spec });
     emit();
-  }, [key, wanted]); // eslint-disable-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => enqueueThumb(), [key, wanted]);
   return url;
 }
 

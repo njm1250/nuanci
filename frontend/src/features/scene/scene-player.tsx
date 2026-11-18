@@ -6,7 +6,7 @@ import { LogoLink } from "@/features/site/logo-link";
 import { PrStatus } from "./pr-status";
 import { useRouter } from "next/navigation";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { logoSvg, wordmarkSvg } from "@/features/site/logo";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { COLOR_HEX, isUnopened, usePendingRewards, useRewards } from "@/features/rewards/rewards";
@@ -29,6 +29,7 @@ import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "
 import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
+import { NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
@@ -41,6 +42,8 @@ import type { NextAsk } from "./wrap-up";
 preloadStage();
 
 const NO_REWARDS: ReturnType<typeof usePendingRewards> = [];
+// 장면을 보는 동안 바뀌지 않는 브라우저 값(주소)을 읽을 때 쓴다
+const noSubscribe = () => () => {};
 
 // 모바일 무대 높이와, 아래 글 칸이 무대 바닥을 덮는 깊이. 고르는 칸(질문·보기 셋)이 작은 폰에서도 한 화면에 들어오게 화면 높이에서 빼서 정하고,
 // 덮는 깊이는 인물 발밑(무대 가운데에서 약 100px 아래)을 넘지 않게 무대 높이의 절반에서 110px을 뺀다
@@ -65,7 +68,7 @@ const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
 
 
 // teaser는 다음 장면 예고. 페이지가 서버에서 만들어 넘겨서 브라우저가 다음 장면 본문을 받지 않는다
-// nextAsk는 다음 장면의 첫 질문. 완료 화면 아래로 밀려 올라와서, 고르면 그 답을 든 채 다음 장면에 들어간다
+// nextAsk는 다음 장면 예고. 완료 화면 아래로 밀려 올라와 다음 장면으로 잇는다
 // entry는 들어온 경로를 정해 줄 때 쓴다(첫 방문 홈에서 바로 열린 장면은 home)
 type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; teaser?: string | null; nextAsk?: NextAsk | null; preview?: boolean; entry?: "home"; packStep?: number };
 
@@ -131,13 +134,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     (from) => send({ type: "share_link_copied", choiceId: firstBase?.id, ...(from === "card" ? { step: "base" as const } : {}) }),
   );
   // 친구가 낸 문제로 들어왔으면 친구의 첫 답을 기억해 둔다. 내가 고르기 전에는 보여 주지 않는다
-  const [friendId, setFriendId] = useState<string | null>(null);
-  useEffect(() => {
-    const id = friendPick();
-    if (!id || !scene.base.choices.some((c) => c.id === id)) return;
-    const t = window.setTimeout(() => setFriendId(id), 0);
-    return () => clearTimeout(t);
-  }, [scene.base.choices]);
+  // 주소는 브라우저에만 있으므로 서버 그림에서는 없음으로 두고, 브라우저에서 읽은 값으로 바로 이어 그린다
+  const friendRaw = useSyncExternalStore(noSubscribe, friendPick, () => null);
+  const friendId = friendRaw && scene.base.choices.some((c) => c.id === friendRaw) ? friendRaw : null;
   const [showMeaning, setShowMeaning] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [wrapped, setWrapped] = useState(false);
@@ -376,19 +375,18 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   };
 
   // 홈에서 보기를 바로 고르고 들어오면(주소의 pick) 대사 없이 그 답에 대한 반응부터 보여 준다. 홈에서 이미 고른 사람을 다시 기다리게 하지 않는다
-  useEffect(() => {
+  const startFromHomePick = useEffectEvent(() => {
     const id = new URLSearchParams(location.search).get(PICK_PARAM);
     if (!id) return;
     history.replaceState(null, "", location.pathname);
     if (!scene.base.choices.some((c) => c.id === id)) return;
-    const t = window.setTimeout(() => {
-      setLeadAt((a) => ({ ...a, base: 99 }));
-      send({ type: "lead_finished", step: "base", choiceId: "home_pick" });
-      f.pick(id);
-    }, 0);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setLeadAt((a) => ({ ...a, base: 99 }));
+    send({ type: "lead_finished", step: "base", choiceId: "home_pick" });
+    f.pick(id);
+  });
+  // 주소는 브라우저에만 있고 장면은 서버에서 먼저 그려지므로, 첫 그림 뒤에 한 번 이어받는 것은 피할 수 없다
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- 홈에서 넘어온 답을 마운트 때 한 번만 이어받는다
+  useEffect(() => startFromHomePick(), []);
 
   // 고른 말에 맞춰 소리를 낸다
   // 누르는 순간에는 "톡"만 내고, 판정 소리·흔들림·진동은 상대가 반응해 도장이 찍히는 순간으로 미룬다. 소리가 결과를 먼저 알려 주지 않게 한다.
@@ -420,8 +418,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
 
   // 상대가 반응해 결과가 채워지는 순간: 판정 소리, X면 무대 흔들림, 틀린 말이면 짧은 진동(지원하는 기기만), 그리고 카드가 다 보이게 맞춘다
   // 상대가 반응하는 순간(효과음 글자가 터지는 때) 표정에 맞춘 리액션 소리를 낸다. 놀라거나 당황한 반응이면 무대도 짧게 흔든다
+  // 무대 반응이 바뀔 때(stageKey)만 낸다. 다른 값은 그 순간의 최신 값을 읽기만 하고, 바뀌어도 다시 울리지 않는다
   const reactedSoundAt = useRef<number | null>(null);
-  useEffect(() => {
+  const reactSound = useEffectEvent(() => {
     if (!stageChoice || wrapped || endingOn || beat || phase === "transition" || reactedSoundAt.current === stageKey) return;
     reactedSoundAt.current = stageKey;
     const expression = stageChoice.expression;
@@ -430,8 +429,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
       if (BURSTS[expression].bad) shake();
     }, reduced ? 0 : CUT_IN_AT);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stageKey]);
+  });
+  useEffect(() => reactSound(), [stageKey]);
   // 다른 말까지 다 들어 보고 도장이 모두 모인 순간 한 번, 위로 뛰는 소리를 낸다
   const collectedAt = useRef<string | null>(null);
   const allSeen = Boolean(choice) && new Set(seenIds).size >= situation.choices.length;
@@ -442,7 +441,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     return () => clearTimeout(t);
   }, [allSeen, cardRevealed, phase, reduced]);
   const revealedAt = useRef<number | null>(null);
-  useEffect(() => {
+  // 카드가 채워지거나 무대 반응이 바뀔 때만 낸다. 다른 값은 최신 값을 읽기만 한다
+  const stampCard = useEffectEvent(() => {
     if (!cardRevealed || !stageChoice || wrapped || endingOn || beat || revealedAt.current === stageKey) return;
     revealedAt.current = stageKey;
     // 도장은 어떤 결과든 같은 '쾅'과 짧은 진동(지원하는 기기만). 맞고 틀림을 소리·진동으로 따로 알리지 않는다
@@ -459,9 +459,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
       const room = cardRect.top - boxRect.top - CARD_CLEAR / 2;
       if (hidden > 0 && room > 0) box.scrollBy({ top: Math.min(hidden, room), behavior: reduced ? "auto" : "smooth" });
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardRevealed, stageKey]);
+  });
+  useEffect(() => stampCard(), [cardRevealed, stageKey]);
   // 고르기 전, 마우스를 올리거나 키보드로 짚은 보기. 그 말을 무대의 내 생각 풍선에 미리 얹어서 오른쪽 보기와 왼쪽 무대가 한 동작으로 이어지게 한다
   const [tryId, setTryId] = useState<string | null>(null);
   const trying = choosing && !choice ? situation.choices.find((c) => c.id === tryId) : undefined;
@@ -555,7 +554,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           {/* 데스크톱은 상황 한 줄을 무대 바로 위에 둔다. 대사가 흐르는 동안 읽을 것(상황·대사·자막)이 전부 왼쪽에 있어야 눈이 오른쪽 칸과 무대를 오가지 않는다.
               오른쪽 칸 맨 위 Mochi 한마디와 같은 높이에 놓여, 왼쪽은 "무슨 상황인지", 오른쪽은 "내가 할 일"로 나뉜다.
               무대 띠(bg-ink) 안에 두면 글자가 흰색으로 바뀌어서 띠 밖에 둔다 */}
-          <p className="mb-2.5 hidden min-h-10 items-end text-body leading-snug text-fg-muted md:flex">{stageSituation.context}</p>
+          <p className="mb-2.5 hidden min-h-10 items-end text-body leading-snug text-fg-muted md:flex"><span><NowLast text={stageSituation.context} /></span></p>
         <div ref={stageBox} onClick={leading ? nextBeat : choice && !wrapped && (!partnerReacts || speaking) ? skipReaction : undefined} className="shrink-0 bg-ink md:bg-transparent md:pb-8">
           <Panel>
             {/* 모바일 무대는 세로로 길게 둔다. 카메라 배율은 무대 너비로 정해져서 인물 크기는 그대로고 방이 위아래로 더 보인다.
@@ -626,7 +625,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                 </div>
               )}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} className={MOCHI_TUCK_LIFT} />}
-              {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
+              {/* 펀치라인은 장면의 웃음이라 뜻 보기와 상관없이 늘 자막을 붙인다. 못 알아들으면 끝맛이 사라진다 */}
+              {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
               {later && !endingOn && !beat && (
                 <p className={`absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-label text-ui leading-none text-fg ${STAGE_TUCK_LIFT}`}>
                   {timeCue ?? (
@@ -707,7 +707,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
             // 모바일은 대사 동안 상황 한 줄만 두고 어디를 눌러도 다음 줄로 넘어간다. 고를 때는 작은 폰(375×667)에서도 보기 세 개가 스크롤 없이 들어온다
             <div key={`turn-${phase}`} className={leading ? "min-h-full cursor-pointer" : undefined}>
               {/* 데스크톱은 상황 한 줄이 무대 위에 있다 */}
-              <p className="text-note leading-normal text-fg-muted md:hidden">{situation.context}</p>
+              <p className="text-note leading-normal text-fg-muted md:hidden">
+                <NowLast text={situation.context} />
+              </p>
               {!leading && lead.length > 0 && (
                 <div className="md:hidden">
                   <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />

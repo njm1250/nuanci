@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { BlockButton } from "@/features/scene/block-ui";
 import { visitorId } from "@/features/scene/track";
 
 type Kind = "error" | "question" | "scene" | "idea";
@@ -85,9 +86,9 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
             <>
               <p className="mt-3 text-body leading-relaxed">잘 받았어요. 알려 줘서 고마워요!</p>
               <p className="mt-1 text-note leading-relaxed text-ink-muted">{contact ? "남겨 주신 연락처로 답장할게요." : "보내 주신 내용은 하나씩 읽고 반영할게요."}</p>
-              <button type="button" onClick={close} className="blk-btn blk-btn-primary mt-5 block w-full">
-                <span className="blk block bg-cta px-3 py-3 text-center font-label text-ui text-cta-text">닫기</span>
-              </button>
+              <BlockButton primary label onClick={close} className="mt-5 w-full">
+                닫기
+              </BlockButton>
             </>
           ) : (
             <form onSubmit={submit} className="mt-4">
@@ -135,12 +136,12 @@ function InquiryDialog({ dialog, kind, setKind }: { dialog: React.RefObject<HTML
               {status === "limited" && <p className="mt-3 text-note text-rust">잠깐 사이에 많이 보냈어요. 10분 뒤 다시 보내 주세요.</p>}
 
               <div className="mt-5 flex gap-2">
-                <button type="button" onClick={close} className="blk-btn block flex-1">
-                  <span className="blk block bg-card-raised px-3 py-3 text-center font-label text-ui text-ink">닫기</span>
-                </button>
-                <button type="submit" disabled={message.trim().length < 2 || status === "sending"} className="blk-btn blk-btn-primary block flex-[2] disabled:opacity-50">
-                  <span className="blk block bg-cta px-3 py-3 text-center font-label text-ui text-cta-text">{status === "sending" ? "보내는 중…" : "보내기"}</span>
-                </button>
+                <BlockButton label onClick={close} className="flex-1">
+                  닫기
+                </BlockButton>
+                <BlockButton primary label type="submit" disabled={message.trim().length < 2 || status === "sending"} className="flex-[2] disabled:opacity-50">
+                  {status === "sending" ? "보내는 중…" : "보내기"}
+                </BlockButton>
               </div>
               <p className="mt-3 text-meta leading-relaxed text-ink-subtle">보던 화면 주소가 함께 전달돼요. 남긴 연락처는 답장에만 쓰고, 답변을 마친 뒤 1년 안에 지워요.</p>
             </form>

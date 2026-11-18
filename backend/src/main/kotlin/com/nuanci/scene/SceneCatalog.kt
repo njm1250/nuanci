@@ -16,6 +16,8 @@ data class CatalogEntry(
 	val place: String,
 	val category: String?,
 	val stage: JsonNode?,
+	// 고르기 직전 상대가 하는 말. 홈 대표 카드의 장면 그림 위 말풍선에 쓴다
+	val partnerLine: String,
 	val hash: String,
 )
 
@@ -87,6 +89,7 @@ class SceneCatalog(
 				place = content.path("place").asString(""),
 				category = content.path("category").asString(null),
 				stage = content.path("base").path("stage").takeUnless { it.isMissingNode },
+				partnerLine = content.path("base").path("partnerLine").asString(""),
 				hash = hash,
 			)
 		}

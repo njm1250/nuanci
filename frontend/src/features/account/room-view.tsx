@@ -12,7 +12,6 @@ import {
   isUsable,
   lockHint,
   markAllRewardsSeen,
-  nextGoalParts,
   ownedReason,
   setRewardColor,
   useRewards,
@@ -24,7 +23,7 @@ import { sfx } from "@/features/scene/sfx";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
 import { Stage } from "@/features/stage/stage";
 import type { Motion } from "@/features/scene/types";
-import type { Hero } from "@/features/stage/types";
+import type { AccessoryId, Hero } from "@/features/stage/types";
 import { useAccount } from "./account";
 import { GoogleButton } from "./google-button";
 
@@ -37,8 +36,6 @@ const TABS = [
   { id: "log", label: "수집 기록" },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
-
-const COLS = 5;
 
 // 가까운 목표 순서: 장면 수가 적게 남은 것, 장소 묶음, 장면 기념품, 친구, 깜짝 상자
 function lockOrder(item: RewardItem) {
@@ -112,6 +109,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showLocked, setShowLocked] = useState(false);
   const [shownId, setShownId] = useState<string | null>(null);
+  const [preview, setPreview] = useState(false);
 
   // 새 표시는 이 화면에 있는 동안 남기고, 떠날 때 본 것으로 남긴다
   useEffect(() => () => markAllRewardsSeen(), []);
@@ -143,12 +141,8 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
     else if (selectedId === r.id) setOn(r, false);
   };
 
-  // 못 얻은 아이템은 가까운 목표부터 한 줄만 보여주고 나머지는 접어 둔다. 늘어나도 화면이 길어지지 않고 다음 목표가 먼저 보인다
-  const locked = items.filter((i) => i.kind === tab && !isUsable(i)).sort((a, b) => lockOrder(a) - lockOrder(b));
-  // 얻은 칸 뒤로 줄이 딱 맞게 채워질 만큼만 보여준다. 한 줄에 둘도 안 남으면 한 줄 더 보여준다
-  const ownedCount = items.filter((i) => i.kind === tab && isUsable(i)).length;
-  const fill = COLS - (ownedCount % COLS);
-  const preview = fill < 3 ? fill + COLS : fill;
+  // 못 얻은 아이템은 얻은 칸과 따로, 가까운 목표부터 세 개만 진열한다. 늘어나도 화면이 길어지지 않고 다음 목표가 먼저 보인다
+  const lockedOnly = items.filter((i) => i.kind === tab && !i.owned).sort((a, b) => lockOrder(a) - lockOrder(b));
   const log = items.filter(isUsable).sort((a, b) => b.owned!.grantedAt.localeCompare(a.owned!.grantedAt));
   // 장면 완료 화면에서 열지 않고 넘어간 상자는 여기서 하나씩 연다. 여러 개여도 한 칸만 쓰고, 연 물건 카드는 닫으면 다음 상자가 나온다
   const unopened = items.filter(isUnopened);
@@ -161,14 +155,21 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
     setShownId(null);
   };
   const next = rewards?.next;
+  // 다음 보상을 미리 무대에 올려 본다. 옷은 같은 자리에 쓰던 것 대신 입히고, 방 물건은 방에 놓는다
+  const nextItem = next?.type === "item" && next.id ? (items.find((i) => i.id === next.id) ?? null) : null;
+  const previewing = preview && nextItem !== null;
+  const sameSlot = (id: string) => nextItem?.slot != null && items.some((i) => i.id === id && i.slot === nextItem.slot);
+  const stageWear = previewing && nextItem.kind === "wear" ? [...look.wear.filter((w) => !sameSlot(w.id)), { id: nextItem.id as AccessoryId }] : look.wear;
+  const stagePlaced = previewing && nextItem.kind === "room" ? [...look.placed, nextItem.id] : look.placed;
 
   return (
     <div className="md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10">
       <div className="sticky top-[var(--header-shown)] z-10 -mx-4 bg-page px-4 pb-3 transition-[top] duration-base ease-out md:top-[calc(var(--header-shown)+1.5rem)] md:mx-0 md:bg-transparent md:px-0">
+        {next && <NextReward next={next} item={nextItem} preview={previewing} onPreview={() => (sfx.tap(), setPreview((v) => !v))} />}
         <Panel>
           <div className="relative aspect-[4/3] max-h-[32dvh] w-full overflow-hidden md:max-h-none">
             <Stage
-              spec={{ set: "room", time: "day", partner: "mochi", hero: look.hero, wear: look.wear, flags: [`books-${cleared.length}`, ...look.placed] }}
+              spec={{ set: "room", time: "day", partner: "mochi", hero: look.hero, wear: stageWear, flags: [`books-${cleared.length}`, ...stagePlaced] }}
               state={{
                 meMotion: mePoke?.motion,
                 meKey: mePoke ? poke!.n : 0,
@@ -177,18 +178,11 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                 talkKey: mePoke ? poke!.n : 0,
                 reaction: null,
                 // 누른 캐릭터만 말한다. 아무도 안 눌렀으면 주인공이 아지트를 소개한다
-                meLine: mochiPoke ? undefined : (mePoke?.line ?? "여기가 내 아지트야!"),
+                meLine: mochiPoke ? undefined : (mePoke?.line ?? (previewing ? "이거 갖고 싶다!" : "여기가 내 아지트야!")),
                 partnerLine: mochiPoke?.line,
               }}
               onPick={pokeStage}
             />
-            {next && (
-              <p className="absolute bottom-2 left-2 bg-ink px-2 py-1 font-label text-ui leading-none text-fg">
-                {nextGoalParts(next)[0]}
-                <span className="mx-0.5 bg-white px-1 font-bold text-ink">{nextGoalParts(next)[1]}</span>
-                {nextGoalParts(next)[2]}
-              </p>
-            )}
           </div>
         </Panel>
       </div>
@@ -249,21 +243,33 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
             <>
               {selected && <Detail item={selected} on={isOn(selected)} setOn={(on) => setOn(selected, on)} title={titleOf(selected)} memory={memoryOf(selected)} />}
               <ul className="grid grid-cols-5 gap-2">
-                {[...items.filter((i) => i.kind === tab && isUsable(i)), ...(showLocked ? locked : locked.slice(0, preview))].map((r) => (
+                {items.filter((i) => i.kind === tab && (isUsable(i) || isUnopened(i))).map((r) => (
                   <li key={r.id}>
                     <Tile item={r} on={isUsable(r) && isOn(r)} selected={selected?.id === r.id} onPress={() => press(r)} />
                   </li>
                 ))}
               </ul>
-              {locked.length > preview && (
-                <button
-                  type="button"
-                  onClick={() => setShowLocked((v) => !v)}
-                  aria-expanded={showLocked}
-                  className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 font-label text-ui text-fg-muted underline underline-offset-4"
-                >
-                  {showLocked ? "접기" : "잠긴 칸 더 보기"}
-                </button>
+              {lockedOnly.length > 0 && (
+                <section className="mt-6 border-t-2 border-line/60 pt-4">
+                  <h3 className="font-label text-ui text-fg">{tab === "wear" ? "다음에 받을 옷" : "다음에 받을 물건"}</h3>
+                  <ul className="mt-2.5 grid grid-cols-3 gap-2">
+                    {(showLocked ? lockedOnly : lockedOnly.slice(0, 3)).map((r) => (
+                      <li key={r.id}>
+                        <LockedTile item={r} name={r.id === nextItem?.id ? nextItem.name : null} />
+                      </li>
+                    ))}
+                  </ul>
+                  {lockedOnly.length > 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowLocked((v) => !v)}
+                      aria-expanded={showLocked}
+                      className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 font-label text-ui text-fg-muted underline underline-offset-4"
+                    >
+                      {showLocked ? "접기" : `${lockedOnly.length - 3}개 더 보기`}
+                    </button>
+                  )}
+                </section>
               )}
             </>
           )}
@@ -334,6 +340,47 @@ function Tile({ item, on, selected, onPress }: { item: RewardItem; on: boolean; 
       )}
       {usable && !item.owned!.seen && <span aria-hidden className="absolute left-1 top-1 size-2 bg-rust" />}
     </button>
+  );
+}
+
+// 무대 위 다음 보상 줄. 무엇을 받는지와 몇 장면 남았는지, 그리고 받기 전에 방에 미리 올려 보는 버튼
+function NextReward({ next, item, preview, onPreview }: { next: NonNullable<ReturnType<typeof useRewards>>["next"] & object; item: RewardItem | null; preview: boolean; onPreview: () => void }) {
+  const prize = next.type === "box" ? "깜짝 상자" : next.name;
+  return (
+    <div className="mb-2 flex items-center gap-3 border-2 border-fg bg-card px-3 py-2 text-ink">
+      <span className="grid size-11 shrink-0 place-items-center bg-surface">
+        <RewardIcon id={item ? item.id : "box"} size={28} />
+      </span>
+      <p className="min-w-0 flex-1 leading-snug">
+        <span className="block text-meta text-ink-subtle">다음 보상</span>
+        <span className="block truncate">
+          <span className="text-body font-bold">{prize}</span>
+          <span className="ml-1.5 text-meta text-ink-subtle">{next.remaining === 1 ? "한 장면만 더" : `장면 ${next.remaining}개 더`}</span>
+        </span>
+      </p>
+      {item && (
+        <button
+          type="button"
+          onClick={onPreview}
+          aria-pressed={preview}
+          className={`min-h-11 shrink-0 border-2 border-ink px-3 font-label text-ui ${preview ? "bg-ink text-white" : "bg-card text-ink hover:bg-surface"}`}
+        >
+          {preview ? "미리 보기 끄기" : item.kind === "wear" ? "미리 입기" : "미리 놓기"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// 아직 못 얻은 칸. 그림자 아이콘과 얻는 조건을 자르지 않고 두 줄까지 다 보여 준다. 이름은 다음 보상일 때만 밝힌다
+function LockedTile({ item, name }: { item: RewardItem; name: string | null }) {
+  const hint = item.lock ? lockHint(item.lock) : "깜짝 상자";
+  return (
+    <div aria-label={`잠긴 아이템, ${name ? `${name}, ` : ""}${hint}`} className="flex h-full flex-col items-center gap-1.5 border-2 border-dashed border-line bg-surface px-1.5 py-3 text-center">
+      <RewardIcon id={item.lock?.type === "box" ? "box" : item.id} size={28} className="opacity-30 [filter:brightness(0)_invert(1)] light:[filter:brightness(0)]" />
+      {name && <span className="text-meta font-semibold leading-tight text-fg">{name}</span>}
+      <span className="text-meta leading-tight text-fg-subtle">{hint}</span>
+    </div>
   );
 }
 

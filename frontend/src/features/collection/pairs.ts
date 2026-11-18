@@ -1,7 +1,7 @@
 import type { Choice, Scene, Situation, Trap } from "@/features/scene/types";
 
 // intent는 그때 하고 싶던 말, who·when은 누구에게 어떤 상황에서였는지. 같은 영어도 상대와 상황에 따라 달라져서, 표현만 떼어 외우지 않게 함께 남긴다
-export type ExpressionPair = { intent: string; who: string; when: string; whenIsPlace?: boolean; wrong: string; trap?: Trap; right: string; alts: string[]; sources: Situation["sources"] };
+export type ExpressionPair = { intent: string; who: string; when: string; whenIsPlace: boolean; wrong: string; trap?: Trap; right: string; alts: string[]; sources: Situation["sources"] };
 
 export type BookEntry = { id: string; number: number; title: string; relation: string; place: string; pairs: ExpressionPair[] };
 

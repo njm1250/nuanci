@@ -7,6 +7,7 @@ import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
 import { quotedIntent } from "@/features/collection/pairs";
+import { BoldQuoted } from "./emphasis";
 import { heardAs, Num, StakesNote, VerdictNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
@@ -55,7 +56,8 @@ export function Question({ name, line, intent, className = "" }: { name: string;
   );
 }
 
-// Mochi가 옆에서 말을 거는 한 줄. 반말 안내가 서비스 말투가 아니라 고양이 말로 들리게 한다(메뉴의 "어디로 갈까?"와 같은 모양)
+// Mochi가 옆에서 말을 거는 한 줄. 반말 안내가 서비스 말투가 아니라 고양이 말로 들리게 한다(메뉴의 "어디로 갈까?"와 같은 모양).
+// 말풍선 글자는 도트 제목 글꼴이라 안내문이 아니라 게임 속 캐릭터 대사로 읽힌다
 export function MochiAsk({ children, className = "", cheer = 0, cheerTwice = false }: { children: React.ReactNode; className?: string; cheer?: number; cheerTwice?: boolean }) {
   const [hop, setHop] = useState(0);
   // cheer가 오를 때마다(다른 반응을 하나 더 들었을 때) 한 번, 다 모았을 때는 두 번 뛴다. 눌렀을 때와 같은 동작이라 새 그림 없이 곁반응이 된다
@@ -71,7 +73,7 @@ export function MochiAsk({ children, className = "", cheer = 0, cheerTwice = fal
         <Mascot key={hop} scale={2} className={`origin-bottom ${hop ? (cheerTwice ? "animate-mochi-hop-twice" : "animate-mochi-hop") : ""}`} />
       </button>
       <div className="blk-frame-sm mb-2 min-w-0">
-        <p className="blk bg-white px-2.5 py-1.5 text-note font-bold leading-snug text-ink-fixed">{children}</p>
+        <p className="blk bg-white px-2.5 py-1.5 font-poster text-body leading-snug text-ink-fixed">{children}</p>
       </div>
     </div>
   );
@@ -176,25 +178,27 @@ export function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {/* 지금 고른 말의 주인공 줄: 하고 싶던 말이 어떤 느낌으로 들렸는지. 웃음(반응)이 먼저 오고 설명은 한 박자 뒤에 온다 */}
-        {active && !waiting && intent && (
-          <span key={`heard-${verdictKey}`} className="mt-3 flex animate-fade flex-wrap items-center gap-x-2 gap-y-1.5" style={{ animationDelay: `${heardAt}ms` }}>
-            <span className="text-body text-ink-muted">{quotedIntent(intent)}</span>
-            <span aria-hidden className="text-body text-ink-subtle">→</span>
-            <VerdictStamp choice={choice} pop delay={heardAt} />
-          </span>
-        )}
-        {/* 판정은 도장 바로 아래 한 줄에 모은다. 판정 이름과 오해 크기를 따로 흩어 두면 눈이 카드 위아래를 오가며 "그래서 틀린 거야?"를 맞춰야 한다 */}
+        {/* 지금 고른 말의 주인공 덩어리: 하고 싶던 말이 어떤 느낌으로 들렸는지, 그래서 판정과 오해 크기는 어떤지를 연한 면 하나에 묶는다.
+            이름표 없이 한 면에 두면 "내 마음 → 들린 말 → 결과"가 한 문장처럼 읽힌다. 웃음(반응)이 먼저 오고 이 면은 한 박자 뒤에 온다 */}
         {active && !waiting && (
-          <span key={`stakes-${verdictKey}`} className="mt-2 flex animate-fade flex-wrap items-center gap-x-2.5 gap-y-1" style={{ animationDelay: `${heardAt + 150}ms` }}>
-            <VerdictNote choice={choice} />
-            {choice.stakes && <StakesNote stakes={choice.stakes} />}
+          <span key={`heard-${verdictKey}`} className="mt-3 block animate-fade bg-surface px-3 py-2.5" style={{ animationDelay: `${heardAt}ms` }}>
+            {intent && (
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                <span className="text-body text-ink-muted">{quotedIntent(intent)}</span>
+                <span aria-hidden className="text-body text-ink-subtle">→</span>
+                <VerdictStamp choice={choice} pop delay={heardAt} />
+              </span>
+            )}
+            <span className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${intent ? "mt-2" : ""}`}>
+              <VerdictNote choice={choice} />
+              {choice.stakes && <StakesNote stakes={choice.stakes} />}
+            </span>
           </span>
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
         {active && !waiting && (
           <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-body leading-[1.7] text-ink" style={{ animationDelay: `${heardAt + 250}ms` }}>
-            {choice.why}
+            <BoldQuoted text={choice.why} />
           </span>
         )}
         {meta && (friend || (revealed && (mine || (share ?? 0) > 0))) && <PickMeta mine={mine} friend={friend} share={revealed ? share : undefined} className="mt-1.5" />}

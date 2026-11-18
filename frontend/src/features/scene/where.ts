@@ -22,8 +22,7 @@ export function sceneLine(relation: string, place: string) {
 }
 
 // 표현 모음: 누구에게 한 말인지. "동네 공원에서 친한 친구에게", 후속 상황은 "조회수 3을 확인한 뒤, 친한 친구에게"
-// 미리 만든 표현 모음(백엔드)에는 장소인지 표시가 없어서, 그때는 "장소 · 때" 꼴인지로 가른다
-export function pairLine(who: string, when: string, whenIsPlace = when.includes("·")) {
+export function pairLine(who: string, when: string, whenIsPlace: boolean) {
   if (!whenIsPlace) return `${when}, ${who}에게`;
   return `${splitPlace(when).loc}에서 ${who}에게`;
 }

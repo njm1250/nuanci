@@ -446,7 +446,17 @@ export const SETS: Record<SetId, SetDef> = {
       const books = Number([...flags].find((f) => f.startsWith("books-"))?.slice(6) ?? 0);
       return (
         <>
+          {/* 벽 아래쪽 판자와 몰딩, 창틀과 커튼. 빈 벽면을 줄여 사람이 사는 방처럼 보이게 한다 */}
+          <Flat size={[6, 0.85]} at={[0, 0.42, WALL_Z]} color={evening ? "#7a695c" : "#d9c6b0"} />
+          {[-2.4, -1.6, -0.8, 0, 0.8, 1.6, 2.4].map((x) => (
+            <Flat key={x} size={[0.03, 0.85]} at={[x, 0.42, WALL_Z + 0.01]} color={evening ? "#6a5a4f" : "#c4ae96"} />
+          ))}
+          <Flat size={[6, 0.05]} at={[0, 0.86, WALL_Z + 0.01]} color={C.wood} />
+          <Flat size={[1.14, 0.84]} at={[0.2, 2.0, WALL_Z - 0.01]} color={C.wood} />
           <Window x={0.2} y={2.0} w={1.0} h={0.7} evening={evening} />
+          {[-0.42, 0.82].map((x) => (
+            <Flat key={x} size={[0.22, 0.9]} at={[x, 1.98, WALL_Z + 0.02]} color="#9fb8a6" />
+          ))}
           <Box size={[1.3, 0.42, 0.95]} at={[1.15, 0.21, -0.35]} color="#7fa6c2" />
           <Box size={[1.3, 0.12, 0.95]} at={[1.15, 0.48, -0.35]} color={C.plate} />
           <Box size={[0.4, 0.12, 0.3]} at={[1.6, 0.6, -0.55]} color="#f6ead6" />

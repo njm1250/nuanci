@@ -2,8 +2,8 @@
 
 import { whenSaying } from "./where";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { bookEntry, quotedIntent } from "@/features/collection/pairs";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { bookEntry } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Mascot } from "@/features/mascot/mascot";
 import { RewardIcon } from "@/features/rewards/reward-icon";
@@ -12,18 +12,19 @@ import { isUnopened, type RewardItem } from "@/features/rewards/rewards";
 import { type StreakMoment } from "@/features/streak/streak";
 import { StreakMomentCard } from "@/features/streak/streak-ui";
 import { usePackVoice, useVoice, VOICE_MIN } from "@/features/progression/voice";
-import { BlockButton, BlockLink } from "./block-ui";
-import { PICK_PARAM } from "./track";
-import { Num } from "./verdict";
+import { BlockButton, EntryLink } from "./block-ui";
 import { sfx } from "./sfx";
 import { type Scene } from "./types";
 import { Arrow } from "./scene-parts";
 import { RUN_SIZE, runDoneAt, runShareMessage, useRun } from "./run";
 import { RunResult, RunResultWaiting, RunSteps, WaitDots } from "./run-ui";
 import { useShare } from "./use-scene-flow";
+import { SceneThumb, ThumbStudio } from "@/features/landing/scene-thumb";
+import { MapPin } from "@/features/site/map-pin";
+import type { StageSpec } from "@/features/stage/types";
 
-// 다음 장면의 첫 질문. 완료 화면 끝에 밀려 올라와 장면 사이에 홈 화면 없이 질문이 이어진다
-export type NextAsk = { number: number; partnerName: string; partnerLine: string; intent: string; choices: { id: string; line: string }[] };
+// 다음 장면 예고. 완료 화면 끝에 올라와 장면 사이에 홈 화면 없이 다음 장면으로 이어진다
+export type NextAsk = { number: number; title: string; place: string; stage?: StageSpec; partnerName: string; partnerLine: string };
 
 // 고른 말을 들은 상대가 무대에서 반응을 말하기까지의 시간. 생각 말풍선은 650ms에 떠서 3050ms에 사라진다
 export const REACT_AFTER = 1100;
@@ -109,16 +110,16 @@ export function WrapUp({
   const { open: openInquiry, element: inquiry } = useInquiry();
   // 오늘 처음 이어졌으면 연속 기록을 먼저 보여주고, 새 물건은 그 뒤에 들어온다
   const streakShown = useRef(false);
-  useEffect(() => {
+  const playStreak = useEffectEvent(() => {
     if (!streak || streakShown.current) return;
     streakShown.current = true;
     sfx.streak((streakAt + 120) / 1000);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [streak]);
+  });
+  useEffect(() => playStreak(), [streak]);
   return (
     <div className="animate-rise">
-      {/* 끝났다는 말을 크게 두면 화면을 닫는 신호로 읽혀서(첫 방문 9명 중 2명이 여기서 나감), 다음 질문이 있으면 그 질문을 맨 위 주인공으로 둔다.
-          질문은 엔딩 컷을 본 뒤 올라오되, 자리는 미리 잡아 두어 아래 카드가 밀려 내려가지 않게 한다 */}
+      {/* 끝났다는 말을 크게 두면 화면을 닫는 신호로 읽혀서(첫 방문 9명 중 2명이 여기서 나감), 다음 장면이 있으면 그 예고를 맨 위 주인공으로 둔다.
+          예고는 엔딩 컷을 본 뒤 올라오되, 자리는 미리 잡아 두어 아래 카드가 밀려 내려가지 않게 한다 */}
       {/* 판을 끝낸 장면에서는 결과 장이 주인공이다. 엔딩 컷을 본 뒤에 올라오고, 다음 판의 첫 질문은 그 아래로 내려간다 */}
       {/* 세 장면 중 어디까지 왔고 끝에 무엇이 나오는지. 기다리지 않고 바로 보여서, 무대에서 엔딩 컷이 도는 동안에도 이 칸이 비어 있지 않다 */}
       {runOn && !runDone && run.scenes.length < RUN_SIZE && <RunSteps done={run.scenes.length} />}
@@ -134,48 +135,48 @@ export function WrapUp({
         </section>
       )}
       {nextAsk && !askShown ? (
-        // 엔딩 컷을 보는 동안 다음 질문 자리는 비워 두지 않고 틀을 먼저 둔다. 보기 셋이 올 자리가 보이고, 누르면 기다리지 않고 바로 뜬다
-        <button type="button" onClick={() => setAskShown(true)} aria-label="다음 질문 바로 보기" className="block w-full text-left">
+        // 엔딩 컷을 보는 동안 다음 장면 자리는 비워 두지 않고 틀을 먼저 둔다. 누르면 기다리지 않고 바로 뜬다
+        <button type="button" onClick={() => setAskShown(true)} aria-label="다음 장면 바로 보기" className="block w-full text-left">
           <span className="flex items-end gap-3">
             <Mascot scale={3} className="shrink-0" />
             <span className="flex items-center gap-2 pb-1 text-note text-fg-subtle">
-              다음 질문
+              다음 장면
               {!runDone && <WaitDots reduced={reduced} />}
             </span>
           </span>
-          <span aria-hidden className="mt-4 block h-6 w-2/3 bg-surface-strong" />
-          <span aria-hidden className="mt-2.5 block h-5 w-4/5 bg-surface" />
-          <span aria-hidden className="mt-3.5 block space-y-2.5">
-            {[0, 1, 2].map((i) => (
-              <span key={i} className="block h-[52px] border-2 border-line/50 bg-surface/60" />
-            ))}
+          <span aria-hidden className="mt-3 flex gap-3 border-2 border-line/50 bg-surface/60 p-2.5">
+            <span className="aspect-[4/3] w-24 shrink-0 bg-surface-strong" />
+            <span className="flex-1 space-y-2 pt-1">
+              <span className="block h-5 w-2/3 bg-surface-strong" />
+              <span className="block h-4 w-4/5 bg-surface" />
+            </span>
           </span>
         </button>
       ) : nextAsk ? (
-        <section aria-label="다음 질문" className="animate-fade">
+        // 다음 장면 예고. 보기까지 미리 늘어놓으면 끝낸 보람보다 다음 문제가 앞서서, 장소 그림과 상대 첫마디로 궁금증만 남긴다.
+        // 들어가는 주 버튼은 아래 고정 칸의 분홍 버튼 하나이고, 이 카드도 같은 곳으로 간다
+        <section aria-label="다음 장면" className="animate-fade">
           <div className="flex items-end gap-3">
             <Mascot scale={3} className="shrink-0" />
-            <p className="pb-1 text-note text-fg-subtle">다음 질문</p>
+            <p className="pb-1 text-note text-fg-subtle">다음 장면</p>
           </div>
-          <p className="mt-3 font-line text-say leading-snug text-fg">
-            <span className="mr-1.5 align-middle font-label text-ui text-fg-muted">{nextAsk.partnerName}</span>
-            {nextAsk.partnerLine}
-          </p>
-          <p className="mt-1.5 text-body font-bold leading-snug text-fg">
-            {quotedIntent(nextAsk.intent)} <span className="whitespace-nowrap">영어로 뭐라고 할래?</span>
-          </p>
-          <ul className="mt-3 space-y-2.5">
-            {nextAsk.choices.map((c, i) => (
-              <li key={c.id}>
-                <BlockLink href={`/scenes/${nextAsk.number}?${PICK_PARAM}=${encodeURIComponent(c.id)}`} entry="next" onClick={onNext} className="group">
-                  <span className="flex items-center gap-3 text-left">
-                    <Num n={i + 1} hover />
-                    <span className="min-w-0 flex-1 font-line text-say font-normal leading-snug">{c.line}</span>
-                  </span>
-                </BlockLink>
-              </li>
-            ))}
-          </ul>
+          <EntryLink href={`/scenes/${nextAsk.number}`} entry="next" onClick={onNext} className="blk-btn mt-3 block">
+            <span className="blk flex gap-3 bg-card-raised p-2.5 text-ink">
+              <SceneThumb stage={nextAsk.stage} className="aspect-[4/3] w-24 shrink-0 border-2 border-line" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-body font-bold leading-snug">{nextAsk.title}</span>
+                <span className="mt-0.5 flex items-center gap-1.5 text-meta text-ink-subtle">
+                  <MapPin />
+                  <span className="truncate">{nextAsk.place}</span>
+                </span>
+                <span className="mt-1.5 line-clamp-2 block font-line text-ui leading-snug">
+                  <span className="mr-1 font-label text-meta text-ink-subtle">{nextAsk.partnerName}</span>
+                  {nextAsk.partnerLine}
+                </span>
+              </span>
+            </span>
+          </EntryLink>
+          <ThumbStudio />
         </section>
       ) : (
         <div className="flex items-end gap-3">

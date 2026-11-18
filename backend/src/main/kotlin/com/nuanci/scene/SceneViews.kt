@@ -26,15 +26,15 @@ object SceneViews {
 		mapper.valueToTree(
 			scenes.map { scene ->
 				val pairs = listOfNotNull(
-					pair(scene.path("base"), scene.path("relation").asString(""), scene.path("place").asString("")),
-					pair(scene.path("followUp"), scene.path("relation").asString(""), scene.path("followUp").path("to").asString("")),
+					pair(scene.path("base"), scene.path("relation").asString(""), scene.path("place").asString(""), whenIsPlace = true),
+					pair(scene.path("followUp"), scene.path("relation").asString(""), scene.path("followUp").path("to").asString(""), whenIsPlace = false),
 				)
 				mapOf("id" to scene.path("id").asString(), "number" to scene.path("number").asInt(), "title" to scene.path("title").asString(), "relation" to scene.path("relation").asString(""), "place" to scene.path("place").asString(""), "pairs" to pairs)
 			},
 		)
 
-	// 틀린 쪽은 X를 먼저, 없으면 △를 쓴다
-	private fun pair(situation: JsonNode, who: String, `when`: String): Map<String, Any?>? {
+	// 틀린 쪽은 X를 먼저, 없으면 △를 쓴다. 첫 상황의 when은 장소("동네 공원 · 오후"), 후속 상황은 앞일("조회수 3을 확인한 뒤")이다
+	private fun pair(situation: JsonNode, who: String, `when`: String, whenIsPlace: Boolean): Map<String, Any?>? {
 		val choices = situation.path("choices").items()
 		val right = choices.firstOrNull { it.path("verdict").asString() == "good" } ?: return null
 		val wrong = choices.firstOrNull { it.path("verdict").asString() == "bad" } ?: choices.firstOrNull { it.path("verdict").asString() == "meh" } ?: return null
@@ -42,6 +42,7 @@ object SceneViews {
 			"intent" to situation.path("intent").asString(""),
 			"who" to who,
 			"when" to `when`,
+			"whenIsPlace" to whenIsPlace,
 			"wrong" to wrong.path("line").asString(""),
 			"trap" to wrong.path("trap").asString(null),
 			"right" to right.path("line").asString(""),

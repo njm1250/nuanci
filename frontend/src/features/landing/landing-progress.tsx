@@ -15,11 +15,13 @@ import {
 } from "@/features/scene/progress";
 import { hasPlayed, trackHome, visitorId, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
+import { BOARD_WIDTH, ParkBoard, stoneCenter } from "./park-board";
 import { RewardIcon } from "@/features/rewards/reward-icon";
 import { StampSlot, STAMP_TILTS, weekLabels } from "@/features/streak/streak-section";
 import { Flame } from "@/features/streak/streak-ui";
 import { useKstDay } from "@/features/streak/kst-day";
-import { sceneLine, splitPlace } from "@/features/scene/where";
+import { sceneLine } from "@/features/scene/where";
+import { MapPin } from "@/features/site/map-pin";
 import { ReviewToday } from "@/features/review/review-today";
 import { useReviewedToday } from "@/features/review/reviewed";
 import { useStreak } from "@/features/streak/streak";
@@ -54,6 +56,7 @@ export type ShelfScene = {
   place: string;
   stage?: StageSpec;
   category?: SceneCategory;
+  partnerLine?: string;
 };
 
 const noop = () => () => {};
@@ -288,32 +291,20 @@ const SCENE_ROW_ITEM_CLASS = "list-row-lazy border-b border-line/40";
 type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
 
 // 다음 10화까지를 보드게임 말판처럼 보여 준다. 장면 하나가 한 칸이고, Mochi가 말이 되어 다음 칸 위에 서 있다.
-// 화면에 들어오면 채운 칸에 도장이 하나씩 찍히고, 다 찍힌 뒤 Mochi가 한 번 뛴다(동작 줄이기면 바로 끝 상태)
+// 다음 10화까지를 공원 디딤돌로 보여 준다. 장면 하나가 돌 하나이고, Mochi가 마지막으로 끝낸 돌 위에 서 있으며
+// 다음 보상 물건은 그 보상을 받는 장면의 돌 위에 놓인다. 화면에 들어오면 Mochi가 한 번 뛴다(동작 줄이기면 바로 끝 상태)
 function BlockBar({ progress }: { progress: Progress }) {
+  const rewards = useRewards();
   const filled = progress.left === 0 ? BLOCK_SIZE : progress.into;
-  const next = filled < BLOCK_SIZE ? filled : -1;
+  const next = rewards?.next;
+  // 보상 물건은 그 보상을 받게 되는 장면의 돌 위에 둔다. 그림이 없는 물건이나 깜짝 상자는 상자 그림으로
+  const rewardAt = next ? filled - 1 + next.remaining : null;
+  const rewardId = next ? (next.type === "item" && next.id ? next.id : "box") : null;
   return (
-    <div className="relative mt-2 pt-8">
-      <UnlockBubble progress={progress} next={next} />
+    <div className="relative mt-3">
+      <UnlockBubble progress={progress} walked={filled} />
       <div role="progressbar" aria-valuenow={filled} aria-valuemax={BLOCK_SIZE} aria-label="다음 10화까지">
-      <ol className="grid grid-cols-10 gap-1.5">
-        {Array.from({ length: BLOCK_SIZE }, (_, i) => (
-          <li key={i} className="relative">
-            {i === next && (
-              <span aria-hidden className="pointer-events-none absolute bottom-[calc(100%-4px)] left-1/2 z-10 -translate-x-1/2">
-                <span className="block origin-bottom animate-hop" style={{ animationDelay: `${filled * 70 + 120}ms` }}>
-                  <Mascot scale={2} className="block" />
-                </span>
-              </span>
-            )}
-            <span
-              // 채운 칸은 위·왼쪽이 밝고 아래·오른쪽이 어두운 도트 블록. 체크 표시를 넣으면 할 일 목록 체크박스처럼 보여서 뺐다
-              className={`block aspect-square border-2 ${i < filled ? "animate-stamp border-ink bg-pink shadow-[inset_3px_3px_0_rgb(255_255_255/0.6),inset_-3px_-3px_0_rgb(11_26_68/0.18)]" : i === next ? "border-ink bg-card" : "border-line bg-surface shadow-[inset_-2px_-2px_0_rgb(11_26_68/0.06)]"}`}
-              style={i < filled ? { animationDelay: `${i * 70}ms` } : undefined}
-            />
-          </li>
-        ))}
-      </ol>
+        <ParkBoard walked={filled} rewardAt={rewardAt} rewardId={rewardId} hopDelay={200} />
       </div>
     </div>
   );
@@ -321,7 +312,7 @@ function BlockBar({ progress }: { progress: Progress }) {
 
 // 새 10화가 열린 순간, 말판 위 Mochi가 말풍선으로 한 번 알려 준다. 누르면 전체 장면으로 간다.
 // 처음 본 순간 본 것으로 적어 두므로 다음 방문부터는 뜨지 않는다. 닫기 버튼 없이 한 번 지나가는 소식으로 둔다
-function UnlockBubble({ progress, next }: { progress: Progress; next: number }) {
+function UnlockBubble({ progress, walked }: { progress: Progress; walked: number }) {
   const seen = useSeenOpenEnd();
   const [from] = useState(seen);
   const fresh = progress.openEnd > from;
@@ -329,14 +320,14 @@ function UnlockBubble({ progress, next }: { progress: Progress; next: number }) 
     if (fresh) markOpenSeen(progress.openEnd);
   }, [fresh, progress.openEnd]);
   if (!fresh) return null;
-  // Mochi가 왼쪽 절반에 있으면 말풍선을 오른쪽에, 오른쪽 절반이면 왼쪽에 둔다
-  const left = next < 0 || next >= BLOCK_SIZE / 2;
-  const at = next < 0 ? BLOCK_SIZE : next;
+  // 말풍선은 Mochi 머리 위에 둔다. Mochi가 오른쪽 절반에 있으면 말풍선이 왼쪽으로 펼쳐진다
+  const x = (stoneCenter(Math.max(walked - 1, 0)) / BOARD_WIDTH) * 100;
+  const right = x > 50;
   return (
     <Link
       href="/scenes"
-      className="blk-frame-sm absolute top-0 z-20 animate-pop"
-      style={left ? { right: `calc(${((BLOCK_SIZE - at) / BLOCK_SIZE) * 100}% + 6px)` } : { left: `calc(${((at + 1) / BLOCK_SIZE) * 100}% + 2px)` }}
+      className="blk-frame-sm absolute -top-3 z-20 animate-pop"
+      style={right ? { right: `calc(${100 - x}% + 10px)` } : { left: `calc(${x}% + 10px)` }}
     >
       <span className="blk flex items-center gap-1.5 whitespace-nowrap bg-white px-2.5 py-1.5 text-note font-bold leading-none text-ink-fixed">
         {from + 1}~{progress.openEnd}화가 열렸어!
@@ -350,8 +341,8 @@ function UnlockBubble({ progress, next }: { progress: Progress; next: number }) 
 function BlockCount({ progress }: { progress: Progress }) {
   if (progress.left === 0) return null;
   return (
-    <p className="shrink-0 text-note tabular-nums text-fg-subtle">
-      <span className="font-bold text-fg">{progress.into}</span>/{BLOCK_SIZE}
+    <p className="flex shrink-0 items-baseline gap-0.5 text-note tabular-nums text-fg-subtle">
+      <span className="font-poster text-say leading-none text-fg">{progress.into}</span>/{BLOCK_SIZE}
     </p>
   );
 }
@@ -398,27 +389,24 @@ function FeaturedScene({
             {label}
             {fresh && <span className="ml-1.5 text-pink">NEW</span>}
           </span>
+          {/* 상대가 고르기 직전에 하는 말을 그림 위에 띄운다. 무슨 말에 답하게 될지가 버튼보다 먼저 보여 궁금증이 생긴다 */}
+          {scene.partnerLine && (
+            <span className="absolute right-2 top-2 max-w-[62%] border-2 border-ink bg-white px-2 py-1.5 text-ink-fixed md:right-3 md:top-3">
+              <span className="block text-meta leading-none text-ink-subtle">{scene.relation}</span>
+              <span className="mt-1 line-clamp-2 block font-line text-ui font-semibold leading-snug">{scene.partnerLine}</span>
+            </span>
+          )}
         </span>
-        {/* 데스크톱 오른쪽 칸: 위에는 읽을 것(제목·누구와·어디서), 아래에는 누를 것(키). 둘 사이는 선 대신 여백으로 나눈다 */}
+        {/* 데스크톱 오른쪽 칸: 위에는 읽을 것(제목·장소), 아래에는 누를 것(키). 둘 사이는 선 대신 여백으로 나눈다 */}
         <span className="block md:flex md:flex-col md:justify-between md:py-0.5">
           <span className="block">
             <span className="mt-3.5 block font-poster text-display-sm leading-[1.2] md:mt-0 md:text-display md:leading-[1.15]">
               {scene.title}
             </span>
-            <span className="mt-1.5 block text-note leading-[1.4] text-ink-subtle md:hidden">
-              {sceneLine(scene.relation, scene.place)}
-            </span>
-            <span className="mt-4 hidden grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-note leading-[1.4] md:grid">
-              <span className="text-ink-subtle">누구와</span>
-              <span className="truncate font-semibold">{scene.relation}</span>
-              <span className="text-ink-subtle">어디서</span>
-              <span className="truncate font-semibold">{splitPlace(scene.place).loc}</span>
-              {splitPlace(scene.place).time && (
-                <>
-                  <span className="text-ink-subtle">언제</span>
-                  <span className="truncate font-semibold">{splitPlace(scene.place).time}</span>
-                </>
-              )}
+            {/* 누구와는 그림 위 말풍선이 말해 주므로 여기는 장소와 때만. 지도 핀이 장소라는 걸 알려 줘서 "동네 공원 · 오후"가 명사 더미로 읽히지 않는다 */}
+            <span className="mt-1.5 flex items-center gap-1.5 text-note leading-[1.4] text-ink-subtle md:mt-3">
+              <MapPin />
+              {scene.place}
             </span>
           </span>
           {/* 키의 2px 먹선이 그림 테두리와 같은 세로선에 오게 왼쪽을 2px 들이고, 오른쪽은 먹선 2px + 그림자 3px 자리를 비운다 */}
@@ -449,10 +437,13 @@ function NextGoal() {
   const unseen = rewards.items.some((i) => i.owned && !i.owned.seen);
   const prize = next ? (next.type === "box" ? "깜짝 상자" : next.name) : "";
   return (
-    <Link href="/me/room" className="group mt-3 flex items-center gap-3 bg-surface px-3 py-2.5 hover:bg-surface-strong">
-      <span className="shrink-0">
-        {box ? <RewardIcon id="box" size={32} /> : next?.type === "item" && next.id ? <RewardIcon id={next.id} size={32} /> : <Mascot scale={2} />}
-      </span>
+    // 보상 그림은 위 디딤돌 위에 이미 있어서 이 줄은 글자와 아지트 버튼만 둔다. 핑크는 홈의 주 버튼 하나에만 쓰므로 아지트는 먹선 버튼
+    <Link href="/me/room" className="group mt-3.5 flex items-center gap-3">
+      {box && (
+        <span className="shrink-0">
+          <RewardIcon id="box" size={32} />
+        </span>
+      )}
       <span className="min-w-0 flex-1 leading-[1.35]">
         {box ? (
           <>
@@ -469,7 +460,7 @@ function NextGoal() {
           </>
         )}
       </span>
-      <span className="flex shrink-0 items-center gap-1.5 font-label text-ui text-fg-muted group-hover:text-fg">
+      <span className="flex min-h-11 shrink-0 items-center gap-1.5 border-2 border-ink bg-card px-3 font-label text-ui text-ink group-hover:bg-surface">
         {unseen && !box && <span aria-label="새 물건" className="size-2 bg-pink" />}
         {box ? "열기" : "아지트"}
         <Arrow />
@@ -765,6 +756,43 @@ function SceneList({
   );
 }
 
+function Lock() {
+  return (
+    <svg width="12" height="14" viewBox="0 0 6 7" shapeRendering="crispEdges" aria-hidden className="shrink-0 fill-current">
+      <path d="M1 0h4v1h1v2h-1v-2h-4v2h-1v-2h1zM0 3h6v4h-6z" />
+    </svg>
+  );
+}
+
+// 전체 장면 맨 위: 다음에 할 장면과 거기까지 걸어온 디딤돌. 165개 목록에서 다음 장면을 찾으러 내려가지 않게 한다.
+// 다 해 봤으면 디딤돌만 남긴다
+function NextUp({ next, label, progress }: { next: ShelfScene | null | undefined; label: string; progress: Progress }) {
+  const nextStart = progress.openEnd + 1;
+  return (
+    <section aria-label="다음 장면" className="border-2 border-fg">
+      {next && (
+        <div className="bg-card-raised p-4 text-ink">
+          <p className="text-meta text-ink-subtle">다음 장면 · {label}</p>
+          <p className="mt-1.5 font-poster text-display-sm leading-[1.2]">{next.title}</p>
+          <p className="mt-1.5 text-note text-ink-subtle">{sceneLine(next.relation, next.place)}</p>
+          <BlockLink href={`/scenes/${next.number}`} entry="home" primary className="mt-4 md:max-w-80">
+            {label} 열기
+          </BlockLink>
+        </div>
+      )}
+      <div className={`bg-surface px-4 pb-3 ${next ? "border-t-2 border-fg" : ""}`}>
+        <BlockBar progress={progress} />
+        <div className="mt-2 flex items-baseline justify-between gap-3">
+          <p className="text-note text-fg-subtle">
+            {progress.left > 0 ? `${progress.left}개 더 하면 ${nextStart}~${nextStart + BLOCK_SIZE - 1}화가 열려요` : "모든 장면이 열려 있어요"}
+          </p>
+          <BlockCount progress={progress} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // 전체 장면 목록. 순서대로 보면 10화씩 묶이고, 상황별로 보면 누구와 어디서 말하는지로 묶인다. 깬 장면에는 체크가 붙는다.
 // 아직 안 열린 장면도 모두 보여 주되 잠김으로 표시해서, 어떤 장면이 기다리는지 보이게 한다. 상황별 보기에서도 같다.
 // 어느 장면이든 10개를 할 때마다 다음 10화가 열린다
@@ -798,14 +826,14 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   const shown = only ? groups.filter((g) => g.label === only) : groups;
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
+      <NextUp next={next} label={next ? labelOf(next) : ""} progress={progress} />
+      <div className="mt-8 flex items-center justify-between gap-3">
         <ViewSwitch view={view} />
-        <BlockCount progress={progress} />
+        {/* 가까운 목표(10화)는 위 디딤돌이 맡고, 여기는 전체에서 얼마나 왔는지만 */}
+        <p className="flex shrink-0 items-baseline gap-1 text-note tabular-nums text-fg-subtle">
+          <span className="font-poster text-say leading-none text-fg">{scenes.filter((s) => cleared.includes(s.id)).length}</span>/ {scenes.length}
+        </p>
       </div>
-      <BlockBar progress={progress} />
-      <p className="mt-2 text-note text-fg-subtle">
-        장면 {BLOCK_SIZE}개를 할 때마다 다음 {BLOCK_SIZE}화가 열려요
-      </p>
       {view === "order" ? (
         <>
           {opened.map((x) => (
@@ -843,34 +871,49 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
               </ol>
             </section>
           ))}
-          {locked.map((x, k) => (
-            <section key={x.start} className="mt-10">
-              <h2 className="flex items-baseline gap-2">
-                <span className="font-poster text-display text-fg-subtle md:text-display-lg">
-                  {blockTitle(x)}
+          {/* 잠긴 묶음은 길어서 한 줄로 접는다. 어떤 장면이 기다리는지는 펼쳐서 본다 */}
+          {locked.length > 0 && (
+            <details className="group/locked mt-10 border-2 border-fg">
+              <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-3 font-label text-ui text-fg [&::-webkit-details-marker]:hidden">
+                <Lock />
+                {locked[0].start}~{locked.at(-1)!.end}화
+                <span className="text-note text-fg-subtle">잠김</span>
+                <span aria-hidden className="ml-auto rotate-90 transition-transform duration-fast group-open/locked:-rotate-90">
+                  <Arrow />
                 </span>
-                <span className="text-note text-fg-subtle">
-                  장면 {progress.left + k * BLOCK_SIZE}개 더 하면 열려요
-                </span>
-              </h2>
-              <ol className={SCENE_ROWS_CLASS}>
-                {x.scenes.map((s, i) => (
-                  <li key={s.id} className={SCENE_ROW_ITEM_CLASS}>
-                    {lockedIn.has(s.id) ? (
-                      <LockedSceneRow scene={s} label={`${x.start + i}화`} />
-                    ) : (
-                      <SceneRow
-                        scene={s}
-                        done
-                        fresh={false}
-                        label={`${x.start + i}화`}
-                      />
-                    )}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ))}
+              </summary>
+              <div className="px-3 pb-4">
+            {locked.map((x, k) => (
+              <section key={x.start} className="mt-6">
+                <h2 className="flex items-baseline gap-2">
+                  <span className="font-poster text-display-sm text-fg-subtle">
+                    {blockTitle(x)}
+                  </span>
+                  <span className="text-note text-fg-subtle">
+                    장면 {progress.left + k * BLOCK_SIZE}개 더 하면 열려요
+                  </span>
+                </h2>
+                <ol className={SCENE_ROWS_CLASS}>
+                  {x.scenes.map((s, i) => (
+                    <li key={s.id} className={SCENE_ROW_ITEM_CLASS}>
+                      {lockedIn.has(s.id) ? (
+                        <LockedSceneRow scene={s} label={`${x.start + i}화`} />
+                      ) : (
+                        <SceneRow
+                          scene={s}
+                          done
+                          fresh={false}
+                          label={`${x.start + i}화`}
+                        />
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            ))}
+              </div>
+            </details>
+          )}
         </>
       ) : (
         <>

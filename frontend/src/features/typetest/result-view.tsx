@@ -3,7 +3,7 @@
 import { SiteHeader } from "@/features/site/site-header";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { BlockButton, BlockLink, Panel } from "@/features/scene/block-ui";
 import { sfx } from "@/features/scene/sfx";
 import { useShare } from "@/features/scene/use-scene-flow";
@@ -32,14 +32,16 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
   const mode = own ? "mine" : code ? "friend" : "browse";
   const rarity = useRarity(type);
 
-  useEffect(() => {
+  const recordFriendResult = useEffectEvent(() => {
     if (mode !== "friend") return;
     markSeen(type);
     saveFriend({ type, picks: code, version: params.get("v") });
     trackTest("test_result_viewed", { choiceId: type, entry: "share" });
-  }, [mode, type]); // eslint-disable-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => recordFriendResult(), [mode, type]);
 
   // 방금 테스트를 끝내고 들어온 거면 카드가 튀어나오며 소리가 난다. 새로 고침하면 다시 울리지 않는다
+  // 표시는 이 기기 세션에만 있고 결과 화면은 서버에서 먼저 그려지므로, 첫 그림 뒤에 한 번 읽고 지우는 것은 피할 수 없다
   const [fresh, setFresh] = useState(false);
   useEffect(() => {
     try {
@@ -48,7 +50,7 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
     } catch {
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 방금 끝낸 테스트인지 마운트 때 한 번만 읽는다
     setFresh(true);
     sfx.reward(0.1);
   }, []);

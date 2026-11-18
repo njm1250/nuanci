@@ -8,6 +8,9 @@ import { useCleared } from "@/features/scene/progress";
 import { TRAP_LABELS, type Trap } from "@/features/scene/types";
 import { answerCta } from "@/features/scene/teaser";
 import { spoken, type BookEntry, type ExpressionPair } from "./pairs";
+import { MapPin } from "@/features/site/map-pin";
+import { SceneThumb, ThumbStudio } from "@/features/landing/scene-thumb";
+import type { StageSpec } from "@/features/stage/types";
 
 export function Mark({ good }: { good: boolean }) {
   return (
@@ -34,42 +37,57 @@ function SearchIcon() {
   );
 }
 
-// 표현 한 쌍. 하고 싶던 말 → 자연스러운 말(다른 자연스러운 말은 '또는'으로) → 틀리기 쉬운 말 순서로, 배울 표현을 가장 크게 둔다.
-// 영어 가리기를 켜면 자연스러운 말을 가려 두고 눌러야 보여준다. 스스로 떠올려 본 뒤 확인하면 더 오래 기억한다. 출처는 맨 아래 한 줄로 작게 둔다
+// 표현 한 쌍. 왼쪽(모바일은 위)에 하고 싶던 말과 그때 상황, 오른쪽에 자연스러운 말(다른 자연스러운 말은 '또는'으로) → 틀리기 쉬운 말.
+// 복습할 때 한국어와 상황을 먼저 읽고 영어를 떠올리게 한다. 영어 가리기를 켜면 자연스러운 말을 가려 두고 눌러야 보여준다.
+// 출처는 필요할 때만 펼쳐 본다. 늘 펼쳐 두면 긴 사전 이름이 표현보다 길어진다
 function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boolean; onReveal: () => void }) {
   return (
-    <li className="px-3 py-4">
-      {/* 하고 싶던 말은 정답 위에 바짝 붙는 보조 질문, 영어 정답이 주인공이다 */}
-      <p className="text-note leading-snug text-fg-muted">{spoken(pair.intent)}</p>
-      <div className="mt-1 flex items-start gap-2">
-        <span className="mt-1">
-          <Mark good />
-        </span>
-        {hidden ? (
-          <button type="button" onClick={onReveal} className="min-h-9 flex-1 border border-dashed border-line px-2 text-left font-label text-ui text-fg-subtle">
-            눌러서 보기
-          </button>
-        ) : (
-          <div className="min-w-0">
-            <p className="font-line text-say-lg leading-snug">{pair.right}</p>
-            {pair.alts.map((a) => (
-              <p key={a} className="font-line text-body leading-snug text-fg-muted">
-                <span className="font-sans text-meta text-fg-subtle">또는 </span>
-                {a}
-              </p>
-            ))}
-          </div>
+    <li className="grid grid-cols-1 gap-y-3 px-4 py-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-x-6 md:py-5">
+      <div className="min-w-0">
+        <p className="text-body font-bold leading-snug text-fg">{spoken(pair.intent)}</p>
+        <p className="mt-1 flex items-center gap-1.5 text-meta leading-relaxed text-fg-subtle">
+          <MapPin />
+          {pairLine(pair.who, pair.when, pair.whenIsPlace)}
+        </p>
+      </div>
+      <div className="min-w-0 md:border-l md:border-line/60 md:pl-6">
+        <div className="flex items-start gap-2">
+          <span className="mt-1">
+            <Mark good />
+          </span>
+          {hidden ? (
+            <button type="button" onClick={onReveal} className="min-h-9 flex-1 border border-dashed border-line px-2 text-left font-label text-ui text-fg-subtle">
+              눌러서 보기
+            </button>
+          ) : (
+            <div className="min-w-0">
+              <p className="font-line text-say-lg leading-snug">{pair.right}</p>
+              {pair.alts.map((a) => (
+                <p key={a} className="font-line text-body leading-snug text-fg-muted">
+                  <span className="font-sans text-meta text-fg-subtle">또는 </span>
+                  {a}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+        <p className="mt-2 flex items-center gap-2 text-body text-fg-subtle">
+          <Mark good={false} />
+          <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
+          {pair.trap && <span className="shrink-0 text-meta">{TRAP_LABELS[pair.trap]}</span>}
+        </p>
+        {!hidden && pair.sources && pair.sources.length > 0 && (
+          <details className="group/src mt-2 pl-7 text-meta text-fg-subtle">
+            <summary className="flex min-h-8 cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
+              <span aria-hidden className="transition-transform duration-fast group-open/src:rotate-90">
+                <Arrow />
+              </span>
+              표현 출처
+            </summary>
+            <p className="leading-relaxed">{sourcesLine(pair.sources)}</p>
+          </details>
         )}
       </div>
-      <p className="mt-1.5 flex items-center gap-2 text-note text-fg-subtle">
-        <Mark good={false} />
-        <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
-        {pair.trap && <span className="shrink-0 text-meta">{TRAP_LABELS[pair.trap]}</span>}
-      </p>
-      <p className="mt-3.5 text-meta leading-relaxed text-fg-subtle">
-        {pairLine(pair.who, pair.when, pair.whenIsPlace)}
-        {!hidden && pair.sources && pair.sources.length > 0 && <span className="block">표현 출처 {sourcesLine(pair.sources)}</span>}
-      </p>
     </li>
   );
 }
@@ -103,7 +121,7 @@ function EmptyBook({ entries }: { entries: BookEntry[] }) {
 
 // 끝낸 장면에서 모은 표현을 최근에 한 장면부터 보여준다. 찾기, 틀리는 이유별로 거르기, 영어 가리고 복습하기를 한 화면에서 한다.
 // 안 해 본 장면은 칸을 늘어놓지 않고 장면 목록으로 보내는 한 줄로 줄인다
-export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
+export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[]; stages?: Record<string, StageSpec> }) {
   const cleared = useCleared();
   const [query, setQuery] = useState("");
   const [trap, setTrap] = useState<Trap | null>(null);
@@ -188,18 +206,22 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
           {shown.length === 0 ? (
             <p className="mt-6 text-note text-fg-muted">찾는 표현이 없어요.</p>
           ) : (
-            <div className="stagger mt-4 grid grid-cols-1 items-start gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
+            <div className="stagger mt-4 grid grid-cols-1 gap-y-6">
               {shown.map(({ entry, pairs }) => (
-                <section key={entry.id}>
-                  {/* 장면 묶음 머리는 단어장 인덱스 탭처럼, 굵은 줄 위에 제목 탭을 올린다 */}
-                  <div className="flex items-end justify-between gap-2 border-b-2 border-fg">
-                    <h2 className="min-w-0 truncate bg-fg px-3 py-2 font-label text-ui text-page">{entry.title}</h2>
+                <section key={entry.id} className="border-2 border-fg">
+                  {/* 장면 묶음 머리: 작은 장면 그림과 제목으로 어느 장면에서 모은 표현인지 바로 알아보게 한다 */}
+                  <div className="flex items-center gap-3 border-b-2 border-fg bg-surface px-3 py-2.5">
+                    {stages[entry.id] && <SceneThumb stage={stages[entry.id]} className="aspect-[4/3] w-16 shrink-0 border border-line" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-meta text-fg-subtle">표현 {pairs.length}개</p>
+                      <h2 className="truncate font-poster text-title leading-snug text-fg">{entry.title}</h2>
+                    </div>
                     <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-label text-ui text-fg-muted hover:text-fg">
                       다시 하기
                       <Arrow />
                     </EntryLink>
                   </div>
-                  <ul className="divide-y divide-line/40">
+                  <ul className="divide-y divide-line/60 bg-card">
                     {pairs.map((p) => {
                       const key = `${entry.id}:${p.right}`;
                       return <PairRow key={key} pair={p} hidden={hide && !revealed.includes(key)} onReveal={() => setRevealed((r) => [...r, key])} />;
@@ -223,6 +245,7 @@ export function ExpressionBook({ entries }: { entries: BookEntry[] }) {
           </span>
         </Link>
       )}
+      <ThumbStudio />
     </>
   );
 }

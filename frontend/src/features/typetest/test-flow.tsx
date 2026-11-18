@@ -3,7 +3,7 @@
 import { SiteHeader } from "@/features/site/site-header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { mochiSvg } from "@/features/mascot/mochi";
 import { BlockButton, Panel, SpeakerTag } from "@/features/scene/block-ui";
 import { primeAudio, sfx } from "@/features/scene/sfx";
@@ -279,7 +279,7 @@ const CHECKS = ["직역 성분 검사", "콩글리시 농도 측정", "눈치 �
 function Analyze({ questions, picked, version, friend }: { questions: TestQuestion[]; picked: Picked[]; version: string; friend: Friend | null }) {
   const router = useRouter();
   const [done, setDone] = useState(0);
-  useEffect(() => {
+  const startAnalysis = useEffectEvent(() => {
     const answers: Answer[] = picked.map((p) => ({ verdict: p.choice?.verdict ?? null, trap: p.choice?.trap, ms: p.ms }));
     const type = scoreType(answers);
     const picks = picked.map((p, i) => (p.choice ? questions[i].choices.findIndex((c) => c.id === p.choice!.id) + 1 : 0));
@@ -293,7 +293,8 @@ function Analyze({ questions, picked, version, friend }: { questions: TestQuesti
     const ticks = CHECKS.map((_, i) => window.setTimeout(() => setDone(i + 1), 420 * (i + 1)));
     const go = window.setTimeout(() => router.replace(resultPath(type, picks, version, avg)), 420 * CHECKS.length + 350);
     return () => [...ticks, go].forEach(clearTimeout);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => startAnalysis(), []);
 
   return (
     <section className="flex flex-1 flex-col items-center justify-center pb-16 text-center" aria-live="polite">
