@@ -2,7 +2,7 @@
 
 import { whenSaying } from "./where";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { bookEntry, quotedIntent } from "@/features/collection/pairs";
 import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Mascot } from "@/features/mascot/mascot";
@@ -109,12 +109,12 @@ export function WrapUp({
   const { open: openInquiry, element: inquiry } = useInquiry();
   // 오늘 처음 이어졌으면 연속 기록을 먼저 보여주고, 새 물건은 그 뒤에 들어온다
   const streakShown = useRef(false);
-  useEffect(() => {
+  const playStreak = useEffectEvent(() => {
     if (!streak || streakShown.current) return;
     streakShown.current = true;
     sfx.streak((streakAt + 120) / 1000);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [streak]);
+  });
+  useEffect(() => playStreak(), [streak]);
   return (
     <div className="animate-rise">
       {/* 끝났다는 말을 크게 두면 화면을 닫는 신호로 읽혀서(첫 방문 9명 중 2명이 여기서 나감), 다음 질문이 있으면 그 질문을 맨 위 주인공으로 둔다.

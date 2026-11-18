@@ -32,11 +32,9 @@ const gridBaseCols = {
 // 훅 의존성 검사를 끄는 주석은 "고치기 번거로우니 넘어가자"는 탈출구다. 복사되면 패턴이 된다.
 // 이미 있는 곳만 허용하고(따로 치운다), 새로 끄는 것은 막는다. 규칙까지 적어 둔 곳은 그 규칙만 허용한다
 const hooksDisableAllowed = [
-  { file: "src/features/typetest/test-flow.tsx" },
-  { file: "src/features/typetest/result-view.tsx" },
-  { file: "src/features/stage/thumb-cache.ts" },
-  { file: "src/features/scene/wrap-up.tsx" },
-  // 홈에서 고른 답을 주소에서 이어받는 한 곳. 서버에서 먼저 그리는 화면이라 피할 수 없는 예외
+  // 서버에서 먼저 그리는 화면이 브라우저 값을 마운트 때 한 번 이어받는 곳. 피할 수 없는 예외
+  { file: "src/features/typetest/result-view.tsx", rule: "react-hooks/set-state-in-effect" },
+  // 홈에서 고른 답을 주소에서 이어받는 곳
   { file: "src/features/scene/scene-player.tsx", rule: "react-hooks/set-state-in-effect" },
 ];
 const noHooksEscape = {
