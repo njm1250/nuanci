@@ -19,6 +19,7 @@ import { Arrow } from "./scene-parts";
 import { RUN_SIZE, runDoneAt, runShareMessage, useRun } from "./run";
 import { RunResult, RunResultWaiting, RunSteps, WaitDots } from "./run-ui";
 import { useShare } from "./use-scene-flow";
+import { PushOffer } from "@/features/push/push-offer";
 import { SceneThumb, ThumbStudio } from "@/features/landing/scene-thumb";
 import { MapPin } from "@/features/site/map-pin";
 import type { StageSpec } from "@/features/stage/types";
@@ -58,6 +59,9 @@ export function WrapUp({
   scene,
   share,
   shareState,
+  replying = false,
+  onPushShown,
+  onPushSubscribed,
   onBack,
   granted,
   reduced,
@@ -83,6 +87,10 @@ export function WrapUp({
   scene: Scene;
   share: () => void;
   shareState: "idle" | "copied" | "failed";
+  // 친구가 낸 문제로 들어왔으면 문제 내기 대신 답장하기
+  replying?: boolean;
+  onPushShown?: () => void;
+  onPushSubscribed?: (hour: number) => void;
   onBack: () => void;
   granted: RewardItem[];
   reduced: boolean;
@@ -215,6 +223,9 @@ export function WrapUp({
         <Arrow />
       </Link>}
 
+      {/* 내일 다시 부를 시간. 끝낸 보람(발견 카드) 바로 뒤가 "내일도 할까"를 묻기 가장 자연스러운 때다 */}
+      {onPushShown && onPushSubscribed && <PushOffer onShown={onPushShown} onSubscribed={onPushSubscribed} />}
+
       {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
       {(streak || granted.length > 0) && (
         <div className="mt-4 space-y-2">
@@ -225,11 +236,11 @@ export function WrapUp({
 
       {!runDone && <div className="blk mt-5 flex items-center gap-3 bg-surface-strong px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="font-label text-ui text-fg">친구는 뭐라고 할까?</p>
-          <p className="text-note text-fg-subtle">친구가 고르면 내 첫 답이 공개돼요</p>
+          <p className="font-label text-ui text-fg">{replying ? "친구에게 내 답 보여 주기" : "친구는 뭐라고 할까?"}</p>
+          <p className="text-note text-fg-subtle">{replying ? "친구가 열면 내 첫 답과 비교해요" : "친구가 고르면 내 첫 답이 공개돼요"}</p>
         </div>
         <BlockButton onClick={share} className="shrink-0" faceClassName="font-label text-ui text-ink">
-          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : replying ? "답장하기" : "문제 내기"}
         </BlockButton>
       </div>}
 

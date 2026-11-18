@@ -18,11 +18,12 @@ data class CatalogEntry(
 	val stage: JsonNode?,
 	// 고르기 직전 상대가 하는 말. 홈 대표 카드의 장면 그림 위 말풍선에 쓴다
 	val partnerLine: String,
+	val partnerName: String,
 	val hash: String,
 )
 
 // 공개 장면 묶음 하나. 목차(manifest)와 장면 본문(objects)을 모두 내용 해시로 부른다
-class Catalog(val hash: String, val manifest: String, val objects: Map<String, String>, val views: Map<String, String>)
+class Catalog(val hash: String, val manifest: String, val objects: Map<String, String>, val views: Map<String, String>, val entries: List<CatalogEntry> = emptyList())
 
 // 공개 장면을 해시 주소로 내보낸다. 내용이 같으면 주소도 같아서, 받는 쪽은 받은 목차와 장면을 무효화 없이 캐시해도 된다.
 // 무엇이 지금 목차인지는 current 하나만 짧게 묻는다. 목차는 공개 장면의 (id, 버전, 번호) 목록이 바뀔 때만 다시 만든다.
@@ -90,6 +91,7 @@ class SceneCatalog(
 				category = content.path("category").asString(null),
 				stage = content.path("base").path("stage").takeUnless { it.isMissingNode },
 				partnerLine = content.path("base").path("partnerLine").asString(""),
+				partnerName = content.path("partnerName").asString(""),
 				hash = hash,
 			)
 		}
@@ -97,7 +99,7 @@ class SceneCatalog(
 		val views = mapOf("book" to SceneViews.book(mapper, contents), "reel" to SceneViews.reel(mapper, contents)).mapValues { mapper.writeValueAsString(it.value) }
 		val viewHashes = views.mapValues { sha256(it.value) }
 		val manifest = mapper.writeValueAsString(mapOf("scenes" to entries, "views" to viewHashes))
-		return Catalog(sha256(manifest), manifest, objects, views.entries.associate { (name, json) -> viewHashes.getValue(name) to json }).also(::keep)
+		return Catalog(sha256(manifest), manifest, objects, views.entries.associate { (name, json) -> viewHashes.getValue(name) to json }, entries).also(::keep)
 	}
 
 	private fun sha256(text: String): String =

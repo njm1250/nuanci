@@ -13,7 +13,18 @@ data class NuanciProperties(
 	val siteUrl: String = "http://localhost:3000",
 	// 공개 장면을 내보내는 S3 버킷. 버킷이 비어 있으면 발행 작업은 쌓이기만 하고 올리지 않는다
 	val content: ContentProperties = ContentProperties(),
+	// 웹 푸시(VAPID) 키. 둘 중 하나라도 비어 있으면 알림을 받지도 보내지도 않는다
+	val push: PushProperties = PushProperties(),
 )
+
+data class PushProperties(
+	// X.509 공개 키와 PKCS#8 개인 키(base64url)
+	val publicKey: String = "",
+	val privateKey: String = "",
+	val subject: String = "mailto:nuanci.contact@gmail.com",
+) {
+	val enabled get() = publicKey.isNotBlank() && privateKey.isNotBlank()
+}
 
 data class ContentProperties(
 	val bucket: String = "",
