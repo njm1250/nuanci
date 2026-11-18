@@ -4,7 +4,7 @@ import { spoken } from "@/features/collection/pairs";
 // 장소 값은 "동네 공원 · 오후"처럼 장소와 때가 붙어 오므로 둘로 나눠 쓴다
 
 // 받침이 있으면 b(과·이), 없으면 a(와·가). 한글이 아니면 받침 없는 쪽으로 본다
-function josa(word: string, a: string, b: string) {
+export function josa(word: string, a: string, b: string) {
   const c = word.trim().slice(-1).charCodeAt(0);
   if (c < 0xac00 || c > 0xd7a3) return a;
   return (c - 0xac00) % 28 ? b : a;

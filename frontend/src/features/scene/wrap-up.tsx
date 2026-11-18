@@ -224,7 +224,7 @@ export function WrapUp({
       </Link>}
 
       {/* 내일 다시 부를 시간. 끝낸 보람(발견 카드) 바로 뒤가 "내일도 할까"를 묻기 가장 자연스러운 때다 */}
-      {onPushShown && onPushSubscribed && <PushOffer onShown={onPushShown} onSubscribed={onPushSubscribed} />}
+      {onPushShown && onPushSubscribed && <PushOffer partnerName={nextAsk?.partnerName} partnerLine={nextAsk?.partnerLine} onShown={onPushShown} onSubscribed={onPushSubscribed} />}
 
       {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
       {(streak || granted.length > 0) && (
