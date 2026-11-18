@@ -30,24 +30,28 @@ const gridBaseCols = {
   },
 };
 // 훅 의존성 검사를 끄는 주석은 "고치기 번거로우니 넘어가자"는 탈출구다. 복사되면 패턴이 된다.
-// 이미 있는 곳만 허용하고(따로 치운다), 새 파일에서는 막는다
+// 이미 있는 곳만 허용하고(따로 치운다), 새로 끄는 것은 막는다. 규칙까지 적어 둔 곳은 그 규칙만 허용한다
 const hooksDisableAllowed = [
-  "src/features/typetest/test-flow.tsx",
-  "src/features/typetest/result-view.tsx",
-  "src/features/stage/thumb-cache.ts",
-  "src/features/scene/scene-player.tsx",
-  "src/features/scene/wrap-up.tsx",
+  { file: "src/features/typetest/test-flow.tsx" },
+  { file: "src/features/typetest/result-view.tsx" },
+  { file: "src/features/stage/thumb-cache.ts" },
+  { file: "src/features/scene/wrap-up.tsx" },
+  // 홈에서 고른 답을 주소에서 이어받는 한 곳. 서버에서 먼저 그리는 화면이라 피할 수 없는 예외
+  { file: "src/features/scene/scene-player.tsx", rule: "react-hooks/set-state-in-effect" },
 ];
 const noHooksEscape = {
   meta: { type: "problem", schema: [] },
   create(context) {
     const file = context.filename.replace(/\\/g, "/");
-    if (hooksDisableAllowed.some((f) => file.endsWith(f))) return {};
+    const allowed = hooksDisableAllowed.filter((a) => file.endsWith(a.file));
     return {
       Program() {
         for (const c of context.sourceCode.getAllComments()) {
-          if (/eslint-disable/.test(c.value) && /react-hooks\//.test(c.value)) {
-            context.report({ loc: c.loc, message: "react-hooks 검사를 끄지 않는다. 바뀌는 값 때문에 다시 돌면 안 되는 일이면 이벤트 처리로 옮기거나 ref·useEffectEvent로 최신 값을 읽는다." });
+          if (!/eslint-disable/.test(c.value)) continue;
+          const rules = c.value.split("--")[0].match(/react-hooks\/[a-z-]+/g) ?? [];
+          for (const rule of rules) {
+            if (allowed.some((a) => !a.rule || a.rule === rule)) continue;
+            context.report({ loc: c.loc, message: `${rule} 검사를 끄지 않는다. 바뀌는 값 때문에 다시 돌면 안 되는 일이면 useEffectEvent로 최신 값을 읽고, 주소·저장소 같은 브라우저 값은 useSyncExternalStore로 읽는다.` });
           }
         }
       },
@@ -56,8 +60,7 @@ const noHooksEscape = {
 };
 
 // 지연 0이나 지연 없는 setTimeout은 순서 문제를 숨기는 땜질이다(타이머가 퍼져 앱이 느려진 Cursor 사례)
-// scene-player의 두 곳(친구 답, 홈에서 고른 답)은 상태 변경 검사를 피하려고 미룬 것이라 따로 고친다
-const timerPatchAllowed = ["src/features/scene/scene-player.tsx"];
+const timerPatchAllowed = [];
 const noTimerPatch = {
   meta: { type: "problem", schema: [] },
   create(context) {
@@ -94,7 +97,26 @@ const noTranslucentBlock = {
   },
 };
 
-const nuanci = { rules: { "grid-base-cols": gridBaseCols, "no-translucent-block": noTranslucentBlock, "no-hooks-escape": noHooksEscape, "no-timer-patch": noTimerPatch } };
+// 핑크 주 버튼 면(bg-cta)은 BlockButton·BlockLink 안에만 둔다. 손으로 만든 주 버튼은 모양이 조금씩 어긋나고, 누를 수 없는 곳에 핑크가 번진다
+// 켜짐 상태를 핑크로 보여 주는 누름 칸(보상 착용, 아지트 물건)은 예외
+const ctaAllowed = ["src/features/scene/block-ui.tsx", "src/features/rewards/reward-reveal.tsx", "src/features/account/room-view.tsx"];
+const ctaInBlockUi = {
+  meta: { type: "problem", schema: [] },
+  create(context) {
+    const file = context.filename.replace(/\\/g, "/");
+    if (ctaAllowed.some((f) => file.endsWith(f))) return {};
+    const check = (node, text) => {
+      if (!/(^|[\s:])bg-cta(\s|$)/.test(text)) return;
+      context.report({ node, message: "핑크 주 버튼은 BlockButton primary나 BlockLink primary로 만든다(대화 상자 안 짧은 버튼은 label). bg-cta를 직접 쓰지 않는다." });
+    };
+    return {
+      Literal(node) { if (typeof node.value === "string") check(node, node.value); },
+      TemplateElement(node) { check(node, node.value.raw); },
+    };
+  },
+};
+
+const nuanci = { rules: { "cta-in-block-ui": ctaInBlockUi, "grid-base-cols": gridBaseCols, "no-translucent-block": noTranslucentBlock, "no-hooks-escape": noHooksEscape, "no-timer-patch": noTimerPatch } };
 
 const eslintConfig = defineConfig([
   // 다시 쓸 일이 없어진 eslint-disable 주석은 남겨 두지 않는다. 남은 예외는 진짜 예외만이어야 한다
@@ -126,6 +148,7 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": ["error", ...designRules],
       "nuanci/grid-base-cols": "error",
       "nuanci/no-translucent-block": "error",
+      "nuanci/cta-in-block-ui": "error",
       // 글자 없는 버튼·링크는 화면 읽기와 자동 검사에서 이름 없는 칸이 된다. aria-label로 동작을 말한다
       "jsx-a11y/control-has-associated-label": ["error", {
         labelAttributes: ["aria-label", "aria-labelledby", "title"],

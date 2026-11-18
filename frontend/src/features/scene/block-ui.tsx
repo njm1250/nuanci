@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { markEntry } from "./track";
 
+// 핑크 주 버튼(bg-cta)은 이 파일의 BlockButton·BlockLink로만 만든다(린트 nuanci/cta-in-block-ui)
 export function BlockButton({
   children,
   onClick,
@@ -10,19 +11,27 @@ export function BlockButton({
   className = "",
   faceClassName = "",
   reading = false,
+  label = false,
+  type = "button",
+  disabled,
   ...aria
 }: {
   children: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
   primary?: boolean;
   className?: string;
   faceClassName?: string;
   // 둘을 나란히 두는 짧은 답 버튼처럼 포스터 글꼴이 과할 때 본문 글꼴로 쓴다
   reading?: boolean;
+  // 대화 상자 안 '닫기'·'보내기'처럼 짧은 라벨 버튼. 라벨 글꼴 15px로 가운데 맞춤
+  label?: boolean;
+  type?: "button" | "submit";
+  disabled?: boolean;
 } & Pick<React.AriaAttributes, "aria-pressed" | "aria-expanded" | "aria-label">) {
+  const font = label ? "text-center font-label text-ui" : primary && !reading ? "font-poster text-say" : "";
   return (
-    <button type="button" onClick={onClick} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`} {...aria}>
-      <span className={`blk block px-3 py-2.5 ${primary ? `bg-cta text-cta-text ${reading ? "" : "font-poster text-say"}` : "bg-card-raised text-ink"} ${faceClassName}`}>{children}</span>
+    <button type={type} onClick={onClick} disabled={disabled} className={`blk-btn ${primary ? "blk-btn-primary" : ""} block ${className}`} {...aria}>
+      <span className={`blk block px-3 ${label ? "py-3" : "py-2.5"} ${primary ? "bg-cta text-cta-text" : "bg-card-raised text-ink"} ${font} ${faceClassName}`}>{children}</span>
     </button>
   );
 }
