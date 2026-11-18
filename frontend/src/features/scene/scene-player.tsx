@@ -6,7 +6,7 @@ import { LogoLink } from "@/features/site/logo-link";
 import { PrStatus } from "./pr-status";
 import { useRouter } from "next/navigation";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { logoSvg, wordmarkSvg } from "@/features/site/logo";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { COLOR_HEX, isUnopened, usePendingRewards, useRewards } from "@/features/rewards/rewards";
@@ -41,6 +41,8 @@ import type { NextAsk } from "./wrap-up";
 preloadStage();
 
 const NO_REWARDS: ReturnType<typeof usePendingRewards> = [];
+// 장면을 보는 동안 바뀌지 않는 브라우저 값(주소)을 읽을 때 쓴다
+const noSubscribe = () => () => {};
 
 // 모바일 무대 높이와, 아래 글 칸이 무대 바닥을 덮는 깊이. 고르는 칸(질문·보기 셋)이 작은 폰에서도 한 화면에 들어오게 화면 높이에서 빼서 정하고,
 // 덮는 깊이는 인물 발밑(무대 가운데에서 약 100px 아래)을 넘지 않게 무대 높이의 절반에서 110px을 뺀다
@@ -131,13 +133,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     (from) => send({ type: "share_link_copied", choiceId: firstBase?.id, ...(from === "card" ? { step: "base" as const } : {}) }),
   );
   // 친구가 낸 문제로 들어왔으면 친구의 첫 답을 기억해 둔다. 내가 고르기 전에는 보여 주지 않는다
-  const [friendId, setFriendId] = useState<string | null>(null);
-  useEffect(() => {
-    const id = friendPick();
-    if (!id || !scene.base.choices.some((c) => c.id === id)) return;
-    const t = window.setTimeout(() => setFriendId(id), 0);
-    return () => clearTimeout(t);
-  }, [scene.base.choices]);
+  // 주소는 브라우저에만 있으므로 서버 그림에서는 없음으로 두고, 브라우저에서 읽은 값으로 바로 이어 그린다
+  const friendRaw = useSyncExternalStore(noSubscribe, friendPick, () => null);
+  const friendId = friendRaw && scene.base.choices.some((c) => c.id === friendRaw) ? friendRaw : null;
   const [showMeaning, setShowMeaning] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [wrapped, setWrapped] = useState(false);
@@ -376,19 +374,18 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   };
 
   // 홈에서 보기를 바로 고르고 들어오면(주소의 pick) 대사 없이 그 답에 대한 반응부터 보여 준다. 홈에서 이미 고른 사람을 다시 기다리게 하지 않는다
-  useEffect(() => {
+  const startFromHomePick = useEffectEvent(() => {
     const id = new URLSearchParams(location.search).get(PICK_PARAM);
     if (!id) return;
     history.replaceState(null, "", location.pathname);
     if (!scene.base.choices.some((c) => c.id === id)) return;
-    const t = window.setTimeout(() => {
-      setLeadAt((a) => ({ ...a, base: 99 }));
-      send({ type: "lead_finished", step: "base", choiceId: "home_pick" });
-      f.pick(id);
-    }, 0);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setLeadAt((a) => ({ ...a, base: 99 }));
+    send({ type: "lead_finished", step: "base", choiceId: "home_pick" });
+    f.pick(id);
+  });
+  // 주소는 브라우저에만 있고 장면은 서버에서 먼저 그려지므로, 첫 그림 뒤에 한 번 이어받는 것은 피할 수 없다
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- 홈에서 넘어온 답을 마운트 때 한 번만 이어받는다
+  useEffect(() => startFromHomePick(), []);
 
   // 고른 말에 맞춰 소리를 낸다
   // 누르는 순간에는 "톡"만 내고, 판정 소리·흔들림·진동은 상대가 반응해 도장이 찍히는 순간으로 미룬다. 소리가 결과를 먼저 알려 주지 않게 한다.
@@ -420,8 +417,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
 
   // 상대가 반응해 결과가 채워지는 순간: 판정 소리, X면 무대 흔들림, 틀린 말이면 짧은 진동(지원하는 기기만), 그리고 카드가 다 보이게 맞춘다
   // 상대가 반응하는 순간(효과음 글자가 터지는 때) 표정에 맞춘 리액션 소리를 낸다. 놀라거나 당황한 반응이면 무대도 짧게 흔든다
+  // 무대 반응이 바뀔 때(stageKey)만 낸다. 다른 값은 그 순간의 최신 값을 읽기만 하고, 바뀌어도 다시 울리지 않는다
   const reactedSoundAt = useRef<number | null>(null);
-  useEffect(() => {
+  const reactSound = useEffectEvent(() => {
     if (!stageChoice || wrapped || endingOn || beat || phase === "transition" || reactedSoundAt.current === stageKey) return;
     reactedSoundAt.current = stageKey;
     const expression = stageChoice.expression;
@@ -430,8 +428,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
       if (BURSTS[expression].bad) shake();
     }, reduced ? 0 : CUT_IN_AT);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stageKey]);
+  });
+  useEffect(() => reactSound(), [stageKey]);
   // 다른 말까지 다 들어 보고 도장이 모두 모인 순간 한 번, 위로 뛰는 소리를 낸다
   const collectedAt = useRef<string | null>(null);
   const allSeen = Boolean(choice) && new Set(seenIds).size >= situation.choices.length;
@@ -442,7 +440,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     return () => clearTimeout(t);
   }, [allSeen, cardRevealed, phase, reduced]);
   const revealedAt = useRef<number | null>(null);
-  useEffect(() => {
+  // 카드가 채워지거나 무대 반응이 바뀔 때만 낸다. 다른 값은 최신 값을 읽기만 한다
+  const stampCard = useEffectEvent(() => {
     if (!cardRevealed || !stageChoice || wrapped || endingOn || beat || revealedAt.current === stageKey) return;
     revealedAt.current = stageKey;
     // 도장은 어떤 결과든 같은 '쾅'과 짧은 진동(지원하는 기기만). 맞고 틀림을 소리·진동으로 따로 알리지 않는다
@@ -459,9 +458,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
       const room = cardRect.top - boxRect.top - CARD_CLEAR / 2;
       if (hidden > 0 && room > 0) box.scrollBy({ top: Math.min(hidden, room), behavior: reduced ? "auto" : "smooth" });
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardRevealed, stageKey]);
+  });
+  useEffect(() => stampCard(), [cardRevealed, stageKey]);
   // 고르기 전, 마우스를 올리거나 키보드로 짚은 보기. 그 말을 무대의 내 생각 풍선에 미리 얹어서 오른쪽 보기와 왼쪽 무대가 한 동작으로 이어지게 한다
   const [tryId, setTryId] = useState<string | null>(null);
   const trying = choosing && !choice ? situation.choices.find((c) => c.id === tryId) : undefined;
