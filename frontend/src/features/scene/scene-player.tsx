@@ -68,7 +68,7 @@ const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
 
 
 // teaser는 다음 장면 예고. 페이지가 서버에서 만들어 넘겨서 브라우저가 다음 장면 본문을 받지 않는다
-// nextAsk는 다음 장면의 첫 질문. 완료 화면 아래로 밀려 올라와서, 고르면 그 답을 든 채 다음 장면에 들어간다
+// nextAsk는 다음 장면 예고. 완료 화면 아래로 밀려 올라와 다음 장면으로 잇는다
 // entry는 들어온 경로를 정해 줄 때 쓴다(첫 방문 홈에서 바로 열린 장면은 home)
 type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; teaser?: string | null; nextAsk?: NextAsk | null; preview?: boolean; entry?: "home"; packStep?: number };
 
@@ -625,7 +625,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                 </div>
               )}
               {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} className={MOCHI_TUCK_LIFT} />}
-              {endingOn && endingStep === "punch" && translate && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
+              {/* 펀치라인은 장면의 웃음이라 뜻 보기와 상관없이 늘 자막을 붙인다. 못 알아들으면 끝맛이 사라진다 */}
+              {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
               {later && !endingOn && !beat && (
                 <p className={`absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-label text-ui leading-none text-fg ${STAGE_TUCK_LIFT}`}>
                   {timeCue ?? (

@@ -20,21 +20,20 @@ export function RunChip({ at }: { at: number }) {
 // 장면을 끝낸 자리에서 무엇이 얼마나 남았는지 한 문장과 세 칸 막대로 말한다. "결과"가 무엇인지 이름을 붙여서 적는다
 export function RunSteps({ done }: { done: number }) {
   const left = RUN_SIZE - done;
+  // 한 줄로 줄인다. 완료 화면의 주인공은 방금 배운 표현과 다음 장면이라 진행은 곁가지로 둔다
   return (
-    <div className="mb-5">
-      <p className="flex items-baseline justify-between gap-3 text-note text-fg-muted">
-        <span>
-          {left === 1 ? "한 장면만 더 하면" : "두 장면 더 하면"} <b className="font-bold text-fg">내 영어 말투</b>가 나와요
-        </span>
-        <span className="shrink-0 text-meta tabular-nums text-fg-subtle">
-          {done}/{RUN_SIZE}
-        </span>
-      </p>
-      <div role="progressbar" aria-valuenow={done} aria-valuemax={RUN_SIZE} aria-label="내 영어 말투까지" className="mt-2 grid grid-cols-3 gap-1">
+    <div className="mb-4 flex items-center gap-3 text-note text-fg-muted">
+      <span className="min-w-0 flex-1">
+        {left === 1 ? "한 장면만 더 하면" : "두 장면 더 하면"} <b className="font-bold text-fg">내 영어 말투</b>
+      </span>
+      <span role="progressbar" aria-valuenow={done} aria-valuemax={RUN_SIZE} aria-label="내 영어 말투까지" className="flex shrink-0 gap-1">
         {SLOTS.map((n) => (
-          <span key={n} className={`h-2.5 border-2 border-fg ${n <= done ? "bg-pink" : ""}`} />
+          <span key={n} className={`h-2.5 w-5 border-2 border-fg ${n <= done ? "bg-pink" : ""}`} />
         ))}
-      </div>
+      </span>
+      <span className="shrink-0 text-meta tabular-nums text-fg-subtle">
+        {done}/{RUN_SIZE}
+      </span>
     </div>
   );
 }
