@@ -160,11 +160,13 @@ export function RunResult({ run, onShare, shareState }: { run: Run; onShare: () 
                   <p className="mt-1 flex items-center gap-2">
                     <span className="min-w-0 flex-1 font-line text-say leading-snug">{p.line}</span>
                     <Wave />
-                    <span
-                      className="max-w-[46%] shrink-0 animate-stamp border-2 border-bad bg-white px-2 py-1.5 text-center font-label-strong text-meta leading-snug text-ink-fixed"
-                      style={{ animationDelay: `${200 + i * 120}ms` }}
-                    >
-                      {p.heard}
+                    {/* 들린 느낌은 무대의 상대 말풍선과 같은 모양(흰 칸, 먹선, 도트 꼬리)으로 둔다. 색 테두리 칸보다 "상대가 이렇게 알아들었다"로 읽힌다 */}
+                    <span className="relative ml-1.5 max-w-[46%] shrink-0 animate-pop" style={{ animationDelay: `${200 + i * 120}ms` }}>
+                      <span className="block border-2 border-ink bg-white px-2 py-1.5 font-label-strong text-meta leading-snug text-ink-fixed">{p.heard}</span>
+                      <svg width="8" height="10" viewBox="0 0 4 5" shapeRendering="crispEdges" aria-hidden className="absolute -left-[6px] top-1/2 -translate-y-1/2">
+                        <path d="M3 0h1v1h-1zM2 1h1v1h-1zM1 2h1v1h-1zM2 3h1v1h-1zM3 4h1v1h-1z" className="fill-ink" />
+                        <path d="M3 1h1v3h-1zM2 2h1v1h-1z" className="fill-white" />
+                      </svg>
                     </span>
                   </p>
                 </li>
