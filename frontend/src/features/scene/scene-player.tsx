@@ -831,8 +831,18 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     ))}
                   </ul>
                 )}
-                {/* 고르기 전에만 둔다. 마음에 맞는 말이 없어 멈추려는 순간 하려던 말을 받는다 */}
-                {!leading && !choice && !preview && <MissingIntent key={later ? "followUp" : "base"} sceneId={scene.id} sceneVersion={scene.version} step={later ? "followUp" : "base"} />}
+                {/* 고르기 전에만 둔다. 떠올린 영어가 보기에 없어 멈추려는 순간 그 영어를 받는다 */}
+                {!leading && !choice && !preview && <MissingIntent
+                    key={later ? "followUp" : "base"}
+                    sceneId={scene.id}
+                    sceneVersion={scene.version}
+                    step={later ? "followUp" : "base"}
+                    choices={situation.choices}
+                    onPick={(id) => {
+                      const c = situation.choices.find((x) => x.id === id);
+                      if (c) play(c);
+                    }}
+                  />}
               </div>
               {/* 세 말을 다 해 보면 도장을 나란히 모아 준다. 목록이 밀리지 않게 목록 아래에 붙는다 */}
               {choice && heardIds.length >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
