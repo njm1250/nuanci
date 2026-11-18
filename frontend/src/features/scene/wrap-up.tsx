@@ -58,6 +58,7 @@ export function WrapUp({
   scene,
   share,
   shareState,
+  replying = false,
   onBack,
   granted,
   reduced,
@@ -83,6 +84,8 @@ export function WrapUp({
   scene: Scene;
   share: () => void;
   shareState: "idle" | "copied" | "failed";
+  // 친구가 낸 문제로 들어왔으면 문제 내기 대신 답장하기
+  replying?: boolean;
   onBack: () => void;
   granted: RewardItem[];
   reduced: boolean;
@@ -225,11 +228,11 @@ export function WrapUp({
 
       {!runDone && <div className="blk mt-5 flex items-center gap-3 bg-surface-strong px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="font-label text-ui text-fg">친구는 뭐라고 할까?</p>
-          <p className="text-note text-fg-subtle">친구가 고르면 내 첫 답이 공개돼요</p>
+          <p className="font-label text-ui text-fg">{replying ? "친구에게 내 답 보여 주기" : "친구는 뭐라고 할까?"}</p>
+          <p className="text-note text-fg-subtle">{replying ? "친구가 열면 내 첫 답과 비교해요" : "친구가 고르면 내 첫 답이 공개돼요"}</p>
         </div>
         <BlockButton onClick={share} className="shrink-0" faceClassName="font-label text-ui text-ink">
-          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "문제 내기"}
+          {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : replying ? "답장하기" : "문제 내기"}
         </BlockButton>
       </div>}
 

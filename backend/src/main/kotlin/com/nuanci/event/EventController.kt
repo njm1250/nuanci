@@ -27,11 +27,11 @@ const val AI_SOURCE = "ai"
 
 const val TEST_EVENTS = "test_viewed|test_started|test_answered|test_completed|test_shared|test_result_viewed"
 
-// 장면 없이 받는 이벤트. page_engaged는 화면을 처음 누르거나 스크롤한 순간이라 홈에서도 장면에서도 온다
-private val SCENELESS = setOf("home_viewed", "page_engaged")
+// 장면 없이 받는 이벤트. page_engaged는 화면을 처음 누르거나 스크롤한 순간이라 홈에서도 장면에서도 온다. push_opened는 알림을 눌러 들어온 순간
+private val SCENELESS = setOf("home_viewed", "page_engaged", "push_opened")
 
 data class EventRequest(
-	@field:Pattern(regexp = "home_viewed|page_engaged|scene_viewed|lead_finished|choice_selected|alternative_viewed|scene_completed|wrap_viewed|next_clicked|share_link_copied|reward_shown|reward_equipped|$TEST_EVENTS")
+	@field:Pattern(regexp = "home_viewed|page_engaged|scene_viewed|lead_finished|choice_selected|alternative_viewed|scene_completed|wrap_viewed|next_clicked|share_link_copied|reply_link_copied|reply_viewed|push_offer_shown|push_subscribed|push_opened|reward_shown|reward_equipped|$TEST_EVENTS")
 	val type: String,
 	@field:Size(min = 1, max = 100)
 	val sceneId: String? = null,

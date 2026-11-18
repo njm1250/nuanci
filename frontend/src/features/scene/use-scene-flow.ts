@@ -3,7 +3,7 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { quotedIntent } from "@/features/collection/pairs";
 import type { Choice, Scene, Situation } from "./types";
-import { heardSaid } from "./verdict";
+import { heardAs, heardSaid } from "./verdict";
 
 export type Phase = "base" | "transition" | "followUp";
 type Step = "base" | "followUp";
@@ -75,6 +75,13 @@ export function shareMessage(scene: Scene, first: Choice | undefined) {
   const intent = scene.base.intent;
   const said = intent.lastIndexOf(" 하고 ") > 0 ? `${quotedIntent(intent)} ${first.verdict === "good" ? "했는데" : "했다가"}` : `"${scene.title}"에서 ${first.verdict === "good" ? "말했는데" : "말했다가"}`;
   return `나 방금 영어로 ${said} ${heardSaid(first)}.\n${ask}`;
+}
+
+// 친구 문제에 답장하는 한마디. 친구의 첫 답과 내 첫 답이 어떻게 들렸는지 나란히 적고, 링크를 연 친구가 내 답과 비교하게 한다
+export function replyMessage(scene: Scene, mine: Choice | undefined, friend: Choice | undefined) {
+  if (!mine || !friend) return shareMessage(scene, mine);
+  if (mine.id === friend.id) return `나도 너랑 똑같은 말 골랐어 ㅋㅋ "${heardAs(mine)}"\n다른 말은 어떻게 들리는지 봐 봐!`;
+  return `네 답은 "${heardAs(friend)}", 내 답은 "${heardAs(mine)}" 나왔어 ㅋㅋ\n내가 뭐라고 했는지 맞혀 봐!`;
 }
 
 // 휴대폰에서는 공유 시트(카톡·인스타 등)를 열고, 지원하지 않는 브라우저에서는 문구와 링크를 복사한다.

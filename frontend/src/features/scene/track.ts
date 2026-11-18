@@ -1,5 +1,5 @@
 export type TrackEvent = {
-  type: "scene_viewed" | "lead_finished" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied" | "reward_shown" | "reward_equipped";
+  type: "scene_viewed" | "lead_finished" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied" | "reply_link_copied" | "reply_viewed" | "reward_shown" | "reward_equipped";
   sceneId: string;
   sceneVersion: number;
   attemptId: string;
@@ -14,6 +14,8 @@ const PLAYED_KEY = "nuanci.played";
 export const SHARE_PARAM = "s";
 // 문제를 낸 사람이 첫 질문에서 처음 고른 보기 id. 받은 사람이 고른 뒤 그 보기에 "친구 선택"으로 표시한다
 export const FRIEND_PARAM = "f";
+// 받은 친구가 같은 장면에 자기 첫 답을 실어 되돌려 보낸 답장 링크. 처음 보낸 사람이 열면 왕복 한 번이 된다
+export const REPLY_PARAM = "rp";
 // 홈에서 보기를 바로 고르고 들어올 때 고른 보기 id를 싣는 주소 꼬리표
 export const PICK_PARAM = "pick";
 // 공유 링크로 연 장면이면 링크 주인의 공유 코드를 남겨 둔다. 그 장면을 끝낼 때 보상 서버에 함께 보낸다
@@ -146,10 +148,17 @@ export function friendPick(): string | null {
   return friend?.path === location.pathname ? friend.id : null;
 }
 
+// 이번 장면을 답장 링크로 열었는지. takeEntry가 주소에서 읽어 둔다
+let replyOpened = false;
+export function openedAsReply() {
+  return replyOpened;
+}
+
 // 장면을 연 경로를 한 번만 읽는다. 공유 링크 표시는 읽은 뒤 주소창에서 지운다
 export function takeEntry(): TrackEvent["entry"] {
   friendPick();
   const url = new URL(location.href);
+  replyOpened = url.searchParams.has(REPLY_PARAM);
   const code = url.searchParams.get(SHARE_PARAM);
   try {
     if (code && code !== "1") sessionStorage.setItem(VIA_KEY, code.slice(0, 12));
@@ -158,6 +167,7 @@ export function takeEntry(): TrackEvent["entry"] {
   if (code !== null) {
     url.searchParams.delete(SHARE_PARAM);
     url.searchParams.delete(FRIEND_PARAM);
+    url.searchParams.delete(REPLY_PARAM);
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     return "share";
   }

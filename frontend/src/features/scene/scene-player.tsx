@@ -27,8 +27,9 @@ import { Num, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
-import { FRIEND_PARAM, friendPick, markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
-import { shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
+import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
+import { MissingIntent } from "./missing-intent";
+import { replyMessage, shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 import { NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
@@ -110,6 +111,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     markPlayed();
     const taken = takeEntry();
     track({ type: "scene_viewed", sceneId: scene.id, sceneVersion: scene.version, attemptId, entry: taken === "direct" && entry ? entry : taken });
+    if (openedAsReply()) track({ type: "reply_viewed", sceneId: scene.id, sceneVersion: scene.version, attemptId, entry: "share" });
   }, [scene.id, scene.version, attemptId, preview, entry]);
   useEffect(() => (preview ? undefined : watchEngagement({ sceneId: scene.id, sceneVersion: scene.version, attemptId })), [scene.id, scene.version, attemptId, preview]);
 
@@ -126,17 +128,19 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const stats = usePickStats(scene.id, preview);
   const reduced = useReducedMotion();
   const translate = useTranslationOn();
-  // 문제를 낼 때는 첫 질문에서 내가 처음 고른 말을 링크에 싣는다. 받은 친구가 고른 뒤에 내 답과 비교해 보게 된다
-  const firstBase = scene.base.choices.find((c) => c.id === f.picked.base);
-  const { state: shareState, share } = useShare(
-    `/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}${firstBase ? `&${FRIEND_PARAM}=${encodeURIComponent(firstBase.id)}` : ""}`,
-    shareMessage(scene, firstBase),
-    (from) => send({ type: "share_link_copied", choiceId: firstBase?.id, ...(from === "card" ? { step: "base" as const } : {}) }),
-  );
   // 친구가 낸 문제로 들어왔으면 친구의 첫 답을 기억해 둔다. 내가 고르기 전에는 보여 주지 않는다
   // 주소는 브라우저에만 있으므로 서버 그림에서는 없음으로 두고, 브라우저에서 읽은 값으로 바로 이어 그린다
   const friendRaw = useSyncExternalStore(noSubscribe, friendPick, () => null);
   const friendId = friendRaw && scene.base.choices.some((c) => c.id === friendRaw) ? friendRaw : null;
+  // 문제를 낼 때는 첫 질문에서 내가 처음 고른 말을 링크에 싣는다. 받은 친구가 고른 뒤에 내 답과 비교해 보게 된다.
+  // 친구 문제로 들어온 사람은 같은 링크가 답장이 된다: 내 첫 답을 실어 되돌려 보내고, 처음 보낸 친구가 열면 왕복 한 번이다
+  const firstBase = scene.base.choices.find((c) => c.id === f.picked.base);
+  const replying = friendId !== null;
+  const { state: shareState, share } = useShare(
+    `/scenes/${scene.number}?${SHARE_PARAM}=${rewards?.shareCode ?? 1}${firstBase ? `&${FRIEND_PARAM}=${encodeURIComponent(firstBase.id)}` : ""}${replying ? `&${REPLY_PARAM}=1` : ""}`,
+    replying ? replyMessage(scene, firstBase, scene.base.choices.find((c) => c.id === friendId)) : shareMessage(scene, firstBase),
+    (from) => send({ type: replying ? "reply_link_copied" : "share_link_copied", choiceId: firstBase?.id, ...(from === "card" ? { step: "base" as const } : {}) }),
+  );
   const [showMeaning, setShowMeaning] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [wrapped, setWrapped] = useState(false);
@@ -684,6 +688,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               scene={scene}
               share={() => share("wrap")}
               shareState={shareState}
+              replying={replying}
               onBack={() => {
                 setWrapped(false);
                 setEndingStep("off");
@@ -806,7 +811,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                         onClick={() => share("card")}
                                         className="-mx-1 flex min-h-11 animate-fade items-center gap-1.5 whitespace-nowrap px-1 text-meta font-semibold text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink"
                                       >
-                                        {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : "친구에게 문제 내기"}
+                                        {shareState === "copied" ? "복사됨" : shareState === "failed" ? "복사 실패" : replying ? "친구에게 답장하기" : "친구에게 문제 내기"}
                                         <Arrow />
                                       </button>
                                     )}
@@ -824,6 +829,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     ))}
                   </ul>
                 )}
+                {/* 고르기 전에만 둔다. 마음에 맞는 말이 없어 멈추려는 순간 하려던 말을 받는다 */}
+                {!leading && !choice && !preview && <MissingIntent key={later ? "followUp" : "base"} sceneId={scene.id} sceneVersion={scene.version} step={later ? "followUp" : "base"} />}
               </div>
               {/* 세 말을 다 해 보면 도장을 나란히 모아 준다. 목록이 밀리지 않게 목록 아래에 붙는다 */}
               {choice && heardIds.length >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
