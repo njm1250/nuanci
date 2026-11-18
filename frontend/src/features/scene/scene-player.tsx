@@ -29,6 +29,7 @@ import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "
 import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, PICK_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
+import { NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
@@ -553,7 +554,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           {/* 데스크톱은 상황 한 줄을 무대 바로 위에 둔다. 대사가 흐르는 동안 읽을 것(상황·대사·자막)이 전부 왼쪽에 있어야 눈이 오른쪽 칸과 무대를 오가지 않는다.
               오른쪽 칸 맨 위 Mochi 한마디와 같은 높이에 놓여, 왼쪽은 "무슨 상황인지", 오른쪽은 "내가 할 일"로 나뉜다.
               무대 띠(bg-ink) 안에 두면 글자가 흰색으로 바뀌어서 띠 밖에 둔다 */}
-          <p className="mb-2.5 hidden min-h-10 items-end text-body leading-snug text-fg-muted md:flex">{stageSituation.context}</p>
+          <p className="mb-2.5 hidden min-h-10 items-end text-body leading-snug text-fg-muted md:flex"><span><NowLast text={stageSituation.context} /></span></p>
         <div ref={stageBox} onClick={leading ? nextBeat : choice && !wrapped && (!partnerReacts || speaking) ? skipReaction : undefined} className="shrink-0 bg-ink md:bg-transparent md:pb-8">
           <Panel>
             {/* 모바일 무대는 세로로 길게 둔다. 카메라 배율은 무대 너비로 정해져서 인물 크기는 그대로고 방이 위아래로 더 보인다.
@@ -705,7 +706,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
             // 모바일은 대사 동안 상황 한 줄만 두고 어디를 눌러도 다음 줄로 넘어간다. 고를 때는 작은 폰(375×667)에서도 보기 세 개가 스크롤 없이 들어온다
             <div key={`turn-${phase}`} className={leading ? "min-h-full cursor-pointer" : undefined}>
               {/* 데스크톱은 상황 한 줄이 무대 위에 있다 */}
-              <p className="text-note leading-normal text-fg-muted md:hidden">{situation.context}</p>
+              <p className="text-note leading-normal text-fg-muted md:hidden">
+                <NowLast text={situation.context} />
+              </p>
               {!leading && lead.length > 0 && (
                 <div className="md:hidden">
                   <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />
