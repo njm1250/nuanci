@@ -1,5 +1,5 @@
 export type TrackEvent = {
-  type: "scene_viewed" | "lead_finished" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied" | "reply_link_copied" | "reply_viewed" | "reward_shown" | "reward_equipped";
+  type: "scene_viewed" | "lead_finished" | "choice_selected" | "alternative_viewed" | "scene_completed" | "wrap_viewed" | "next_clicked" | "share_link_copied" | "reply_link_copied" | "reply_viewed" | "push_offer_shown" | "push_subscribed" | "reward_shown" | "reward_equipped";
   sceneId: string;
   sceneVersion: number;
   attemptId: string;

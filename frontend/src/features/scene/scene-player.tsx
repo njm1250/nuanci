@@ -689,6 +689,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               share={() => share("wrap")}
               shareState={shareState}
               replying={replying}
+              onPushShown={() => send({ type: "push_offer_shown" })}
+              onPushSubscribed={(hour) => send({ type: "push_subscribed", choiceId: String(hour) })}
               onBack={() => {
                 setWrapped(false);
                 setEndingStep("off");

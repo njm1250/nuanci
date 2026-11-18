@@ -30,6 +30,8 @@ dependencies {
 	implementation("tools.jackson.module:jackson-module-kotlin")
 	implementation(platform("software.amazon.awssdk:bom:2.31.0"))
 	implementation("software.amazon.awssdk:s3")
+	// 웹 푸시 암호화와 VAPID 서명. JDK 암호화와 HttpClient만 쓴다
+	implementation("com.interaso:webpush:1.2.0")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")

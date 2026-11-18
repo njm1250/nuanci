@@ -19,6 +19,7 @@ import { Arrow } from "./scene-parts";
 import { RUN_SIZE, runDoneAt, runShareMessage, useRun } from "./run";
 import { RunResult, RunResultWaiting, RunSteps, WaitDots } from "./run-ui";
 import { useShare } from "./use-scene-flow";
+import { PushOffer } from "@/features/push/push-offer";
 import { SceneThumb, ThumbStudio } from "@/features/landing/scene-thumb";
 import { MapPin } from "@/features/site/map-pin";
 import type { StageSpec } from "@/features/stage/types";
@@ -59,6 +60,8 @@ export function WrapUp({
   share,
   shareState,
   replying = false,
+  onPushShown,
+  onPushSubscribed,
   onBack,
   granted,
   reduced,
@@ -86,6 +89,8 @@ export function WrapUp({
   shareState: "idle" | "copied" | "failed";
   // 친구가 낸 문제로 들어왔으면 문제 내기 대신 답장하기
   replying?: boolean;
+  onPushShown?: () => void;
+  onPushSubscribed?: (hour: number) => void;
   onBack: () => void;
   granted: RewardItem[];
   reduced: boolean;
@@ -217,6 +222,9 @@ export function WrapUp({
         </span>
         <Arrow />
       </Link>}
+
+      {/* 내일 다시 부를 시간. 끝낸 보람(발견 카드) 바로 뒤가 "내일도 할까"를 묻기 가장 자연스러운 때다 */}
+      {onPushShown && onPushSubscribed && <PushOffer onShown={onPushShown} onSubscribed={onPushSubscribed} />}
 
       {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
       {(streak || granted.length > 0) && (

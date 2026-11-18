@@ -105,6 +105,10 @@ class EventController(
 			where excluded.client = '${ClientKind.BOT}' and visitor_client.client <> '${ClientKind.BOT}'
 			""",
 		).param("v", req.visitorId).param("c", ClientKind.of(userAgent, req.automated == true, req.utmSource, req.referrer)).param("ua", userAgent?.take(300)).update()
+		// 알림을 눌러 들어오면 안 연 알림 수를 0으로 돌린다. 연달아 안 연 알림이 쌓여야만 보내기를 멈춘다
+		if (req.type == "push_opened") {
+			jdbc.sql("update push_subscription set unopened = 0 where visitor_id = :v").param("v", req.visitorId).update()
+		}
 		// utm_source=ai로 들어온 방문은 AI가 화면을 확인한 것이라 내부 방문자로 돌려 이용 지표에서 뺀다
 		if (req.utmSource?.lowercase() == AI_SOURCE) {
 			jdbc.sql("insert into internal_visitor (visitor_id) values (:v) on conflict do nothing").param("v", req.visitorId).update()
