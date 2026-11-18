@@ -28,7 +28,7 @@ const website = {
 
 export default async function Home() {
   const [catalog, beats] = await Promise.all([getCatalog(), getReel()]);
-  const shelf = catalog.map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
+  const shelf = catalog.map(({ id, number, title, relation, place, stage, category, partnerLine }) => ({ id, number, title, relation, place, stage, category, partnerLine }));
   // 첫 장면을 아래 기능 소개의 실제 화면 조각으로 쓴다
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
   // 첫 방문 홈 실험(B)에서 홈에 바로 놓을 첫 장면의 질문. 보기 순서는 장면 화면과 같게 섞는다
