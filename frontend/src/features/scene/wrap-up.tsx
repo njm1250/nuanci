@@ -192,6 +192,10 @@ export function WrapUp({
           <p className="pb-1 font-poster text-display-sm leading-[1.25] text-fg">{scene.title}</p>
         </div>
       )}
+      {/* 다음 장면 예고 바로 아래에서 내일 몇 시에 부를지 묻는다. 예고 카드의 상대가 내일 먼저 말을 걸 사람이라 한 흐름으로 읽힌다 */}
+      {nextAsk && askShown && onPushShown && onPushSubscribed && (
+        <PushOffer partnerName={nextAsk.partnerName} onShown={onPushShown} onSubscribed={onPushSubscribed} />
+      )}
       {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
       <div className="blk-frame mt-6">
         <div className="blk bg-card-raised px-4 py-4 text-ink">
@@ -222,9 +226,6 @@ export function WrapUp({
         </span>
         <Arrow />
       </Link>}
-
-      {/* 내일 다시 부를 시간. 끝낸 보람(발견 카드) 바로 뒤가 "내일도 할까"를 묻기 가장 자연스러운 때다 */}
-      {onPushShown && onPushSubscribed && <PushOffer partnerName={nextAsk?.partnerName} partnerLine={nextAsk?.partnerLine} onShown={onPushShown} onSubscribed={onPushSubscribed} />}
 
       {/* 연속 기록과 새 물건은 발견 뒤에 작게 덧붙인다 */}
       {(streak || granted.length > 0) && (
