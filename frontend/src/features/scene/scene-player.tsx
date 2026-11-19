@@ -216,8 +216,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
       send({ type: "lead_finished", step, choiceId: "watched" });
     }
     setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
-    // 한 번이라도 직접 넘기면 그 사람은 자기 속도로 읽는 사람이다. 이후로는 자동으로 넘기지 않는다(멈춤 버튼을 따로 두지 않는 이유)
-    setAutoPaused(true);
+    // 직접 넘겨도 다음 줄부터는 다시 저절로 넘어간다. 한 번 누른 뒤 멈춰 버리면 멈춤 표시가 없어 고장 난 것처럼 보였다.
+    // 천천히 읽는 사람은 넘김 시간 자체를 늘려서 받쳐 준다(beatMs)
+    setAutoPaused(false);
   };
   // 데스크톱에서는 "바로 고르기"가 있던 자리에 보기가 올라온다. 버튼을 연달아 눌러 첫 보기가 골라지지 않게, 건너뛴 직후 잠깐은 고르기를 받지 않는다
   const pickAfter = useRef(0);
