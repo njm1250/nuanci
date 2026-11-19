@@ -125,12 +125,20 @@ export function FreeLineSlot({
     );
   }
 
+  // 쓰는 칸: 닫힌 칸과 같은 번호·제목 줄을 그대로 두고 그 아래가 대사 줄로 펼쳐진다. 상자 안에 상자를 겹치지 않고
+  // 밑줄 하나에 대사 글꼴로 쓰게 해서, 말한 뒤 같은 자리에 같은 크기로 내 말이 남는다
+  const ready = text.trim().length >= 2;
   return (
-    <form onSubmit={send} className="border-2 border-fg bg-card-raised px-3 py-3 text-ink">
-      <label htmlFor="free-line" className="block text-meta text-ink-subtle">
-        떠올린 영어를 그대로 써 봐
-      </label>
-      <div className="mt-1.5 flex items-stretch gap-2">
+    <form onSubmit={send} className="border-2 border-fg bg-card-raised px-3 py-3 text-ink animate-fade">
+      <div className="flex items-center gap-3">
+        <span aria-hidden className="grid size-6 shrink-0 place-items-center bg-ink font-label text-ui text-white">
+          {n}
+        </span>
+        <label htmlFor="free-line" className="min-w-0 flex-1 font-label text-ui">
+          내 말로 해 보기
+        </label>
+      </div>
+      <div className="mt-2 flex items-end gap-3 pl-9">
         <input
           id="free-line"
           value={text}
@@ -139,13 +147,20 @@ export function FreeLineSlot({
           autoFocus
           lang="en"
           autoCapitalize="sentences"
-          placeholder="영어로 한마디 써 봐!"
-          className="min-w-0 flex-1 border-2 border-ink bg-white px-3 py-2 font-line text-body text-ink-fixed placeholder:text-ink-subtle"
+          autoComplete="off"
+          spellCheck={false}
+          enterKeyHint="send"
+          placeholder="e.g. Break a leg!"
+          aria-describedby="free-line-hint"
+          className="min-w-0 flex-1 border-b-2 border-ink/30 bg-transparent pb-1 font-line text-say leading-snug text-ink caret-ink outline-none placeholder:text-ink-subtle/70 focus:border-ink focus-visible:outline-none"
         />
-        <BlockButton label type="submit" className="shrink-0">
+        <BlockButton label primary={ready} type="submit" disabled={!ready} className="shrink-0 disabled:opacity-40">
           말하기
         </BlockButton>
       </div>
+      <p id="free-line-hint" className="mt-1.5 pl-9 text-meta text-ink-subtle">
+        떠올린 영어 그대로. 상대에게 어떻게 들리는지 보여 줄게
+      </p>
     </form>
   );
 }
