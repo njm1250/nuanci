@@ -125,6 +125,30 @@ data class HygieneInsights(
     val recentVisitors: List<RecentVisitorRow>,
 )
 
+data class ChoiceCandidateRow(
+    val sceneId: String,
+    val sceneTitle: String?,
+    val step: String,
+    val text: String,
+    val people: Int,
+    val writes: Int,
+    val lastAt: String,
+    val verdicts: String?,
+)
+
+data class PromotedChoiceRow(
+    val sceneId: String,
+    val sceneTitle: String?,
+    val step: String,
+    val choiceId: String,
+    val line: String,
+    val promotedAt: String,
+    val fromPeople: Int,
+    val viewedPeople: Int,
+    val pickedPeople: Int,
+    val matchedWrites: Int,
+)
+
 data class InsightsResponse(
     val since: String,
     val pivot: String?,
@@ -138,6 +162,8 @@ data class InsightsResponse(
     val push: PushInsights,
     val share: ShareInsights,
     val hygiene: HygieneInsights,
+    val candidates: List<ChoiceCandidateRow>,
+    val promoted: List<PromotedChoiceRow>,
 )
 
 // 어드민 "핵심 질문" 화면에 필요한 외부 사람 도달·장면별 난이도·신규 기능·데이터 위생 지표를 집계한다
@@ -177,6 +203,8 @@ class InsightsController(
             push = queryPush(sinceTs),
             share = queryShare(sinceTs),
             hygiene = queryHygiene(sinceTs),
+            candidates = queryCandidates(sinceTs),
+            promoted = queryPromoted(),
         )
     }
 
@@ -468,6 +496,81 @@ class InsightsController(
             recentIntents = recentIntents,
         )
     }
+
+    // 보기에 붙지 못한 직접 입력을 장면·단계·정규화한 문장으로 묶어, 서로 다른 사람이 겹쳐 쓴 말부터 보여 준다(새 보기 후보)
+    private fun queryCandidates(since: Timestamp): List<ChoiceCandidateRow> = jdbc.sql(
+        """
+        select e.scene_id,
+               s.title as scene_title,
+               e.step,
+               min(e.text) as text,
+               count(distinct e.visitor_id) as people,
+               count(*) as writes,
+               max(e.created_at) as last_at,
+               string_agg(distinct e.reaction_verdict, ',') as verdicts
+        from missing_intent e
+        left join scene s on s.id = e.scene_id
+        where e.created_at >= :since
+          and e.outcome in ('reacted', 'unmatched')
+          and $EXTERNAL_HUMAN
+        group by e.scene_id, s.title, e.step, regexp_replace(lower(trim(e.text)), '[^a-z0-9 ]+', '', 'g')
+        order by people desc, writes desc, last_at desc
+        limit 50
+        """,
+    ).param("since", since).query { rs, _ ->
+        ChoiceCandidateRow(
+            sceneId = rs.getString("scene_id"),
+            sceneTitle = rs.getString("scene_title"),
+            step = rs.getString("step"),
+            text = rs.getString("text"),
+            people = rs.getInt("people"),
+            writes = rs.getInt("writes"),
+            lastAt = rs.instant("last_at")!!,
+            verdicts = rs.getString("verdicts"),
+        )
+    }.list()
+
+    // 사용자 입력에서 올린 보기(choices[].origin.kind = 'user')마다, 올린 뒤 그 보기를 구경·선택한 사람과 같은 말로 다시 붙은 입력 수를 센다
+    private fun queryPromoted(): List<PromotedChoiceRow> = jdbc.sql(
+        """
+        with promoted as (
+            select s.id as scene_id, s.title, st.step, c->>'id' as choice_id, c->>'line' as line,
+                   cast(c->'origin'->>'promotedAt' as date) as promoted_at,
+                   coalesce(cast(c->'origin'->>'fromPeople' as int), 0) as from_people
+            from scene s
+            join scene_version v on v.scene_id = s.id and v.version = s.current_version
+            cross join lateral (values ('base'), ('followUp')) as st(step)
+            cross join lateral json_array_elements(v.content->st.step->'choices') c
+            where s.status = 'published'
+              and c->'origin'->>'kind' = 'user'
+        )
+        select p.scene_id, p.title, p.step, p.choice_id, p.line, p.promoted_at, p.from_people,
+               (select count(distinct e.visitor_id) from scene_event e
+                  where e.scene_id = p.scene_id and e.choice_id = p.choice_id and e.type = 'alternative_viewed'
+                    and e.created_at >= p.promoted_at and $EXTERNAL_HUMAN) as viewed_people,
+               (select count(distinct e.visitor_id) from scene_event e
+                  where e.scene_id = p.scene_id and e.choice_id = p.choice_id and e.type = 'choice_selected'
+                    and e.created_at >= p.promoted_at and $EXTERNAL_HUMAN) as picked_people,
+               (select count(*) from missing_intent e
+                  where e.scene_id = p.scene_id and e.matched_choice_id = p.choice_id
+                    and e.created_at >= p.promoted_at and $EXTERNAL_HUMAN) as matched_writes
+        from promoted p
+        order by p.promoted_at desc, p.scene_id
+        """,
+    ).query { rs, _ ->
+        PromotedChoiceRow(
+            sceneId = rs.getString("scene_id"),
+            sceneTitle = rs.getString("title"),
+            step = rs.getString("step"),
+            choiceId = rs.getString("choice_id"),
+            line = rs.getString("line"),
+            promotedAt = rs.getString("promoted_at"),
+            fromPeople = rs.getInt("from_people"),
+            viewedPeople = rs.getInt("viewed_people"),
+            pickedPeople = rs.getInt("picked_people"),
+            matchedWrites = rs.getInt("matched_writes"),
+        )
+    }.list()
 
     // 최근 7일 AI 호출을 feature·prompt_version·outcome별로 묶어 지연시간과 함께 집계한다
     private fun queryAiCalls(): List<AiCallSummaryRow> = jdbc.sql(

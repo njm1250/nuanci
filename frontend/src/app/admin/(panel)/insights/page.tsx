@@ -5,6 +5,7 @@ import { getAdminJson } from "@/features/admin/api";
 import {
     HygieneSection,
     NewFeaturesSection,
+    PromotionSection,
     ReachSection,
     ScenesSection,
     type InsightsResponse,
@@ -77,6 +78,7 @@ async function Content({ searchParams }: PageProps<"/admin/insights">) {
             <ReachSection data={data} />
             <ScenesSection scenes={data.scenes} since={data.since} />
             <NewFeaturesSection data={data} />
+            <PromotionSection data={data} />
             <HygieneSection hygiene={data.hygiene} since={data.since} />
         </>
     );

@@ -104,6 +104,30 @@ export type HygieneInsights = {
     recentVisitors: RecentVisitorRow[];
 };
 
+export type ChoiceCandidateRow = {
+    sceneId: string;
+    sceneTitle: string | null;
+    step: string;
+    text: string;
+    people: number;
+    writes: number;
+    lastAt: string;
+    verdicts: string | null;
+};
+
+export type PromotedChoiceRow = {
+    sceneId: string;
+    sceneTitle: string | null;
+    step: string;
+    choiceId: string;
+    line: string;
+    promotedAt: string;
+    fromPeople: number;
+    viewedPeople: number;
+    pickedPeople: number;
+    matchedWrites: number;
+};
+
 export type InsightsResponse = {
     since: string;
     pivot: string | null;
@@ -113,6 +137,8 @@ export type InsightsResponse = {
     daily: InsightsDailyRow[];
     scenes: SceneInsightRow[];
     freeLine: FreeLineInsights;
+    candidates: ChoiceCandidateRow[];
+    promoted: PromotedChoiceRow[];
     aiCalls: AiCallSummaryRow[];
     push: PushInsights;
     share: ShareInsights;
@@ -690,6 +716,107 @@ export function HygieneSection({ hygiene, since }: { hygiene: HygieneInsights; s
                     )}
                 </AdminPanel>
             </div>
+        </div>
+    );
+}
+
+const STEP_LABEL: Record<string, string> = { base: "기본", followUp: "만약에" };
+
+// 보기에 없던 직접 입력 중 서로 다른 사람이 겹쳐 쓴 말(새 보기 후보)과, 그렇게 올린 보기가 이후 실제로 쓰이는지
+export function PromotionSection({ data }: { data: InsightsResponse }) {
+    const { candidates, promoted } = data;
+    return (
+        <div className="adm-section-space">
+            <AdminPanel
+                title="보기 후보 — 보기에 없어 직접 쓴 말"
+                description={`${data.since} 이후 외부 사람 · 매칭되지 않은 입력을 장면·단계·같은 문장으로 묶음 · 2명 이상이면 출처를 확인해 보기로 올릴 후보`}
+            >
+                {candidates.length === 0 ? (
+                    <AdminEmpty>아직 보기에 붙지 못한 직접 입력이 없습니다.</AdminEmpty>
+                ) : (
+                    <div className="adm-table-scroll">
+                        <table className="adm-table">
+                            <thead>
+                                <tr>
+                                    <th>사람</th>
+                                    <th>쓴 말</th>
+                                    <th>장면 · 단계</th>
+                                    <th>AI 판정</th>
+                                    <th>마지막</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {candidates.map((row, index) => (
+                                    <tr key={`${row.sceneId}-${row.step}-${index}`}>
+                                        <td>
+                                            {row.people >= 2 ? (
+                                                <span className="adm-badge adm-badge-warning">{number(row.people)}명</span>
+                                            ) : (
+                                                `${number(row.people)}명`
+                                            )}
+                                            {row.writes > row.people && <span className="adm-secondary">{number(row.writes)}번</span>}
+                                        </td>
+                                        <td>{row.text}</td>
+                                        <td>
+                                            {row.sceneTitle ?? row.sceneId} · {STEP_LABEL[row.step] ?? row.step}
+                                            <span className="adm-secondary">
+                                                <code>{row.sceneId}</code>
+                                            </span>
+                                        </td>
+                                        <td>{row.verdicts ? row.verdicts.split(",").map(verdictLabel).join(" · ") : "-"}</td>
+                                        <td style={{ whiteSpace: "nowrap" }}>{adminTime(row.lastAt)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </AdminPanel>
+            <AdminPanel
+                title="올린 보기가 쓰이나"
+                description="사용자 입력에서 올린 보기(origin.kind = user) · 올린 날 이후 외부 사람 기준 · 구경 / 선택 / 같은 말로 다시 붙은 입력"
+            >
+                {promoted.length === 0 ? (
+                    <AdminEmpty>아직 사용자 입력에서 올린 보기가 없습니다.</AdminEmpty>
+                ) : (
+                    <div className="adm-table-scroll">
+                        <table className="adm-table">
+                            <thead>
+                                <tr>
+                                    <th>보기</th>
+                                    <th>장면 · 단계</th>
+                                    <th>올린 날 · 근거</th>
+                                    <th>구경한 사람</th>
+                                    <th>고른 사람</th>
+                                    <th>다시 붙은 입력</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {promoted.map((row) => (
+                                    <tr key={`${row.sceneId}-${row.choiceId}`}>
+                                        <td>
+                                            {row.line}
+                                            <span className="adm-secondary">
+                                                <code>{row.choiceId}</code>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {row.sceneTitle ?? row.sceneId} · {STEP_LABEL[row.step] ?? row.step}
+                                        </td>
+                                        <td style={{ whiteSpace: "nowrap" }}>
+                                            {row.promotedAt}
+                                            <span className="adm-secondary">{number(row.fromPeople)}명이 씀</span>
+                                        </td>
+                                        <td>{number(row.viewedPeople)}명</td>
+                                        <td>{number(row.pickedPeople)}명</td>
+                                        <td>{number(row.matchedWrites)}건</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </AdminPanel>
         </div>
     );
 }
