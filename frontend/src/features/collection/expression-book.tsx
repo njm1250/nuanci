@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
+import { sfx } from "@/features/scene/sfx";
 import { TRAP_LABELS, type Trap } from "@/features/scene/types";
 import { answerCta } from "@/features/scene/teaser";
 import { spoken, type BookEntry, type ExpressionPair } from "./pairs";
@@ -37,10 +38,34 @@ function SearchIcon() {
   );
 }
 
+// 들린 느낌(pair.heard)이 아직 없는 이전 데이터에서는 함정 종류를 상대에게 들린 인상 문구로 바꿔 보여 준다
+const TRAP_STAMP: Record<Trap, string> = {
+  literal: "직역으로 들림",
+  konglish: "콩글리시 오해",
+  answer: "엉뚱한 대답",
+  textbook: "교과서 말투",
+  blunt: "차갑게 들림",
+  formal: "거리감 있게 들림",
+  context: "분위기와 어긋남",
+  misread: "다른 뜻으로 들림",
+  culture: "문화 선 넘음",
+};
+
 // 표현 한 쌍. 왼쪽(모바일은 위)에 하고 싶던 말과 그때 상황, 오른쪽에 자연스러운 말(다른 자연스러운 말은 '또는'으로) → 틀리기 쉬운 말.
-// 복습할 때 한국어와 상황을 먼저 읽고 영어를 떠올리게 한다. 영어 가리기를 켜면 자연스러운 말을 가려 두고 눌러야 보여준다.
+// 복습할 때 한국어와 상황을 먼저 읽고 영어를 떠올리게 한다. 영어 가리기를 켜면 카드처럼 눌러서 뒤집어 보고 다시 가릴 수 있다.
 // 출처는 필요할 때만 펼쳐 본다. 늘 펼쳐 두면 긴 사전 이름이 표현보다 길어진다
-function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boolean; onReveal: () => void }) {
+function PairRow({
+  pair,
+  study,
+  hidden,
+  onToggle,
+}: {
+  pair: ExpressionPair;
+  study: boolean;
+  hidden: boolean;
+  onToggle: () => void;
+}) {
+  const stamp = pair.heard ?? (pair.trap ? TRAP_STAMP[pair.trap] : null);
   return (
     <li className="grid grid-cols-1 gap-y-3 px-4 py-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-x-6 md:py-5">
       <div className="min-w-0">
@@ -56,8 +81,31 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
             <Mark good />
           </span>
           {hidden ? (
-            <button type="button" onClick={onReveal} className="min-h-9 flex-1 border border-dashed border-line px-2 text-left font-label text-ui text-fg-subtle">
-              눌러서 보기
+            <button
+              type="button"
+              onClick={onToggle}
+              className="flex min-h-11 flex-1 items-center justify-between gap-2 border-2 border-dashed border-line bg-surface px-3 text-left font-label text-ui text-fg-muted hover:border-fg hover:text-fg"
+            >
+              <span>눌러서 영어 확인</span>
+              <span aria-hidden className="text-meta text-fg-subtle">뒤집기</span>
+            </button>
+          ) : study ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-label={`${pair.right}, 다시 가리기`}
+              className="group min-w-0 flex-1 animate-fade text-left"
+            >
+              <p className="font-line text-say-lg leading-snug">{pair.right}</p>
+              {pair.alts.map((a) => (
+                <p key={a} className="font-line text-body leading-snug text-fg-muted">
+                  <span className="font-sans text-meta text-fg-subtle">또는 </span>
+                  {a}
+                </p>
+              ))}
+              <span className="mt-1 inline-block text-meta text-fg-subtle underline underline-offset-4 group-hover:text-fg">
+                눌러서 다시 가리기
+              </span>
             </button>
           ) : (
             <div className="min-w-0">
@@ -71,10 +119,14 @@ function PairRow({ pair, hidden, onReveal }: { pair: ExpressionPair; hidden: boo
             </div>
           )}
         </div>
-        <p className="mt-2 flex items-center gap-2 text-body text-fg-subtle">
+        <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-body text-fg-subtle">
           <Mark good={false} />
           <s className="min-w-0 decoration-rust decoration-2">{pair.wrong}</s>
-          {pair.trap && <span className="shrink-0 text-meta">{TRAP_LABELS[pair.trap]}</span>}
+          {stamp && (
+            <span className="-rotate-2 inline-block shrink-0 border-2 border-ink bg-bad px-1.5 py-0.5 font-label-strong text-meta leading-none text-ink">
+              {stamp}
+            </span>
+          )}
         </p>
         {!hidden && pair.sources && pair.sources.length > 0 && (
           <details className="group/src mt-2 pl-7 text-meta text-fg-subtle">
@@ -141,8 +193,14 @@ export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[];
   for (const p of open.flatMap((e) => e.pairs)) if (p.trap) trapCount.set(p.trap, (trapCount.get(p.trap) ?? 0) + 1);
 
   const toggleHide = () => {
+    sfx.tap();
     setHide((v) => !v);
     setRevealed([]);
+  };
+
+  const toggleReveal = (key: string) => {
+    sfx.tap();
+    setRevealed((r) => (r.includes(key) ? r.filter((k) => k !== key) : [...r, key]));
   };
 
   return (
@@ -210,13 +268,13 @@ export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[];
               {shown.map(({ entry, pairs }) => (
                 <section key={entry.id} className="border-2 border-fg">
                   {/* 장면 묶음 머리: 작은 장면 그림과 제목으로 어느 장면에서 모은 표현인지 바로 알아보게 한다 */}
-                  <div className="flex items-center gap-3 border-b-2 border-fg bg-surface px-3 py-2.5">
-                    {stages[entry.id] && <SceneThumb stage={stages[entry.id]} className="aspect-[4/3] w-16 shrink-0 border border-line" />}
+                  <div className="flex items-center gap-2.5 border-b-2 border-fg bg-surface px-3 py-2.5 md:gap-3">
+                    {stages[entry.id] && <SceneThumb stage={stages[entry.id]} className="aspect-[4/3] w-14 shrink-0 border border-line md:w-16" />}
                     <div className="min-w-0 flex-1">
                       <p className="text-meta text-fg-subtle">표현 {pairs.length}개</p>
-                      <h2 className="truncate font-poster text-title leading-snug text-fg">{entry.title}</h2>
+                      <h2 className="line-clamp-2 break-keep font-poster text-title leading-snug text-fg">{entry.title}</h2>
                     </div>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1.5 px-1 font-label text-ui text-fg-muted hover:text-fg">
+                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1 px-1 font-label text-ui text-fg-muted hover:text-fg">
                       다시 하기
                       <Arrow />
                     </EntryLink>
@@ -224,7 +282,7 @@ export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[];
                   <ul className="divide-y divide-line/60 bg-card">
                     {pairs.map((p) => {
                       const key = `${entry.id}:${p.right}`;
-                      return <PairRow key={key} pair={p} hidden={hide && !revealed.includes(key)} onReveal={() => setRevealed((r) => [...r, key])} />;
+                      return <PairRow key={key} pair={p} study={hide} hidden={hide && !revealed.includes(key)} onToggle={() => toggleReveal(key)} />;
                     })}
                   </ul>
                 </section>

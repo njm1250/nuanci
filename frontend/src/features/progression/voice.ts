@@ -68,6 +68,8 @@ export type Voice = {
   clear: number;
   // 가장 자주 걸린 함정과 그 함정이 만든 인상. 함정에 한 번도 안 걸렸으면 null
   top: { trap: Trap; count: number; lean: string } | null;
+  // 걸린 함정 전체를 횟수 내림차순으로 정리한 목록
+  traps: { trap: Trap; count: number; lean: string }[];
   headline: string;
 };
 
@@ -77,12 +79,14 @@ export function voiceOf(store: Store): Voice {
   const good = answers.filter((a) => a === "good").length;
   const counts = new Map<Trap, number>();
   for (const a of answers) if (a !== "good") counts.set(a, (counts.get(a) ?? 0) + 1);
-  const [trap, count] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
-  const top = trap ? { trap, count: count!, lean: LEANS[trap] } : null;
+  const traps = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([trap, count]) => ({ trap, count, lean: LEANS[trap] }));
+  const top = traps[0] ?? null;
   const clear = answered ? Math.round((good / answered) * 100) : 0;
   const headline =
     answered < VOICE_MIN ? `질문 ${VOICE_MIN - answered}개에 더 답하면 보여요` : top && clear < 70 ? `${top.lean}이에요` : "대체로 의도대로 들리는 편이에요";
-  return { answered, good, clear, top, headline };
+  return { answered, good, clear, top, traps, headline };
 }
 
 const voiceCache = { store: EMPTY as Store, voice: voiceOf(EMPTY) };

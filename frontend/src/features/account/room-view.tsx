@@ -74,19 +74,35 @@ function memoryScene(item: RewardItem, cleared: string[]) {
 }
 
 // 아지트 무대에서 캐릭터를 누를 때마다 차례로 돌아가며 하는 동작과 말. 계속 반복되는 동작(춤·손 흔들기)은 멈추지 않아서 한 번 하고 끝나는 것만 쓴다
-const ME_POKES: { motion: Motion; line: string }[] = [
-  { motion: "bounce", line: "간지러워!" },
-  { motion: "spin", line: "이 방 꽤 괜찮지?" },
-  { motion: "nod", line: "오늘도 한마디 해 볼까?" },
-  { motion: "tilt", line: "왜, 할 말 있어?" },
-  { motion: "clap", line: "새 물건 또 받고 싶다!" },
-];
-const MOCHI_POKES: { motion: Motion; line: string }[] = [
-  { motion: "bounce", line: "냥?" },
-  { motion: "tilt", line: "골골골…" },
-  { motion: "spin", line: "밥은?" },
-  { motion: "nod", line: "건드리지 마라냥" },
-];
+function mePokes(clearedCount: number, nextRemaining: number | null, previewKind: "wear" | "room" | null): { motion: Motion; line: string }[] {
+  const base: { motion: Motion; line: string }[] = [
+    { motion: "bounce", line: "간지러워!" },
+    { motion: "spin", line: clearedCount > 0 ? `벌써 ${clearedCount}장면이나 해 봤네!` : "이 방 꽤 괜찮지?" },
+    { motion: "nod", line: "오늘도 영어로 한마디 해 볼까?" },
+    { motion: "clap", line: nextRemaining ? `장면 ${nextRemaining}개만 더 하면 새 물건!` : "아지트가 꽤 채워졌지?" },
+    { motion: "tilt", line: "왜, 할 말 있어?" },
+  ];
+  if (previewKind === "wear") {
+    return [{ motion: "spin", line: "어때, 잘 어울려? 얼른 받고 싶다!" }, ...base];
+  }
+  if (previewKind === "room") {
+    return [{ motion: "bounce", line: "여기 두면 방 분위기 딱인데!" }, ...base];
+  }
+  return base;
+}
+
+function mochiPokes(clearedCount: number, previewKind: "wear" | "room" | null): { motion: Motion; line: string }[] {
+  const base: { motion: Motion; line: string }[] = [
+    { motion: "bounce", line: "냥? 잘 지냈냐냥" },
+    { motion: "tilt", line: "골골골… 오늘도 한 장면 어때?" },
+    { motion: "spin", line: clearedCount > 0 ? `책장에 책이 ${clearedCount}권 쌓였다냥!` : "밥은 줬냐냥?" },
+    { motion: "nod", line: "건드리지 마라냥… (사실 좋음)" },
+  ];
+  if (previewKind) {
+    return [{ motion: "bounce", line: "오! 그거 탐난다냥!" }, ...base];
+  }
+  return base;
+}
 
 export function RoomView({ memories }: { memories: Record<string, SceneMemory> }) {
   const cleared = useCleared();
@@ -95,8 +111,6 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
     sfx.poke(who);
     setPoke((p) => ({ who, n: (p?.n ?? -1) + 1 }));
   };
-  const mePoke = poke?.who === "me" ? ME_POKES[poke.n % ME_POKES.length] : null;
-  const mochiPoke = poke?.who === "partner" ? MOCHI_POKES[poke.n % MOCHI_POKES.length] : null;
   const account = useAccount();
   const rewards = useRewards();
   const look = useHeroLook();
@@ -109,7 +123,8 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showLocked, setShowLocked] = useState(false);
   const [shownId, setShownId] = useState<string | null>(null);
-  const [preview, setPreview] = useState(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewTick, setPreviewTick] = useState(0);
 
   // 새 표시는 이 화면에 있는 동안 남기고, 떠날 때 본 것으로 남긴다
   useEffect(() => () => markAllRewardsSeen(), []);
@@ -136,6 +151,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   // 안 쓰던 아이템은 누르면 바로 쓰고, 쓰고 있는 아이템은 처음 누르면 골라서 색을 바꿀 수 있게 하고 한 번 더 누르면 벗는다
   const press = (r: RewardItem) => {
     setSelectedId(r.id);
+    setPreviewId(null);
     if (!isUsable(r)) return;
     if (!isOn(r)) setOn(r, true);
     else if (selectedId === r.id) setOn(r, false);
@@ -155,36 +171,86 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
     setShownId(null);
   };
   const next = rewards?.next;
-  // 다음 보상을 미리 무대에 올려 본다. 옷은 같은 자리에 쓰던 것 대신 입히고, 방 물건은 방에 놓는다
+  // 다음 보상뿐 아니라 잠긴 옷·방 물건도 눌러서 무대에 미리 올려 볼 수 있다. 옷은 같은 자리의 것 대신 입히고, 방 물건은 방에 놓는다
   const nextItem = next?.type === "item" && next.id ? (items.find((i) => i.id === next.id) ?? null) : null;
-  const previewing = preview && nextItem !== null;
-  const sameSlot = (id: string) => nextItem?.slot != null && items.some((i) => i.id === id && i.slot === nextItem.slot);
-  const stageWear = previewing && nextItem.kind === "wear" ? [...look.wear.filter((w) => !sameSlot(w.id)), { id: nextItem.id as AccessoryId }] : look.wear;
-  const stagePlaced = previewing && nextItem.kind === "room" ? [...look.placed, nextItem.id] : look.placed;
+  const previewItem = previewId ? (items.find((i) => i.id === previewId && !i.owned) ?? null) : null;
+  const togglePreview = (item: RewardItem) => {
+    const turningOn = previewId !== item.id;
+    if (turningOn) {
+      if (item.kind === "wear") sfx.equip();
+      else sfx.place();
+      setPoke(null);
+      setPreviewTick((t) => t + 1);
+      setPreviewId(item.id);
+    } else {
+      sfx.tap();
+      setPreviewId(null);
+    }
+  };
+  const sameSlot = (id: string) => previewItem?.slot != null && items.some((i) => i.id === id && i.slot === previewItem.slot);
+  const stageWear = previewItem && previewItem.kind === "wear" ? [...look.wear.filter((w) => !sameSlot(w.id)), { id: previewItem.id as AccessoryId }] : look.wear;
+  const stagePlaced = previewItem && previewItem.kind === "room" ? [...look.placed, previewItem.id] : look.placed;
+
+  const mePool = mePokes(cleared.length, next?.remaining ?? null, previewItem?.kind ?? null);
+  const mochiPool = mochiPokes(cleared.length, previewItem?.kind ?? null);
+  const mePoke = poke?.who === "me" ? mePool[poke.n % mePool.length] : null;
+  const mochiPoke = poke?.who === "partner" ? mochiPool[poke.n % mochiPool.length] : null;
+  const idleMeLine = previewItem
+    ? previewItem.kind === "wear"
+      ? "어때, 잘 어울려? 얼른 받고 싶다!"
+      : "방에 두면 딱이겠는데?"
+    : "여기가 내 아지트야!";
 
   return (
     <div className="md:grid md:grid-cols-[minmax(0,1fr)_400px] md:items-start md:gap-10">
       <div className="sticky top-[var(--header-shown)] z-10 -mx-4 bg-page px-4 pb-3 transition-[top] duration-base ease-out md:top-[calc(var(--header-shown)+1.5rem)] md:mx-0 md:bg-transparent md:px-0">
-        {next && <NextReward next={next} item={nextItem} preview={previewing} onPreview={() => (sfx.tap(), setPreview((v) => !v))} />}
+        {next && (
+          <NextReward
+            next={next}
+            item={nextItem}
+            preview={nextItem !== null && previewItem?.id === nextItem.id}
+            onPreview={() => nextItem && togglePreview(nextItem)}
+          />
+        )}
         <Panel>
           <div className="relative aspect-[4/3] max-h-[32dvh] w-full overflow-hidden md:max-h-none">
             <Stage
               spec={{ set: "room", time: "day", partner: "mochi", hero: look.hero, wear: stageWear, flags: [`books-${cleared.length}`, ...stagePlaced] }}
               state={{
-                meMotion: mePoke?.motion,
-                meKey: mePoke ? poke!.n : 0,
+                meMotion: mePoke?.motion ?? (previewItem ? "bounce" : undefined),
+                meKey: mePoke ? poke!.n + 1 : previewItem ? 1000 + previewTick : 0,
                 partnerMotion: mochiPoke?.motion ?? "idle",
-                partnerKey: mochiPoke ? poke!.n : 0,
-                talkKey: mePoke ? poke!.n : 0,
+                partnerKey: mochiPoke ? poke!.n + 1 : 0,
+                talkKey: mePoke ? poke!.n + 1 : previewItem ? 1000 + previewTick : 0,
                 reaction: null,
-                // 누른 캐릭터만 말한다. 아무도 안 눌렀으면 주인공이 아지트를 소개한다
-                meLine: mochiPoke ? undefined : (mePoke?.line ?? (previewing ? "이거 갖고 싶다!" : "여기가 내 아지트야!")),
+                // 누른 캐릭터만 말한다. 아무도 안 눌렀으면 주인공이 아지트나 미리 입어 본 물건을 소개한다
+                meLine: mochiPoke ? undefined : (mePoke?.line ?? idleMeLine),
                 partnerLine: mochiPoke?.line,
               }}
               onPick={pokeStage}
             />
           </div>
         </Panel>
+        {previewItem ? (
+          <div className="mt-2 flex items-center justify-between gap-2 border-2 border-ink bg-card-raised px-3 py-1.5 text-ink">
+            <p className="min-w-0 truncate text-note">
+              <span className="font-label text-ui">미리 보는 중</span>
+              <span className="ml-2 text-ink-subtle">
+                {previewItem.id === nextItem?.id && nextItem.name ? `${nextItem.name} · ` : ""}
+                {previewItem.lock ? lockHint(previewItem.lock) : "잠긴 물건"}
+              </span>
+            </p>
+            <button
+              type="button"
+              onClick={() => (sfx.tap(), setPreviewId(null))}
+              className="-my-1.5 flex min-h-11 shrink-0 items-center px-2 font-label text-ui text-ink underline underline-offset-4"
+            >
+              끄기
+            </button>
+          </div>
+        ) : !poke ? (
+          <p className="mt-1.5 text-center text-meta text-fg-subtle">주인공이나 모치를 콕 눌러 봐!</p>
+        ) : null}
       </div>
 
       <div className="mt-3 md:mt-0">
@@ -251,11 +317,19 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
               </ul>
               {lockedOnly.length > 0 && (
                 <section className="mt-6 border-t-2 border-line/60 pt-4">
-                  <h3 className="font-label text-ui text-fg">{tab === "wear" ? "다음에 받을 옷" : "다음에 받을 물건"}</h3>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="font-label text-ui text-fg">{tab === "wear" ? "다음에 받을 옷" : "다음에 받을 물건"}</h3>
+                    <span className="text-meta text-fg-subtle">눌러서 미리 보기</span>
+                  </div>
                   <ul className="mt-2.5 grid grid-cols-3 gap-2">
                     {(showLocked ? lockedOnly : lockedOnly.slice(0, 3)).map((r) => (
                       <li key={r.id}>
-                        <LockedTile item={r} name={r.id === nextItem?.id ? nextItem.name : null} />
+                        <LockedTile
+                          item={r}
+                          name={r.id === nextItem?.id ? nextItem.name : null}
+                          active={previewItem?.id === r.id}
+                          onPreview={r.lock?.type === "box" ? undefined : () => togglePreview(r)}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -296,7 +370,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
             ))}
         </div>
 
-        {!member && account.status !== "loading" && (
+        {!member && account.status === "guest" && account.google && (
           <Panel className="mt-6">
             <div className="p-4">
               <p className="text-body font-bold">로그인하고 계정에 남기기</p>
@@ -372,15 +446,53 @@ function NextReward({ next, item, preview, onPreview }: { next: NonNullable<Retu
   );
 }
 
-// 아직 못 얻은 칸. 그림자 아이콘과 얻는 조건을 자르지 않고 두 줄까지 다 보여 준다. 이름은 다음 보상일 때만 밝힌다
-function LockedTile({ item, name }: { item: RewardItem; name: string | null }) {
+// 아직 못 얻은 칸. 그림자 아이콘과 얻는 조건을 보여 주고, 누르면 무대에 미리 입어 보거나 놓아 볼 수 있다. 상자 물건은 비밀이라 미리 보기를 막는다
+function LockedTile({
+  item,
+  name,
+  active,
+  onPreview,
+}: {
+  item: RewardItem;
+  name: string | null;
+  active: boolean;
+  onPreview?: () => void;
+}) {
   const hint = item.lock ? lockHint(item.lock) : "깜짝 상자";
+  const body = (
+    <>
+      <RewardIcon
+        id={item.lock?.type === "box" ? "box" : item.id}
+        size={28}
+        className={active ? "" : "opacity-30 [filter:brightness(0)_invert(1)] light:[filter:brightness(0)]"}
+      />
+      {name && <span className={`text-meta font-semibold leading-tight ${active ? "text-ink" : "text-fg"}`}>{name}</span>}
+      <span className={`text-meta leading-tight ${active ? "text-ink-subtle" : "text-fg-subtle"}`}>
+        {active ? "미리 보는 중" : hint}
+      </span>
+    </>
+  );
+  if (!onPreview) {
+    return (
+      <div aria-label={`잠긴 아이템, ${name ? `${name}, ` : ""}${hint}`} className="flex h-full flex-col items-center gap-1.5 border-2 border-dashed border-line bg-surface px-1.5 py-3 text-center">
+        {body}
+      </div>
+    );
+  }
   return (
-    <div aria-label={`잠긴 아이템, ${name ? `${name}, ` : ""}${hint}`} className="flex h-full flex-col items-center gap-1.5 border-2 border-dashed border-line bg-surface px-1.5 py-3 text-center">
-      <RewardIcon id={item.lock?.type === "box" ? "box" : item.id} size={28} className="opacity-30 [filter:brightness(0)_invert(1)] light:[filter:brightness(0)]" />
-      {name && <span className="text-meta font-semibold leading-tight text-fg">{name}</span>}
-      <span className="text-meta leading-tight text-fg-subtle">{hint}</span>
-    </div>
+    <button
+      type="button"
+      onClick={onPreview}
+      aria-pressed={active}
+      aria-label={`잠긴 아이템 미리 보기, ${name ? `${name}, ` : ""}${hint}`}
+      className={`flex h-full w-full flex-col items-center gap-1.5 border-2 px-1.5 py-3 text-center transition-colors duration-fast ${
+        active
+          ? "border-ink bg-card-raised text-ink"
+          : "border-dashed border-line bg-surface hover:border-fg"
+      }`}
+    >
+      {body}
+    </button>
   );
 }
 

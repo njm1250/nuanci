@@ -3,6 +3,7 @@
 import { sourcesLine } from "./where";
 import Link from "next/link";
 import { LogoLink } from "@/features/site/logo-link";
+import { MapPin } from "@/features/site/map-pin";
 import { PrStatus } from "./pr-status";
 import { useRouter } from "next/navigation";
 
@@ -14,6 +15,7 @@ import { playStreak, useStreakMoment } from "@/features/streak/streak";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 three.js를 이 파일을 읽자마자 받기 시작한다.
 // 다만 페이지 묶음에는 넣지 않아서, 받는 동안에도 글자와 선택지는 먼저 그려지고 누를 수 있다
 import { preloadStage, Stage } from "@/features/stage/stage";
+import { PartnerFace } from "@/features/stage/partner-face";
 import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
@@ -23,7 +25,7 @@ import { ImagineBubble } from "./imagine-bubble";
 import { primeAudio, sfx } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
-import { Num, VERDICTS } from "./verdict";
+import { Num, VERDICTS, VerdictStamp } from "./verdict";
 import { markCleared, nextScene } from "./progress";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
@@ -83,7 +85,8 @@ export function ScenePlayer(props: PlayerProps) {
 // "내 말로 해 보기" 결과마다 Mochi의 한마디. 무엇이 일어났는지만 말하고 다음 할 일은 칸이 보여 준다
 const FREE_MOCHI: Record<FreeLine["outcome"], (n: number) => string> = {
   pending: () => "어떻게 들렸을까…",
-  matched: (n) => `그건 ${n}번이랑 거의 같은 말이야!`,
+  // 0이면 첫 답 전이라 아직 안 보이는 구경용 보기에 붙은 것
+  matched: (n) => (n > 0 ? `그건 ${n}번이랑 거의 같은 말이야!` : "오, 숨어 있던 보기랑 거의 같은 말이야!"),
   reacted: () => "이렇게 들렸대!",
   off_topic: () => "그건 이 상황에서 할 말이 아닌 것 같은데?",
   too_far: () => "음… 그 말은 못 들은 걸로 할게",
@@ -503,7 +506,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const [freeOpenStep, setFreeOpenStep] = useState<string | null>(null);
   const [free, setFree] = useState<FreeLine | null>(null);
   const [freeKey, setFreeKey] = useState(0);
+  const [freeDraft, setFreeDraft] = useState<{ step: "base" | "followUp"; text: string }>({ step: "base", text: "" });
   const fl = !choice && free?.step === stepNow ? free : null;
+  const liveDraft = !choice && !fl && freeOpenStep === stepNow && freeDraft.step === stepNow ? freeDraft.text.trim() : "";
   // 내 말이 어떻게 들렸는지 기다리는 동안 칩튠을 깐다. 결과가 오면 끊긴다
   const freePending = fl?.outcome === "pending";
   useEffect(() => (freePending ? sfx.thinking() : undefined), [freePending]);
@@ -629,14 +634,20 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     ? beat.who === "partner" && beat.motion
                       ? beat.motion
                       : stageSituation.partnerIdle.motion
-                    : endingOn ? (partnerEnds && endingStep === "punch" ? (ending.motion ?? "idle") : "idle") : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
+                    : endingOn
+                      ? partnerEnds && endingStep === "punch"
+                        ? (ending.motion ?? "idle")
+                        : "idle"
+                      : liveDraft
+                        ? "lean"
+                        : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
                   partnerKey: fl ? 5000 + freeKey : stageKey,
                   talkKey: fl ? 5000 + freeKey : stageKey,
                   // "내 말로 해 보기"로 말했으면 무대에서 내가 그 말을 하고, 상대가 상상한 반응(표정·속마음)으로 받는다
                   reaction: endingOn ? null : fl?.outcome === "reacted" ? (fl.expression ?? null) : (stageChoice?.expression ?? null),
-                  meLine: beat ? (beat.who === "me" ? beat.line : undefined) : endingOn ? undefined : (fl?.line ?? stageChoice?.line),
+                  meLine: beat ? (beat.who === "me" && beat.line !== "……" ? beat.line : undefined) : endingOn ? undefined : (fl?.line ?? stageChoice?.line),
                   partnerLine: beat
-                    ? beat.who === "partner"
+                    ? beat.who === "partner" && beat.line !== "……"
                       ? beat.line
                       : undefined
                     : endingOn
@@ -653,7 +664,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   partnerSays: fl?.outcome === "reacted" ? fl.thought : partnerReacts && !speaking ? stageChoice?.reaction : undefined,
                   meTurn: phase !== "transition" && !choice && !leading && !fl,
                   meThink: spoken(stageSituation.intent),
-                  meTry: trying?.line,
+                  meTry: liveDraft || trying?.line,
                   cutIn,
                 }}
               />
@@ -682,13 +693,19 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {/* 펀치라인은 장면의 웃음이라 뜻 보기와 상관없이 늘 자막을 붙인다. 못 알아들으면 끝맛이 사라진다 */}
               {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
               {later && !endingOn && !beat && (
-                <p className={`absolute bottom-2 left-2 animate-fade bg-ink px-2 py-1 font-label text-ui leading-none text-fg ${STAGE_TUCK_LIFT}`}>
+                <p className="pointer-events-none absolute right-2 top-2 animate-fade bg-ink px-2 py-1 font-label text-meta leading-none text-fg">
                   {timeCue ?? (
                     <>
                       <span className="font-bold">만약에</span> {scene.followUp.to}
                     </>
                   )}
                 </p>
+              )}
+              {/* 반응이 터진 무대 왼쪽 위에 들린 느낌 도장을 함께 찍어, 무대 한 컷 자체가 완성된 짤이 되게 한다 */}
+              {cardRevealed && stageChoice && !wrapped && !endingOn && phase !== "transition" && (
+                <div key={`stage-stamp-${stageKey}`} aria-hidden className="pointer-events-none absolute left-2.5 top-2.5">
+                  <VerdictStamp choice={stageChoice} pop={!reduced} delay={0} />
+                </div>
               )}
               {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-wipe bg-ink" />}
               {burst && !reduced && phase !== "transition" && (
@@ -799,11 +816,71 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   </span>
                 </MochiAsk>
                 {leading ? (
-                  <BlockButton onClick={skipLead} className="mt-2 w-full" faceClassName="py-3 text-center text-body font-bold">
-                    바로 고르기
-                  </BlockButton>
+                  <>
+                    <BlockButton onClick={skipLead} className="mt-2 w-full" faceClassName="py-3 text-center text-body font-bold">
+                      바로 고르기
+                    </BlockButton>
+                    {/* 데스크톱에서 대사가 흐르는 동안 오른쪽 칸이 비어 보이지 않게, 이 장면의 상대를 이름표처럼 보여 준다.
+                        제목은 머리줄에 이미 있어 다시 쓰지 않고, 몇 번째 대사인지는 칸 막대로, 넘기는 키는 버튼 안에 붙인다 */}
+                    <Panel className="mt-4">
+                      <div className="flex items-center gap-3.5 p-3.5 text-ink">
+                        <span className="grid size-16 shrink-0 place-items-end justify-center overflow-hidden border-2 border-ink bg-stage-sky">
+                          <PartnerFace partner={spec.partner} expression={stageSituation.partnerIdle.expression} size={56} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-title font-bold leading-tight">{scene.partnerName}</p>
+                          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-note text-ink-subtle">
+                            <span className="shrink-0">{scene.relation}</span>
+                            <span aria-hidden>·</span>
+                            <MapPin />
+                            <span className="truncate">{scene.place}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 border-t-2 border-ink/10 py-1 pl-3.5 pr-2 text-ink">
+                        <span role="img" aria-label={`대사 ${Math.min(leadIdx + 1, lead.length)} / ${lead.length}`} className="flex items-center gap-1">
+                          {lead.map((_, i) => (
+                            <span key={i} className={`h-2 w-4 ${i <= leadIdx ? "bg-ink" : "border-2 border-ink/25"}`} />
+                          ))}
+                        </span>
+                        <button type="button" onClick={nextBeat} className="flex min-h-11 shrink-0 items-center gap-2 px-1.5 font-label text-ui hover:underline hover:underline-offset-4">
+                          다음 줄
+                          <kbd className="hidden border-2 border-ink/25 px-1 font-label text-meta leading-tight text-ink-subtle md:inline">Space</kbd>
+                        </button>
+                      </div>
+                    </Panel>
+                  </>
                 ) : (
-                  <ul className="mt-2 space-y-2.5">
+                  <>
+                    {/* 모바일에서는 결과 카드가 화면을 채워 다른 보기가 아래로 밀리므로, 스크롤 없이 엄지로 반응을 바꿔 보는 칩 바를 둔다 */}
+                    {choice && (
+                      <div role="group" aria-label="다른 보기 반응 바로 보기" className="mt-2 flex items-center gap-1.5 md:hidden">
+                        {shown.map((c, i) => {
+                          const active = c.id === choice.id;
+                          const seen = heardIds.includes(c.id);
+                          return (
+                            <button
+                              key={`chip-${c.id}`}
+                              type="button"
+                              onClick={() => play(c)}
+                              aria-label={`${i + 1}번 보기: ${c.line}`}
+                              aria-current={active ? "true" : undefined}
+                              className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 border-2 border-ink font-label text-ui transition-colors duration-fast ${
+                                active ? "bg-ink text-white" : "bg-card-raised text-ink"
+                              }`}
+                            >
+                              <span>{i + 1}</span>
+                              {seen ? (
+                                <span aria-hidden className={`size-2 border border-ink ${VERDICTS[c.verdict].color}`} />
+                              ) : (
+                                <span aria-hidden className="text-meta text-ink-subtle">?</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <ul className="mt-2 space-y-2.5">
                     {shown.map((c, i) => (
                       <li
                         key={c.id}
@@ -898,10 +975,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                           step={stepNow}
                           free={fl}
                           numberOf={(id) => {
-                            const k = shown.findIndex((c) => c.id === id);
-                            return k >= 0 ? { n: k + 1, line: shown[k].line } : null;
+                            // 보기가 넷 이상이면 첫 답 전에는 앞 셋만 보인다. 안 보이는 보기에 붙어도 그 보기를 고르게 하고 번호는 0으로 둔다
+                            const c = situation.choices.find((x) => x.id === id);
+                            return c ? { n: shown.findIndex((x) => x.id === id) + 1, line: c.line } : null;
                           }}
-                          onSay={(line) => (setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
+                          onSay={(line) => (setFreeDraft({ step: stepNow, text: "" }), setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
                           onResult={(r, line) => {
                             setFreeKey((k) => k + 1);
                             // 판정까지 받은 말은 보기 하나로 더해 바로 고른다. 도장·이펙트·비교·다음으로 넘어가기가 다른 보기와 같다
@@ -918,11 +996,13 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                             setFree(null);
                             if (c) play(c);
                           }}
-                          onReset={() => setFree(null)}
+                          onReset={() => (setFreeDraft({ step: stepNow, text: "" }), setFree(null))}
+                          onDraftChange={(text) => setFreeDraft({ step: stepNow, text })}
                         />
                       </li>
                     )}
                   </ul>
+                  </>
                 )}
               </div>
               {/* 세 말을 다 해 보면 도장을 나란히 모아 준다. 목록이 밀리지 않게 목록 아래에 붙는다 */}

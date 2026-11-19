@@ -99,8 +99,13 @@ function useBubbleWidths() {
 // 같은 값을 다시 쓰지 않아서, 무대가 멈춰 있을 때는 말풍선 스타일을 건드리지 않는다
 function setStyle(el: HTMLElement, name: string, value: string | null) {
   if (value === null) {
-    if (el.style.getPropertyValue(name)) el.style.removeProperty(name);
-  } else if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+    if (!el.style.getPropertyValue(name)) return false;
+    el.style.removeProperty(name);
+    return true;
+  }
+  if (el.style.getPropertyValue(name) === value) return false;
+  el.style.setProperty(name, value);
+  return true;
 }
 
 // 머리 위 3D 좌표를 화면 좌표로 옮기고, 말풍선은 화면 안에 들어오게 밀되 꼬리는 머리를 가리키게 한다.
@@ -146,13 +151,20 @@ function Anchors({
       }
       if (!bubble) continue;
       const [from, to] = !both ? [EDGE, width - EDGE] : who === "me" ? [EDGE, mid - EDGE / 2] : [mid + EDGE / 2, width - EDGE];
-      setStyle(bubble, "max-width", both ? `${Math.floor(Math.min((to - from) / scale, BUBBLE_MAX))}px` : null);
-      // 처음 뜬 말풍선은 아직 잰 너비가 없어서 한 번만 직접 잰다
-      const w = widths.get(bubble) ?? bubble.offsetWidth;
+      const maxW = both ? `${Math.max(96, Math.floor(Math.min((to - from) / scale, BUBBLE_MAX)))}px` : null;
+      const maxChanged = setStyle(bubble, "max-width", maxW);
+      // max-width가 방금 바뀌었거나 처음 뜬 말풍선은 캐시 대신 현재 너비를 직접 잰다
+      const w = maxChanged ? bubble.offsetWidth : (widths.get(bubble) ?? bubble.offsetWidth);
       const x = xs[who];
-      setStyle(bubble, "left", `${Math.min(Math.max(-w / 2, (from - x) / scale), (to - x) / scale - w)}px`);
+      // 왼쪽·오른쪽 무대 벽은 절대 넘지 않게 바깥 경계를 마지막으로 한 번 더 잠근다
+      const hardMin = (EDGE - x) / scale;
+      const hardMax = (width - EDGE - x) / scale - w;
+      const inner = Math.min(Math.max(-w / 2, (from - x) / scale), (to - x) / scale - w);
+      const left = Math.max(hardMin, Math.min(inner, hardMax));
+      setStyle(bubble, "left", `${left}px`);
       // 키 큰 캐릭터 위로 두 줄짜리 말풍선이 뜨면 무대 위로 잘리지 않게 아래로 내려 머리와 살짝 겹치게 둔다
-      const top = ys[who] - (BUBBLE_GAP + (heights.get(bubble) ?? bubble.offsetHeight)) * scale;
+      const h = maxChanged ? bubble.offsetHeight : (heights.get(bubble) ?? bubble.offsetHeight);
+      const top = ys[who] - (BUBBLE_GAP + h) * scale;
       setStyle(bubble, "bottom", top < EDGE / 2 ? `${BUBBLE_GAP - (EDGE / 2 - top) / scale}px` : null);
     }
   });

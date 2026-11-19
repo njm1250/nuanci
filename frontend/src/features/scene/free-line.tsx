@@ -24,6 +24,7 @@ export function FreeLineSlot({
   onResult,
   onPick,
   onReset,
+  onDraftChange,
 }: {
   n: number;
   open: boolean;
@@ -32,20 +33,27 @@ export function FreeLineSlot({
   sceneVersion: number;
   step: "base" | "followUp";
   free: FreeLine | null;
-  // 보기 id → 화면의 번호와 문장. 대 본 보기를 "2번"처럼 가리킬 때 쓴다
+  // 보기 id → 화면의 번호와 문장. 대 본 보기를 "2번"처럼 가리킬 때 쓴다. 아직 안 보이는 보기면 번호는 0
   numberOf: (id: string) => { n: number; line: string } | null;
   onSay: (line: string) => void;
   // 결과와 함께 말한 문장을 넘긴다. 보낼 때의 화면 값(아직 비어 있음)에 기대지 않게 한다
   onResult: (r: Omit<FreeLine, "step" | "line">, line: string) => void;
   onPick: (id: string) => void;
   onReset: () => void;
+  onDraftChange?: (draft: string) => void;
 }) {
   const [text, setText] = useState("");
+
+  const updateText = (v: string) => {
+    setText(v);
+    onDraftChange?.(v);
+  };
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     const said = text.trim();
     if (said.length < 2 || free?.outcome === "pending") return;
+    onDraftChange?.("");
     onSay(said);
     try {
       const res = await fetch("/api/missing-intents", {
@@ -104,11 +112,11 @@ export function FreeLineSlot({
             </span>
           ) : free.outcome === "matched" && hit ? (
             <BlockButton label onClick={() => onPick(free.choiceId!)}>
-              {hit.n}번 반응 보기
+              {hit.n > 0 ? `${hit.n}번 반응 보기` : "그 반응 보기"}
             </BlockButton>
           ) : null}
           {free.outcome !== "pending" && (
-            <button type="button" onClick={() => (setText(""), onReset())} className="-mx-1 mt-1 flex min-h-11 items-center px-1 text-meta text-ink-subtle underline underline-offset-4 hover:text-ink">
+            <button type="button" onClick={() => (updateText(""), onReset())} className="-mx-1 mt-1 flex min-h-11 items-center px-1 text-meta text-ink-subtle underline underline-offset-4 hover:text-ink">
               다시 말하기
             </button>
           )}
@@ -117,27 +125,38 @@ export function FreeLineSlot({
     );
   }
 
+  // 쓰는 칸: 닫힌 칸이 그대로 한 줄짜리 입력칸이 된다. 번호·입력·말하기가 한 테두리 안에 붙어 하나의 물건으로 보이고,
+  // 말한 뒤에는 같은 줄에 같은 글꼴·크기로 내 말이 남는다. 포커스 표시는 안쪽 입력칸이 아니라 바깥 칸 전체에 둔다
+  const ready = text.trim().length >= 2;
   return (
-    <form onSubmit={send} className="border-2 border-fg bg-card-raised px-3 py-3 text-ink">
-      <label htmlFor="free-line" className="block text-meta text-ink-subtle">
-        떠올린 영어를 그대로 써 봐
-      </label>
-      <div className="mt-1.5 flex items-stretch gap-2">
-        <input
-          id="free-line"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          maxLength={200}
-          autoFocus
-          lang="en"
-          autoCapitalize="sentences"
-          placeholder="e.g. Break a leg!"
-          className="min-w-0 flex-1 border-2 border-ink bg-white px-3 py-2 font-line text-body text-ink-fixed placeholder:text-ink-subtle"
-        />
-        <BlockButton label type="submit" className="shrink-0">
-          말하기
-        </BlockButton>
-      </div>
+    <form
+      onSubmit={send}
+      className="flex min-h-14 items-stretch border-2 border-fg bg-card-raised text-ink animate-fade focus-within:outline focus-within:outline-[3px] focus-within:outline-offset-4 focus-within:outline-pink"
+    >
+      <span aria-hidden className="ml-3 grid size-6 shrink-0 place-items-center self-center bg-ink font-label text-ui text-white">
+        {n}
+      </span>
+      <input
+        value={text}
+        onChange={(e) => updateText(e.target.value)}
+        maxLength={200}
+        autoFocus
+        lang="en"
+        autoCapitalize="sentences"
+        autoComplete="off"
+        spellCheck={false}
+        enterKeyHint="send"
+        aria-label="내 말로 해 보기: 떠올린 영어"
+        placeholder="e.g. Break a leg!"
+        className="min-w-0 flex-1 bg-transparent px-3 py-2 font-line text-say leading-snug text-ink caret-ink outline-none placeholder:text-ink-subtle/60 focus-ring-off"
+      />
+      <button
+        type="submit"
+        disabled={!ready}
+        className={`shrink-0 border-l-2 border-fg px-4 font-label text-ui transition-colors ${ready ? "bg-pink text-ink-fixed active:translate-y-px" : "text-ink-subtle"}`}
+      >
+        말하기
+      </button>
     </form>
   );
 }

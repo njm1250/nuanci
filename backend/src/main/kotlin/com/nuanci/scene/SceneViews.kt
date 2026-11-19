@@ -45,6 +45,7 @@ object SceneViews {
 			"whenIsPlace" to whenIsPlace,
 			"wrong" to wrong.path("line").asString(""),
 			"trap" to wrong.path("trap").asString(null),
+			"heard" to (wrong.path("tags").get(1)?.asString(null) ?: wrong.path("tags").get(0)?.asString(null)),
 			"right" to right.path("line").asString(""),
 			"alts" to choices.filter { it.path("verdict").asString() == "good" && it !== right }.map { it.path("line").asString("") },
 			"sources" to situation.path("sources").takeUnless { it.isMissingNode },
