@@ -90,6 +90,26 @@ const FREE_MOCHI: Record<FreeLine["outcome"], (n: number) => string> = {
   failed: () => "어라, 잘 안 들렸어. 다시 말해 줄래?",
 };
 
+// 판정을 받은 "내 말"을 보기 하나로 만든다. 판정·도장 글·표정·속마음은 서버가 준 것이고, 해설 자리에는
+// 그 상황에서 검증된 자연스러운 말을 하나 붙여 다르게 들렸을 때 바로 기댈 말이 있게 한다
+const OWN_PREFIX = "own-";
+function ownChoice(line: string, r: Omit<FreeLine, "step" | "line">, choices: Choice[], n: number): Choice {
+  const natural = choices.find((c) => c.verdict === "good" && !c.id.startsWith(OWN_PREFIX));
+  const verdict = r.verdict ?? "meh";
+  return {
+    id: `${OWN_PREFIX}${n}`,
+    line,
+    meaning: "",
+    verdict,
+    reaction: r.thought ?? "",
+    tags: ["내 말", r.heard ?? ""],
+    why: verdict === "good" || !natural ? "" : `이 상황에서는 '${natural.line}'처럼 말하면 자연스러워요.`,
+    detail: "",
+    expression: r.expression ?? "neutral",
+    motion: verdict === "good" ? "nod" : "tilt",
+  };
+}
+
 function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry, packStep }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
@@ -426,8 +446,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   // 보기가 넷 이상인 상황은 처음엔 원래 있던 세 개로 고르게 하고, 첫 답 뒤에 나머지를 목록 끝에 붙인다. 고르기 전에 읽을 것은 적게, 구경할 것은 많게
   const origSituation = later ? original.followUp : original.base;
   const coreIds = new Set(origSituation.choices.slice(0, CORE_CHOICES).map((c) => c.id));
-  const core = situation.choices.filter((c) => coreIds.has(c.id));
-  const extra = situation.choices.filter((c) => !coreIds.has(c.id));
+  // 내 말(own-)은 기본 보기 셋 바로 뒤 네 번째 자리에 둔다
+  const core = situation.choices.filter((c) => coreIds.has(c.id) || c.id.startsWith(OWN_PREFIX));
+  const extra = situation.choices.filter((c) => !coreIds.has(c.id) && !c.id.startsWith(OWN_PREFIX));
   const shown = choice || preview ? [...core, ...extra] : core;
 
   // 상대가 반응해 결과가 채워지는 순간: 판정 소리, X면 무대 흔들림, 틀린 말이면 짧은 진동(지원하는 기기만), 그리고 카드가 다 보이게 맞춘다
@@ -824,6 +845,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                   </span>
                                   {cardRevealed && detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
                                   <span className="flex items-center justify-between gap-3">
+                                    {/* 펼칠 해설이 없는 보기("내 말")에는 더 보기를 두지 않는다. 오른쪽 문제 내기 자리는 그대로 둔다 */}
+                                    {c.detail ? (
                                     <button
                                       type="button"
                                       disabled={!cardRevealed}
@@ -834,6 +857,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                       {detailOpen ? "접기" : "왜 그런지 더 보기"}
                                       <Caret open={detailOpen} />
                                     </button>
+                                    ) : (
+                                      <span />
+                                    )}
                                     {/* 도장이 찍힌 바로 그 순간이 남에게 보여 주고 싶은 때라, 내 첫 답 카드에 문제 내기를 둔다. 완료 화면까지 가야 보이던 자리를 앞당긴 것 */}
                                     {cardRevealed && !later && !preview && c.id === pickedId && (
                                       <button
@@ -873,7 +899,16 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                             return k >= 0 ? { n: k + 1, line: shown[k].line } : null;
                           }}
                           onSay={(line) => (setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
-                          onResult={(r) => (setFree((f) => (f ? { ...f, ...r } : f)), setFreeKey((k) => k + 1))}
+                          onResult={(r, line) => {
+                            setFreeKey((k) => k + 1);
+                            // 판정까지 받은 말은 보기 하나로 더해 바로 고른다. 도장·이펙트·비교·다음으로 넘어가기가 다른 보기와 같다
+                            if (r.outcome === "reacted") {
+                              f.addOwn(ownChoice(line, r, situation.choices, freeKey));
+                              setFree(null);
+                              return;
+                            }
+                            setFree((x) => (x ? { ...x, ...r } : x));
+                          }}
                           onPick={(id) => {
                             const c = situation.choices.find((x) => x.id === id);
                             send({ type: "free_line_pick", step: stepNow, choiceId: id });

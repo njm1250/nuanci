@@ -23,10 +23,11 @@ enum class HarmCategory(val api: String) {
 
 enum class Threshold(val api: String) { NONE("BLOCK_NONE"), HIGH("BLOCK_ONLY_HIGH"), MEDIUM("BLOCK_MEDIUM_AND_ABOVE"), LOW("BLOCK_LOW_AND_ABOVE") }
 
-// 일상 욕설("oh shit", "fuck you man")은 대화의 재미라서 막지 않는다. 성적 표현과 혐오·차별은 낮은 확률부터 막는다
+// 일상 욕설("oh shit", "fuck you man")은 대화의 재미라서 막지 않는다. 혐오·차별은 낮은 확률부터 막는다.
+// 성적 표현은 중간부터 막는다. 낮게 두면 "fuck yeah" 같은 일상 욕설까지 성적 표현으로 걸린다. 그 사이는 모델이 too_far로 한 번 더 거른다
 val DEFAULT_SAFETY = mapOf(
 	HarmCategory.HARASSMENT to Threshold.NONE,
 	HarmCategory.HATE to Threshold.LOW,
-	HarmCategory.SEXUAL to Threshold.LOW,
+	HarmCategory.SEXUAL to Threshold.MEDIUM,
 	HarmCategory.DANGEROUS to Threshold.MEDIUM,
 )

@@ -8,6 +8,8 @@ import java.util.UUID
 data class FreeLineResult(
 	val outcome: String,
 	val matchedChoiceId: String? = null,
+	val verdict: String? = null,
+	val heard: String? = null,
 	val expression: String? = null,
 	val thought: String? = null,
 )
@@ -29,7 +31,7 @@ class FreeLineService(
 			is MatchResult.Matched -> FreeLineResult("matched", matchedChoiceId = m.choiceId)
 			is MatchResult.Failed -> FreeLineResult("unavailable")
 			MatchResult.NoMatch -> when (val r = writer.write(situation, text, visitorId, sceneId)) {
-				is ReactionResult.Reacted -> FreeLineResult("reacted", expression = r.expression, thought = r.thought)
+				is ReactionResult.Reacted -> FreeLineResult("reacted", verdict = r.verdict, heard = r.heard, expression = r.expression, thought = r.thought)
 				ReactionResult.OffTopic -> FreeLineResult("off_topic")
 				ReactionResult.TooFar -> FreeLineResult("too_far")
 				is ReactionResult.Failed -> FreeLineResult("unmatched")
@@ -37,11 +39,11 @@ class FreeLineService(
 		}
 		jdbc.sql(
 			"""
-			insert into missing_intent (visitor_id, scene_id, scene_version, step, text, matched_choice_id, outcome, reaction_expression, reaction_thought)
-			values (:v, :s, :ver, :step, :t, :m, :o, :e, :th)
+			insert into missing_intent (visitor_id, scene_id, scene_version, step, text, matched_choice_id, outcome, reaction_verdict, reaction_heard, reaction_expression, reaction_thought)
+			values (:v, :s, :ver, :step, :t, :m, :o, :vd, :h, :e, :th)
 			""",
 		).param("v", visitorId).param("s", sceneId).param("ver", sceneVersion).param("step", step).param("t", text)
-			.param("m", result.matchedChoiceId).param("o", result.outcome).param("e", result.expression).param("th", result.thought).update()
+			.param("m", result.matchedChoiceId).param("o", result.outcome).param("vd", result.verdict).param("h", result.heard).param("e", result.expression).param("th", result.thought).update()
 		return result
 	}
 }
