@@ -405,16 +405,17 @@ function blip(kind: "partner" | "me" | "mochi" | "narration", line = ""): () => 
   return cancel;
 }
 
-// "내 말"이 어떻게 들렸는지 기다리는 동안 도는 짧은 칩튠. 도-레-미-파-솔-미-파-솔을 되풀이한다(게임에서 무언가 만드는 동안 흐르는 그 느낌).
+// "내 말"이 어떻게 들렸는지 기다리는 동안 도는 짧은 칩튠. 도-레-미-파-솔-레-미-파를 되풀이한다(게임에서 무언가 만드는 동안 흐르는 그 느낌).
 // 음표마다 아주 짧은 사각파 + 빠른 감쇠로 작게 깔고, 멈추면 바로 끊는다. 소리를 꺼 두었으면 아무것도 하지 않는다
-const THINK_DEGREES = [1, 2, 3, 4, 5, 3, 4, 5];
+const THINK_DEGREES = [1, 2, 3, 4, 5, 2, 3, 4];
 const THINK_HZ: Record<number, number> = { 1: 523.25, 2: 587.33, 3: 659.25, 4: 698.46, 5: 783.99 };
 const THINK_STEP = 0.13;
 function thinking(): () => void {
   const c = audio();
   if (!c || !master) return () => {};
   const out = c.createGain();
-  out.gain.value = 0.07;
+  // 배경으로만 깔리게 다른 효과음보다 한참 작게
+  out.gain.value = 0.035;
   out.connect(master);
   let next = c.currentTime + 0.05;
   let i = 0;
