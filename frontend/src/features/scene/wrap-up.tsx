@@ -142,17 +142,41 @@ export function WrapUp({
           )}
         </section>
       )}
+      {/* 방금 끝낸 장면의 발견(한 줄 정리와 배운 표현)을 먼저 보여 주어 성취감을 남긴다 */}
+      <section aria-label="오늘의 발견">
+        <div className="flex items-end gap-2.5">
+          <Mascot scale={2} className="shrink-0" />
+          <p className="pb-0.5 font-label text-ui text-fg">{scene.title}에서 건진 말</p>
+        </div>
+        <div className="blk-frame mt-2.5">
+          <div className="blk bg-card-raised px-4 py-4 text-ink">
+            <p className="text-ui leading-[1.6]">{scene.discovery}</p>
+            <ul className="mt-3.5 space-y-3 border-t-2 border-dashed border-ink/20 pt-3">
+              {pairs.map((p) => (
+                <li key={p.right}>
+                  <p className="font-line text-say leading-snug">{p.right}</p>
+                  <p className="mt-0.5 text-meta leading-snug text-ink-subtle">
+                    {whenSaying(p.intent)} <s className="decoration-rust decoration-2">{p.wrong}</s> 말고
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <Link href="/expressions" className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 text-meta text-ink-subtle hover:text-ink">
+              표현 모음에 담았어요
+              <Arrow />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 다음 장면 예고. Mochi를 중복으로 띄우지 않고 깔끔한 예고 카드로 잇는다 */}
       {nextAsk && !askShown ? (
-        // 엔딩 컷을 보는 동안 다음 장면 자리는 비워 두지 않고 틀을 먼저 둔다. 누르면 기다리지 않고 바로 뜬다
-        <button type="button" onClick={() => setAskShown(true)} aria-label="다음 장면 바로 보기" className="block w-full text-left">
-          <span className="flex items-end gap-3">
-            <Mascot scale={3} className="shrink-0" />
-            <span className="flex items-center gap-2 pb-1 text-note text-fg-subtle">
-              다음 장면
-              {!runDone && <WaitDots reduced={reduced} />}
-            </span>
+        <button type="button" onClick={() => setAskShown(true)} aria-label="다음 장면 바로 보기" className="mt-5 block w-full text-left">
+          <span className="flex items-center gap-2 text-note text-fg-subtle">
+            다음 장면
+            {!runDone && <WaitDots reduced={reduced} />}
           </span>
-          <span aria-hidden className="mt-3 flex gap-3 border-2 border-line/50 bg-surface/60 p-2.5">
+          <span aria-hidden className="mt-2 flex gap-3 border-2 border-line/50 bg-surface/60 p-2.5">
             <span className="aspect-[4/3] w-24 shrink-0 bg-surface-strong" />
             <span className="flex-1 space-y-2 pt-1">
               <span className="block h-5 w-2/3 bg-surface-strong" />
@@ -161,14 +185,9 @@ export function WrapUp({
           </span>
         </button>
       ) : nextAsk ? (
-        // 다음 장면 예고. 보기까지 미리 늘어놓으면 끝낸 보람보다 다음 문제가 앞서서, 장소 그림과 상대 첫마디로 궁금증만 남긴다.
-        // 들어가는 주 버튼은 아래 고정 칸의 분홍 버튼 하나이고, 이 카드도 같은 곳으로 간다
-        <section aria-label="다음 장면" className="animate-fade">
-          <div className="flex items-end gap-3">
-            <Mascot scale={3} className="shrink-0" />
-            <p className="pb-1 text-note text-fg-subtle">다음 장면</p>
-          </div>
-          <EntryLink href={`/scenes/${nextAsk.number}`} entry="next" onClick={onNext} className="blk-btn mt-3 block">
+        <section aria-label="다음 장면" className="mt-5 animate-fade">
+          <p className="text-note text-fg-subtle">다음 장면</p>
+          <EntryLink href={`/scenes/${nextAsk.number}`} entry="next" onClick={onNext} className="blk-btn mt-2 block">
             <span className="blk flex gap-3 bg-card-raised p-2.5 text-ink">
               <SceneThumb stage={nextAsk.stage} className="aspect-[4/3] w-24 shrink-0 border-2 border-line" />
               <span className="min-w-0 flex-1">
@@ -186,37 +205,12 @@ export function WrapUp({
           </EntryLink>
           <ThumbStudio />
         </section>
-      ) : (
-        <div className="flex items-end gap-3">
-          <Mascot scale={3} className="shrink-0" />
-          <p className="pb-1 font-poster text-display-sm leading-[1.25] text-fg">{scene.title}</p>
-        </div>
-      )}
-      {/* 다음 장면 예고 바로 아래에서 내일 몇 시에 부를지 묻는다. 예고 카드의 상대가 내일 먼저 말을 걸 사람이라 한 흐름으로 읽힌다 */}
-      {nextAsk && askShown && onPushShown && onPushSubscribed && (
+      ) : null}
+
+      {/* 알림 제안은 한 판(3장면)을 끝냈거나 단독 장면일 때만 띄워 1·2화 사이의 흐름을 끊지 않는다 */}
+      {nextAsk && askShown && (!runOn || runDone) && onPushShown && onPushSubscribed && (
         <PushOffer partnerName={nextAsk.partnerName} onShown={onPushShown} onSubscribed={onPushSubscribed} />
       )}
-      {/* 그 장면에서 발견한 것 하나가 완료 화면의 중심이다. 한 줄 정리와 모은 표현을 한 카드로 묶는다 */}
-      <div className="blk-frame mt-6">
-        <div className="blk bg-card-raised px-4 py-4 text-ink">
-          {nextAsk && <p className="mb-1.5 text-meta text-ink-subtle">{scene.title}에서</p>}
-          <p className="text-ui leading-[1.6]">{scene.discovery}</p>
-          <ul className="mt-3.5 space-y-3.5 border-t-2 border-dashed border-ink/20 pt-3">
-            {pairs.map((p) => (
-              <li key={p.right}>
-                <p className="font-line text-say leading-snug">{p.right}</p>
-                <p className="mt-0.5 text-meta leading-snug text-ink-subtle">
-                  {whenSaying(p.intent)} <s className="decoration-rust decoration-2">{p.wrong}</s> 말고
-                </p>
-              </li>
-            ))}
-          </ul>
-          <Link href="/expressions" className="-mx-1 mt-2 flex min-h-11 items-center gap-2 px-1 text-meta text-ink-subtle hover:text-ink">
-            표현 모음에 담았어요
-            <Arrow />
-          </Link>
-        </div>
-      </div>
 
       {/* 방금 고른 답까지 반영한 "내 영어 말투" 한 줄. 판으로 세는 장면에서는 결과 장이 이 자리를 맡아서, 판이 끝나기 전에 미리 보여 주지 않는다 */}
       {!runOn && <Link href="/me" className="-mx-1 mt-3 flex min-h-11 items-center justify-between gap-3 px-1 hover:text-fg">

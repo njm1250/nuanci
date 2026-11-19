@@ -24,6 +24,7 @@ export function FreeLineSlot({
   onResult,
   onPick,
   onReset,
+  onDraftChange,
 }: {
   n: number;
   open: boolean;
@@ -39,13 +40,20 @@ export function FreeLineSlot({
   onResult: (r: Omit<FreeLine, "step" | "line">, line: string) => void;
   onPick: (id: string) => void;
   onReset: () => void;
+  onDraftChange?: (draft: string) => void;
 }) {
   const [text, setText] = useState("");
+
+  const updateText = (v: string) => {
+    setText(v);
+    onDraftChange?.(v);
+  };
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     const said = text.trim();
     if (said.length < 2 || free?.outcome === "pending") return;
+    onDraftChange?.("");
     onSay(said);
     try {
       const res = await fetch("/api/missing-intents", {
@@ -108,7 +116,7 @@ export function FreeLineSlot({
             </BlockButton>
           ) : null}
           {free.outcome !== "pending" && (
-            <button type="button" onClick={() => (setText(""), onReset())} className="-mx-1 mt-1 flex min-h-11 items-center px-1 text-meta text-ink-subtle underline underline-offset-4 hover:text-ink">
+            <button type="button" onClick={() => (updateText(""), onReset())} className="-mx-1 mt-1 flex min-h-11 items-center px-1 text-meta text-ink-subtle underline underline-offset-4 hover:text-ink">
               다시 말하기
             </button>
           )}
@@ -126,12 +134,12 @@ export function FreeLineSlot({
         <input
           id="free-line"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => updateText(e.target.value)}
           maxLength={200}
           autoFocus
           lang="en"
           autoCapitalize="sentences"
-          placeholder="e.g. Break a leg!"
+          placeholder="영어로 한마디 써 봐!"
           className="min-w-0 flex-1 border-2 border-ink bg-white px-3 py-2 font-line text-body text-ink-fixed placeholder:text-ink-subtle"
         />
         <BlockButton label type="submit" className="shrink-0">
