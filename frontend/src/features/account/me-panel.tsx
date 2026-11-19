@@ -6,6 +6,7 @@ import { useInquiry } from "@/features/inquiry/inquiry-form";
 import { Panel } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { ReactionFace } from "@/features/scene/reaction-face";
+import { toggleCalmMode, useCalmMode } from "@/features/scene/calm-mode";
 import { toggleSound, useSoundEnabled } from "@/features/scene/sfx";
 import { toggleTranslation, useTranslationOn } from "@/features/scene/translation";
 import { deleteAccount, logout, useAccount } from "./account";
@@ -214,6 +215,7 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
   const cleared = useCleared();
   const sound = useSoundEnabled();
   const translate = useTranslationOn();
+  const calm = useCalmMode();
   const dark = useTheme() === "dark";
   const member = account.status === "member";
   const { open: openInquiry, element } = useInquiry();
@@ -272,6 +274,17 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
           <button type="button" role="switch" aria-checked={translate} aria-labelledby="translation-label" onClick={toggleTranslation} className="grid min-h-11 place-items-center">
             <span className={`flex h-6 w-11 items-center p-0.5 ${translate ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
               <span className={`size-5 ${translate ? "bg-ink" : "bg-fg"}`} />
+            </span>
+          </button>
+        </div>
+        <div className={rowClass}>
+          <span id="calm-label">
+            <span className="block">차분한 화면</span>
+            <span className="block text-meta text-fg-subtle">움직임·자동 넘김을 줄여 영어에 집중해요</span>
+          </span>
+          <button type="button" role="switch" aria-checked={calm} aria-labelledby="calm-label" onClick={toggleCalmMode} className="grid min-h-11 shrink-0 place-items-center">
+            <span className={`flex h-6 w-11 items-center p-0.5 ${calm ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+              <span className={`size-5 ${calm ? "bg-ink" : "bg-fg"}`} />
             </span>
           </button>
         </div>

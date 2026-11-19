@@ -128,6 +128,7 @@ export function ResultBody({
   mine,
   active,
   showTrap,
+  showMeaning = false,
   revealed,
   verdictKey,
   share,
@@ -135,6 +136,7 @@ export function ResultBody({
   intent,
   waiting = false,
   friend = false,
+  reduced = false,
 }: {
   // 문제를 낸 친구가 처음 고른 보기. 아직 안 들어 본 보기여도 표시해서 눌러 보게 한다
   friend?: boolean;
@@ -149,9 +151,11 @@ export function ResultBody({
   mine: boolean;
   active: boolean;
   showTrap: boolean;
+  showMeaning?: boolean;
   revealed: boolean;
   verdictKey?: number;
   share?: number;
+  reduced?: boolean;
 }) {
   // 반응은 무대가 먼저 보여 줬으니 도장은 카드가 채워지는 순간 찍고, 해설만 조금 뒤에 온다
   const heardAt = 0;
@@ -160,13 +164,23 @@ export function ResultBody({
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="font-line text-say leading-snug">{choice.line}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-line text-say leading-snug">{choice.line}</span>
+            {showMeaning && choice.meaning && <span className="mt-0.5 block text-note text-ink-subtle">{choice.meaning}</span>}
+          </span>
           {showTrap && (
             <span className="shrink-0 pt-1">
               <TrapChip choice={choice} />
             </span>
           )}
         </span>
+        {/* 상대가 영어로 한 겉말은 무대에서 지나가 버리므로, 천천히 다시 읽을 수 있게 카드에도 한 줄 남긴다 */}
+        {active && !waiting && choice.says && (
+          <span className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-note text-ink-muted">
+            <span className="shrink-0 text-meta text-ink-subtle">상대 말</span>
+            <span className="font-line text-ink">“{choice.says}”</span>
+          </span>
+        )}
         {/* 지금 고른 말의 상대 반응은 무대 생각 풍선에 있어서 카드에는 다시 적지 않는다. 다른 보기는 비교하려고 반응을 남긴다 */}
         {active ? null : revealed ? (
           <span key={verdictKey} className="mt-1 flex items-start gap-2 text-note leading-[1.5] text-ink-muted">
@@ -186,7 +200,7 @@ export function ResultBody({
               <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
                 <span className="text-body text-ink-muted">{quotedIntent(intent)}</span>
                 <span aria-hidden className="text-body text-ink-subtle">→</span>
-                <VerdictStamp choice={choice} pop delay={heardAt} />
+                <VerdictStamp choice={choice} pop={!reduced} delay={heardAt} />
               </span>
             )}
             <span className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${intent ? "mt-2" : ""}`}>
