@@ -21,11 +21,13 @@ data class NuanciProperties(
 
 data class GeminiProperties(
 	val apiKey: String = "",
+	// 고르기(LITE)와 반응 쓰기(STANDARD)에 쓰는 모델
 	val model: String = "gemini-3.1-flash-lite",
-	val timeoutMs: Long = 8000,
+	val reactModel: String = "gemini-3.5-flash",
+	val timeoutMs: Long = 12000,
 	// 일시 오류(5xx·시간 초과)일 때 같은 요청을 다시 부르는 횟수
 	val maxRetries: Int = 2,
-	// 하루에 부르는 상한. 넘으면 모으기만 한다
+	// 기능마다 하루에 부르는 상한. 넘으면 모으기만 한다
 	val dailyLimit: Int = 500,
 )
 

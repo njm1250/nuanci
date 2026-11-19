@@ -39,6 +39,7 @@ services:
       NUANCI_PUSH_SUBJECT: ${NUANCI_PUSH_SUBJECT:-mailto:nuanci.contact@gmail.com}
       NUANCI_GEMINI_API_KEY: ${NUANCI_GEMINI_API_KEY:-}
       NUANCI_GEMINI_MODEL: ${NUANCI_GEMINI_MODEL:-gemini-3.1-flash-lite}
+      NUANCI_GEMINI_REACT_MODEL: ${NUANCI_GEMINI_REACT_MODEL:-gemini-3.5-flash}
       # 2GB 서버에서 DB·Caddy와 같이 돌도록 힙을 제한한다
       JAVA_TOOL_OPTIONS: -Xmx384m -XX:+UseSerialGC
     depends_on:

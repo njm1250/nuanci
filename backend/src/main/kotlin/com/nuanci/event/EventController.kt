@@ -31,7 +31,7 @@ const val TEST_EVENTS = "test_viewed|test_started|test_answered|test_completed|t
 private val SCENELESS = setOf("home_viewed", "page_engaged", "push_opened")
 
 data class EventRequest(
-	@field:Pattern(regexp = "home_viewed|page_engaged|scene_viewed|lead_finished|choice_selected|alternative_viewed|scene_completed|wrap_viewed|next_clicked|share_link_copied|reply_link_copied|reply_viewed|push_offer_shown|push_subscribed|push_opened|reward_shown|reward_equipped|$TEST_EVENTS")
+	@field:Pattern(regexp = "home_viewed|page_engaged|scene_viewed|lead_finished|choice_selected|alternative_viewed|scene_completed|wrap_viewed|next_clicked|share_link_copied|reply_link_copied|reply_viewed|push_offer_shown|push_subscribed|push_opened|free_line_opened|free_line_pick|reward_shown|reward_equipped|$TEST_EVENTS")
 	val type: String,
 	@field:Size(min = 1, max = 100)
 	val sceneId: String? = null,

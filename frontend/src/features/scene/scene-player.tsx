@@ -28,7 +28,7 @@ import { markCleared, nextScene } from "./progress";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
-import { MissingIntent } from "./missing-intent";
+import { FreeLineSlot, type FreeLine } from "./free-line";
 import { replyMessage, shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 import { NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
@@ -80,6 +80,16 @@ export function ScenePlayer(props: PlayerProps) {
 }
 
 // 장면 하나를 처음 질문부터 정리까지 진행하는 화면. 검수 미리보기에서는 이벤트를 보내지 않고 함정 유형을 보여준다
+// "내 말로 해 보기" 결과마다 Mochi의 한마디. 무엇이 일어났는지만 말하고 다음 할 일은 칸이 보여 준다
+const FREE_MOCHI: Record<FreeLine["outcome"], (n: number) => string> = {
+  pending: () => "어떻게 들렸을까…",
+  matched: (n) => `그건 ${n}번이랑 거의 같은 말이야!`,
+  reacted: () => "이렇게 들렸대!",
+  off_topic: () => "그건 이 상황에서 할 말이 아닌 것 같은데?",
+  too_far: () => "음… 그 말은 못 들은 걸로 할게",
+  failed: () => "어라, 잘 안 들렸어. 다시 말해 줄래?",
+};
+
 function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry, packStep }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
@@ -467,6 +477,17 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   useEffect(() => stampCard(), [cardRevealed, stageKey]);
   // 고르기 전, 마우스를 올리거나 키보드로 짚은 보기. 그 말을 무대의 내 생각 풍선에 미리 얹어서 오른쪽 보기와 왼쪽 무대가 한 동작으로 이어지게 한다
   const [tryId, setTryId] = useState<string | null>(null);
+  // "내 말로 해 보기": 지금 상황(base·followUp)에서 열었는지와 말한 결과. 다른 보기를 고르거나 상황이 바뀌면 보이지 않는다
+  const stepNow = later ? "followUp" : "base";
+  const [freeOpenStep, setFreeOpenStep] = useState<string | null>(null);
+  const [free, setFree] = useState<FreeLine | null>(null);
+  const [freeKey, setFreeKey] = useState(0);
+  const fl = !choice && free?.step === stepNow ? free : null;
+  const openFree = () => {
+    if (freeOpenStep === stepNow) return;
+    setFreeOpenStep(stepNow);
+    send({ type: "free_line_opened", step: stepNow });
+  };
   const trying = choosing && !choice ? situation.choices.find((c) => c.id === tryId) : undefined;
   const { ref: stageSize, scale: bubbleScale } = useBubbleScale<HTMLDivElement>();
   useEffect(() => {
@@ -474,6 +495,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.target instanceof Element && e.target.closest("input, textarea, select, dialog")) return;
+      if (!preview && Number(e.key) === shown.length + 1) {
+        e.preventDefault();
+        return openFree();
+      }
       const c = shown[Number(e.key) - 1];
       if (!c) return;
       e.preventDefault();
@@ -570,7 +595,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                 bubbleScale={bubbleScale}
                 state={{
                   meMotion: prizeOn ? "bounce" : celebrate ? "clap" : beat?.who === "me" && beat.motion ? beat.motion : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
-                  meKey: prizeOn ? stageKey + 1000 : stageKey,
+                  meKey: prizeOn ? stageKey + 1000 : fl ? 5000 + freeKey : stageKey,
                   // 방에 둘 물건과 상자는 선물 상자를 들고 받는다
                   meProp: prizeOn && !tryOn ? "gift" : (heldMe ?? stageChoice?.meProp ?? stageSituation.meIdle?.prop),
                   meNote: prizeOn ? <PrizeNote item={prize} /> : undefined,
@@ -581,10 +606,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                       ? beat.motion
                       : stageSituation.partnerIdle.motion
                     : endingOn ? (partnerEnds && endingStep === "punch" ? (ending.motion ?? "idle") : "idle") : (stageChoice?.motion ?? stageSituation.partnerIdle.motion),
-                  partnerKey: stageKey,
-                  talkKey: stageKey,
-                  reaction: endingOn ? null : (stageChoice?.expression ?? null),
-                  meLine: beat ? (beat.who === "me" ? beat.line : undefined) : endingOn ? undefined : stageChoice?.line,
+                  partnerKey: fl ? 5000 + freeKey : stageKey,
+                  talkKey: fl ? 5000 + freeKey : stageKey,
+                  // "내 말로 해 보기"로 말했으면 무대에서 내가 그 말을 하고, 상대가 상상한 반응(표정·속마음)으로 받는다
+                  reaction: endingOn ? null : fl?.outcome === "reacted" ? (fl.expression ?? null) : (stageChoice?.expression ?? null),
+                  meLine: beat ? (beat.who === "me" ? beat.line : undefined) : endingOn ? undefined : (fl?.line ?? stageChoice?.line),
                   partnerLine: beat
                     ? beat.who === "partner"
                       ? beat.line
@@ -600,8 +626,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                         ? undefined
                         : stageSituation.partnerLine,
                   partnerSpeaks: speaking && !pausing ? stageChoice?.says : undefined,
-                  partnerSays: partnerReacts && !speaking ? stageChoice?.reaction : undefined,
-                  meTurn: phase !== "transition" && !choice && !leading,
+                  partnerSays: fl?.outcome === "reacted" ? fl.thought : partnerReacts && !speaking ? stageChoice?.reaction : undefined,
+                  meTurn: phase !== "transition" && !choice && !leading && !fl,
                   meThink: spoken(stageSituation.intent),
                   meTry: trying?.line,
                   cutIn,
@@ -729,6 +755,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   <span key={leading ? "watch" : choice ? "count" : "ask"} className="block md:animate-fade">
                     {leading ? (
                       "무슨 일인지 먼저 볼까?"
+                    ) : fl ? (
+                      FREE_MOCHI[fl.outcome](fl.choiceId ? shown.findIndex((c) => c.id === fl.choiceId) + 1 : 0)
                     ) : !choice ? (
                       friendOn ? "친구가 낸 문제야. 너라면 뭐라고 할래?" : "너라면 뭐라고 할래?"
                     ) : friendOn && pickedId === friendId && heardIds.length <= 1 ? (
@@ -829,20 +857,35 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                         )}
                       </li>
                     ))}
+                    {/* 마지막 칸: 떠올린 영어가 보기에 없을 때 직접 말하기. 보기와 같은 줄에 둬서 놓치지 않게 하고, 점선으로 보기와 갈라 둔다 */}
+                    {!choice && !preview && (
+                      <li className="animate-rise" style={{ animationDelay: `${40 + shown.length * 40}ms` }}>
+                        <FreeLineSlot
+                          n={shown.length + 1}
+                          open={freeOpenStep === stepNow}
+                          onOpen={openFree}
+                          sceneId={scene.id}
+                          sceneVersion={scene.version}
+                          step={stepNow}
+                          free={fl}
+                          numberOf={(id) => {
+                            const k = shown.findIndex((c) => c.id === id);
+                            return k >= 0 ? { n: k + 1, line: shown[k].line } : null;
+                          }}
+                          onSay={(line) => (setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
+                          onResult={(r) => (setFree((f) => (f ? { ...f, ...r } : f)), setFreeKey((k) => k + 1))}
+                          onPick={(id) => {
+                            const c = situation.choices.find((x) => x.id === id);
+                            send({ type: "free_line_pick", step: stepNow, choiceId: id });
+                            setFree(null);
+                            if (c) play(c);
+                          }}
+                          onReset={() => setFree(null)}
+                        />
+                      </li>
+                    )}
                   </ul>
                 )}
-                {/* 고르기 전에만 둔다. 떠올린 영어가 보기에 없어 멈추려는 순간 그 영어를 받는다 */}
-                {!leading && !choice && !preview && <MissingIntent
-                    key={later ? "followUp" : "base"}
-                    sceneId={scene.id}
-                    sceneVersion={scene.version}
-                    step={later ? "followUp" : "base"}
-                    choices={situation.choices}
-                    onPick={(id) => {
-                      const c = situation.choices.find((x) => x.id === id);
-                      if (c) play(c);
-                    }}
-                  />}
               </div>
               {/* 세 말을 다 해 보면 도장을 나란히 모아 준다. 목록이 밀리지 않게 목록 아래에 붙는다 */}
               {choice && heardIds.length >= situation.choices.length && <HeardTrio intent={situation.intent} choices={situation.choices} />}
