@@ -15,6 +15,7 @@ import { playStreak, useStreakMoment } from "@/features/streak/streak";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 three.js를 이 파일을 읽자마자 받기 시작한다.
 // 다만 페이지 묶음에는 넣지 않아서, 받는 동안에도 글자와 선택지는 먼저 그려지고 누를 수 있다
 import { preloadStage, Stage } from "@/features/stage/stage";
+import { PartnerFace } from "@/features/stage/partner-face";
 import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
@@ -22,7 +23,6 @@ import { CORE_CHOICES, shuffleChoices } from "./choice-order";
 import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 import { primeAudio, sfx } from "./sfx";
-import { ReactionFace } from "./reaction-face";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
 import { Num, VERDICTS, VerdictStamp } from "./verdict";
@@ -831,8 +831,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                       </div>
                       <div className="p-3.5 text-ink">
                         <div className="flex items-center gap-3">
-                          <span className="grid size-14 shrink-0 place-items-end justify-center border-2 border-ink bg-stage-sky pb-1">
-                            <ReactionFace expression={stageSituation.partnerIdle.expression} size={42} />
+                          <span className="grid size-14 shrink-0 place-items-end justify-center overflow-hidden border-2 border-ink bg-stage-sky">
+                            <PartnerFace partner={spec.partner} expression={stageSituation.partnerIdle.expression} size={48} />
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className="text-meta text-ink-subtle">대화 상대</p>
