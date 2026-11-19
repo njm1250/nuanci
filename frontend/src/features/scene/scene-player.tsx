@@ -504,6 +504,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const [free, setFree] = useState<FreeLine | null>(null);
   const [freeKey, setFreeKey] = useState(0);
   const fl = !choice && free?.step === stepNow ? free : null;
+  // 내 말이 어떻게 들렸는지 기다리는 동안 칩튠을 깐다. 결과가 오면 끊긴다
+  const freePending = fl?.outcome === "pending";
+  useEffect(() => (freePending ? sfx.thinking() : undefined), [freePending]);
   const openFree = () => {
     if (freeOpenStep === stepNow) return;
     setFreeOpenStep(stepNow);
