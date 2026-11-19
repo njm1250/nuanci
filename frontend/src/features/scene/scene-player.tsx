@@ -819,43 +819,33 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     <BlockButton onClick={skipLead} className="mt-2 w-full" faceClassName="py-3 text-center text-body font-bold">
                       바로 고르기
                     </BlockButton>
-                    {/* 데스크톱에서 대사가 흐르는 동안 오른쪽 칸이 비어 보이지 않게, 이 장면의 상대와 장소를 작은 안내판으로 보여 준다 */}
+                    {/* 데스크톱에서 대사가 흐르는 동안 오른쪽 칸이 비어 보이지 않게, 이 장면의 상대를 이름표처럼 보여 준다.
+                        제목은 머리줄에 이미 있어 다시 쓰지 않고, 몇 번째 대사인지는 칸 막대로, 넘기는 키는 버튼 안에 붙인다 */}
                     <Panel className="mt-4">
-                      <div className="flex items-center justify-between bg-ink px-3.5 py-2 font-label text-ui text-fg">
-                        <span>
-                          <span className="text-pink">EP.{String(scene.number).padStart(2, "0")}</span> 지금 장면
+                      <div className="flex items-center gap-3.5 p-3.5 text-ink">
+                        <span className="grid size-16 shrink-0 place-items-end justify-center overflow-hidden border-2 border-ink bg-stage-sky">
+                          <PartnerFace partner={spec.partner} expression={stageSituation.partnerIdle.expression} size={56} />
                         </span>
-                        <span className="tabular-nums text-fg-muted">
-                          {Math.min(leadIdx + 1, lead.length)} / {lead.length}
-                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-title font-bold leading-tight">{scene.partnerName}</p>
+                          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-note text-ink-subtle">
+                            <span className="shrink-0">{scene.relation}</span>
+                            <span aria-hidden>·</span>
+                            <MapPin />
+                            <span className="truncate">{scene.place}</span>
+                          </p>
+                        </div>
                       </div>
-                      <div className="p-3.5 text-ink">
-                        <div className="flex items-center gap-3">
-                          <span className="grid size-14 shrink-0 place-items-end justify-center overflow-hidden border-2 border-ink bg-stage-sky">
-                            <PartnerFace partner={spec.partner} expression={stageSituation.partnerIdle.expression} size={48} />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-meta text-ink-subtle">대화 상대</p>
-                            <p className="mt-0.5 truncate text-body font-bold leading-snug">
-                              {scene.partnerName}
-                              <span className="ml-1.5 text-note font-normal text-ink-subtle">· {scene.relation}</span>
-                            </p>
-                            <p className="mt-1 flex items-center gap-1.5 text-meta text-ink-subtle">
-                              <MapPin />
-                              <span className="truncate">{scene.place}</span>
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between gap-2 border-t border-ink/10 pt-2.5 text-meta text-ink-subtle">
-                          <span>무대 클릭 · Space로 다음 대사</span>
-                          <button
-                            type="button"
-                            onClick={nextBeat}
-                            className="-my-2 flex min-h-11 shrink-0 items-center px-1 font-label text-ui text-ink underline underline-offset-4"
-                          >
-                            다음 줄 →
-                          </button>
-                        </div>
+                      <div className="flex items-center justify-between gap-3 border-t-2 border-ink/10 py-1 pl-3.5 pr-2 text-ink">
+                        <span role="img" aria-label={`대사 ${Math.min(leadIdx + 1, lead.length)} / ${lead.length}`} className="flex items-center gap-1">
+                          {lead.map((_, i) => (
+                            <span key={i} className={`h-2 w-4 ${i <= leadIdx ? "bg-ink" : "border-2 border-ink/25"}`} />
+                          ))}
+                        </span>
+                        <button type="button" onClick={nextBeat} className="flex min-h-11 shrink-0 items-center gap-2 px-1.5 font-label text-ui hover:underline hover:underline-offset-4">
+                          다음 줄
+                          <kbd className="hidden border-2 border-ink/25 px-1 font-label text-meta leading-tight text-ink-subtle md:inline">Space</kbd>
+                        </button>
                       </div>
                     </Panel>
                   </>

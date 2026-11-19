@@ -125,42 +125,38 @@ export function FreeLineSlot({
     );
   }
 
-  // 쓰는 칸: 닫힌 칸과 같은 번호·제목 줄을 그대로 두고 그 아래가 대사 줄로 펼쳐진다. 상자 안에 상자를 겹치지 않고
-  // 밑줄 하나에 대사 글꼴로 쓰게 해서, 말한 뒤 같은 자리에 같은 크기로 내 말이 남는다
+  // 쓰는 칸: 닫힌 칸이 그대로 한 줄짜리 입력칸이 된다. 번호·입력·말하기가 한 테두리 안에 붙어 하나의 물건으로 보이고,
+  // 말한 뒤에는 같은 줄에 같은 글꼴·크기로 내 말이 남는다. 포커스 표시는 안쪽 입력칸이 아니라 바깥 칸 전체에 둔다
   const ready = text.trim().length >= 2;
   return (
-    <form onSubmit={send} className="border-2 border-fg bg-card-raised px-3 py-3 text-ink animate-fade">
-      <div className="flex items-center gap-3">
-        <span aria-hidden className="grid size-6 shrink-0 place-items-center bg-ink font-label text-ui text-white">
-          {n}
-        </span>
-        <label htmlFor="free-line" className="min-w-0 flex-1 font-label text-ui">
-          내 말로 해 보기
-        </label>
-      </div>
-      <div className="mt-2 flex items-end gap-3 pl-9">
-        <input
-          id="free-line"
-          value={text}
-          onChange={(e) => updateText(e.target.value)}
-          maxLength={200}
-          autoFocus
-          lang="en"
-          autoCapitalize="sentences"
-          autoComplete="off"
-          spellCheck={false}
-          enterKeyHint="send"
-          placeholder="e.g. Break a leg!"
-          aria-describedby="free-line-hint"
-          className="min-w-0 flex-1 border-b-2 border-ink/30 bg-transparent pb-1 font-line text-say leading-snug text-ink caret-ink outline-none placeholder:text-ink-subtle/70 focus:border-ink focus-visible:outline-none"
-        />
-        <BlockButton label primary={ready} type="submit" disabled={!ready} className="shrink-0 disabled:opacity-40">
-          말하기
-        </BlockButton>
-      </div>
-      <p id="free-line-hint" className="mt-1.5 pl-9 text-meta text-ink-subtle">
-        떠올린 영어 그대로. 상대에게 어떻게 들리는지 보여 줄게
-      </p>
+    <form
+      onSubmit={send}
+      className="flex min-h-14 items-stretch border-2 border-fg bg-card-raised text-ink animate-fade focus-within:outline focus-within:outline-[3px] focus-within:outline-offset-4 focus-within:outline-pink"
+    >
+      <span aria-hidden className="ml-3 grid size-6 shrink-0 place-items-center self-center bg-ink font-label text-ui text-white">
+        {n}
+      </span>
+      <input
+        value={text}
+        onChange={(e) => updateText(e.target.value)}
+        maxLength={200}
+        autoFocus
+        lang="en"
+        autoCapitalize="sentences"
+        autoComplete="off"
+        spellCheck={false}
+        enterKeyHint="send"
+        aria-label="내 말로 해 보기: 떠올린 영어"
+        placeholder="e.g. Break a leg!"
+        className="min-w-0 flex-1 bg-transparent px-3 py-2 font-line text-say leading-snug text-ink caret-ink outline-none placeholder:text-ink-subtle/60 focus-ring-off"
+      />
+      <button
+        type="submit"
+        disabled={!ready}
+        className={`shrink-0 border-l-2 border-fg px-4 font-label text-ui transition-colors ${ready ? "bg-pink text-ink-fixed active:translate-y-px" : "text-ink-subtle"}`}
+      >
+        말하기
+      </button>
     </form>
   );
 }
