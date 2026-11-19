@@ -405,6 +405,45 @@ function blip(kind: "partner" | "me" | "mochi" | "narration", line = ""): () => 
   return cancel;
 }
 
+// "내 말"이 어떻게 들렸는지 기다리는 동안 도는 짧은 칩튠. 도-레-미-파-솔-레-미-파를 되풀이한다(게임에서 무언가 만드는 동안 흐르는 그 느낌).
+// 음표마다 아주 짧은 사각파 + 빠른 감쇠로 작게 깔고, 멈추면 바로 끊는다. 소리를 꺼 두었으면 아무것도 하지 않는다
+const THINK_DEGREES = [1, 2, 3, 4, 5, 2, 3, 4];
+const THINK_HZ: Record<number, number> = { 1: 523.25, 2: 587.33, 3: 659.25, 4: 698.46, 5: 783.99 };
+const THINK_STEP = 0.13;
+function thinking(): () => void {
+  const c = audio();
+  if (!c || !master) return () => {};
+  const out = c.createGain();
+  // 배경으로만 깔리게 다른 효과음보다 한참 작게
+  out.gain.value = 0.035;
+  out.connect(master);
+  let next = c.currentTime + 0.05;
+  let i = 0;
+  const schedule = () => {
+    while (next < c.currentTime + 0.3) {
+      const osc = c.createOscillator();
+      const env = c.createGain();
+      osc.type = "square";
+      osc.frequency.value = THINK_HZ[THINK_DEGREES[i % THINK_DEGREES.length]];
+      env.gain.setValueAtTime(0.0001, next);
+      env.gain.exponentialRampToValueAtTime(1, next + 0.008);
+      env.gain.exponentialRampToValueAtTime(0.0001, next + THINK_STEP * 0.9);
+      osc.connect(env).connect(out);
+      osc.start(next);
+      osc.stop(next + THINK_STEP);
+      next += THINK_STEP;
+      i++;
+    }
+  };
+  schedule();
+  const timer = window.setInterval(schedule, 100);
+  return () => {
+    window.clearInterval(timer);
+    out.gain.setTargetAtTime(0, c.currentTime, 0.02);
+    window.setTimeout(() => out.disconnect(), 200);
+  };
+}
+
 const CLEAR_CLIPS: SfxName[] = ["clear-1", "clear-2", "clear-3"];
 
 export const sfx = {
@@ -467,4 +506,5 @@ export const sfx = {
   },
 
   soundOn: () => playClip("tap", { vol: 0.45, rate: 1.15 }),
+  thinking,
 };

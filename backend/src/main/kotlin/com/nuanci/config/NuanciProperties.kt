@@ -15,6 +15,20 @@ data class NuanciProperties(
 	val content: ContentProperties = ContentProperties(),
 	// 웹 푸시(VAPID) 키. 둘 중 하나라도 비어 있으면 알림을 받지도 보내지도 않는다
 	val push: PushProperties = PushProperties(),
+	// 하려던 영어를 가장 가까운 보기에 대 보는 데 쓰는 Gemini. 키가 비어 있으면 대 보지 않고 모으기만 한다
+	val gemini: GeminiProperties = GeminiProperties(),
+)
+
+data class GeminiProperties(
+	val apiKey: String = "",
+	// 고르기(LITE)와 반응 쓰기(STANDARD)에 쓰는 모델
+	val model: String = "gemini-3.1-flash-lite",
+	val reactModel: String = "gemini-3.5-flash",
+	val timeoutMs: Long = 12000,
+	// 일시 오류(5xx·시간 초과)일 때 같은 요청을 다시 부르는 횟수
+	val maxRetries: Int = 2,
+	// 기능마다 하루에 부르는 상한. 넘으면 모으기만 한다
+	val dailyLimit: Int = 500,
 )
 
 data class PushProperties(

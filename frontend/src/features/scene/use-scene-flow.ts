@@ -21,7 +21,10 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
   const [reactionKey, setReactionKey] = useState(0);
 
   const step: Step = phase === "base" ? "base" : "followUp";
-  const situation = step === "base" ? scene.base : scene.followUp;
+  // "내 말로 해 보기"로 판정까지 받은 말은 그 상황의 보기 하나로 더한다. 그래서 고르기·도장·비교·다음으로 넘어가기가 다른 보기와 똑같이 돈다
+  const [own, setOwn] = useState<Record<Step, Choice[]>>({ base: [], followUp: [] });
+  const given = step === "base" ? scene.base : scene.followUp;
+  const situation = own[step].length ? { ...given, choices: [...given.choices, ...own[step]] } : given;
   const [picked, setPicked] = useState<Record<Step, string | null>>({ base: null, followUp: null });
   const [seen, setSeen] = useState<Record<Step, string[]>>({ base: [], followUp: [] });
   const choice = phase === "transition" ? null : find(situation, viewed[step]);
@@ -39,9 +42,16 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
     if (first && step === "followUp") onEvent?.({ type: "scene_completed" });
   }
 
+  // 내 말을 보기로 더하고 바로 고른 것으로 친다
+  function addOwn(c: Choice) {
+    setOwn((o) => ({ ...o, [step]: [...o[step], c] }));
+    pick(c.id);
+  }
+
   return {
     phase,
     situation,
+    addOwn,
     choice,
     pickedId: phase === "transition" ? null : picked[step],
     picked,
