@@ -774,7 +774,7 @@ label {
   letter-spacing: -0.01em;
 }
 /* 홈 첫 화면 제목은 한 줄이 화면 너비를 채운다. 높이가 낮은 화면에서는 무대가 보이도록 줄인다 */
-.poster-home {
+:root:not([data-returning]) .poster-home {
   font-size: min(12vw, 18dvh, 168px);
   font-weight: 400;
   line-height: 1.02;
@@ -782,9 +782,12 @@ label {
 }
 /* 넓은 화면에서는 제목을 한 줄로 줄여 무대가 첫 화면의 주인공이 되게 한다 */
 @media (min-width: 60rem) {
-  .poster-home {
+  :root:not([data-returning]) .poster-home {
     font-size: min(7.6vw, 13dvh, 118px);
   }
+}
+[data-returning] .poster-home .poster-rise {
+  animation: none;
 }
 /* 지나간 대사는 내려놓고 지금 말하는 줄만 진하게 둔다 */
 /* 긴 목록은 화면 밖 행의 그리기를 미룬다 */

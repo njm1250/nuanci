@@ -169,7 +169,7 @@ function SceneCard({
           {done && (
             <span
               aria-label="해 본 장면"
-              className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-good"
+              className="absolute right-1 top-1 grid size-5 place-items-center border border-ink bg-good"
             >
               <Check />
             </span>
@@ -228,19 +228,11 @@ function SceneRow({
     >
       {/* 목차처럼 화수를 굵은 숫자로 왼쪽에 세운다 */}
       <span className="w-8 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums">{tocNumber(label)}</span>
-      <span className="relative shrink-0">
+      <span className="shrink-0">
         <SceneThumb
           stage={scene.stage}
           className="aspect-[4/3] w-[72px] border border-line"
         />
-        {done && (
-          <span
-            aria-label="해 본 장면"
-            className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center border-2 border-ink bg-good"
-          >
-            <Check />
-          </span>
-        )}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-body font-bold leading-snug">
@@ -250,6 +242,14 @@ function SceneRow({
           {sceneLine(scene.relation, scene.place)}
         </span>
       </span>
+      {done && (
+        <span
+          aria-label="해 본 장면"
+          className="grid size-6 shrink-0 place-items-center border-2 border-ink bg-good text-ink"
+        >
+          <Check />
+        </span>
+      )}
       {fresh && <NewChip />}
       <span aria-hidden className="shrink-0 -translate-x-1 opacity-0 transition duration-fast group-hover:translate-x-0 group-hover:opacity-100">
         <Arrow />
@@ -769,18 +769,23 @@ function Lock() {
 function NextUp({ next, label, progress }: { next: ShelfScene | null | undefined; label: string; progress: Progress }) {
   const nextStart = progress.openEnd + 1;
   return (
-    <section aria-label="다음 장면" className="border-2 border-fg">
+    <section
+      aria-label="다음 장면"
+      className={next ? "grid grid-cols-1 border-2 border-fg md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]" : "border-2 border-fg"}
+    >
       {next && (
-        <div className="bg-card-raised p-4 text-ink">
-          <p className="text-meta text-ink-subtle">다음 장면 · {label}</p>
-          <p className="mt-1.5 font-poster text-display-sm leading-[1.2]">{next.title}</p>
-          <p className="mt-1.5 text-note text-ink-subtle">{sceneLine(next.relation, next.place)}</p>
+        <div className="bg-card-raised p-4 text-ink md:flex md:flex-col md:justify-between md:p-5">
+          <div>
+            <p className="text-meta text-ink-subtle">다음 장면 · {label}</p>
+            <p className="mt-1.5 font-poster text-display-sm leading-[1.2]">{next.title}</p>
+            <p className="mt-1.5 text-note text-ink-subtle">{sceneLine(next.relation, next.place)}</p>
+          </div>
           <BlockLink href={`/scenes/${next.number}`} entry="home" primary className="mt-4 md:max-w-80">
             {label} 열기
           </BlockLink>
         </div>
       )}
-      <div className={`bg-surface px-4 pb-3 ${next ? "border-t-2 border-fg" : ""}`}>
+      <div className={`bg-surface px-4 pb-3 ${next ? "border-t-2 border-fg md:flex md:flex-col md:justify-end md:border-l-2 md:border-t-0 md:px-5 md:pb-4" : ""}`}>
         <BlockBar progress={progress} />
         <div className="mt-2 flex items-baseline justify-between gap-3">
           <p className="text-note text-fg-subtle">

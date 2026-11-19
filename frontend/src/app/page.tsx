@@ -55,23 +55,14 @@ export default async function Home() {
       />
       {/* 머리줄과 푸터 사이 전부가 이 화면의 본문이다. 스크린 리더가 "본문으로 건너뛰기"로 바로 올 수 있게 main 하나로 감싼다 */}
       <main className="flex flex-col">
-      <div>
-        <div className="relative mx-auto max-w-[1440px] px-4 pb-6 pt-3 md:px-8 min-[960px]:pb-6 returning:hidden">
-          <h1 className="poster-home font-poster">
-            <span className="poster-rise block min-[960px]:inline-block">직역하면</span>{" "}
-            <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block">오해받는 순간들</span>
-          </h1>
-          <p aria-hidden className="poster-scrawl absolute right-4 top-3 font-scrawl text-[clamp(32px,6vw,60px)] leading-none text-fg [--lean:-4deg] md:right-8 min-[960px]:hidden">
-            골라 보면 알아요
-          </p>
-        </div>
-        {/* 다시 온 방문자에게도 첫 화면의 포스터 제목을 작게 남겨서 두 화면의 인상이 이어진다 */}
-        <div className="mx-auto hidden max-w-[1080px] px-4 pt-6 md:px-8 lg:max-w-[1200px] returning:block">
-          {/* 첫 방문 제목이 숨는 재방문 화면의 h1. 둘 중 보이는 하나만 읽힌다 */}
-          <h1 className="font-poster text-say leading-none text-fg md:text-display-sm">
-            직역하면 오해받는 순간들
-          </h1>
-        </div>
+      <div className="relative mx-auto w-full max-w-[1440px] px-4 pb-6 pt-3 md:px-8 min-[960px]:pb-6 returning:max-w-[1080px] returning:pb-0 returning:pt-6 lg:returning:max-w-[1200px]">
+        <h1 className="poster-home font-poster text-fg returning:text-say returning:leading-none md:returning:text-display-sm">
+          <span className="poster-rise block min-[960px]:inline-block returning:inline">직역하면</span>{" "}
+          <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block returning:inline">오해받는 순간들</span>
+        </h1>
+        <p aria-hidden className="poster-scrawl absolute right-4 top-3 font-scrawl text-[clamp(32px,6vw,60px)] leading-none text-fg [--lean:-4deg] md:right-8 min-[960px]:hidden returning:hidden">
+          골라 보면 알아요
+        </p>
       </div>
 
       {/* 다시 온 방문자는 데모와 소개 대신 진행 상황과 다음 장면만 본다. 첫 방문자에게는 아무것도 그리지 않는다 */}

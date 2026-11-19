@@ -16,7 +16,9 @@ import { useStreak } from "@/features/streak/streak";
 import { StreakBadge } from "@/features/streak/streak-ui";
 import { setTheme, useTheme } from "@/features/theme/theme";
 import { rankAt, type RankRule } from "@/features/progression/types";
+import { useVoice } from "@/features/progression/voice";
 import { VoiceCard } from "@/features/progression/voice-card";
+import { TRAP_LABELS } from "@/features/scene/types";
 import { FEATURES } from "@/features/site/lean";
 
 const noop = () => () => {};
@@ -110,14 +112,8 @@ function Profile() {
   const account = useAccount();
   const notice = useSyncExternalStore(noop, () => new URLSearchParams(location.search).get("login"), () => null);
 
-  // 로그인 여부를 확인하는 동안에는 대부분인 비로그인 카드 자리를 미리 비워 두어, 확인이 끝나도 아래 칸이 밀려 내려가지 않게 한다
-  if (account.status === "loading") {
-    return (
-      <div aria-hidden inert className="invisible">
-        <GuestProfile notice={null} google={false} />
-      </div>
-    );
-  }
+  // 로그인 확인 중이거나 로그인 기능이 아직 꺼져 있으면 빈 안내 칸을 차지하지 않는다
+  if (account.status === "loading") return null;
   if (account.status === "member" && account.me) {
     return (
       <Panel>
@@ -128,7 +124,65 @@ function Profile() {
       </Panel>
     );
   }
+  if (!account.google) return null;
   return <GuestProfile notice={notice} google={account.google} />;
+}
+
+// 내가 자주 빠지는 함정 Top 3 막대 그래프. 실제 오답 기록이 쌓이면 가장 자주 걸린 패턴부터 보여 준다
+function TrapChart() {
+  const voice = useVoice();
+  if (voice.answered === 0) return null;
+  const top3 = voice.traps.slice(0, 3);
+  if (top3.length === 0) {
+    return (
+      <Panel>
+        <div className="flex items-center gap-3 p-4 text-ink">
+          <span className="grid size-11 shrink-0 place-items-center border-2 border-ink bg-good">
+            <ReactionFace expression="delighted" size={30} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-body font-bold leading-snug">아직 빠진 함정이 없어요!</p>
+            <p className="mt-0.5 text-meta text-ink-subtle">지금까지 {voice.answered}번 모두 의도대로 들렸어요.</p>
+          </div>
+        </div>
+      </Panel>
+    );
+  }
+  const max = top3[0].count;
+  return (
+    <Panel>
+      <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-label text-ui text-fg">
+        <span>내가 자주 빠지는 함정</span>
+        <span className="text-meta text-fg-muted">TOP {top3.length}</span>
+      </div>
+      <ol className="divide-y divide-ink/10 px-4 py-1 text-ink">
+        {top3.map((item, i) => {
+          const pct = Math.max(12, Math.round((item.count / max) * 100));
+          return (
+            <li key={item.trap} className="py-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="min-w-0 truncate text-body font-bold leading-snug">
+                  <span className="mr-1.5 font-poster text-say leading-none tabular-nums text-ink-subtle">{i + 1}</span>
+                  {TRAP_LABELS[item.trap]}
+                </p>
+                <span className="shrink-0 font-label text-ui tabular-nums text-ink">{item.count}번</span>
+              </div>
+              <p className="mt-0.5 text-meta text-ink-subtle">{item.lean}</p>
+              <div
+                role="progressbar"
+                aria-label={`${TRAP_LABELS[item.trap]} ${item.count}번`}
+                aria-valuenow={item.count}
+                aria-valuemax={max}
+                className="mt-2 h-2.5 w-full border-2 border-ink bg-surface"
+              >
+                <div className={`h-full ${i === 0 ? "bg-bad" : "bg-warn"}`} style={{ width: `${pct}%` }} />
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </Panel>
+  );
 }
 
 // 비로그인 프로필. 로그인하면 얻는 것을 구체적으로 보여주고 구글 로그인으로 보낸다
@@ -177,6 +231,8 @@ export function MePanel({ ranks }: { ranks: RankRule[] }) {
       <div className="space-y-6">
       {/* 이 화면의 주인공은 "내 영어 말투"다. 보상을 다시 켜도 직급 사원증(IdCard)이 이 자리를 차지하지 않게, 말투 카드를 늘 맨 위에 둔다 */}
       <VoiceCard name={account.status === "member" ? (account.me?.name ?? undefined) : undefined} />
+
+      <TrapChart />
 
       {FEATURES.rewards && (
       <>

@@ -3,6 +3,7 @@
 import { sourcesLine } from "./where";
 import Link from "next/link";
 import { LogoLink } from "@/features/site/logo-link";
+import { MapPin } from "@/features/site/map-pin";
 import { PrStatus } from "./pr-status";
 import { useRouter } from "next/navigation";
 
@@ -21,6 +22,7 @@ import { CORE_CHOICES, shuffleChoices } from "./choice-order";
 import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 import { primeAudio, sfx } from "./sfx";
+import { ReactionFace } from "./reaction-face";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
 import { Num, VERDICTS, VerdictStamp } from "./verdict";
@@ -642,9 +644,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   talkKey: fl ? 5000 + freeKey : stageKey,
                   // "내 말로 해 보기"로 말했으면 무대에서 내가 그 말을 하고, 상대가 상상한 반응(표정·속마음)으로 받는다
                   reaction: endingOn ? null : fl?.outcome === "reacted" ? (fl.expression ?? null) : (stageChoice?.expression ?? null),
-                  meLine: beat ? (beat.who === "me" ? beat.line : undefined) : endingOn ? undefined : (fl?.line ?? stageChoice?.line),
+                  meLine: beat ? (beat.who === "me" && beat.line !== "……" ? beat.line : undefined) : endingOn ? undefined : (fl?.line ?? stageChoice?.line),
                   partnerLine: beat
-                    ? beat.who === "partner"
+                    ? beat.who === "partner" && beat.line !== "……"
                       ? beat.line
                       : undefined
                     : endingOn
@@ -813,9 +815,50 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   </span>
                 </MochiAsk>
                 {leading ? (
-                  <BlockButton onClick={skipLead} className="mt-2 w-full" faceClassName="py-3 text-center text-body font-bold">
-                    바로 고르기
-                  </BlockButton>
+                  <>
+                    <BlockButton onClick={skipLead} className="mt-2 w-full" faceClassName="py-3 text-center text-body font-bold">
+                      바로 고르기
+                    </BlockButton>
+                    {/* 데스크톱에서 대사가 흐르는 동안 오른쪽 칸이 비어 보이지 않게, 이 장면의 상대와 장소를 작은 안내판으로 보여 준다 */}
+                    <Panel className="mt-4">
+                      <div className="flex items-center justify-between bg-ink px-3.5 py-2 font-label text-ui text-fg">
+                        <span>
+                          <span className="text-pink">EP.{String(scene.number).padStart(2, "0")}</span> 지금 장면
+                        </span>
+                        <span className="tabular-nums text-fg-muted">
+                          {Math.min(leadIdx + 1, lead.length)} / {lead.length}
+                        </span>
+                      </div>
+                      <div className="p-3.5 text-ink">
+                        <div className="flex items-center gap-3">
+                          <span className="grid size-14 shrink-0 place-items-end justify-center border-2 border-ink bg-stage-sky pb-1">
+                            <ReactionFace expression={stageSituation.partnerIdle.expression} size={42} />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-meta text-ink-subtle">대화 상대</p>
+                            <p className="mt-0.5 truncate text-body font-bold leading-snug">
+                              {scene.partnerName}
+                              <span className="ml-1.5 text-note font-normal text-ink-subtle">· {scene.relation}</span>
+                            </p>
+                            <p className="mt-1 flex items-center gap-1.5 text-meta text-ink-subtle">
+                              <MapPin />
+                              <span className="truncate">{scene.place}</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-2 border-t border-ink/10 pt-2.5 text-meta text-ink-subtle">
+                          <span>무대 클릭 · Space로 다음 대사</span>
+                          <button
+                            type="button"
+                            onClick={nextBeat}
+                            className="-my-2 flex min-h-11 shrink-0 items-center px-1 font-label text-ui text-ink underline underline-offset-4"
+                          >
+                            다음 줄 →
+                          </button>
+                        </div>
+                      </div>
+                    </Panel>
+                  </>
                 ) : (
                   <>
                     {/* 모바일에서는 결과 카드가 화면을 채워 다른 보기가 아래로 밀리므로, 스크롤 없이 엄지로 반응을 바꿔 보는 칩 바를 둔다 */}
