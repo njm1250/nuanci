@@ -930,7 +930,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                 <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />
                               )}
                               <span className="relative block">
-                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} reduced={reduced} />
+                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} spoke={partnerReacts && hasSays} partnerName={scene.partnerName} reduced={reduced} />
                                 {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기). 판정은 도장 아래로 옮겼다.
                                     한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
                                 {/* 반응이 오기 전에는 고른 말과 점 셋만 둔다. 빈 카드에 '내 선택'·'더 보기'만 먼저 보이면 무엇을 기다리는지 모른다 */}

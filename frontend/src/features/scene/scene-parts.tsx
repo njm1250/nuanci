@@ -135,6 +135,8 @@ export function ResultBody({
   meta = true,
   intent,
   waiting = false,
+  spoke = false,
+  partnerName,
   friend = false,
   reduced = false,
 }: {
@@ -144,6 +146,9 @@ export function ResultBody({
   intent?: string;
   // 무대에서 상대가 아직 반응하기 전. 반응·인상·해설을 비워 두고 무대에 눈이 가게 한다. 반응이 뜨면 인상과 해설은 한 박자 뒤에 온다
   waiting?: boolean;
+  // 반응을 기다리는 동안 상대가 영어 한마디를 이미 했는지. 했으면 그 말을 카드에 먼저 적어 두고 속마음을 기다린다
+  spoke?: boolean;
+  partnerName?: string;
   // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
   meta?: boolean;
   choice: Choice;
@@ -175,10 +180,21 @@ export function ResultBody({
           )}
         </span>
         {/* 상대가 영어로 한 겉말은 무대에서 지나가 버리므로, 천천히 다시 읽을 수 있게 카드에도 한 줄 남긴다 */}
-        {active && !waiting && choice.says && (
-          <span className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-note text-ink-muted">
+        {active && (!waiting || spoke) && choice.says && (
+          <span className="mt-2 flex animate-fade flex-wrap items-baseline gap-x-2 gap-y-0.5 text-note text-ink-muted">
             <span className="shrink-0 text-meta text-ink-subtle">상대 말</span>
             <span className="font-line text-ink">“{choice.says}”</span>
+          </span>
+        )}
+        {/* 반응을 기다리는 동안 카드가 비어 보이지 않게, 무대에서 일어나는 일을 카드에도 차례로 적는다: 듣는 중 → 상대가 한 영어 → (속마음과 도장) */}
+        {active && waiting && (
+          <span className="mt-2 flex items-center gap-2 text-note text-ink-subtle">
+            <span className="shrink-0">{spoke ? "속마음은" : `${partnerName || "상대"} 듣는 중`}</span>
+            <span aria-hidden className="flex items-center gap-1">
+              {[0, 1, 2].map((i) => (
+                <span key={i} className={`size-1.5 bg-current ${reduced ? "" : "animate-typing"}`} style={{ animationDelay: `${i * 160}ms` }} />
+              ))}
+            </span>
           </span>
         )}
         {/* 지금 고른 말의 상대 반응은 무대 생각 풍선에 있어서 카드에는 다시 적지 않는다. 다른 보기는 비교하려고 반응을 남긴다 */}
