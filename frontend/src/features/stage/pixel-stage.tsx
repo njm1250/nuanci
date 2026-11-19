@@ -301,6 +301,8 @@ export type StageState = {
   cutIn?: boolean;
   // 고른 말을 들은 상대가 입 밖으로 하는 영어 한마디(겉말). 반응 기호와 속마음보다 먼저 말풍선으로 띄운다
   partnerSpeaks?: string;
+  // 속마음 생각 풍선 위에 작게 남기는, 방금 입 밖으로 한 영어(겉말). 말풍선이 사라지지 않고 생각 풍선으로 바뀐 것처럼 이어 보이게 한다
+  partnerSaid?: string;
 };
 
 // 하늘이 벽 자리에 오는 바깥 세트. 걸레받이를 그리지 않는다
@@ -537,7 +539,15 @@ export function PixelStage({
           {state.partnerSpeaks ? (
             bubble("partner", state.partnerSpeaks, `speaks-${state.partnerKey}`)
           ) : state.partnerSays ? (
-            bubble("partner", <span aria-label={`상대 속마음: ${state.partnerSays}`}>{state.partnerSays}</span>, `says-${state.partnerKey}`, true)
+            bubble(
+              "partner",
+              <>
+                {state.partnerSaid && <span className="mb-1 block border-b border-dashed border-ink-fixed/40 pb-1 text-[0.8em] opacity-60">“{state.partnerSaid}”</span>}
+                <span aria-label={`상대 속마음: ${state.partnerSays}`}>{state.partnerSays}</span>
+              </>,
+              `says-${state.partnerKey}`,
+              true,
+            )
           ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
               <div style={scaled} className="origin-top-left">

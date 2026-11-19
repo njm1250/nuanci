@@ -65,7 +65,8 @@ const REACT_AGAIN = 350;
 // 장면에 들어와 첫 대사가 뜨기 전 무대만 보이는 시간
 const INTRO_MS = 400;
 // 겉말과 속마음 사이의 쉼. 펀치라인 앞의 한 박자가 웃음을 키운다(약 0.3~0.6초)
-const SAYS_BEAT = 350;
+// 겉말 말풍선이 그대로 속마음 생각 풍선으로 바뀐다(겉말은 그 안에 작게 남는다). 사이에 비는 순간을 두면 말풍선이 사라졌다 다시 뜨는 것처럼 보였다
+const SAYS_BEAT = 0;
 // 고른 뒤 컷인이 뜨는 때. 효과음 글자가 터지는 순간(약 0.4초)에 맞춘다
 const CUT_IN_AT = 350;
 const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
@@ -672,6 +673,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                         : stageSituation.partnerLine,
                   partnerSpeaks: speaking && !pausing ? stageChoice?.says : undefined,
                   partnerSays: fl?.outcome === "reacted" ? fl.thought : partnerReacts && !speaking ? stageChoice?.reaction : undefined,
+                  partnerSaid: !fl && partnerReacts && !speaking && hasSays ? stageChoice?.says : undefined,
                   meTurn: phase !== "transition" && !choice && !leading && !fl,
                   meThink: spoken(stageSituation.intent),
                   meTry: liveDraft || trying?.line,
@@ -931,7 +933,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                 <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} reduced={reduced} />
                                 {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기). 판정은 도장 아래로 옮겼다.
                                     한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
-                                <span className="mt-3.5 block border-t border-ink/10 pl-9">
+                                {/* 반응이 오기 전에는 고른 말과 점 셋만 둔다. 빈 카드에 '내 선택'·'더 보기'만 먼저 보이면 무엇을 기다리는지 모른다 */}
+                                {cardRevealed && (
+                                <span className="mt-3.5 block animate-fade border-t border-ink/10 pl-9">
                                   <span className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 pt-2.5">
                                     {(c.id === pickedId || isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="ml-auto justify-end" />}
                                   </span>
@@ -965,6 +969,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                     )}
                                   </span>
                                 </span>
+                                )}
                               </span>
                             </div>
                           </Panel>
