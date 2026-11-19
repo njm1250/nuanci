@@ -22,7 +22,7 @@ import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { CORE_CHOICES, shuffleChoices } from "./choice-order";
 import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
-import { toggleCalmMode, useCalmMode } from "./calm-mode";
+
 import { primeAudio, sfx } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
@@ -160,7 +160,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const pendingStreak = useStreakMoment(scene.id);
   const streakMoment = FEATURES.streak ? pendingStreak : null;
   const stats = usePickStats(scene.id, preview);
-  const calm = useCalmMode();
   const reduced = useReducedMotion();
   const translate = useTranslationOn();
   // 친구가 낸 문제로 들어왔으면 친구의 첫 답을 기억해 둔다. 내가 고르기 전에는 보여 주지 않는다
@@ -217,7 +216,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
       send({ type: "lead_finished", step, choiceId: "watched" });
     }
     setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
-    setAutoPaused(false);
+    // 한 번이라도 직접 넘기면 그 사람은 자기 속도로 읽는 사람이다. 이후로는 자동으로 넘기지 않는다(멈춤 버튼을 따로 두지 않는 이유)
+    setAutoPaused(true);
   };
   // 데스크톱에서는 "바로 고르기"가 있던 자리에 보기가 올라온다. 버튼을 연달아 눌러 첫 보기가 골라지지 않게, 건너뛴 직후 잠깐은 고르기를 받지 않는다
   const pickAfter = useRef(0);
@@ -606,18 +606,13 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           {packStep !== undefined && <PrStatus step={packStep} />}
           {/* 끝이 어디인지 처음부터 보이게, 세 장면 중 몇 번째인지 둔다 */}
           {runOn && <RunChip at={runFresh ? 1 : runPosition(run, scene.id)} />}
-          {/* 움직임과 자동 넘김을 줄이는 "차분한 화면" 토글. 영어 읽기에 집중하고 싶은 사람이 바로 켤 수 있게 머리줄에 둔다 */}
+          {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
           <div className="ml-auto flex shrink-0 items-center">
-            <button
-              type="button"
-              onClick={toggleCalmMode}
-              aria-pressed={calm}
-              aria-label={calm ? "차분한 화면 끄기" : "차분한 화면 켜기"}
-              title="움직임과 자동 넘김을 줄여 영어에 집중해요"
-              className="flex min-h-11 items-center px-2"
-            >
-              <span className={`border-2 px-1.5 py-1 text-note leading-none ${calm ? "border-pink bg-pink text-ink-fixed" : "border-fg-subtle text-fg-muted"}`}>차분</span>
-            </button>
+            {!choice && !wrapped && !leading && phase !== "transition" && (
+              <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
+                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-page" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
+              </button>
+            )}
             <SoundToggle />
           </div>
         </header>
@@ -807,7 +802,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     ) : fl ? (
                       FREE_MOCHI[fl.outcome](fl.choiceId ? shown.findIndex((c) => c.id === fl.choiceId) + 1 : 0)
                     ) : !choice ? (
-                      friendOn ? "친구가 낸 문제야. 영어로 뭐라고 할래?" : "영어로 뭐라고 할래?"
+                      // 무엇을 푸는지 한 문장으로: 하고 싶은 말을 Mochi 질문 안에 넣는다. 따로 칸을 두면 무대 생각 풍선과 같은 말이 두 번 나온다
+                      <>
+                        {friendOn && "친구가 낸 문제! "}
+                        {quotedIntent(situation.intent)} 영어로 뭐라고 할래?
+                      </>
                     ) : !settled ? (
                       "어떻게 들렸을까…"
                     ) : friendOn && pickedId === friendId && heardIds.length <= 1 ? (
@@ -831,7 +830,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                       바로 고르기
                     </BlockButton>
                     {/* 데스크톱에서 대사가 흐르는 동안 오른쪽 칸이 비어 보이지 않게, 이 장면의 상대를 이름표처럼 보여 준다.
-                        제목은 머리줄에 이미 있어 다시 쓰지 않고, 몇 번째 대사인지는 칸 막대로, 멈춤·다음 줄을 바로 누를 수 있게 둔다 */}
+                        제목은 머리줄에 이미 있어 다시 쓰지 않고, 몇 번째 대사인지는 칸 막대로, 넘기는 키는 버튼 안에 붙인다 */}
                     <Panel className="mt-4">
                       <div className="flex items-center gap-3.5 p-3.5 text-ink">
                         <span className="grid size-16 shrink-0 place-items-end justify-center overflow-hidden border-2 border-ink bg-stage-sky">
@@ -854,16 +853,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                           ))}
                         </span>
                         <div className="flex items-center gap-1">
-                          {!reduced && (
-                            <button
-                              type="button"
-                              onClick={() => setAutoPaused((v) => !v)}
-                              aria-pressed={autoPaused}
-                              className="flex min-h-11 shrink-0 items-center px-2 font-label text-meta text-ink-subtle hover:text-ink"
-                            >
-                              {autoPaused ? "자동 재생" : "멈춤"}
-                            </button>
-                          )}
                           <button type="button" onClick={nextBeat} className="flex min-h-11 shrink-0 items-center gap-2 px-1.5 font-label text-ui hover:underline hover:underline-offset-4">
                             다음 줄
                             <kbd className="hidden border-2 border-ink/25 px-1 font-label text-meta leading-tight text-ink-subtle md:inline">Space</kbd>
@@ -874,24 +863,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   </>
                 ) : (
                   <>
-                    {/* 보기 바로 위에 "내가 하고 싶은 말"과 뜻 보기 버튼을 함께 둬서, 무대를 뒤지지 않아도 무엇을 고르는지 한눈에 들어온다.
-                        모바일에서는 결과 카드 안에 하고 싶던 말이 다시 나오므로, 반응이 열린 뒤에는 공간을 아끼기 위해 숨긴다 */}
-                    <div className={`mt-2 items-center justify-between gap-3 border-l-4 border-fg bg-surface px-3 py-2 ${settled ? "hidden md:flex" : "flex"}`}>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-meta text-fg-subtle">내가 하고 싶은 말</p>
-                        <p className="mt-0.5 text-body font-bold leading-snug text-fg">{quotedIntent(situation.intent)}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowMeaning((v) => !v)}
-                        aria-pressed={showMeaning}
-                        className={`flex min-h-11 shrink-0 items-center border-2 px-2.5 font-label text-ui ${
-                          showMeaning ? "border-fg bg-fg text-page" : "border-line bg-card text-fg-muted hover:border-fg hover:text-fg"
-                        }`}
-                      >
-                        {showMeaning ? "뜻 숨기기" : "뜻 보기"}
-                      </button>
-                    </div>
                     {/* 모바일에서는 결과 카드가 화면을 채워 다른 보기가 아래로 밀리므로, 첫 반응 뒤 엄지로 반응을 바꿔 보는 칩 바를 둔다 */}
                     {settled && choice && (
                       <div role="group" aria-label="다른 보기 반응 바로 보기" className="mt-2 flex items-center gap-1.5 md:hidden">
@@ -1079,18 +1050,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               />
             )}
             {leading ? (
-              // 모바일 빌드업 하단: 내 속도로 읽을 수 있게 다음 줄(또는 멈춤)과 바로 고르기를 나란히 둔다
+              // 모바일 빌드업 하단: 다음 줄(누르면 그때부터 내 속도로)과 바로 고르기
               <div className="flex items-center gap-2">
-                {!reduced && (
-                  <button
-                    type="button"
-                    onClick={() => setAutoPaused((v) => !v)}
-                    aria-pressed={autoPaused}
-                    className="flex min-h-12 shrink-0 items-center justify-center border-2 border-line bg-card px-3 font-label text-ui text-fg-muted"
-                  >
-                    {autoPaused ? "재생" : "멈춤"}
-                  </button>
-                )}
                 <BlockButton onClick={nextBeat} className="flex-1" faceClassName="py-3 text-center text-body font-bold">
                   다음 줄
                 </BlockButton>
