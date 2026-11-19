@@ -33,7 +33,7 @@ export function FreeLineSlot({
   sceneVersion: number;
   step: "base" | "followUp";
   free: FreeLine | null;
-  // 보기 id → 화면의 번호와 문장. 대 본 보기를 "2번"처럼 가리킬 때 쓴다
+  // 보기 id → 화면의 번호와 문장. 대 본 보기를 "2번"처럼 가리킬 때 쓴다. 아직 안 보이는 보기면 번호는 0
   numberOf: (id: string) => { n: number; line: string } | null;
   onSay: (line: string) => void;
   // 결과와 함께 말한 문장을 넘긴다. 보낼 때의 화면 값(아직 비어 있음)에 기대지 않게 한다
@@ -112,7 +112,7 @@ export function FreeLineSlot({
             </span>
           ) : free.outcome === "matched" && hit ? (
             <BlockButton label onClick={() => onPick(free.choiceId!)}>
-              {hit.n}번 반응 보기
+              {hit.n > 0 ? `${hit.n}번 반응 보기` : "그 반응 보기"}
             </BlockButton>
           ) : null}
           {free.outcome !== "pending" && (

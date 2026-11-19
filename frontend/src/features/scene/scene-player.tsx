@@ -85,7 +85,8 @@ export function ScenePlayer(props: PlayerProps) {
 // "내 말로 해 보기" 결과마다 Mochi의 한마디. 무엇이 일어났는지만 말하고 다음 할 일은 칸이 보여 준다
 const FREE_MOCHI: Record<FreeLine["outcome"], (n: number) => string> = {
   pending: () => "어떻게 들렸을까…",
-  matched: (n) => `그건 ${n}번이랑 거의 같은 말이야!`,
+  // 0이면 첫 답 전이라 아직 안 보이는 구경용 보기에 붙은 것
+  matched: (n) => (n > 0 ? `그건 ${n}번이랑 거의 같은 말이야!` : "오, 숨어 있던 보기랑 거의 같은 말이야!"),
   reacted: () => "이렇게 들렸대!",
   off_topic: () => "그건 이 상황에서 할 말이 아닌 것 같은데?",
   too_far: () => "음… 그 말은 못 들은 걸로 할게",
@@ -974,8 +975,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                           step={stepNow}
                           free={fl}
                           numberOf={(id) => {
-                            const k = shown.findIndex((c) => c.id === id);
-                            return k >= 0 ? { n: k + 1, line: shown[k].line } : null;
+                            // 보기가 넷 이상이면 첫 답 전에는 앞 셋만 보인다. 안 보이는 보기에 붙어도 그 보기를 고르게 하고 번호는 0으로 둔다
+                            const c = situation.choices.find((x) => x.id === id);
+                            return c ? { n: shown.findIndex((x) => x.id === id) + 1, line: c.line } : null;
                           }}
                           onSay={(line) => (setFreeDraft({ step: stepNow, text: "" }), setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
                           onResult={(r, line) => {
