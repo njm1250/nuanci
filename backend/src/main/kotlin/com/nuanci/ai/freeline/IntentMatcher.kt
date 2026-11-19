@@ -18,17 +18,19 @@ sealed interface MatchResult {
 // 사용자의 의도(한국어)는 넘기지 않는다. 넘기면 모델이 "원했을 쪽"(정답)으로 끌려간다(0025)
 @Service
 class IntentMatcher(private val gateway: LlmGateway, private val mapper: JsonMapper) {
-	fun match(s: Situation, text: String, visitorId: UUID, sceneId: String): MatchResult {
+	// withIntent·spec은 평가(설계 비교)에서만 바꾼다. 서비스 경로는 늘 의도 없이 PROMPT로 부른다
+	fun match(s: Situation, text: String, visitorId: UUID?, sceneId: String, withIntent: Boolean = false, spec: PromptSpec = PROMPT): MatchResult {
 		// 보기를 그대로 친 경우는 부르지 않고 바로 댄다
 		s.choices.firstOrNull { normalize(it.line) == normalize(text) }?.let { return MatchResult.Matched(it.id, "exact") }
 		val ids = s.choices.map { it.id } + "none"
 		val user = mapper.writeValueAsString(
-			mapOf(
-				"situation" to s.context,
-				"partner_said" to s.partnerLine,
-				"options" to s.choices.map { mapOf("id" to it.id, "line" to it.line) },
-				"learner_line" to text,
-			),
+			buildMap {
+				put("situation", s.context)
+				if (withIntent) put("they_wanted_to_say_ko", s.intent)
+				put("partner_said", s.partnerLine)
+				put("options", s.choices.map { mapOf("id" to it.id, "line" to it.line) })
+				put("learner_line", text)
+			},
 		)
 		val schema = mapOf(
 			"type" to "OBJECT",
@@ -38,7 +40,7 @@ class IntentMatcher(private val gateway: LlmGateway, private val mapper: JsonMap
 			),
 			"required" to listOf("match", "confidence"),
 		)
-		val reply = gateway.call(PROMPT, user, schema, visitorId, sceneId)
+		val reply = gateway.call(spec, user, schema, visitorId, sceneId)
 		if (reply.outcome != LlmOutcome.OK) return MatchResult.Failed(reply.outcome)
 		val id = reply.json!!.path("match").asString("none")
 		val confidence = reply.json.path("confidence").asString("low")
