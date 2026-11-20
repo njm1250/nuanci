@@ -5,10 +5,8 @@ import { SpeakerTag } from "./block-ui";
 import { type Beat } from "./types";
 import { Caret } from "./scene-parts";
 
-// 대사 한 줄을 보여주는 시간. 영어 한 줄과 뜻을 읽을 수 있게 2~4초, 다 읽었으면 눌러서 바로 넘긴다
-// 한 줄에 2~4.5초. 속도를 늦추면 모두가 느려져서, 놓친 줄은 질문 화면의 "앞 대화 다시 보기"가 맡는다.
-// 한국어 뜻은 영어보다 글자당 조금 더 오래 읽는다고 봐서, 상황 설명처럼 뜻이 긴 줄만 그만큼 더 머문다
-export const beatMs = (b: Beat) => Math.min(4500, Math.max(2000, 1400 + Math.max(b.line.length * 45, b.meaning.length * 55)));
+// 대사 한 줄을 보여주는 시간. 영어가 익숙하지 않은 사람도 대사와 번역을 함께 읽을 수 있게 3.2~6.5초를 두고, 다 읽었으면 눌러서 바로 넘긴다
+export const beatMs = (b: Beat) => Math.min(6500, Math.max(3200, 2200 + Math.max(b.line.length * 60, b.meaning.length * 70)));
 
 // 대사가 몇 줄 남았는지 보여주는 점
 export function BeatDots({ total, at }: { total: number; at: number }) {

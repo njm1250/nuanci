@@ -1,5 +1,6 @@
 package com.nuanci.ai.freeline
 
+import com.nuanci.ai.llm.LlmOutcome
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -29,7 +30,8 @@ class FreeLineService(
 		val result = when (val m = situation?.let { matcher.match(it, text, visitorId, sceneId) }) {
 			null -> FreeLineResult("unavailable")
 			is MatchResult.Matched -> FreeLineResult("matched", matchedChoiceId = m.choiceId)
-			is MatchResult.Failed -> FreeLineResult("unavailable")
+			// 매칭 호출이 안전 기준에 걸린 말은 반응 쓰기까지 가지 않고 바로 "너무 심함"으로 돌려준다(못 들은 척이 아니라 거른 것)
+			is MatchResult.Failed -> FreeLineResult(if (m.outcome == LlmOutcome.BLOCKED) "too_far" else "unavailable")
 			MatchResult.NoMatch -> when (val r = writer.write(situation, text, visitorId, sceneId)) {
 				is ReactionResult.Reacted -> FreeLineResult("reacted", verdict = r.verdict, heard = r.heard, expression = r.expression, thought = r.thought)
 				ReactionResult.OffTopic -> FreeLineResult("off_topic")

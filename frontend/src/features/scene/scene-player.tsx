@@ -22,10 +22,11 @@ import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { CORE_CHOICES, shuffleChoices } from "./choice-order";
 import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
+
 import { primeAudio, sfx } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
-import { Num, VERDICTS, VerdictStamp } from "./verdict";
+import { Num, StakesNote, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
@@ -36,7 +37,7 @@ import { NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
-import { spoken } from "@/features/collection/pairs";
+import { quotedIntent, spoken } from "@/features/collection/pairs";
 import { recordVoice } from "@/features/progression/voice";
 import { FEATURES } from "@/features/site/lean";
 import { HeardTrio } from "./verdict";
@@ -57,14 +58,18 @@ const STAGE_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+0.5rem)]";
 const CARD_CLEAR = 36;
 // 얼굴 컷인이 떠 있는 시간
 const CUT_IN_MS = 1800;
-// 상대의 영어 겉말이 말풍선에 머무는 시간. 그 뒤 속마음 생각 풍선으로 바뀐다
-const SAYS_MS = 1200;
+// 상대의 영어 겉말이 말풍선에 머무는 시간. 영어를 천천히 읽을 수 있게 여유를 두고, 누르면 바로 속마음으로 넘어간다
+const SAYS_MS = 2200;
+// 같은 상황의 두 번째 보기부터 겉말이 머무는 시간. 이미 흐름을 아는 사람이라 짧게
+const SAYS_AGAIN_MS = 1000;
+const SAYS_MIN_MS = 1300;
 // 이미 본 보기를 다시 누르면 겉말 없이 이만큼 뒤에 바로 속마음이 뜬다. 같은 반응을 다시 기다리게 하지 않는다
 const REACT_AGAIN = 350;
 // 장면에 들어와 첫 대사가 뜨기 전 무대만 보이는 시간
 const INTRO_MS = 400;
 // 겉말과 속마음 사이의 쉼. 펀치라인 앞의 한 박자가 웃음을 키운다(약 0.3~0.6초)
-const SAYS_BEAT = 350;
+// 겉말 말풍선이 그대로 속마음 생각 풍선으로 바뀐다(겉말은 그 안에 작게 남는다). 사이에 비는 순간을 두면 말풍선이 사라졌다 다시 뜨는 것처럼 보였다
+const SAYS_BEAT = 0;
 // 고른 뒤 컷인이 뜨는 때. 효과음 글자가 터지는 순간(약 0.4초)에 맞춘다
 const CUT_IN_AT = 350;
 const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
@@ -215,6 +220,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
       send({ type: "lead_finished", step, choiceId: "watched" });
     }
     setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
+    // 직접 넘겨도 다음 줄부터는 다시 저절로 넘어간다. 한 번 누른 뒤 멈춰 버리면 멈춤 표시가 없어 고장 난 것처럼 보였다.
+    // 천천히 읽는 사람은 넘김 시간 자체를 늘려서 받쳐 준다(beatMs)
     setAutoPaused(false);
   };
   // 데스크톱에서는 "바로 고르기"가 있던 자리에 보기가 올라온다. 버튼을 연달아 눌러 첫 보기가 골라지지 않게, 건너뛴 직후 잠깐은 고르기를 받지 않는다
@@ -236,13 +243,14 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     return () => document.removeEventListener("visibilitychange", onHide);
   }, [leading]);
   useEffect(() => {
-    if (!beat || autoPaused) return;
+    // 차분한 화면(reduced)에서는 자동으로 넘어가지 않고 사용자가 직접 눌러서 다음 줄을 본다
+    if (!beat || autoPaused || reduced) return;
     const t = window.setTimeout(() => {
       if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
       setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
     }, beatMs(beat));
     return () => clearTimeout(t);
-  }, [beat, autoPaused, step, lastBeat, preview, scene.id, scene.version, attemptId]);
+  }, [beat, autoPaused, reduced, step, lastBeat, preview, scene.id, scene.version, attemptId]);
   // 데스크톱에서는 키보드로도 넘긴다. 버튼에 포커스가 있으면 버튼이 받으니 한 번에 두 줄 넘어가지 않게 비켜 준다
   useEffect(() => {
     if (!leading) return;
@@ -261,7 +269,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const { enterFollowUp } = f;
   useEffect(() => {
     if (phase !== "transition" || !timeCue) return;
-    const t = window.setTimeout(enterFollowUp, reduced ? 300 : 1100);
+    const t = window.setTimeout(enterFollowUp, reduced ? 400 : 1600);
     return () => clearTimeout(t);
   }, [phase, timeCue, reduced, enterFollowUp]);
 
@@ -300,11 +308,14 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   // 겉말이 있는 반응은 상대가 영어로 먼저 말하고(말풍선), 잠시 뒤 속마음(생각 풍선)이 뜬다. 실제로는 속마음을 말해 주지 않는다는 걸 보여 준다
   const [thoughtKey, setThoughtKey] = useState<number | null>(null);
   const hasSays = Boolean(stageChoice?.says) && !repeatView;
+  // 겉말이 머무는 시간은 그 영어를 읽는 데 드는 만큼만: 짧은 말은 빨리, 긴 말은 조금 더. 같은 상황의 두 번째 보기부터는 흐름을 아니까 짧게
+  const saysLen = stageChoice?.says?.length ?? 0;
+  const saysMs = heardIds.length > 0 ? SAYS_AGAIN_MS : Math.min(SAYS_MS, Math.max(SAYS_MIN_MS, 700 + saysLen * 45));
   useEffect(() => {
     if (!partnerReacts || !hasSays) return;
-    const t = window.setTimeout(() => setThoughtKey(stageKey), SAYS_MS + SAYS_BEAT);
+    const t = window.setTimeout(() => setThoughtKey(stageKey), saysMs + SAYS_BEAT);
     return () => clearTimeout(t);
-  }, [partnerReacts, hasSays, stageKey]);
+  }, [partnerReacts, hasSays, stageKey, saysMs]);
   const speaking = !reduced && partnerReacts && hasSays && thoughtKey !== stageKey;
   const cardRevealed = reduced || (partnerReacts && !speaking);
   useEffect(() => {
@@ -319,9 +330,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const [beatKey, setBeatKey] = useState<number | null>(null);
   useEffect(() => {
     if (!partnerReacts || !hasSays) return;
-    const t = window.setTimeout(() => setBeatKey(stageKey), SAYS_MS);
+    const t = window.setTimeout(() => setBeatKey(stageKey), saysMs);
     return () => clearTimeout(t);
-  }, [partnerReacts, hasSays, stageKey]);
+  }, [partnerReacts, hasSays, stageKey, saysMs]);
   const pausing = speaking && beatKey === stageKey;
   useEffect(() => {
     if (!speaking || pausing || !stageChoice?.says) return;
@@ -333,9 +344,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     setBeatKey(stageKey);
     setThoughtKey(stageKey);
   };
-  // 오해가 터지는 말(효과음이 "헉!"·"엥?" 쪽인 반응)에만, 효과음이 터지는 순간 상대 얼굴 컷인을 한 번 띄웠다가 내린다.
-  // 웃긴 건 놀란 얼굴이라 평온한 반응에는 띄우지 않는다. 동작 줄이기 설정이면 띄우지 않는다
-  const shocked = Boolean(stageChoice && BURSTS[stageChoice.expression].bad) && !endingOn && !beat && !wrapped && phase !== "transition" && !reduced && !repeatView;
+  // 정말 큰 오해(stakes === "big")가 터지는 말에만 상대 얼굴 컷인을 띄워 시각 자극이 과해지지 않게 한다. 차분한 화면(reduced)이면 띄우지 않는다
+  const shocked = Boolean(stageChoice && stageChoice.stakes === "big" && BURSTS[stageChoice.expression].bad) && !endingOn && !beat && !wrapped && phase !== "transition" && !reduced && !repeatView;
   const [cutAt, setCutAt] = useState<{ key: number; on: boolean } | null>(null);
   useEffect(() => {
     if (!shocked) return;
@@ -432,8 +442,13 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const play = (c: Choice, viaKey = false) => {
     if (c.id === choice?.id || performance.now() < pickAfter.current) return;
     sfx.tap();
-    const el = Array.from(scroller.current?.querySelectorAll<HTMLElement>("[data-choice-id]") ?? []).find((el) => el.dataset.choiceId === c.id);
-    choiceAnchor.current = el ? { id: c.id, top: el.getBoundingClientRect().top } : null;
+    // 이미 고른 상태에서 다른 보기로 바꿀 때만 스크롤 자리를 붙잡는다. 첫 선택에서 붙잡으면 상단 칩바·상황 문장이 무대 아래로 반쯤 잘려 올라간다
+    if (choice) {
+      const el = Array.from(scroller.current?.querySelectorAll<HTMLElement>("[data-choice-id]") ?? []).find((el) => el.dataset.choiceId === c.id);
+      choiceAnchor.current = el ? { id: c.id, top: el.getBoundingClientRect().top } : null;
+    } else {
+      choiceAnchor.current = null;
+    }
     setRepeatView(heardIds.includes(c.id));
     setKeyPick(viaKey);
     f.pick(c.id);
@@ -446,13 +461,15 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     if (!choosing || !introDone || choice || (!later && lead.length === 0)) return;
     return sfx.blip("partner", stageSituation.partnerLine);
   }, [choosing, introDone, choice, later, lead.length, stageSituation.partnerLine]);
-  // 보기가 넷 이상인 상황은 처음엔 원래 있던 세 개로 고르게 하고, 첫 답 뒤에 나머지를 목록 끝에 붙인다. 고르기 전에 읽을 것은 적게, 구경할 것은 많게
+  // 첫 반응이 정착된 뒤에야 추가 보기·비교 칩바·카운터를 열어, 고른 직후 화면이 한꺼번에 튀지 않게 한다
+  const settled = Boolean(choice) && (cardRevealed || heardIds.length > 0);
+  // 보기가 넷 이상인 상황은 처음엔 원래 있던 세 개로 고르게 하고, 첫 반응 뒤에 나머지를 목록 끝에 붙인다. 고르기 전에 읽을 것은 적게, 구경할 것은 많게
   const origSituation = later ? original.followUp : original.base;
   const coreIds = new Set(origSituation.choices.slice(0, CORE_CHOICES).map((c) => c.id));
   // 내 말(own-)은 기본 보기 셋 바로 뒤 네 번째 자리에 둔다
   const core = situation.choices.filter((c) => coreIds.has(c.id) || c.id.startsWith(OWN_PREFIX));
   const extra = situation.choices.filter((c) => !coreIds.has(c.id) && !c.id.startsWith(OWN_PREFIX));
-  const shown = choice || preview ? [...core, ...extra] : core;
+  const shown = settled || preview ? [...core, ...extra] : core;
 
   // 상대가 반응해 결과가 채워지는 순간: 판정 소리, X면 무대 흔들림, 틀린 말이면 짧은 진동(지원하는 기기만), 그리고 카드가 다 보이게 맞춘다
   // 상대가 반응하는 순간(효과음 글자가 터지는 때) 표정에 맞춘 리액션 소리를 낸다. 놀라거나 당황한 반응이면 무대도 짧게 흔든다
@@ -681,10 +698,10 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
               {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} className={STAGE_TUCK_LIFT} />}
-              {/* 두 번째 말부터는 무대가 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
+              {/* 두 번째 말부터는 무대가 가볍게 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !keyPick && !wrapped && !reduced && phase !== "transition" && (
-                <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/60">
-                  <svg width="64" height="32" viewBox="0 0 16 8" shapeRendering="crispEdges" className="fill-white">
+                <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/25">
+                  <svg width="48" height="24" viewBox="0 0 16 8" shapeRendering="crispEdges" className="fill-white">
                     <path d="M7 0h1v8H7V7H6V6H5V5H4V3h1V2h1V1h1zM15 0h1v8h-1V7h-1V6h-1V5h-1V3h1V2h1V1h1z" />
                   </svg>
                 </div>
@@ -700,12 +717,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     </>
                   )}
                 </p>
-              )}
-              {/* 반응이 터진 무대 왼쪽 위에 들린 느낌 도장을 함께 찍어, 무대 한 컷 자체가 완성된 짤이 되게 한다 */}
-              {cardRevealed && stageChoice && !wrapped && !endingOn && phase !== "transition" && (
-                <div key={`stage-stamp-${stageKey}`} aria-hidden className="pointer-events-none absolute left-2.5 top-2.5">
-                  <VerdictStamp choice={stageChoice} pop={!reduced} delay={0} />
-                </div>
               )}
               {phase === "transition" && !reduced && <div className="pointer-events-none absolute inset-0 animate-wipe bg-ink" />}
               {burst && !reduced && phase !== "transition" && (
@@ -792,14 +803,21 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
               <div className={leading ? "hidden md:block" : undefined} onClick={leading ? (e) => e.stopPropagation() : undefined}>
                 {/* 세 가지 말을 다 해 보는 게 이 화면의 놀이다. 몇 개를 들어 봤는지 같이 보여 주고, 하나 더 들을 때마다 Mochi가 콩 뛴다 */}
-                <MochiAsk className={leading ? "" : "mt-3 md:mt-0"} cheer={heardIds.length} cheerTwice={heardIds.length >= situation.choices.length}>
-                  <span key={leading ? "watch" : choice ? "count" : "ask"} className="block md:animate-fade">
+                <MochiAsk className={leading ? "" : settled && choice && !fl ? "mt-3 max-md:hidden md:mt-0" : "mt-3 md:mt-0"} cheer={reduced ? 0 : heardIds.length} cheerTwice={!reduced && heardIds.length >= situation.choices.length}>
+                  <span key={leading ? "watch" : settled ? "count" : choice ? "wait" : "ask"} className="block md:animate-fade">
                     {leading ? (
                       "무슨 일인지 먼저 볼까?"
                     ) : fl ? (
                       FREE_MOCHI[fl.outcome](fl.choiceId ? shown.findIndex((c) => c.id === fl.choiceId) + 1 : 0)
                     ) : !choice ? (
-                      friendOn ? "친구가 낸 문제야. 너라면 뭐라고 할래?" : "너라면 뭐라고 할래?"
+                      // 무엇을 푸는지 한 문장으로: 하고 싶은 말을 Mochi 질문 안에 넣는다. 따로 칸을 두면 무대 생각 풍선과 같은 말이 두 번 나온다
+                      <>
+                        {friendOn && "친구가 낸 문제! "}
+                        {quotedIntent(situation.intent)} 영어로 뭐라고 할래?
+                      </>
+                    ) : !settled ? (
+                      // 결과를 기다리는 동안에도 '내가 하려던 말'을 붙잡아 둔다. 속마음을 볼 때 무엇과 비교할지 잊지 않게
+                      <>{quotedIntent(situation.intent)} 어떻게 들렸을까…</>
                     ) : friendOn && pickedId === friendId && heardIds.length <= 1 ? (
                       "친구랑 같은 말을 골랐네!"
                     ) : friendOn && friendId && !heardIds.includes(friendId) ? (
@@ -837,24 +855,29 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-3 border-t-2 border-ink/10 py-1 pl-3.5 pr-2 text-ink">
+                      <div className="flex items-center justify-between gap-2 border-t-2 border-ink/10 py-1 pl-3.5 pr-2 text-ink">
                         <span role="img" aria-label={`대사 ${Math.min(leadIdx + 1, lead.length)} / ${lead.length}`} className="flex items-center gap-1">
                           {lead.map((_, i) => (
                             <span key={i} className={`h-2 w-4 ${i <= leadIdx ? "bg-ink" : "border-2 border-ink/25"}`} />
                           ))}
                         </span>
-                        <button type="button" onClick={nextBeat} className="flex min-h-11 shrink-0 items-center gap-2 px-1.5 font-label text-ui hover:underline hover:underline-offset-4">
-                          다음 줄
-                          <kbd className="hidden border-2 border-ink/25 px-1 font-label text-meta leading-tight text-ink-subtle md:inline">Space</kbd>
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={nextBeat} className="flex min-h-11 shrink-0 items-center gap-2 px-1.5 font-label text-ui hover:underline hover:underline-offset-4">
+                            다음 줄
+                            <kbd className="hidden border-2 border-ink/25 px-1 font-label text-meta leading-tight text-ink-subtle md:inline">Space</kbd>
+                          </button>
+                        </div>
                       </div>
                     </Panel>
                   </>
                 ) : (
                   <>
-                    {/* 모바일에서는 결과 카드가 화면을 채워 다른 보기가 아래로 밀리므로, 스크롤 없이 엄지로 반응을 바꿔 보는 칩 바를 둔다 */}
+                    {/* 모바일에서는 결과 카드가 화면을 채워 다른 보기가 아래로 밀리므로, 첫 반응 뒤 엄지로 반응을 바꿔 보는 칩 바를 둔다 */}
+                    {/* 칩 줄 자리는 고르는 순간부터 잡아 두고(반응 전엔 보이지 않음), 반응이 뜰 때 그 자리에 나타난다. 반응 순간 카드가 밀려 내려가면 읽던 곳을 놓쳤다 */}
                     {choice && (
-                      <div role="group" aria-label="다른 보기 반응 바로 보기" className="mt-2 flex items-center gap-1.5 md:hidden">
+                      // 모바일은 결과가 뜨면 Mochi의 '다른 말도 해 볼래? 1/4' 대신 이 줄 하나가 비교를 맡는다(칩이 이미 다음 탭을 권하고, 1/4은 맞힌 개수처럼 읽혔다)
+                      <div role="group" aria-label="다른 보기 반응 바로 보기" aria-hidden={!settled || undefined} className={`mt-3 flex items-center gap-1.5 md:hidden ${settled ? "animate-fade" : "invisible"}`}>
+                        <span className="shrink-0 pr-1 text-meta text-fg-subtle">다른 표현</span>
                         {shown.map((c, i) => {
                           const active = c.id === choice.id;
                           const seen = heardIds.includes(c.id);
@@ -885,9 +908,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                       <li
                         key={c.id}
                         data-choice-id={c.id}
-                        className="animate-rise"
-                        // 처음 그릴 때만 올라온다. 고른 뒤에 붙는 나머지 보기도 짧게 차례로 올라온다
-                        style={{ animationDelay: `${choice ? (i - core.length) * 50 : 40 + i * 40}ms` }}
+                        className={reduced ? undefined : "animate-rise"}
+                        // 처음 그릴 때만 올라온다. 고른 뒤에 붙는 나머지 보기도 짧게 차례로 올라온다. 차분한 화면에서는 바로 나타난다
+                        style={reduced ? undefined : { animationDelay: `${choice ? (i - core.length) * 50 : 40 + i * 40}ms` }}
                         // 보기가 마우스 밑에서 올라왔을 때 미리 고른 것처럼 보이지 않게, 마우스가 실제로 움직였을 때만 얹는다
                         onPointerMove={(e) => !choice && e.pointerType === "mouse" && tryId !== c.id && setTryId(c.id)}
                         onPointerLeave={() => setTryId((t) => (t === c.id ? null : t))}
@@ -916,17 +939,29 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                 <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />
                               )}
                               <span className="relative block">
-                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} />
+                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} partnerName={scene.partnerName} reduced={reduced} />
                                 {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기). 판정은 도장 아래로 옮겼다.
                                     한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
-                                <span className="mt-3.5 block border-t border-ink/10 pl-9">
-                                  <span className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 pt-2.5">
-                                    {(c.id === pickedId || isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="ml-auto justify-end" />}
-                                  </span>
-                                  {cardRevealed && detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
+                                {/* 반응이 오기 전에는 고른 말과 점 셋만 둔다. 빈 카드에 '내 선택'·'더 보기'만 먼저 보이면 무엇을 기다리는지 모른다 */}
+                                {cardRevealed && (
+                                <span className="mt-3.5 block animate-fade border-t border-ink/10 pl-9">
+                                  {/* 더 보기: 상대가 입 밖으로 한 영어와 긴 해설, 고른 비율. 처음 보는 결과에는 도장과 한두 줄 해설만 둔다 */}
+                                  {cardRevealed && detailOpen && (
+                                    <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">
+                                      {c.says && (
+                                        <span className="mb-2 block">
+                                          <span className="text-meta text-ink-subtle">상대 말 </span>
+                                          <span className="font-line text-ink">“{c.says}”</span>
+                                        </span>
+                                      )}
+                                      {c.detail}
+                                      {c.stakes && <span className="mt-2 block"><StakesNote stakes={c.stakes} /></span>}
+                                      {(isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="mt-2" />}
+                                    </span>
+                                  )}
                                   <span className="flex items-center justify-between gap-3">
                                     {/* 펼칠 해설이 없는 보기("내 말")에는 더 보기를 두지 않는다. 오른쪽 문제 내기 자리는 그대로 둔다 */}
-                                    {c.detail ? (
+                                    {c.detail || c.says ? (
                                     <button
                                       type="button"
                                       disabled={!cardRevealed}
@@ -953,12 +988,13 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                     )}
                                   </span>
                                 </span>
+                                )}
                               </span>
                             </div>
                           </Panel>
                         ) : (
                           <BlockButton onClick={() => play(c)} className="w-full text-left">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} revealed={heardIds.includes(c.id)} share={shareOf(c)} friend={isFriend(c)} />
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} showMeaning={showMeaning} revealed={heardIds.includes(c.id)} share={shareOf(c)} friend={isFriend(c)} reduced={reduced} />
                           </BlockButton>
                         )}
                       </li>
@@ -1039,11 +1075,19 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               />
             )}
             {leading ? (
-              // 다음 줄로 넘기기는 화면 아무 데나 누르면 된다. 버튼 자리에는 대사를 건너뛰고 바로 고르기 하나만 흰 보조 버튼으로 둔다.
-              // 데스크톱은 이 버튼이 오른쪽 칸 Mochi 한마디 바로 아래에 있어서 하단 칸을 감춘다
-              <BlockButton onClick={skipLead} className="w-full" faceClassName="py-3 text-center text-body font-bold">
-                바로 고르기
-              </BlockButton>
+              // 모바일 빌드업 하단: 다음 줄(누르면 그때부터 내 속도로)과 바로 고르기
+              <div className="flex items-center gap-2">
+                <BlockButton onClick={nextBeat} className="flex-1" faceClassName="py-3 text-center text-body font-bold">
+                  다음 줄
+                </BlockButton>
+                <button
+                  type="button"
+                  onClick={skipLead}
+                  className="flex min-h-12 shrink-0 items-center justify-center px-2.5 font-label text-ui text-fg-muted underline underline-offset-4"
+                >
+                  바로 고르기
+                </button>
+              </div>
             ) : phase === "transition" ? (
               <BlockButton primary onClick={f.enterFollowUp} className="w-full" faceClassName="py-3.5 text-center">
                 이번엔 뭐라고 할까?

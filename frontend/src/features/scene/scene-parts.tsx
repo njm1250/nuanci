@@ -6,9 +6,8 @@ import { SpeakerTag } from "./block-ui";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
-import { quotedIntent } from "@/features/collection/pairs";
 import { BoldQuoted } from "./emphasis";
-import { heardAs, Num, StakesNote, VerdictNote, VerdictStamp } from "./verdict";
+import { heardAs, Num, VerdictNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
@@ -128,13 +127,15 @@ export function ResultBody({
   mine,
   active,
   showTrap,
+  showMeaning = false,
   revealed,
   verdictKey,
   share,
   meta = true,
-  intent,
   waiting = false,
+  partnerName,
   friend = false,
+  reduced = false,
 }: {
   // 문제를 낸 친구가 처음 고른 보기. 아직 안 들어 본 보기여도 표시해서 눌러 보게 한다
   friend?: boolean;
@@ -142,6 +143,7 @@ export function ResultBody({
   intent?: string;
   // 무대에서 상대가 아직 반응하기 전. 반응·인상·해설을 비워 두고 무대에 눈이 가게 한다. 반응이 뜨면 인상과 해설은 한 박자 뒤에 온다
   waiting?: boolean;
+  partnerName?: string;
   // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
   meta?: boolean;
   choice: Choice;
@@ -149,25 +151,41 @@ export function ResultBody({
   mine: boolean;
   active: boolean;
   showTrap: boolean;
+  showMeaning?: boolean;
   revealed: boolean;
   verdictKey?: number;
   share?: number;
+  reduced?: boolean;
 }) {
   // 반응은 무대가 먼저 보여 줬으니 도장은 카드가 채워지는 순간 찍고, 해설만 조금 뒤에 온다
+  // 카드는 결과만 맡는다(대화극은 무대가 맡는다): 고른 영어 → 하려던 말과 들린 느낌 도장 → 판정 한 줄. 해설·겉말 영어·고른 비율은 '왜 그런지 더 보기'에
   const heardAt = 0;
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="font-line text-say leading-snug">{choice.line}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-line text-say leading-snug">{choice.line}</span>
+            {showMeaning && choice.meaning && <span className="mt-0.5 block text-note text-ink-subtle">{choice.meaning}</span>}
+          </span>
           {showTrap && (
             <span className="shrink-0 pt-1">
               <TrapChip choice={choice} />
             </span>
           )}
         </span>
-        {/* 지금 고른 말의 상대 반응은 무대 생각 풍선에 있어서 카드에는 다시 적지 않는다. 다른 보기는 비교하려고 반응을 남긴다 */}
+        {/* 반응을 기다리는 동안 카드가 비어 보이지 않게, 무대에서 일어나는 일을 카드에도 차례로 적는다: 듣는 중 → 상대가 한 영어 → (속마음과 도장) */}
+        {active && waiting && (
+          <span className="mt-2 flex items-center gap-2 text-note text-ink-subtle">
+            <span className="shrink-0">{`${partnerName || "상대"} 듣는 중`}</span>
+            <span aria-hidden className="flex items-center gap-1">
+              {[0, 1, 2].map((i) => (
+                <span key={i} className={`size-1.5 bg-current ${reduced ? "" : "animate-typing"}`} style={{ animationDelay: `${i * 160}ms` }} />
+              ))}
+            </span>
+          </span>
+        )}
         {active ? null : revealed ? (
           <span key={verdictKey} className="mt-1 flex items-start gap-2 text-note leading-[1.5] text-ink-muted">
             <span className="mt-px">
@@ -178,29 +196,22 @@ export function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {/* 지금 고른 말의 주인공 덩어리: 하고 싶던 말이 어떤 느낌으로 들렸는지, 그래서 판정과 오해 크기는 어떤지를 연한 면 하나에 묶는다.
-            이름표 없이 한 면에 두면 "내 마음 → 들린 말 → 결과"가 한 문장처럼 읽힌다. 웃음(반응)이 먼저 오고 이 면은 한 박자 뒤에 온다 */}
+        {/* 지금 고른 말의 주인공: 이 영어가 어떻게 들렸나(도장) → 왜 그렇게 들리나(영어권의 문화·언어적 이유). 판정은 도장 옆에 작게.
+            한국어 '하려던 말'은 고르기 전에 이미 보였으니 여기서 다시 주인공으로 세우지 않는다(한국어 문장이 그렇게 들린 것처럼 읽혔다) */}
         {active && !waiting && (
-          <span key={`heard-${verdictKey}`} className="mt-3 block animate-fade bg-surface px-3 py-2.5" style={{ animationDelay: `${heardAt}ms` }}>
-            {intent && (
-              <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-                <span className="text-body text-ink-muted">{quotedIntent(intent)}</span>
-                <span aria-hidden className="text-body text-ink-subtle">→</span>
-                <VerdictStamp choice={choice} pop delay={heardAt} />
+          <span key={`heard-${verdictKey}`} className="mt-3 block animate-fade" style={{ animationDelay: `${heardAt}ms` }}>
+            <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+              <VerdictStamp choice={choice} pop={!reduced} delay={heardAt} />
+              <VerdictNote choice={choice} />
+            </span>
+            {choice.why && (
+              <span className="mt-2.5 block text-ui leading-[1.6] text-ink">
+                <BoldQuoted text={choice.why} />
               </span>
             )}
-            <span className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${intent ? "mt-2" : ""}`}>
-              <VerdictNote choice={choice} />
-              {choice.stakes && <StakesNote stakes={choice.stakes} />}
-            </span>
           </span>
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
-        {active && !waiting && (
-          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-body leading-[1.7] text-ink" style={{ animationDelay: `${heardAt + 250}ms` }}>
-            <BoldQuoted text={choice.why} />
-          </span>
-        )}
         {meta && (friend || (revealed && (mine || (share ?? 0) > 0))) && <PickMeta mine={mine} friend={friend} share={revealed ? share : undefined} className="mt-1.5" />}
       </span>
     </span>

@@ -77,8 +77,10 @@ const STAKES = {
   big: { dots: 3, text: "진짜 오해가 생길 수 있어요" },
 } as const;
 
-export function StakesNote({ stakes }: { stakes: "small" | "big" }) {
+// plain: 판정 바로 옆에 이어 붙일 때는 칸 그림 없이 글자만(같은 모양의 칸이 두 번 나오면 무엇이 무엇인지 헷갈렸다)
+export function StakesNote({ stakes, plain = false }: { stakes: "small" | "big"; plain?: boolean }) {
   const s = STAKES[stakes];
+  if (plain) return <span className="text-meta text-ink-subtle">· {s.text}</span>;
   return (
     <span className="flex items-center gap-2 text-meta text-ink-subtle">
       <span role="img" aria-label={`오해 가능성 ${stakes === "big" ? "큼" : "작음"}`} className="flex gap-0.5">

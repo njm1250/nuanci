@@ -537,7 +537,14 @@ export function PixelStage({
           {state.partnerSpeaks ? (
             bubble("partner", state.partnerSpeaks, `speaks-${state.partnerKey}`)
           ) : state.partnerSays ? (
-            bubble("partner", <span aria-label={`상대 속마음: ${state.partnerSays}`}>{state.partnerSays}</span>, `says-${state.partnerKey}`, true)
+            bubble(
+              "partner",
+              <>
+                <span aria-label={`상대 속마음: ${state.partnerSays}`}>{state.partnerSays}</span>
+              </>,
+              `says-${state.partnerKey}`,
+              true,
+            )
           ) : symbol ? (
             <div ref={(el) => void (slots.current.partner.wrap = el)} className="absolute left-0 top-0">
               <div style={scaled} className="origin-top-left">

@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { quotedIntent } from "@/features/collection/pairs";
+import { useCalmMode } from "./calm-mode";
 import type { Choice, Scene, Situation } from "./types";
 import { heardAs, heardSaid } from "./verdict";
 
@@ -67,7 +68,7 @@ export function useSceneFlow(scene: Scene, onEvent?: (e: FlowEvent) => void) {
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 
 export function useReducedMotion() {
-  return useSyncExternalStore(
+  const osReduced = useSyncExternalStore(
     (onChange) => {
       const mq = window.matchMedia(reducedMotionQuery);
       mq.addEventListener("change", onChange);
@@ -76,6 +77,8 @@ export function useReducedMotion() {
     () => window.matchMedia(reducedMotionQuery).matches,
     () => false,
   );
+  const calm = useCalmMode();
+  return osReduced || calm;
 }
 
 // 친구에게 보내는 한마디. "풀어 봐" 대신 방금 내 말이 어떻게 들렸는지를 그대로 적어서, 링크를 누르기 전에 이미 사연 하나가 되게 한다

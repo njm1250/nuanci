@@ -596,15 +596,15 @@ label {
   }
 }
 
-/* 채점 도장: 크게 기울어진 채로 날아와 쾅 찍힌다 */
+/* 채점 도장: 살짝 기울어진 채로 제자리에 쾅 찍힌다. 과하게 커지면 옆 글자를 가려 읽기 힘들어 배율을 절제한다 */
 @keyframes stamp {
   0% {
     opacity: 0;
-    transform: scale(1.9) rotate(-14deg);
+    transform: scale(1.22) rotate(-7deg);
   }
   65% {
     opacity: 1;
-    transform: scale(0.9) rotate(3deg);
+    transform: scale(0.95) rotate(1deg);
   }
   100% {
     opacity: 1;
@@ -651,12 +651,12 @@ label {
 
 @keyframes rewind {
   0% {
-    opacity: 0.85;
+    opacity: 0.45;
     transform: translateX(0);
   }
   100% {
     opacity: 0;
-    transform: translateX(-12%);
+    transform: translateX(-8%);
   }
 }
 
