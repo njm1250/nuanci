@@ -26,14 +26,14 @@ import { ImagineBubble } from "./imagine-bubble";
 import { primeAudio, sfx } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
-import { Num, VERDICTS } from "./verdict";
+import { Num, StakesNote, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { FreeLineSlot, type FreeLine } from "./free-line";
 import { replyMessage, shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
-import { BoldQuoted, NowLast } from "./emphasis";
+import { NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
@@ -948,11 +948,6 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                   {/* 더 보기: 상대가 입 밖으로 한 영어와 긴 해설, 고른 비율. 처음 보는 결과에는 도장과 한두 줄 해설만 둔다 */}
                                   {cardRevealed && detailOpen && (
                                     <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">
-                                      {c.why && (
-                                        <span className="mb-2 block text-ink">
-                                          <BoldQuoted text={c.why} />
-                                        </span>
-                                      )}
                                       {c.says && (
                                         <span className="mb-2 block">
                                           <span className="text-meta text-ink-subtle">상대 말 </span>
@@ -960,12 +955,13 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                         </span>
                                       )}
                                       {c.detail}
+                                      {c.stakes && <span className="mt-2 block"><StakesNote stakes={c.stakes} /></span>}
                                       {(isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="mt-2" />}
                                     </span>
                                   )}
                                   <span className="flex items-center justify-between gap-3">
                                     {/* 펼칠 해설이 없는 보기("내 말")에는 더 보기를 두지 않는다. 오른쪽 문제 내기 자리는 그대로 둔다 */}
-                                    {c.why || c.detail || c.says ? (
+                                    {c.detail || c.says ? (
                                     <button
                                       type="button"
                                       disabled={!cardRevealed}

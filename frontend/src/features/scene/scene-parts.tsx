@@ -6,8 +6,8 @@ import { SpeakerTag } from "./block-ui";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
-import { quotedIntent } from "@/features/collection/pairs";
-import { heardAs, Num, StakesNote, VerdictNote, VerdictStamp } from "./verdict";
+import { BoldQuoted } from "./emphasis";
+import { heardAs, Num, VerdictNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
@@ -132,7 +132,6 @@ export function ResultBody({
   verdictKey,
   share,
   meta = true,
-  intent,
   waiting = false,
   partnerName,
   friend = false,
@@ -197,21 +196,19 @@ export function ResultBody({
         ) : (
           <HiddenReaction />
         )}
-        {/* 지금 고른 말의 주인공 덩어리: 하고 싶던 말이 어떤 느낌으로 들렸는지, 그래서 판정과 오해 크기는 어떤지를 연한 면 하나에 묶는다.
-            이름표 없이 한 면에 두면 "내 마음 → 들린 말 → 결과"가 한 문장처럼 읽힌다. 웃음(반응)이 먼저 오고 이 면은 한 박자 뒤에 온다 */}
+        {/* 지금 고른 말의 주인공: 이 영어가 어떻게 들렸나(도장) → 왜 그렇게 들리나(영어권의 문화·언어적 이유). 판정은 도장 옆에 작게.
+            한국어 '하려던 말'은 고르기 전에 이미 보였으니 여기서 다시 주인공으로 세우지 않는다(한국어 문장이 그렇게 들린 것처럼 읽혔다) */}
         {active && !waiting && (
           <span key={`heard-${verdictKey}`} className="mt-3 block animate-fade" style={{ animationDelay: `${heardAt}ms` }}>
-            {intent && (
-              <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-                <span className="text-body text-ink-muted">{quotedIntent(intent)}</span>
-                <span aria-hidden className="text-body text-ink-subtle">→</span>
-                <VerdictStamp choice={choice} pop={!reduced} delay={heardAt} />
+            <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+              <VerdictStamp choice={choice} pop={!reduced} delay={heardAt} />
+              <VerdictNote choice={choice} />
+            </span>
+            {choice.why && (
+              <span className="mt-2.5 block text-ui leading-[1.6] text-ink">
+                <BoldQuoted text={choice.why} />
               </span>
             )}
-            <span className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${intent ? "mt-2" : ""}`}>
-              <VerdictNote choice={choice} />
-              {choice.stakes && <StakesNote stakes={choice.stakes} plain />}
-            </span>
           </span>
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
