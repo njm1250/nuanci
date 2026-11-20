@@ -7,7 +7,6 @@ import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
 import { quotedIntent } from "@/features/collection/pairs";
-import { BoldQuoted } from "./emphasis";
 import { heardAs, Num, StakesNote, VerdictNote, VerdictStamp } from "./verdict";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
@@ -160,7 +159,7 @@ export function ResultBody({
   reduced?: boolean;
 }) {
   // 반응은 무대가 먼저 보여 줬으니 도장은 카드가 채워지는 순간 찍고, 해설만 조금 뒤에 온다
-  // 카드는 결과만 맡는다(대화극은 무대가 맡는다): 고른 영어 → 들린 느낌 도장과 판정 → 해설 한두 줄. 겉말 영어와 긴 해설은 '왜 그런지 더 보기'에
+  // 카드는 결과만 맡는다(대화극은 무대가 맡는다): 고른 영어 → 하려던 말과 들린 느낌 도장 → 판정 한 줄. 해설·겉말 영어·고른 비율은 '왜 그런지 더 보기'에
   const heardAt = 0;
   return (
     <span className="flex items-start gap-3">
@@ -211,16 +210,11 @@ export function ResultBody({
             )}
             <span className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${intent ? "mt-2" : ""}`}>
               <VerdictNote choice={choice} />
-              {choice.stakes && <StakesNote stakes={choice.stakes} />}
+              {choice.stakes && <StakesNote stakes={choice.stakes} plain />}
             </span>
           </span>
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
-        {active && !waiting && (
-          <span key={`why-${verdictKey}`} className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted" style={{ animationDelay: `${heardAt + 250}ms` }}>
-            <BoldQuoted text={choice.why} />
-          </span>
-        )}
         {meta && (friend || (revealed && (mine || (share ?? 0) > 0))) && <PickMeta mine={mine} friend={friend} share={revealed ? share : undefined} className="mt-1.5" />}
       </span>
     </span>

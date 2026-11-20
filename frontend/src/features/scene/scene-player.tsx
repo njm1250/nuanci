@@ -33,7 +33,7 @@ import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { FreeLineSlot, type FreeLine } from "./free-line";
 import { replyMessage, shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
-import { NowLast } from "./emphasis";
+import { BoldQuoted, NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
@@ -803,7 +803,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
               <div className={leading ? "hidden md:block" : undefined} onClick={leading ? (e) => e.stopPropagation() : undefined}>
                 {/* 세 가지 말을 다 해 보는 게 이 화면의 놀이다. 몇 개를 들어 봤는지 같이 보여 주고, 하나 더 들을 때마다 Mochi가 콩 뛴다 */}
-                <MochiAsk className={leading ? "" : "mt-3 md:mt-0"} cheer={reduced ? 0 : heardIds.length} cheerTwice={!reduced && heardIds.length >= situation.choices.length}>
+                <MochiAsk className={leading ? "" : settled && choice && !fl ? "mt-3 max-md:hidden md:mt-0" : "mt-3 md:mt-0"} cheer={reduced ? 0 : heardIds.length} cheerTwice={!reduced && heardIds.length >= situation.choices.length}>
                   <span key={leading ? "watch" : settled ? "count" : choice ? "wait" : "ask"} className="block md:animate-fade">
                     {leading ? (
                       "무슨 일인지 먼저 볼까?"
@@ -875,7 +875,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                     {/* 모바일에서는 결과 카드가 화면을 채워 다른 보기가 아래로 밀리므로, 첫 반응 뒤 엄지로 반응을 바꿔 보는 칩 바를 둔다 */}
                     {/* 칩 줄 자리는 고르는 순간부터 잡아 두고(반응 전엔 보이지 않음), 반응이 뜰 때 그 자리에 나타난다. 반응 순간 카드가 밀려 내려가면 읽던 곳을 놓쳤다 */}
                     {choice && (
-                      <div role="group" aria-label="다른 보기 반응 바로 보기" aria-hidden={!settled || undefined} className={`mt-2 flex items-center gap-1.5 md:hidden ${settled ? "animate-fade" : "invisible"}`}>
+                      // 모바일은 결과가 뜨면 Mochi의 '다른 말도 해 볼래? 1/4' 대신 이 줄 하나가 비교를 맡는다(칩이 이미 다음 탭을 권하고, 1/4은 맞힌 개수처럼 읽혔다)
+                      <div role="group" aria-label="다른 보기 반응 바로 보기" aria-hidden={!settled || undefined} className={`mt-3 flex items-center gap-1.5 md:hidden ${settled ? "animate-fade" : "invisible"}`}>
+                        <span className="shrink-0 pr-1 text-meta text-fg-subtle">다른 표현</span>
                         {shown.map((c, i) => {
                           const active = c.id === choice.id;
                           const seen = heardIds.includes(c.id);
@@ -946,6 +948,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                   {/* 더 보기: 상대가 입 밖으로 한 영어와 긴 해설, 고른 비율. 처음 보는 결과에는 도장과 한두 줄 해설만 둔다 */}
                                   {cardRevealed && detailOpen && (
                                     <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">
+                                      {c.why && (
+                                        <span className="mb-2 block text-ink">
+                                          <BoldQuoted text={c.why} />
+                                        </span>
+                                      )}
                                       {c.says && (
                                         <span className="mb-2 block">
                                           <span className="text-meta text-ink-subtle">상대 말 </span>
@@ -958,7 +965,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                   )}
                                   <span className="flex items-center justify-between gap-3">
                                     {/* 펼칠 해설이 없는 보기("내 말")에는 더 보기를 두지 않는다. 오른쪽 문제 내기 자리는 그대로 둔다 */}
-                                    {c.detail || c.says ? (
+                                    {c.why || c.detail || c.says ? (
                                     <button
                                       type="button"
                                       disabled={!cardRevealed}
