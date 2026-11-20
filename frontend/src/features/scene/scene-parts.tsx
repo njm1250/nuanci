@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Mascot } from "@/features/mascot/mascot";
-import { SpeakerTag } from "./block-ui";
+import { BlockButton, SpeakerTag } from "./block-ui";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
@@ -137,6 +137,7 @@ export function ResultBody({
   waiting = false,
   spoke = false,
   partnerName,
+  onReveal,
   friend = false,
   reduced = false,
 }: {
@@ -149,6 +150,8 @@ export function ResultBody({
   // 반응을 기다리는 동안 상대가 영어 한마디를 이미 했는지. 했으면 그 말을 카드에 먼저 적어 두고 속마음을 기다린다
   spoke?: boolean;
   partnerName?: string;
+  // 있으면 '속마음은 ···' 대신 사용자가 직접 여는 버튼을 둔다(한 상황의 첫 반응)
+  onReveal?: () => void;
   // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
   meta?: boolean;
   choice: Choice;
@@ -187,7 +190,11 @@ export function ResultBody({
           </span>
         )}
         {/* 반응을 기다리는 동안 카드가 비어 보이지 않게, 무대에서 일어나는 일을 카드에도 차례로 적는다: 듣는 중 → 상대가 한 영어 → (속마음과 도장) */}
-        {active && waiting && (
+        {active && waiting && spoke && onReveal ? (
+          <BlockButton primary label onClick={onReveal} className="mt-3 w-full animate-fade">
+            속마음 보기
+          </BlockButton>
+        ) : active && waiting && (
           <span className="mt-2 flex items-center gap-2 text-note text-ink-subtle">
             <span className="shrink-0">{spoke ? "속마음은" : `${partnerName || "상대"} 듣는 중`}</span>
             <span aria-hidden className="flex items-center gap-1">
