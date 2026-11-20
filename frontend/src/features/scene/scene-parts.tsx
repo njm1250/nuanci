@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Mascot } from "@/features/mascot/mascot";
-import { BlockButton, SpeakerTag } from "./block-ui";
+import { SpeakerTag } from "./block-ui";
 import { ReactionFace } from "./reaction-face";
 import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
@@ -137,7 +137,6 @@ export function ResultBody({
   waiting = false,
   spoke = false,
   partnerName,
-  onReveal,
   friend = false,
   reduced = false,
 }: {
@@ -150,8 +149,6 @@ export function ResultBody({
   // 반응을 기다리는 동안 상대가 영어 한마디를 이미 했는지. 했으면 그 말을 카드에 먼저 적어 두고 속마음을 기다린다
   spoke?: boolean;
   partnerName?: string;
-  // 있으면 '속마음은 ···' 대신 사용자가 직접 여는 버튼을 둔다(한 상황의 첫 반응)
-  onReveal?: () => void;
   // 지금 펼친 카드는 내 선택·고른 비율을 맨 아래 줄로 옮기므로 여기서는 그리지 않는다
   meta?: boolean;
   choice: Choice;
@@ -166,7 +163,8 @@ export function ResultBody({
   reduced?: boolean;
 }) {
   // 반응은 무대가 먼저 보여 줬으니 도장은 카드가 채워지는 순간 찍고, 해설만 조금 뒤에 온다
-  const heardAt = 0;
+  // 속마음을 읽을 틈을 한 박자 둔 뒤 도장 면이 온다. 한꺼번에 뜨면 어디부터 볼지 몰랐다
+  const heardAt = reduced ? 0 : 450;
   return (
     <span className="flex items-start gap-3">
       <Num n={n} dark={active} />
@@ -190,11 +188,7 @@ export function ResultBody({
           </span>
         )}
         {/* 반응을 기다리는 동안 카드가 비어 보이지 않게, 무대에서 일어나는 일을 카드에도 차례로 적는다: 듣는 중 → 상대가 한 영어 → (속마음과 도장) */}
-        {active && waiting && spoke && onReveal ? (
-          <BlockButton primary label onClick={onReveal} className="mt-3 w-full animate-fade">
-            속마음 보기
-          </BlockButton>
-        ) : active && waiting && (
+        {active && waiting && (
           <span className="mt-2 flex items-center gap-2 text-note text-ink-subtle">
             <span className="shrink-0">{spoke ? "속마음은" : `${partnerName || "상대"} 듣는 중`}</span>
             <span aria-hidden className="flex items-center gap-1">
@@ -204,7 +198,15 @@ export function ResultBody({
             </span>
           </span>
         )}
-        {/* 지금 고른 말의 상대 반응은 무대 생각 풍선에 있어서 카드에는 다시 적지 않는다. 다른 보기는 비교하려고 반응을 남긴다 */}
+        {/* 속마음은 무대 생각 풍선과 함께, 읽던 자리(상대 말 바로 아래)에도 이어 적는다. 위아래를 오가지 않고 '겉말 → 속마음'을 한 줄씩 내려 읽는다 */}
+        {active && !waiting && choice.reaction && (
+          <span className="mt-1.5 flex animate-fade items-start gap-2 text-note leading-[1.5] text-ink">
+            <span className="mt-px">
+              <ReactionFace expression={choice.expression} size={18} />
+            </span>
+            {choice.reaction}
+          </span>
+        )}
         {active ? null : revealed ? (
           <span key={verdictKey} className="mt-1 flex items-start gap-2 text-note leading-[1.5] text-ink-muted">
             <span className="mt-px">

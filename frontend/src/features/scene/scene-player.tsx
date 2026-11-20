@@ -62,6 +62,7 @@ const CUT_IN_MS = 1800;
 const SAYS_MS = 2200;
 // 같은 상황의 두 번째 보기부터 겉말이 머무는 시간. 이미 흐름을 아는 사람이라 짧게
 const SAYS_AGAIN_MS = 1000;
+const SAYS_MIN_MS = 1300;
 // 이미 본 보기를 다시 누르면 겉말 없이 이만큼 뒤에 바로 속마음이 뜬다. 같은 반응을 다시 기다리게 하지 않는다
 const REACT_AGAIN = 350;
 // 장면에 들어와 첫 대사가 뜨기 전 무대만 보이는 시간
@@ -307,15 +308,14 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   // 겉말이 있는 반응은 상대가 영어로 먼저 말하고(말풍선), 잠시 뒤 속마음(생각 풍선)이 뜬다. 실제로는 속마음을 말해 주지 않는다는 걸 보여 준다
   const [thoughtKey, setThoughtKey] = useState<number | null>(null);
   const hasSays = Boolean(stageChoice?.says) && !repeatView;
-  // 한 상황의 첫 반응은 상대 영어를 다 읽은 사람이 '속마음 보기'를 눌러 연다. 읽는 속도는 사람마다 달라서, 정해 둔 시간은 누구에겐 '멈췄나?', 누구에겐 '휙휙'이었다.
-  // 두 번째 보기부터는 비교가 놀이라 짧은 박자로 저절로 연다(docs/experiments/2026-11-20/cogload)
-  const manualReveal = hasSays && heardIds.length === 0 && !reduced && !preview;
-  const saysMs = heardIds.length > 0 ? SAYS_AGAIN_MS : SAYS_MS;
+  // 겉말이 머무는 시간은 그 영어를 읽는 데 드는 만큼만: 짧은 말은 빨리, 긴 말은 조금 더. 같은 상황의 두 번째 보기부터는 흐름을 아니까 짧게
+  const saysLen = stageChoice?.says?.length ?? 0;
+  const saysMs = heardIds.length > 0 ? SAYS_AGAIN_MS : Math.min(SAYS_MS, Math.max(SAYS_MIN_MS, 700 + saysLen * 45));
   useEffect(() => {
-    if (!partnerReacts || !hasSays || manualReveal) return;
+    if (!partnerReacts || !hasSays) return;
     const t = window.setTimeout(() => setThoughtKey(stageKey), saysMs + SAYS_BEAT);
     return () => clearTimeout(t);
-  }, [partnerReacts, hasSays, stageKey, manualReveal, saysMs]);
+  }, [partnerReacts, hasSays, stageKey, saysMs]);
   const speaking = !reduced && partnerReacts && hasSays && thoughtKey !== stageKey;
   const cardRevealed = reduced || (partnerReacts && !speaking);
   useEffect(() => {
@@ -330,10 +330,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const [beatKey, setBeatKey] = useState<number | null>(null);
   useEffect(() => {
     if (!partnerReacts || !hasSays) return;
-    if (manualReveal) return;
     const t = window.setTimeout(() => setBeatKey(stageKey), saysMs);
     return () => clearTimeout(t);
-  }, [partnerReacts, hasSays, stageKey, manualReveal, saysMs]);
+  }, [partnerReacts, hasSays, stageKey, saysMs]);
   const pausing = speaking && beatKey === stageKey;
   useEffect(() => {
     if (!speaking || pausing || !stageChoice?.says) return;
@@ -875,8 +874,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                 ) : (
                   <>
                     {/* 모바일에서는 결과 카드가 화면을 채워 다른 보기가 아래로 밀리므로, 첫 반응 뒤 엄지로 반응을 바꿔 보는 칩 바를 둔다 */}
-                    {settled && choice && (
-                      <div role="group" aria-label="다른 보기 반응 바로 보기" className="mt-2 flex items-center gap-1.5 md:hidden">
+                    {/* 칩 줄 자리는 고르는 순간부터 잡아 두고(반응 전엔 보이지 않음), 반응이 뜰 때 그 자리에 나타난다. 반응 순간 카드가 밀려 내려가면 읽던 곳을 놓쳤다 */}
+                    {choice && (
+                      <div role="group" aria-label="다른 보기 반응 바로 보기" aria-hidden={!settled || undefined} className={`mt-2 flex items-center gap-1.5 md:hidden ${settled ? "animate-fade" : "invisible"}`}>
                         {shown.map((c, i) => {
                           const active = c.id === choice.id;
                           const seen = heardIds.includes(c.id);
@@ -938,7 +938,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                 <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />
                               )}
                               <span className="relative block">
-                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} spoke={partnerReacts && hasSays} partnerName={scene.partnerName} onReveal={manualReveal && partnerReacts ? skipReaction : undefined} reduced={reduced} />
+                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} spoke={partnerReacts && hasSays} partnerName={scene.partnerName} reduced={reduced} />
                                 {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기). 판정은 도장 아래로 옮겼다.
                                     한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
                                 {/* 반응이 오기 전에는 고른 말과 점 셋만 둔다. 빈 카드에 '내 선택'·'더 보기'만 먼저 보이면 무엇을 기다리는지 모른다 */}
@@ -1098,9 +1098,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                 </BlockLink>
               )
             ) : (
-              // 반응을 보기 전에는 다음으로 가는 버튼을 흰 보조로 둔다. 핑크 주 버튼이 먼저 눈을 끌면 '속마음 보기'보다 넘어가기가 다음 할 일처럼 보였다
               <BlockButton
-                primary={settled}
+                primary
                 onClick={() => {
                   const good = scene.base.choices.find((c) => c.verdict === "good");
                   setRecover(timeCue && good && choice?.verdict !== "good" ? { who: "me", line: good.line, meaning: `(정신 차리고) ${good.meaning}` } : null);
