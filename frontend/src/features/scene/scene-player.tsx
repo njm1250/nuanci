@@ -937,19 +937,28 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                                 <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />
                               )}
                               <span className="relative block">
-                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} spoke={partnerReacts && hasSays} partnerName={scene.partnerName} reduced={reduced} />
+                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} partnerName={scene.partnerName} reduced={reduced} />
                                 {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기). 판정은 도장 아래로 옮겼다.
                                     한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
                                 {/* 반응이 오기 전에는 고른 말과 점 셋만 둔다. 빈 카드에 '내 선택'·'더 보기'만 먼저 보이면 무엇을 기다리는지 모른다 */}
                                 {cardRevealed && (
                                 <span className="mt-3.5 block animate-fade border-t border-ink/10 pl-9">
-                                  <span className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 pt-2.5">
-                                    {(c.id === pickedId || isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="ml-auto justify-end" />}
-                                  </span>
-                                  {cardRevealed && detailOpen && <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">{c.detail}</span>}
+                                  {/* 더 보기: 상대가 입 밖으로 한 영어와 긴 해설, 고른 비율. 처음 보는 결과에는 도장과 한두 줄 해설만 둔다 */}
+                                  {cardRevealed && detailOpen && (
+                                    <span className="mt-3 block animate-fade text-ui leading-[1.6] text-ink-muted">
+                                      {c.says && (
+                                        <span className="mb-2 block">
+                                          <span className="text-meta text-ink-subtle">상대 말 </span>
+                                          <span className="font-line text-ink">“{c.says}”</span>
+                                        </span>
+                                      )}
+                                      {c.detail}
+                                      {(isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="mt-2" />}
+                                    </span>
+                                  )}
                                   <span className="flex items-center justify-between gap-3">
                                     {/* 펼칠 해설이 없는 보기("내 말")에는 더 보기를 두지 않는다. 오른쪽 문제 내기 자리는 그대로 둔다 */}
-                                    {c.detail ? (
+                                    {c.detail || c.says ? (
                                     <button
                                       type="button"
                                       disabled={!cardRevealed}
