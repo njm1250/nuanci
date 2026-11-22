@@ -211,7 +211,7 @@ export function WrapUp({
 
       {/* 다음 장면 예고. Mochi를 중복으로 띄우지 않고 깔끔한 예고 카드로 잇는다 */}
       {nextAsk && !askShown ? (
-        <button type="button" onClick={() => setAskShown(true)} aria-label="다음 장면 바로 보기" className="mt-5 block w-full text-left">
+        <button type="button" onClick={() => setAskShown(true)} aria-label="다음 장면 보기" className="mt-5 block w-full text-left">
           <span className="flex items-center gap-2 text-note text-fg-subtle">
             다음 장면
             {!runDone && <WaitDots reduced={reduced} />}

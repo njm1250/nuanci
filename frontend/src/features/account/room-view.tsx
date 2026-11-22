@@ -545,7 +545,7 @@ function Detail({
           aria-pressed={on}
           className={`blk flex min-h-11 items-center gap-1.5 px-3 font-label text-ui ${on ? "bg-fg text-page" : "bg-surface-strong text-fg"}`}
         >
-          {item.kind === "wear" ? "착용하기" : "두기"}
+          {item.kind === "wear" ? "입기" : "두기"}
           {on && <Check size={12} />}
         </button>
       )}
