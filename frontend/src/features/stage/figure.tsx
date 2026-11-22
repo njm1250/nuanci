@@ -193,6 +193,11 @@ export function Figure({
         // 무대 한 칸의 크기. 몸의 위치를 이 칸에 맞춰야 가만히 있을 때 외곽선이 칸 사이에서 깜빡이지 않는다
         const cell = 1 / (state.camera.zoom * state.viewport.dpr);
         const snap = (v: number) => Math.round(v / cell) * cell;
+        // 중심에서 radius만큼 떨어진 점이 정확히 한 칸씩 움직이는 각도 단위로 끊는다
+        const snapAngle = (a: number, radius: number) => {
+            const step = cell / radius;
+            return Math.round(a / step) * step;
+        };
 
         // 이상한 말을 들으면 바로 반응하지 않고 멍하니 굳어 있다가 한 박자 늦게 움직인다
         const heard = resolveExpression(expression, motion);
@@ -367,14 +372,16 @@ export function Figure({
         torso.current.rotation.z = sit ? s.tilt * 0.82 : 0;
         torso.current.position.y = hip - bowDrop * 0.4;
         head.current.position.y = torsoH + 0.33 - bowDrop * 0.8 - s.headDrop - breath;
-        head.current.rotation.z = s.headZ;
+        // 회전도 도트 칸에 맞춘다. 머리 가장자리(반지름 약 0.45)가 한 칸씩만 움직이는 각도 단위로 끊어야, 기울 때 외곽선이 칸 사이에서 자글거리지 않는다
+        head.current.rotation.z = snapAngle(s.headZ, 0.45);
         lArm.current.rotation.z = s.lArmZ;
         rArm.current.rotation.z = s.rArmZ;
         lArm.current.position.y = torsoH - 0.06 + s.lArmY;
         rArm.current.position.y = torsoH - 0.06 + s.rArmY;
 
+        // 귀·바보털은 머리 중심에서 멀어(약 0.4) 작은 흔들림도 칸을 넘나들며 떨린다. 한 칸 단위로 끊고, 한 칸이 안 되는 잔떨림은 0이 된다
         if (hairFollow.current) {
-            hairFollow.current.rotation.z = s.followZ;
+            hairFollow.current.rotation.z = snapAngle(s.followZ, 0.4);
         }
         if (tailRef.current) {
             const wagSpeed = motion === "bounce" || motion === "dance" ? 16 : 6;
@@ -480,8 +487,10 @@ export function Figure({
         const tense = heard === "shocked" || heard === "puzzled" || heard === "awkward" ? 1 : 0;
         fold.current += (tense - fold.current) * Math.min(1, dt * 10);
         if (animal && hairFollow.current) {
-            hairFollow.current.scale.y = 1 - fold.current * 0.1;
-            hairFollow.current.position.y = -fold.current * 0.02;
+            // 귀를 접는 것도 네 단계로 끊는다. 이어서 줄이면 접히는 동안 귀 테두리가 칸마다 번쩍인다
+            const folded = Math.round(fold.current * 4) / 4;
+            hairFollow.current.scale.y = 1 - folded * 0.1;
+            hairFollow.current.position.y = -folded * 0.02;
         }
         if (tuftRef.current) tuftRef.current.scale.y = 1 + fold.current * 0.4;
     });
@@ -633,9 +642,10 @@ export function Figure({
                                 <group ref={hairFollow}>
                                     {[-1, 1].map((s) => (
                                         <group key={s} position={[0.28 * s, 0.26, -0.005]}>
-                                            {/* 곰은 상대 쪽 귀가 조금 더 크다 */}
+                                            {/* 곰은 상대 쪽 귀가 조금 더 크다. 귀 안쪽은 얼굴(z 0)보다 뒤에 두고, 얼굴 가장자리에 걸리지 않게 바깥쪽으로 옮긴다.
+                                                같은 깊이면 움직일 때 얼굴과 앞뒤를 다투며 줄무늬로 깨졌고, 걸치면 1~2칸짜리 초승달만 남아 기울 때마다 부서져 보였다 */}
                                             <PixOval rx={s === dir ? 0.14 : 0.115} ry={s === dir ? 0.14 : 0.115} at={[0, 0, 0]} color={animal.fur} outlineZ={-0.035} />
-                                            <PixOval rx={s === dir ? 0.075 : 0.06} ry={s === dir ? 0.075 : 0.06} at={[0, 0, 0.005]} color={animal.inner} outline={false} />
+                                            <PixOval rx={s === dir ? 0.075 : 0.06} ry={s === dir ? 0.075 : 0.06} at={[(s === dir ? 0.04 : 0.03) * s, s === dir ? 0.04 : 0.03, 0.0025]} color={animal.inner} outline={false} />
                                         </group>
                                     ))}
                                 </group>
