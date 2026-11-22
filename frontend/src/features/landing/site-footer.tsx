@@ -26,6 +26,9 @@ export function SiteFooter() {
         <Link href="/?intro" className={linkClass}>
           nuanci 소개
         </Link>
+        <Link href="/learn" className={linkClass}>
+          상황별 영어 표현
+        </Link>
         <Link href="/terms" className={linkClass}>
           이용약관
         </Link>

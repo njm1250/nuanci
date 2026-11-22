@@ -83,9 +83,9 @@ export default async function Home() {
         <div className="ticker flex w-max whitespace-nowrap font-label text-ui text-white/70">
           {[0, 1].map((k) => (
             <span key={k} className="flex">
-              {shelf.slice(0, 15).map((x, i) => (
+              {shelf.slice(0, 15).map((x) => (
                 <span key={x.id} className="px-5">
-                  <span className="text-white">EP.{String(i + 1).padStart(2, "0")}</span> {x.title}
+                  {x.title}
                 </span>
               ))}
             </span>
