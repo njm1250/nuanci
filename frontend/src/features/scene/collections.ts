@@ -2,7 +2,7 @@ import type { StageSpec } from "@/features/stage/types";
 
 // 특집: 사람이 고른 장면 묶음. 장면의 category 값이 곧 특집 slug다.
 // 시작일~종료일 동안 홈 둘째 자리·전체 장면 맨 위·장면 3개 결과에 걸리고, 끝나면 전체 장면의 "지난 특집"으로 내려간다. 장면 주소는 계속 열려 있다
-export type FeatureSlug = "dev" | "xmas" | "india";
+export type FeatureSlug = "dev" | "xmas";
 export type FeatureDecor = "off" | "static" | "snow";
 
 // season: 기간 중에만 메인 경로에 오른다(홈 둘째 자리, 전체 장면 맨 위, 장면 3개 결과의 입구, 시즌 장식).
@@ -25,8 +25,6 @@ export type Feature = {
 
 export const FEATURE_LIST: Feature[] = [
   { slug: "xmas", kind: "season", name: "크리스마스 특집", cover: { set: "living", time: "evening", partner: "mom" }, start: "2026-12-01T00:00:00+09:00", end: "2027-01-01T00:00:00+09:00", priority: 1, decor: "snow" },
-  // 크리스마스가 끝난 뒤 이어서 거는 1월 특집. 인도식 영어(revert, prepone…)와 인도 여행에서 생기는 오해
-  { slug: "india", kind: "season", name: "인도 특집", start: "2027-01-01T00:00:00+09:00", end: "2027-02-01T00:00:00+09:00", priority: 1, decor: "off" },
   { slug: "dev", kind: "pack", name: "첫 PR 머지까지", start: "2026-11-12T00:00:00+09:00", priority: 2, decor: "off" },
 ];
 
