@@ -35,7 +35,7 @@ import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
 import { FreeLineSlot, type FreeLine } from "./free-line";
 import { replyMessage, shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
-import { NowLast } from "./emphasis";
+import { BoldQuoted, NowLast } from "./emphasis";
 import { TrapChip, BURSTS, SoundToggle, MochiAsk, Arrow, Caret, MIN_PICKS, usePickStats, ResultBody, PickMeta } from "./scene-parts";
 import { REACT_AFTER, REACT_AFTER_IMAGINE, STREAK_DELAY, AFTER_STREAK, PRIZE_MS, stagePrize, PrizeNote, WrapUp } from "./wrap-up";
 import { beatMs, BeatDots, LeadRecap } from "./beat-log";
@@ -737,7 +737,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 />
               )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
-              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} className={STAGE_TUCK_LIFT} />}
+              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
               {/* 두 번째 말부터는 무대가 가볍게 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !keyPick && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/25">
@@ -995,7 +995,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                                           <span className="font-line text-ink">“{c.says}”</span>
                                         </span>
                                       )}
-                                      {c.detail}
+                                      <BoldQuoted text={c.detail} />
                                       {c.stakes && <span className="mt-2 block"><StakesNote stakes={c.stakes} /></span>}
                                       {(isFriend(c) || (shareOf(c) ?? 0) > 0) && <PickMeta mine={c.id === pickedId} friend={isFriend(c)} share={shareOf(c)} className="mt-2" />}
                                     </span>

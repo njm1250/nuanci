@@ -4,7 +4,7 @@
 export function BoldQuoted({ text }: { text: string }) {
   return text.split(/('[^']*[A-Za-z][^']*')/).map((part, i) =>
     i % 2 ? (
-      <strong key={i} className="font-bold">
+      <strong key={i} className="font-bold text-ink">
         {part}
       </strong>
     ) : (

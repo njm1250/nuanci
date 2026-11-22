@@ -303,6 +303,15 @@ export type StageState = {
   partnerSpeaks?: string;
 };
 
+// 상대가 입 밖으로 하는 반응(겉말)의 목소리 크기. 놀람·화남은 크게 떨리고, 울음·졸림은 작게 말한다(동물의 숲 말풍선처럼 감정이 글자에 드러나게)
+const LOUD: ReadonlySet<string> = new Set(["shocked", "angry", "dizzy"]);
+const SOFT: ReadonlySet<string> = new Set(["crying", "sleepy"]);
+function SpeakText({ text, mood }: { text: string; mood: Expression | null }) {
+  if (mood && LOUD.has(mood)) return <span className="inline-block origin-bottom-left animate-shout text-body font-bold">{text}</span>;
+  if (mood && SOFT.has(mood)) return <span className="text-meta text-ink-muted">{text}</span>;
+  return <>{text}</>;
+}
+
 // 하늘이 벽 자리에 오는 바깥 세트. 걸레받이를 그리지 않는다
 const OUTDOOR: ReadonlySet<string> = new Set(["park", "street", "market"]);
 
@@ -535,7 +544,7 @@ export function PixelStage({
                   )
                 : bubble("me", state.meTurn ? <TypingDots /> : null, "turn")}
           {state.partnerSpeaks ? (
-            bubble("partner", state.partnerSpeaks, `speaks-${state.partnerKey}`)
+            bubble("partner", <SpeakText text={state.partnerSpeaks} mood={state.reaction} />, `speaks-${state.partnerKey}`)
           ) : state.partnerSays ? (
             bubble(
               "partner",
