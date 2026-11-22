@@ -140,11 +140,11 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   const selected = items.find((i) => i.id === selectedId && i.kind === (tab === "wear" ? "wear" : "room")) ?? null;
 
   const setOn = (r: RewardItem, on: boolean) => {
+    // 아지트에서 옷·물건을 바꿀 때는 '띠잉' 대신 영어 가리기와 같은 짧은 '틱'. 여러 번 갈아입어 보는 자리라 큰 소리는 거슬린다
+    sfx.tap();
     if (r.kind === "wear") {
-      sfx.equip();
       return setAvatar(on ? putOn(avatar, r, items) : takeOff(avatar, r), member);
     }
-    sfx.place();
     setAvatar(place(avatar, look.placed, r.id, on), member);
   };
 
@@ -177,8 +177,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
   const togglePreview = (item: RewardItem) => {
     const turningOn = previewId !== item.id;
     if (turningOn) {
-      if (item.kind === "wear") sfx.equip();
-      else sfx.place();
+      sfx.tap();
       setPoke(null);
       setPreviewTick((t) => t + 1);
       setPreviewId(item.id);
