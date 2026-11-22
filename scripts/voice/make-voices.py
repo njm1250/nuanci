@@ -17,7 +17,9 @@ MODEL = "eleven_v3"
 SETTINGS = {"stability": 0.3}
 # 캐릭터별 목소리는 cast.json. elevenlabs가 1순위이고, 결제·한도·키 문제로 막히면 gemini로 만든다(--provider gemini로 강제할 수도 있다)
 CAST = json.loads((Path(__file__).parent / "cast.json").read_text())
-GEMINI_TTS = "gemini-3.8-flash-tts"
+# Gemini TTS는 모델마다 하루 요청 한도(Tier 1에서 100회)가 따로 있다. 하루 한도에 걸리면 다음 모델로 넘어간다
+GEMINI_TTS_MODELS = ["gemini-3.8-flash-tts", "gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts", "gemini-3.8-flash-lite-tts", "gemini-2.5-pro-preview-tts"]
+gemini_model = 0
 FORCED = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--provider=")), None)
 eleven_down = FORCED == "gemini"
 
@@ -72,6 +74,10 @@ def eleven(voice: str, text: str) -> bytes:
     return urllib.request.urlopen(req, timeout=120).read()
 
 
+class DailyQuota(Exception):
+    pass
+
+
 def gemini_call(model: str, body: dict) -> dict:
     k = env(ROOT / ".env.production", "NUANCI_GEMINI_API_KEY")
     req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", json.dumps(body).encode(),
@@ -80,10 +86,30 @@ def gemini_call(model: str, body: dict) -> dict:
         try:
             return json.load(urllib.request.urlopen(req, timeout=120))
         except urllib.error.HTTPError as e:
-            if e.code != 429 or attempt == 3:
+            if e.code != 429:
                 raise
-            time.sleep(20)  # TTS 분당 한도
+            if "per_day" in e.read().decode(errors="ignore"):
+                raise DailyQuota(model)
+            if attempt == 3:
+                raise
+            time.sleep(20)  # 분당 한도
     raise RuntimeError("unreachable")
+
+
+def gemini_tts(body: dict) -> dict:
+    global gemini_model
+    while gemini_model < len(GEMINI_TTS_MODELS):
+        try:
+            return gemini_call(GEMINI_TTS_MODELS[gemini_model], body)
+        except DailyQuota as q:
+            print(f"  {q} 하루 한도 → 다음 모델")
+            gemini_model += 1
+        except urllib.error.HTTPError as e:
+            if e.code in (400, 404):  # 이 키로 못 쓰는 모델
+                gemini_model += 1
+                continue
+            raise
+    raise DailyQuota("모든 Gemini TTS 모델의 하루 한도")
 
 
 # 감탄사는 받아 적기에서 빠지거나 바뀌기 쉬워(Ha!, Uh…) 비교에서 뺀다
@@ -110,7 +136,7 @@ def gemini(cfg: dict, text: str, tag) -> bytes:
     best = (0.0, b"")
     for _ in range(3):
         time.sleep(7)
-        d = gemini_call(GEMINI_TTS, {"contents": [{"parts": [{"text": prompt}]}],
+        d = gemini_tts({"contents": [{"parts": [{"text": prompt}]}],
                                      "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["voice"]}}}}})
         audio = base64.b64decode(d["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
         heard = gemini_call(check, {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/wav", "data": base64.b64encode(audio).decode()}},
@@ -224,6 +250,8 @@ def main():
     manifest_path = CACHE / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     spent, keep = 0, set()
+    global quota_hit
+    quota_hit = False
     for s in get("/scenes")[:n]:
         scene = get(f"/scenes/{s['id']}")
         index = {}
@@ -236,11 +264,17 @@ def main():
                 except ValueError as e:
                     # 이 줄만 음성 없이 둔다(화면은 웅얼거림으로 남는다)
                     print(f"  건너뜀: {e}")
+                except DailyQuota as e:
+                    print(f"  멈춤: {e}. 내일 같은 명령으로 이어서 만든다(이미 만든 줄은 건너뜀)")
+                    quota_hit = True
+                    break
                 manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
-            index[step] = build_step(s["id"], step, made)
-            keep.update(Path(index[step][ext]).name for ext in ("webm", "m4a"))
-        (PUBLIC / f"{s['id']}.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")))
-        keep.add(f"{s['id']}.json")
+            if made:
+                index[step] = build_step(s["id"], step, made)
+                keep.update(Path(index[step][ext]).name for ext in ("webm", "m4a"))
+        if index:
+            (PUBLIC / f"{s['id']}.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")))
+            keep.add(f"{s['id']}.json")
     # 이번에 만든 묶음과 위치표만 남긴다. 옛 묶음은 주소가 달라 지워도 이미 받아 간 쪽은 그대로 동작한다
     for f in PUBLIC.iterdir():
         if f.name not in keep:
