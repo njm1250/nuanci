@@ -144,6 +144,7 @@ function SceneCard({
   label,
   next = false,
   inRow = false,
+  wide = false,
 }: {
   scene: ShelfScene;
   done: boolean;
@@ -152,6 +153,8 @@ function SceneCard({
   next?: boolean;
   // 전체 장면 목록 안에 들어갈 때는 옆 줄과 높이를 맞추려고 썸네일과 여백을 줄과 같게 줄인다
   inRow?: boolean;
+  // 목록에 세 자리 화수가 있으면 번호 칸을 넓혀 숫자가 왼쪽 여백 밖으로 밀려나지 않게 한다. 한 목록 안에서는 모두 같은 폭이라 썸네일 줄이 맞는다
+  wide?: boolean;
 }) {
   return (
     <EntryLink
@@ -160,7 +163,7 @@ function SceneCard({
       className="blk-btn block h-full"
     >
       <span className={`blk flex h-full items-center bg-card-raised text-ink ${inRow ? "gap-2 p-1.5 pr-2" : "gap-3 p-2 pr-3"}`}>
-        {inRow && <span className="w-7 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums">{tocNumber(label)}</span>}
+        {inRow && <span className={`${wide ? "w-10" : "w-7"} shrink-0 text-right font-poster text-say-lg leading-none tabular-nums`}>{tocNumber(label)}</span>}
         <span className="relative shrink-0">
           <SceneThumb
             stage={scene.stage}
@@ -214,11 +217,13 @@ function SceneRow({
   done,
   fresh = false,
   label,
+  wide = false,
 }: {
   scene: ShelfScene;
   done: boolean;
   fresh?: boolean;
   label: string;
+  wide?: boolean;
 }) {
   return (
     <EntryLink
@@ -227,7 +232,7 @@ function SceneRow({
       className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors duration-fast hover:bg-fg hover:text-page"
     >
       {/* 목차처럼 화수를 굵은 숫자로 왼쪽에 세운다 */}
-      <span className="w-8 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums">{tocNumber(label)}</span>
+      <span className={`${wide ? "w-11" : "w-8"} shrink-0 text-right font-poster text-say-lg leading-none tabular-nums`}>{tocNumber(label)}</span>
       <span className="shrink-0">
         <SceneThumb
           stage={scene.stage}
@@ -262,13 +267,15 @@ function SceneRow({
 function LockedSceneRow({
   scene,
   label,
+  wide = false,
 }: {
   scene: ShelfScene;
   label: string;
+  wide?: boolean;
 }) {
   return (
     <div aria-disabled="true" className="flex items-center gap-3 py-2.5">
-      <span className="w-8 shrink-0 text-right font-poster text-say-lg leading-none tabular-nums text-fg-subtle">{tocNumber(label)}</span>
+      <span className={`${wide ? "w-11" : "w-8"} shrink-0 text-right font-poster text-say-lg leading-none tabular-nums text-fg-subtle`}>{tocNumber(label)}</span>
       <span className="grid aspect-[4/3] w-[72px] shrink-0 place-items-center border border-dashed border-line font-label text-ui text-fg-subtle">
         잠김
       </span>
@@ -736,18 +743,21 @@ function SceneList({
   lockedIn: Set<string>;
   labelOf: (s: ShelfScene) => string;
 }) {
+  // 상황별 목록은 일부만 보여도 화수는 전체 순서라 세 자리가 섞일 수 있다. 이름표의 숫자로 정한다
+  const wide = scenes.some((s) => parseInt(labelOf(s), 10) >= 100);
   return (
     <ul className={SCENE_ROWS_CLASS}>
       {scenes.map((s) => (
         <li key={s.id} className={SCENE_ROW_ITEM_CLASS}>
           {lockedIn.has(s.id) ? (
-            <LockedSceneRow scene={s} label={labelOf(s)} />
+            <LockedSceneRow scene={s} label={labelOf(s)} wide={wide} />
           ) : (
             <SceneRow
               scene={s}
               done={cleared.includes(s.id)}
               fresh={fresh.includes(s.id)}
               label={labelOf(s)}
+              wide={wide}
             />
           )}
         </li>
@@ -803,6 +813,7 @@ function NextUp({ next, label, progress }: { next: ShelfScene | null | undefined
 // 어느 장면이든 10개를 할 때마다 다음 10화가 열린다
 export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
   const { cleared, fresh } = useVisitor(scenes);
+  const wide = scenes.length >= 100;
   const view = useSceneView();
   // 홈의 상황별 칸에서 들어오면 주소의 group으로 그 상황만 먼저 보여 준다. 칩을 누르면 그 뒤로는 고른 쪽을 따른다
   const linkedGroup = useSyncExternalStore(noSubscribe, () => new URLSearchParams(location.search).get("group"), () => null);
@@ -862,6 +873,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                         label={`${x.start + i}화`}
                         next
                         inRow
+                        wide={wide}
                       />
                     ) : (
                       <SceneRow
@@ -869,6 +881,7 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                         done={cleared.includes(s.id)}
                         fresh={fresh.includes(s.id)}
                         label={`${x.start + i}화`}
+                        wide={wide}
                       />
                     )}
                   </li>
@@ -902,13 +915,14 @@ export function SceneGrid({ scenes }: { scenes: ShelfScene[] }) {
                   {x.scenes.map((s, i) => (
                     <li key={s.id} className={SCENE_ROW_ITEM_CLASS}>
                       {lockedIn.has(s.id) ? (
-                        <LockedSceneRow scene={s} label={`${x.start + i}화`} />
+                        <LockedSceneRow scene={s} label={`${x.start + i}화`} wide={wide} />
                       ) : (
                         <SceneRow
                           scene={s}
                           done
                           fresh={false}
                           label={`${x.start + i}화`}
+                          wide={wide}
                         />
                       )}
                     </li>
