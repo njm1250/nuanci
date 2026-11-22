@@ -322,7 +322,9 @@ const VOICE_CLIP: Record<"partner" | "me" | "mochi", { clip: SfxName; step: numb
 
 // 실제 영어 음성. 장면마다 /voice/<장면id>.json에 단계(base·followUp)별 묶음 파일 주소와 "말한 사람|문장"별 위치(시작·길이 ms)가 있다.
 // 묶음은 Opus(webm)를 쓰고, 재생 못 하는 옛 Safari는 AAC(m4a)를 쓴다. 장면에 들어오면 받아 두고 첫 터치 때 해석한다.
-// 위치표가 없거나 그 줄이 없으면 지금처럼 웅얼거림으로 남는다
+// 위치표가 없거나 그 줄이 없으면 지금처럼 웅얼거림으로 남는다.
+// 음성 파일은 git에 넣지 않고 CDN(S3 + CloudFront)에 둔다. 주소가 비어 있으면 로컬 개발용 public/voice 를 쓴다
+const VOICE_BASE = process.env.NEXT_PUBLIC_VOICE_BASE ?? "";
 type VoiceStep = { webm: string; m4a: string; lines: Record<string, [number, number]> };
 type VoiceEntry = { file: string; at: number; ms: number };
 let voiceIndex: Map<string, VoiceEntry> = new Map();
@@ -338,7 +340,7 @@ function voiceFormat(): "webm" | "m4a" {
 function fetchVoiceRaw(file: string) {
   let p = voiceRaw.get(file);
   if (!p) {
-    p = fetch(file)
+    p = fetch(VOICE_BASE + file)
       .then((r) => (r.ok ? r.arrayBuffer() : null))
       .catch(() => null);
     voiceRaw.set(file, p);
@@ -351,7 +353,7 @@ export function loadVoiceScene(sceneId: string, onReady?: () => void) {
   if (typeof window === "undefined" || voiceScene === sceneId) return;
   voiceScene = sceneId;
   const fmt = voiceFormat();
-  void fetch(`/voice/${sceneId}.json`)
+  void fetch(`${VOICE_BASE}/voice/${sceneId}.json`)
     .then((r) => (r.ok ? r.json() : null))
     .then((idx: Record<string, VoiceStep> | null) => {
       if (voiceScene !== sceneId) return;

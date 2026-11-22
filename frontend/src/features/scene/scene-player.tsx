@@ -310,6 +310,8 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const punch = () => {
     setEndingStep("punch");
     sfx.punch();
+    // 엔딩 한마디도 음성이 있으면 들려준다(없으면 웅얼거림)
+    if (ending) sfx.blip("partner", ending.line, ending.who === "mochi" ? "mochi" : partnerVoice);
   };
   useEffect(() => {
     if (!wrapped || !ending || endingStep === "punch") return;

@@ -26,3 +26,6 @@ drafts/
 scripts/sfx/sf/
 scripts/sfx/out*/
 scripts/eval/results/
+
+# 장면 음성: 만들면 S3(CDN)에 올린다. 로컬 개발 때만 public/voice 에서 읽는다
+frontend/public/voice/

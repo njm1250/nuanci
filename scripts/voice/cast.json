@@ -14,9 +14,9 @@
   },
   "me": {
     "elevenlabs": {
-      "voice": "cgSgspJ2msm6clMCkdW9",
-      "name": "Jessica",
-      "rate": 1.12
+      "voice": "X1pk13fWnAfuhjM2mwjY",
+      "name": "nuanci-me (디자인)",
+      "rate": 1.0
     },
     "gemini": {
       "voice": "Zephyr",
@@ -26,9 +26,9 @@
   },
   "bori": {
     "elevenlabs": {
-      "voice": "FGY2WhTYpPnrIDTdsKH5",
-      "name": "Laura",
-      "rate": 1.26
+      "voice": "0wEVqZObn2FgQNCeCEwt",
+      "name": "nuanci-bori (디자인)",
+      "rate": 0.94
     },
     "gemini": {
       "voice": "Leda",
@@ -38,9 +38,9 @@
   },
   "mochi": {
     "elevenlabs": {
-      "voice": "FGY2WhTYpPnrIDTdsKH5",
-      "name": "Laura",
-      "rate": 1.38
+      "voice": "vw3eZ0zOTIsFybjDB521",
+      "name": "nuanci-mochi (디자인)",
+      "rate": 1.0
     },
     "gemini": {
       "voice": "Achernar",
@@ -50,9 +50,9 @@
   },
   "kong": {
     "elevenlabs": {
-      "voice": "IKne3meq5aSn9XLyUdCD",
-      "name": "Charlie",
-      "rate": 1.26
+      "voice": "n60L5dejXs8gP9NGpBfm",
+      "name": "nuanci-kong (디자인)",
+      "rate": 1.06
     },
     "gemini": {
       "voice": "Fenrir",
@@ -62,9 +62,9 @@
   },
   "sam": {
     "elevenlabs": {
-      "voice": "bIHbv24MWmeRgasZH58o",
-      "name": "Will",
-      "rate": 1.3
+      "voice": "nBh8tGLgg0sLZveDgnZv",
+      "name": "nuanci-sam (디자인)",
+      "rate": 1.0
     },
     "gemini": {
       "voice": "Puck",
@@ -74,9 +74,9 @@
   },
   "alex": {
     "elevenlabs": {
-      "voice": "TX3LPaxmHKxFdv7VOQHJ",
-      "name": "Liam",
-      "rate": 1.26
+      "voice": "r1DlMSe2yTWppcFFCr3S",
+      "name": "nuanci-alex (디자인)",
+      "rate": 1.0
     },
     "gemini": {
       "voice": "Achird",
@@ -86,9 +86,9 @@
   },
   "boss": {
     "elevenlabs": {
-      "voice": "CwhRBWXzGAHq8TQ4Fs17",
-      "name": "Roger",
-      "rate": 1.18
+      "voice": "b4adDNkdIhFVixdy4wo1",
+      "name": "nuanci-boss (디자인)",
+      "rate": 1.0
     },
     "gemini": {
       "voice": "Charon",
@@ -98,9 +98,9 @@
   },
   "jordan": {
     "elevenlabs": {
-      "voice": "iP95p4xoKVk53GoZ742B",
-      "name": "Chris",
-      "rate": 1.2
+      "voice": "BHz38XaolXuwG6GTF3r5",
+      "name": "nuanci-jordan (디자인)",
+      "rate": 1.0
     },
     "gemini": {
       "voice": "Laomedeia",
@@ -110,9 +110,9 @@
   },
   "barista": {
     "elevenlabs": {
-      "voice": "cjVigY5qzO86Huf0OWal",
-      "name": "Eric",
-      "rate": 1.18
+      "voice": "FOSZZRNz9BlLUYCPfEZX",
+      "name": "nuanci-barista (디자인)",
+      "rate": 1.0
     },
     "gemini": {
       "voice": "Aoede",
@@ -193,8 +193,12 @@
     }
   },
   "raj": {
-    "_": "인도 억양 웃음 담당 조연(크리스마스 특집). ElevenLabs 기본 목소리에는 인도 억양이 없어 gemini가 1순위다. 주인공에게는 쓰지 않는다",
-    "elevenlabs": null,
+    "_": "인도 억양 웃음 담당 조연. ElevenLabs 목소리 디자인으로 만든 인도 억양 목소리가 1순위. 주인공에게는 쓰지 않는다",
+    "elevenlabs": {
+      "voice": "FHzRlETN4ERCONwRzxmy",
+      "name": "nuanci-raj (디자인)",
+      "rate": 1.0
+    },
     "gemini": {
       "voice": "Iapetus",
       "rate": 1.08,

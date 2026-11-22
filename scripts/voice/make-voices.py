@@ -3,9 +3,11 @@
 #  1) 원본: 대사 한 줄 = mp3 하나(~/.cache/nuanci-voice/masters, git 밖). "말한 사람|문장" 해시로 이름을 짓고, 목소리·모델·설정이
 #     바뀌었거나 없는 줄만 ElevenLabs를 부른다. 원본이 진짜 소스라 TTS 비용은 바뀐 줄에만 든다.
 #  2) 배포: 장면 단계(base·followUp)마다 대사를 한 파일로 이어 붙인 묶음(Opus webm + 옛 Safari용 AAC m4a)과 줄별 위치표
-#     (frontend/public/voice/<장면id>.json). 묶음 파일 이름에 내용 해시를 넣어 1년 캐시해도 고치면 새 주소가 된다.
-# 사용: python3 scripts/voice/make-voices.py 장면수 [--provider=gemini]   (로컬 프런트 :3000 의 /api/scenes 를 읽는다. 키: .env.local ELEVENLABS_API_KEY, .env.production NUANCI_GEMINI_API_KEY)
-import base64, hashlib, json, re, subprocess, sys, tempfile, time, urllib.error, urllib.request
+#     (frontend/public/voice/<장면id>.json, git 밖). 묶음 파일 이름에 내용 해시를 넣어 1년 캐시해도 고치면 새 주소가 된다.
+#     --upload 를 붙이면 S3(VOICE_BUCKET, 기본 nuanci-voice-190936935569)에 올린다. 운영은 CloudFront로 거기서 읽는다(NEXT_PUBLIC_VOICE_BASE).
+#     위치표(.json)는 이름이 그대로라 5분 캐시, 묶음은 1년 캐시. 옛 묶음은 지우지 않는다(이미 받아 간 위치표가 가리킬 수 있다)
+# 사용: python3 scripts/voice/make-voices.py 장면수 [--provider=gemini] [--upload]   (로컬 프런트 :3000 의 /api/scenes 를 읽는다. 키: .env.local ELEVENLABS_API_KEY, .env.production NUANCI_GEMINI_API_KEY)
+import base64, hashlib, json, os, re, subprocess, sys, tempfile, time, urllib.error, urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -170,7 +172,8 @@ def lines_of(scene: dict) -> dict:
         x, rows = scene[st], []
         for b in x.get("lead") or []:
             if b["line"] != "……" and b["who"] in ("me", "partner"):
-                rows.append(("me" if b["who"] == "me" else partner, b["line"], None))
+                # 춤추며 하는 대사는 노래로 부른다(징글벨처럼 가사를 부르는 줄)
+                rows.append(("me" if b["who"] == "me" else partner, b["line"], "sings" if b.get("motion") == "dance" else None))
         if x.get("partnerLine"):
             rows.append((partner, x["partnerLine"], None))
         for c in x["choices"]:
@@ -183,6 +186,10 @@ def lines_of(scene: dict) -> dict:
                 seen.add((r[0], r[1]))
                 uniq.append(r)
         out[st] = uniq
+    # 엔딩 한마디는 마지막 단계 묶음에 넣는다
+    e = scene.get("ending")
+    if e and e.get("line") and e["who"] in ("partner", "mochi"):
+        out["followUp"].append(("mochi" if e["who"] == "mochi" else partner, e["line"], "sings" if e.get("motion") == "dance" else None))
     return out
 
 
@@ -225,6 +232,14 @@ def ensure_master(manifest: dict, speaker: str, text: str, tag) -> int:
     raise RuntimeError(f"목소리 설정 없음: {speaker}")
 
 
+# 줄마다 음량을 고르게 맞추고, 소리치는 줄이 갑자기 튀거나 찢어지지 않게 누른다(원본은 그대로라 TTS를 다시 부르지 않는다).
+# 원본의 약 6%가 0dB까지 차 있어, 압축 인코딩(Opus) 뒤 지직거리거나 날카롭게 튀었다
+LEVEL = ("acompressor=threshold=-20dB:ratio=3:attack=5:release=120:makeup=1,"
+         "deesser=i=0.4,"
+         "loudnorm=I=-19:TP=-3:LRA=9,"
+         "alimiter=limit=0.7:attack=2:release=60:level=false")
+
+
 def build_step(scene_id: str, step: str, rows: list) -> dict:
     """한 단계의 원본들을 한 묶음으로 잇고, 줄별 시작·길이(ms)를 돌려준다"""
     with tempfile.TemporaryDirectory() as tmp:
@@ -233,7 +248,7 @@ def build_step(scene_id: str, step: str, rows: list) -> dict:
         parts, lines, at = [], {}, 0.0
         for i, (speaker, text, _) in enumerate(rows):
             wav = tmp / f"{i}.wav"
-            run("-i", str(MASTERS / f"{key(speaker, text)}.mp3"), "-ar", "48000", "-ac", "1", "-c:a", "pcm_s16le", str(wav))
+            run("-i", str(MASTERS / f"{key(speaker, text)}.mp3"), "-af", LEVEL, "-ar", "48000", "-ac", "1", "-c:a", "pcm_s16le", str(wav))
             d = duration(wav)
             lines[f"{speaker}|{text}"] = [round(at * 1000), round(d * 1000)]
             parts += [wav, tmp / "gap.wav"]
@@ -290,6 +305,17 @@ def main():
             f.unlink()
     size = sum(f.stat().st_size for f in PUBLIC.iterdir())
     print(f"TTS로 보낸 글자 {spent}자, 배포 파일 {len(keep)}개 {size // 1024}KB")
+    if "--upload" in sys.argv:
+        upload()
+
+
+def upload():
+    dest = f"s3://{os.environ.get('VOICE_BUCKET', 'nuanci-voice-190936935569')}/voice/"
+    common = ["aws", "s3", "sync", str(PUBLIC), dest, "--only-show-errors"]
+    subprocess.run(common + ["--exclude", "*.json", "--cache-control", "public, max-age=31536000, immutable"], check=True)
+    subprocess.run(common + ["--exclude", "*", "--include", "*.json", "--content-type", "application/json",
+                             "--cache-control", "public, max-age=300"], check=True)
+    print(f"올림: {dest}")
 
 
 if __name__ == "__main__":
