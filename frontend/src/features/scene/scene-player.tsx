@@ -26,7 +26,7 @@ import { ImagineBubble } from "./imagine-bubble";
 import { primeAudio, sfx } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
-import { Num, StakesNote, VERDICTS } from "./verdict";
+import { heardAs, Num, StakesNote, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
@@ -116,6 +116,11 @@ function ownChoice(line: string, r: Omit<FreeLine, "step" | "line">, choices: Ch
     expression: r.expression ?? "neutral",
     motion: verdict === "good" ? "nod" : "tilt",
   };
+}
+
+// 내가 한 말이 보기와 같은 표현일 때: 말은 내 것 그대로, 상대 반응·판정·해설은 그 보기 것을 쓴다
+function matchedOwn(line: string, same: Choice, n: number): Choice {
+  return { ...same, id: `${OWN_PREFIX}${n}`, line, tags: ["내 말", heardAs(same)] };
 }
 
 function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry, packStep }: PlayerProps) {
@@ -618,7 +623,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && !leading && phase !== "transition" && (
               <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
-                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-page" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
+                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-ink-fixed" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
             )}
             <SoundToggle />
@@ -1024,13 +1029,15 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                               setFree(null);
                               return;
                             }
+                            // 보기와 같은 표현이면 그 보기로 보내지 않고, 내가 한 말 그대로 두고 그 보기의 반응·판정·해설을 잇는다
+                            const same = r.outcome === "matched" ? situation.choices.find((x) => x.id === r.choiceId) : undefined;
+                            if (same) {
+                              send({ type: "free_line_pick", step: stepNow, choiceId: same.id });
+                              f.addOwn(matchedOwn(line, same, freeKey));
+                              setFree(null);
+                              return;
+                            }
                             setFree((x) => (x ? { ...x, ...r } : x));
-                          }}
-                          onPick={(id) => {
-                            const c = situation.choices.find((x) => x.id === id);
-                            send({ type: "free_line_pick", step: stepNow, choiceId: id });
-                            setFree(null);
-                            if (c) play(c);
                           }}
                           onReset={() => (setFreeDraft({ step: stepNow, text: "" }), setFree(null))}
                           onDraftChange={(text) => setFreeDraft({ step: stepNow, text })}
