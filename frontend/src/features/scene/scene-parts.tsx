@@ -205,7 +205,7 @@ export function ResultBody({
               <VerdictNote choice={choice} />
             </span>
             {choice.why && (
-              <span className="mt-2.5 block text-ui leading-[1.6] text-ink">
+              <span className="mt-2.5 block text-ui leading-[1.6] text-ink-muted">
                 <BoldQuoted text={choice.why} />
               </span>
             )}

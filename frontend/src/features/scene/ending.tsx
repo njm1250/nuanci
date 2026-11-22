@@ -12,10 +12,15 @@ export const PUNCH_HOLD = 2200;
 export const PUNCH_SOUND_MS = 1050;
 
 // 무대 대사(빌드업·이음·펀치라인)의 한국어 자막. 무대 아래쪽에 붙인다. 무대가 넓은 데스크톱에서는 영화 자막처럼 한 단계 크게 쓴다
-export function Subtitle({ text, className = "" }: { text: string; className?: string }) {
+// narration은 대사가 아닌 상황 묘사("……" 줄). 말한 사람이 없으니 대사 자막(딥 블루)과 다른 흰 점선 상자로 나눠(무대 위라 밤 화면에서도 같은 색), 누가 말했는지 헷갈리지 않게 한다
+export function Subtitle({ text, narration = false, className = "" }: { text: string; narration?: boolean; className?: string }) {
   return (
     <p className={`absolute inset-x-2 bottom-2 animate-fade text-center md:bottom-5 ${className}`}>
-      <span className="inline-block bg-ink px-2 py-1 font-label text-ui leading-snug text-fg md:px-3 md:py-1.5 md:text-title">{text}</span>
+      <span
+        className={`inline-block px-2 py-1 font-label text-ui leading-snug md:px-3 md:py-1.5 md:text-title ${narration ? "border-2 border-dashed border-ink-fixed bg-white text-ink-fixed" : "bg-ink text-fg"}`}
+      >
+        {text}
+      </span>
     </p>
   );
 }

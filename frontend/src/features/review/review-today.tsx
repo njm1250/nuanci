@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Mark } from "@/features/collection/expression-book";
 import { BlockButton, SpeakerTag } from "@/features/scene/block-ui";
+import { BoldQuoted } from "@/features/scene/emphasis";
 import { sfx } from "@/features/scene/sfx";
 import { answerReview, loadReview, type ReviewToday as Today } from "./review";
 import { markReviewed } from "./reviewed";
@@ -96,7 +97,9 @@ export function ReviewToday({ className = "" }: { className?: string }) {
                 <span className="shrink-0">지난번 내가 고른 말</span>
                 <s className="min-w-0 truncate decoration-rust decoration-2">{card.mine.line}</s>
               </p>
-              <p className="mt-3.5 text-note leading-relaxed text-ink-muted">{card.why}</p>
+              <p className="mt-3.5 text-note leading-relaxed text-ink-muted">
+                <BoldQuoted text={card.why} />
+              </p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <BlockButton onClick={() => next(false)} reading faceClassName="py-3 text-center text-body font-bold">
                   몰랐어
