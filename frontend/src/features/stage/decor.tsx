@@ -45,6 +45,8 @@ const DEFAULTS: Record<DecorId, { y: number; z: number }> = {
   "bill-pile": { y: 0, z: 0.1 },
   "ice-block": { y: 0, z: -0.55 },
   "snow-pile": { y: 0, z: -0.3 },
+  "xmas-tree": { y: 0, z: -0.7 },
+  wreath: { y: 2.05, z: WALL },
   thermometer: { y: 2.0, z: WALL },
   "tripod-cam": { y: 0, z: 0.25 },
   "ring-light": { y: 0, z: -0.5 },
@@ -172,6 +174,62 @@ function SnowPile({ x, y, z }: At) {
     <>
       <Gem r={0.26} at={[x, y + 0.06, z]} color="#f4fbff" scale={[1.5, 0.6, 1]} />
       <Gem r={0.15} at={[x + 0.22, y + 0.03, z + 0.05]} color="#e3f2f9" scale={[1.3, 0.6, 1]} />
+    </>
+  );
+}
+
+// 크리스마스트리. 원뿔 세 겹에 앞쪽으로 장식 구슬을 달고, 꼭대기 별과 밑동 선물 상자 둘
+const BAUBLES = ["#ff5533", "#ffd27a", "#8fd3f4", "#f08aa8"];
+function XmasTree({ x, y, z }: At) {
+  const green = "#2f7d4f";
+  const dark = "#246640";
+  const layers: [number, number, number][] = [
+    // 반지름, 높이, 가운데 높이
+    [0.58, 0.62, 0.62],
+    [0.45, 0.52, 1.02],
+    [0.31, 0.44, 1.36],
+  ];
+  return (
+    <>
+      <Cyl r={0.08} h={0.34} at={[x, y + 0.17, z]} color={C.woodDark} />
+      {layers.map(([r, h, cy], i) => (
+        <Cyl key={i} r={[0.02, r]} h={h} at={[x, y + cy, z]} color={i % 2 ? dark : green} sides={8} />
+      ))}
+      {/* 장식 구슬: 겹마다 아래쪽 앞면에 세 개씩. 원뿔 겉면보다 살짝 앞에 둔다 */}
+      {layers.flatMap(([r, h, cy], i) =>
+        [-0.55, 0, 0.55].map((t, j) => {
+          // 원뿔 밑에서 22% 올라간 높이의 겉면 반지름보다 조금 바깥에 단다(안쪽이면 잎에 묻힌다)
+          const yy = cy - h * 0.28;
+          const rr = r * 0.8 + 0.05;
+          return <Gem key={`${i}-${j}`} r={0.075} at={[x + Math.sin(t) * rr, y + yy, z + Math.cos(t) * rr]} color={BAUBLES[(i + j) % BAUBLES.length]} />;
+        }),
+      )}
+      {/* 꼭대기 별: 마름모 둘을 겹친 도트 별 */}
+      <Box size={[0.16, 0.16, 0.04]} at={[x, y + 1.66, z + 0.05]} color="#ffd27a" rot={[0, 0, Math.PI / 4]} />
+      <Box size={[0.08, 0.26, 0.05]} at={[x, y + 1.66, z + 0.06]} color="#ffe9a8" />
+      <Box size={[0.26, 0.08, 0.05]} at={[x, y + 1.66, z + 0.06]} color="#ffe9a8" />
+      <Box size={[0.3, 0.22, 0.26]} at={[x - 0.42, y + 0.11, z + 0.35]} color="#ff5533" />
+      <Box size={[0.05, 0.23, 0.27]} at={[x - 0.42, y + 0.115, z + 0.35]} color="#ffd27a" />
+      <Box size={[0.24, 0.18, 0.22]} at={[x + 0.44, y + 0.09, z + 0.38]} color="#8fd3f4" />
+      <Box size={[0.25, 0.19, 0.04]} at={[x + 0.44, y + 0.095, z + 0.38]} color={C.paper} />
+    </>
+  );
+}
+
+// 벽에 거는 리스. 초록 고리에 빨간 리본
+function Wreath({ x, y, z }: At) {
+  return (
+    <>
+      {Array.from({ length: 12 }, (_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        return <Gem key={i} r={0.09} at={[x + Math.cos(a) * 0.26, y + Math.sin(a) * 0.26, z + 0.02]} color={i % 2 ? "#2f7d4f" : "#246640"} scale={[1, 1, 0.4]} />;
+      })}
+      {[0.5, 2.6, 4.7].map((a) => (
+        <Gem key={a} r={0.04} at={[x + Math.cos(a) * 0.26, y + Math.sin(a) * 0.26, z + 0.06]} color="#ff5533" />
+      ))}
+      <Box size={[0.2, 0.1, 0.03]} at={[x, y - 0.27, z + 0.07]} color="#ff5533" />
+      <Box size={[0.05, 0.16, 0.03]} at={[x - 0.05, y - 0.38, z + 0.06]} color="#d9412a" rot={[0, 0, 0.2]} />
+      <Box size={[0.05, 0.16, 0.03]} at={[x + 0.05, y - 0.38, z + 0.06]} color="#d9412a" rot={[0, 0, -0.2]} />
     </>
   );
 }
@@ -590,6 +648,8 @@ const PIECES: Record<DecorId, (p: At) => React.ReactNode> = {
   "bill-pile": BillPile,
   "ice-block": IceBlock,
   "snow-pile": SnowPile,
+  "xmas-tree": XmasTree,
+  wreath: Wreath,
   thermometer: Thermometer,
   "tripod-cam": TripodCam,
   "ring-light": RingLight,
