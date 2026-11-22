@@ -311,19 +311,21 @@ function LaneSection({ lane, cleared, fresh }: { lane: Lane; cleared: string[]; 
   );
 }
 
-// 상황별 섹션. 안 해 본 장면을 추천 순서대로 4줄(데스크톱 6줄)만 보이고, "모두 보기"로 펼치면 해 본 장면까지 순서대로 나온다
+// 상황별 섹션. 4줄(데스크톱 6줄)을 보이되 안 해 본 장면을 추천 순서대로 앞에 두고, 남는 줄은 해 본 장면(체크)으로 채운다.
+// 안 해 본 것만 보이면 거의 다 해 본 묶음이 "장면 1개뿐"처럼 보였다. 줄 수보다 많을 때만 "모두 보기"로 펼친다
 const PREVIEW = 4;
 const PREVIEW_WIDE = 6;
 function GroupSection({ group, cleared, fresh, forceOpen }: { group: Group; cleared: string[]; fresh: string[]; forceOpen: boolean }) {
   const [open, setOpen] = useState(false);
   const todo = group.scenes.filter((s) => !cleared.includes(s.id));
-  const expanded = open || forceOpen || todo.length === 0;
-  const moreMobile = group.scenes.length > Math.min(todo.length, PREVIEW);
-  const moreWide = group.scenes.length > Math.min(todo.length, PREVIEW_WIDE);
+  const expanded = open || forceOpen;
+  const preview = [...todo, ...group.scenes.filter((s) => cleared.includes(s.id))];
+  const moreMobile = group.scenes.length > PREVIEW;
+  const moreWide = group.scenes.length > PREVIEW_WIDE;
   return (
     <section className="mt-10">
       <SectionTitle title={group.label} total={group.scenes.length} done={group.scenes.length - todo.length} />
-      <Rows scenes={expanded ? group.scenes : todo.slice(0, PREVIEW_WIDE)} cleared={cleared} fresh={fresh} hideFrom={expanded ? undefined : PREVIEW} />
+      <Rows scenes={expanded ? group.scenes : preview.slice(0, PREVIEW_WIDE)} cleared={cleared} fresh={fresh} hideFrom={expanded ? undefined : PREVIEW} />
       {!expanded && (moreMobile || moreWide) && (
         <button
           type="button"
