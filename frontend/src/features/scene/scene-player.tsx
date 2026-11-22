@@ -23,10 +23,10 @@ import { CORE_CHOICES, shuffleChoices } from "./choice-order";
 import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 
-import { primeAudio, sfx } from "./sfx";
+import { loadVoiceScene, primeAudio, sfx, voiceMs } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
-import { Num, StakesNote, VERDICTS } from "./verdict";
+import { heardAs, Num, StakesNote, VERDICTS } from "./verdict";
 import { markCleared, nextScene } from "./progress";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
@@ -118,6 +118,11 @@ function ownChoice(line: string, r: Omit<FreeLine, "step" | "line">, choices: Ch
   };
 }
 
+// 내가 한 말이 보기와 같은 표현일 때: 말은 내 것 그대로, 상대 반응·판정·해설은 그 보기 것을 쓴다
+function matchedOwn(line: string, same: Choice, n: number): Choice {
+  return { ...same, id: `${OWN_PREFIX}${n}`, line, tags: ["내 말", heardAs(same)] };
+}
+
 function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry, packStep }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
@@ -154,6 +159,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   useEffect(() => (preview ? undefined : watchEngagement({ sceneId: scene.id, sceneVersion: scene.version, attemptId })), [scene.id, scene.version, attemptId, preview]);
 
   useEffect(primeAudio, []);
+  // 이 장면의 실제 영어 음성 위치표와 묶음 파일을 받아 둔다. 받으면 한 번 다시 그려서 말풍선 시간을 음성 길이에 맞춘다
+  const [, setVoiceReady] = useState(0);
+  useEffect(() => loadVoiceScene(original.id, () => setVoiceReady((v) => v + 1)), [original.id]);
 
   const f = useSceneFlow(scene, send);
   const look = useHeroLook();
@@ -207,6 +215,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     return () => clearTimeout(t);
   }, [introDone]);
   const beat = leading && introDone ? lead[leadIdx] : null;
+  // 실제 영어 음성(시험판)은 "말한 사람" 이름으로 찾는다. 나는 me, 상대는 장면의 상대 이름
+  const partnerVoice = scene.partnerName?.toLowerCase();
+  const speakerOf = (who: "partner" | "me" | "mochi") => (who === "me" ? "me" : who === "partner" ? partnerVoice : undefined);
+  // 대사 한 줄이 머무는 시간. 음성이 있으면 음성이 끝나고 읽을 틈까지 기다린다
+  const beatTime = beat ? Math.max(beatMs(beat), voiceMs(speakerOf(beat.who), beat.line) + 900) : 0;
   const played = phase === "transition" ? [] : lead.slice(0, leading ? leadIdx + 1 : lead.length);
   const leadFlags = played.flatMap((b) => b.flags ?? []).join(",");
   // 소품은 대사가 흐르는 동안 마지막으로 든 것을 계속 들고 있는다
@@ -233,8 +246,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   };
   useEffect(() => {
     if (!beat) return;
-    return sfx.blip(beat.line === "……" ? "narration" : beat.who, beat.line);
-  }, [beat]);
+    return sfx.blip(beat.line === "……" ? "narration" : beat.who, beat.line, beat.who === "me" ? "me" : beat.who === "partner" ? partnerVoice : undefined);
+  }, [beat, partnerVoice]);
   // 다른 탭이나 앱으로 가 있는 동안 대사가 혼자 넘어가면 돌아와서 이야기를 놓친다. 떠나는 순간 자동 넘김을 멈춘다
   useEffect(() => {
     if (!leading) return;
@@ -248,9 +261,9 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     const t = window.setTimeout(() => {
       if (lastBeat && !preview) track({ type: "lead_finished", sceneId: scene.id, sceneVersion: scene.version, attemptId, step, choiceId: "watched" });
       setLeadAt((a) => ({ ...a, [step]: a[step] + 1 }));
-    }, beatMs(beat));
+    }, beatTime);
     return () => clearTimeout(t);
-  }, [beat, autoPaused, reduced, step, lastBeat, preview, scene.id, scene.version, attemptId]);
+  }, [beat, beatTime, autoPaused, reduced, step, lastBeat, preview, scene.id, scene.version, attemptId]);
   // 데스크톱에서는 키보드로도 넘긴다. 버튼에 포커스가 있으면 버튼이 받으니 한 번에 두 줄 넘어가지 않게 비켜 준다
   useEffect(() => {
     if (!leading) return;
@@ -296,7 +309,14 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const [heard, setHeard] = useState<Record<string, string[]>>({ base: [], followUp: [] });
   const heardIds = heard[step];
   const [repeatView, setRepeatView] = useState(false);
-  const reactWait = !stageChoice || endingOn || beat || wrapped ? null : reduced ? 0 : repeatView ? REACT_AGAIN : stageChoice.imagine ? REACT_AFTER_IMAGINE : REACT_AFTER;
+  // 고른 말을 주인공이 소리 내어 말하면(음성이 있을 때) 그 말이 끝난 뒤에 상대가 반응한다
+  const meSaysMs = stageChoice && !endingOn && !beat && !wrapped ? voiceMs("me", stageChoice.line) : 0;
+  const reactWait = !stageChoice || endingOn || beat || wrapped ? null : reduced ? 0 : Math.max(repeatView ? REACT_AGAIN : stageChoice.imagine ? REACT_AFTER_IMAGINE : REACT_AFTER, meSaysMs ? meSaysMs + 250 : 0);
+  const meLine = stageChoice && !endingOn && !beat && !wrapped ? stageChoice.line : null;
+  useEffect(() => {
+    if (!meLine) return;
+    return sfx.say("me", meLine);
+  }, [stageKey, meLine]);
   useEffect(() => {
     if (reactWait === null) return;
     const t = window.setTimeout(() => setReactedKey(stageKey), reactWait);
@@ -310,7 +330,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const hasSays = Boolean(stageChoice?.says) && !repeatView;
   // 겉말이 머무는 시간은 그 영어를 읽는 데 드는 만큼만: 짧은 말은 빨리, 긴 말은 조금 더. 같은 상황의 두 번째 보기부터는 흐름을 아니까 짧게
   const saysLen = stageChoice?.says?.length ?? 0;
-  const saysMs = heardIds.length > 0 ? SAYS_AGAIN_MS : Math.min(SAYS_MS, Math.max(SAYS_MIN_MS, 700 + saysLen * 45));
+  const saysMs = Math.max(heardIds.length > 0 ? SAYS_AGAIN_MS : Math.min(SAYS_MS, Math.max(SAYS_MIN_MS, 700 + saysLen * 45)), voiceMs(partnerVoice, stageChoice?.says) + 300);
   useEffect(() => {
     if (!partnerReacts || !hasSays) return;
     const t = window.setTimeout(() => setThoughtKey(stageKey), saysMs + SAYS_BEAT);
@@ -336,8 +356,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const pausing = speaking && beatKey === stageKey;
   useEffect(() => {
     if (!speaking || pausing || !stageChoice?.says) return;
-    return sfx.blip("partner", stageChoice.says);
-  }, [speaking, pausing, stageChoice?.says]);
+    return sfx.blip("partner", stageChoice.says, partnerVoice);
+  }, [speaking, pausing, stageChoice?.says, partnerVoice]);
   // 반응을 기다리는 중에 무대를 누르면 남은 순서를 건너뛰고 속마음과 결과를 바로 보여 준다
   const skipReaction = () => {
     setReactedKey(stageKey);
@@ -459,8 +479,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   // 빌드업 대사가 끝나거나 이어지는 상황으로 넘어가면 상대가 건네는 질문 대사도 길이에 맞춰 말한다
   useEffect(() => {
     if (!choosing || !introDone || choice || (!later && lead.length === 0)) return;
-    return sfx.blip("partner", stageSituation.partnerLine);
-  }, [choosing, introDone, choice, later, lead.length, stageSituation.partnerLine]);
+    return sfx.blip("partner", stageSituation.partnerLine, partnerVoice);
+  }, [choosing, introDone, choice, later, lead.length, stageSituation.partnerLine, partnerVoice]);
   // 첫 반응이 정착된 뒤에야 추가 보기·비교 칩바·카운터를 열어, 고른 직후 화면이 한꺼번에 튀지 않게 한다
   const settled = Boolean(choice) && (cardRevealed || heardIds.length > 0);
   // 보기가 넷 이상인 상황은 처음엔 원래 있던 세 개로 고르게 하고, 첫 반응 뒤에 나머지를 목록 끝에 붙인다. 고르기 전에 읽을 것은 적게, 구경할 것은 많게
@@ -618,7 +638,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && !leading && phase !== "transition" && (
               <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
-                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-page" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
+                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-ink-fixed" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
             )}
             <SoundToggle />
@@ -693,7 +713,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                   key={`stage-fill-${step}-${leadIdx}`}
                   aria-hidden
                   className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-1 origin-left bg-pink md:block"
-                  style={{ animation: `fill ${beatMs(beat)}ms linear both` }}
+                  style={{ animation: `fill ${beatTime}ms linear both` }}
                 />
               )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
@@ -1024,13 +1044,15 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                               setFree(null);
                               return;
                             }
+                            // 보기와 같은 표현이면 그 보기로 보내지 않고, 내가 한 말 그대로 두고 그 보기의 반응·판정·해설을 잇는다
+                            const same = r.outcome === "matched" ? situation.choices.find((x) => x.id === r.choiceId) : undefined;
+                            if (same) {
+                              send({ type: "free_line_pick", step: stepNow, choiceId: same.id });
+                              f.addOwn(matchedOwn(line, same, freeKey));
+                              setFree(null);
+                              return;
+                            }
                             setFree((x) => (x ? { ...x, ...r } : x));
-                          }}
-                          onPick={(id) => {
-                            const c = situation.choices.find((x) => x.id === id);
-                            send({ type: "free_line_pick", step: stepNow, choiceId: id });
-                            setFree(null);
-                            if (c) play(c);
                           }}
                           onReset={() => (setFreeDraft({ step: stepNow, text: "" }), setFree(null))}
                           onDraftChange={(text) => setFreeDraft({ step: stepNow, text })}
@@ -1071,7 +1093,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
                 key={`fill-${step}-${leadIdx}`}
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 -top-[3px] h-[3px] origin-left bg-pink"
-                style={{ animation: `fill ${beatMs(beat)}ms linear both` }}
+                style={{ animation: `fill ${beatTime}ms linear both` }}
               />
             )}
             {leading ? (

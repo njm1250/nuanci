@@ -413,9 +413,9 @@ function FeaturedScene({
           {/* 바깥 칸은 먹선·그림자, 안쪽 칸이 분홍 면. 한 칸에 두면 먹선 층이 분홍 면을 덮는다 */}
           <span className="feat-key ml-0.5 mr-[5px] mt-5 block md:mt-4">
             <span className="flex items-center justify-between bg-pink px-4 py-3.5 font-poster text-say text-ink">
-              {/* 포스터 글꼴은 줄 상자 안에서 위로 치우쳐 그려져서, 줄 높이를 글자 크기에 맞추고 화살표를 3px 올려야 눈으로 본 가운데가 맞는다 */}
+              {/* 줄 높이를 글자 크기에 맞추면 화살표와 한글 글자 덩어리의 가운데가 맞는다. 예전에 화살표를 3px 올렸더니 재 보니 글자보다 3px 위에 떠 있었다 */}
               <span className="leading-none">{answerCta(scene.relation)}</span>
-              <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="feat-arrow relative -top-[3px] shrink-0 fill-current">
+              <svg width="21" height="21" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="feat-arrow shrink-0 fill-current">
                 <path d="M0 3h4v2H0zM4 1h1v6H4zM5 2h1v4H5zM6 3h1v2H6z" />
               </svg>
             </span>

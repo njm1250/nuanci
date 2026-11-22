@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
       permanent: true,
     }));
   },
+  // 음성 묶음 파일은 이름에 내용 해시가 있어 바뀌지 않으니 1년 캐시한다. 장면별 위치표(.json)는 이름이 그대로라 매번 확인한다
+  async headers() {
+    return [
+      { source: "/voice/:file*.webm", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+      { source: "/voice/:file*.m4a", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    ];
+  },
   // /api 요청을 BE로 프록시해서 브라우저 입장에서는 같은 출처로 보이게 한다 (CORS 불필요)
   async rewrites() {
     return [

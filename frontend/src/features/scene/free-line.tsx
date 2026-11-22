@@ -8,8 +8,8 @@ import type { Expression, Verdict } from "./types";
 export type FreeOutcome = "pending" | "matched" | "reacted" | "off_topic" | "too_far" | "failed";
 export type FreeLine = { step: "base" | "followUp"; line: string; outcome: FreeOutcome; choiceId?: string; verdict?: Verdict; heard?: string; expression?: Expression; thought?: string };
 
-// 보기 목록의 마지막 칸 "내 말로 해 보기". 떠올린 영어가 보기에 없을 때 직접 말하면, 서버가 가장 가까운 보기에 대 보고
-// 없으면 판정·들린 느낌·표정·속마음을 돌려준다. 판정을 받은 말은 부모가 보기 하나로 더해 다른 보기처럼 고른다(도장·비교·다음으로).
+// 보기 목록의 마지막 칸 "내 말로 해 보기". 떠올린 영어가 보기와 같은 표현이면 서버가 그 보기를 알려 주고,
+// 아니면 판정·들린 느낌·표정·속마음을 돌려준다. 어느 쪽이든 부모가 내 말을 보기 하나로 더해 다른 보기처럼 고른다(도장·비교·다음으로).
 // 무대와 Mochi의 말은 부모(scene-player)가 free 값으로 그린다
 export function FreeLineSlot({
   n,
@@ -22,7 +22,6 @@ export function FreeLineSlot({
   numberOf,
   onSay,
   onResult,
-  onPick,
   onReset,
   onDraftChange,
 }: {
@@ -38,7 +37,6 @@ export function FreeLineSlot({
   onSay: (line: string) => void;
   // 결과와 함께 말한 문장을 넘긴다. 보낼 때의 화면 값(아직 비어 있음)에 기대지 않게 한다
   onResult: (r: Omit<FreeLine, "step" | "line">, line: string) => void;
-  onPick: (id: string) => void;
   onReset: () => void;
   onDraftChange?: (draft: string) => void;
 }) {
@@ -74,27 +72,23 @@ export function FreeLineSlot({
 
   if (!open)
     return (
-      <button
-        type="button"
-        onClick={onOpen}
-        className="group flex w-full items-center gap-3 border-2 border-dashed border-fg-subtle/60 px-3 py-3 text-left text-fg hover:border-fg"
-      >
-        <span aria-hidden className="grid size-6 shrink-0 place-items-center border-2 border-ink/20 font-label text-ui text-ink-muted group-hover:border-fg">
+      // 이 칸이 nuanci의 킥이라 보기 셋과 같은 무게의 블록으로 둔다. 예전 점선 칸은 보기의 부록처럼 보여 지나쳤다
+      <BlockButton onClick={onOpen} className="w-full text-left" faceClassName="flex items-center gap-3">
+        <span aria-hidden className="grid size-6 shrink-0 place-items-center bg-ink font-label text-ui text-white">
           {n}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-label text-ui">내 말로 해 보기</span>
-          <span className="block text-meta text-fg-subtle">떠올린 영어가 보기에 없으면</span>
+          <span className="block font-label-strong text-body">내 말로 해 보기</span>
+          <span className="block text-meta text-ink-muted">떠올린 영어를 그대로 말하면 상대가 반응</span>
         </span>
-        <svg width="16" height="16" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="shrink-0 fill-current text-fg-subtle">
+        <svg width="20" height="20" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="shrink-0 fill-current text-ink">
           <path d="M6 0h1v1h1v1h-1v1h-1v1h-1v1h-1v1h-1v1h-2v-2h1v-1h1v-1h1v-1h1v-1h1z" />
         </svg>
-      </button>
+      </BlockButton>
     );
 
   // 말한 뒤의 칸: 내가 한 말을 대사처럼 크게, 그 아래에 결과. Mochi의 한마디는 목록 위 말풍선이 맡는다
   if (free && free.step === step) {
-    const hit = free.choiceId ? numberOf(free.choiceId) : null;
     return (
       <div className="border-2 border-fg bg-card-raised px-3 py-3 text-ink animate-fade">
         <p className="flex items-start gap-3">
@@ -110,10 +104,6 @@ export function FreeLineSlot({
                 <span key={i} className="size-1.5 animate-typing bg-ink-subtle" style={{ animationDelay: `${i * 160}ms` }} />
               ))}
             </span>
-          ) : free.outcome === "matched" && hit ? (
-            <BlockButton label onClick={() => onPick(free.choiceId!)}>
-              {hit.n > 0 ? `${hit.n}번 반응 보기` : "그 반응 보기"}
-            </BlockButton>
           ) : null}
           {free.outcome !== "pending" && (
             <button type="button" onClick={() => (updateText(""), onReset())} className="-mx-1 mt-1 flex min-h-11 items-center px-1 text-meta text-ink-subtle underline underline-offset-4 hover:text-ink">
