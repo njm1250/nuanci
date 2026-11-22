@@ -86,7 +86,7 @@ function PairRow({
               onClick={onToggle}
               className="flex min-h-11 flex-1 items-center justify-between gap-2 border-2 border-dashed border-line bg-surface px-3 text-left font-label text-ui text-fg-muted hover:border-fg hover:text-fg"
             >
-              <span>눌러서 영어 확인</span>
+              <span>영어 보기</span>
               <span aria-hidden className="text-meta text-fg-subtle">뒤집기</span>
             </button>
           ) : study ? (
@@ -104,7 +104,7 @@ function PairRow({
                 </p>
               ))}
               <span className="mt-1 inline-block text-meta text-fg-subtle underline underline-offset-4 group-hover:text-fg">
-                눌러서 다시 가리기
+                다시 가리기
               </span>
             </button>
           ) : (

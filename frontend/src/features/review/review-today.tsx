@@ -99,10 +99,10 @@ export function ReviewToday({ className = "" }: { className?: string }) {
               <p className="mt-3.5 text-note leading-relaxed text-ink-muted">{card.why}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <BlockButton onClick={() => next(false)} reading faceClassName="py-3 text-center text-body font-bold">
-                  몰랐어요
+                  몰랐어
                 </BlockButton>
                 <BlockButton onClick={() => next(true)} reading faceClassName="py-3 text-center text-body font-bold">
-                  떠올렸어요
+                  떠올렸어!
                 </BlockButton>
               </div>
             </div>

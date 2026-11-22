@@ -1139,7 +1139,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               <BlockLink href={`/admin/scenes/${scene.id}`}>편집 화면으로</BlockLink>
             ) : f.done && !wrapped ? (
               <BlockButton primary onClick={wrapUp} className="w-full" faceClassName="py-3.5 text-center">
-                다 봤어요
+                다 봤어!
               </BlockButton>
             ) : f.done ? (
               next ? (
@@ -1148,7 +1148,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 </BlockLink>
               ) : (
                 <BlockLink href="/" primary onClick={holdForEnding}>
-                  모두 해 봤어요
+                  다 해 봤어!
                 </BlockLink>
               )
             ) : (
@@ -1163,7 +1163,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 className="w-full"
                 faceClassName="py-3.5 text-center"
               >
-                {timeCue ? "이어서 보기" : "만약에 상황이 바뀐다면?"}
+                {timeCue ? "좋아, 다음!" : "만약에 상황이 바뀐다면?"}
               </BlockButton>
             )}
           </footer>

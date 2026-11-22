@@ -103,12 +103,12 @@ export function ResultView({ type, questions, version }: { type: TypeId; questio
           {mode === "mine" && <WorstScene />}
           {mode === "browse" && (
             <BlockLink href="/test" primary>
-              나는 무슨 유형인지 테스트하기
+              내 유형 알아보기
             </BlockLink>
           )}
           {mode !== "mine" && (
           <BlockLink href="/scenes" entry="home">
-            본편: 장면 플레이하러 가기
+            장면 하러 가기
           </BlockLink>
           )}
           {mode === "mine" && (
