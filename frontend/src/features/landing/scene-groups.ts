@@ -11,8 +11,6 @@ type SceneGroup = { label: string; words: string[]; sets: SetId[] };
 export const MEME_GROUP = "병맛 대회";
 export const DEV_GROUP = "오픈소스에서";
 export const SCENE_GROUPS: SceneGroup[] = [
-  { label: MEME_GROUP, words: [], sets: [] },
-  { label: DEV_GROUP, words: [], sets: [] },
   { label: "친구랑", words: ["친구", "동기"], sets: [] },
   // '형'은 '계획형'처럼 다른 낱말에도 들어 있어서 넣지 않는다
   { label: "같이 사는 사이", words: ["룸메이트", "가족", "엄마", "아빠", "동생", "언니", "누나", "오빠"], sets: [] },
@@ -23,6 +21,9 @@ export const SCENE_GROUPS: SceneGroup[] = [
   { label: "병원·약국에서", words: ["의사", "약사", "간호사", "병원"], sets: ["clinic", "pharmacy"] },
   { label: "학교·학원에서", words: ["선생님", "같은 반", "옆자리 친구", "교환학생", "언어 교환"], sets: ["classroom"] },
   { label: "처음 보는 사람", words: ["처음", "이웃", "상대", "회원", "자주 보는"], sets: [] },
+  // 병맛 대회 연속극과 개발자 팩은 메인 경로가 아니라 일상 상황들 뒤에 둔다
+  { label: MEME_GROUP, words: [], sets: [] },
+  { label: DEV_GROUP, words: [], sets: [] },
 ];
 export const OTHER_GROUP = "그 밖에";
 

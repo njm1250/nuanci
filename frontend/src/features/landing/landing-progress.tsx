@@ -1,5 +1,6 @@
 "use client";
 
+import { RUN_SIZE } from "@/features/scene/run";
 import type { SceneCategory } from "@/features/scene/types";
 import { DevPackBanner } from "./dev-pack-banner";
 
@@ -399,7 +400,7 @@ export function FeaturedScene({
   fresh: boolean;
   // 그림 위 딱지. 예전 화면의 "13화"
   label?: string;
-  // 하던 장면 셋 중 끝낸 수. 있으면 그림 아래쪽에 세 칸 막대와 "내 영어 말투까지"를 단다. 남은 수는 막대가 보여 주므로 글로 다시 적지 않는다
+  // 하던 장면 셋 중 끝낸 수. 있으면 그림 아래쪽에 세 칸 막대와 "N장면 더 하면 영어 말투 보고서" 한 줄을 단다. 무엇을 받는지 이름으로 적는다
   run?: number;
 }) {
   return (
@@ -423,7 +424,7 @@ export function FeaturedScene({
           {run !== undefined && (
             <span className="absolute bottom-2 left-2 flex items-center gap-2 bg-ink px-2 py-1.5">
               <RunBar done={run} line="border-white" />
-              <span className="whitespace-nowrap text-meta leading-none text-white">내 영어 말투까지</span>
+              <span className="whitespace-nowrap text-meta leading-none text-white">{RUN_SIZE - run === 1 ? "한 장면만 더 하면" : `${RUN_SIZE - run}장면 더 하면`} 영어 말투 보고서</span>
             </span>
           )}
           {/* 상대가 고르기 직전에 하는 말을 그림 위에 띄운다. 무슨 말에 답하게 될지가 버튼보다 먼저 보여 궁금증이 생긴다 */}

@@ -171,7 +171,7 @@ export function WrapUp({
       {/* 세 장면 중 어디까지 왔고 끝에 무엇이 나오는지. 기다리지 않고 바로 보여서, 무대에서 엔딩 컷이 도는 동안에도 이 칸이 비어 있지 않다 */}
       {runOn && !runDone && run.scenes.length < RUN_SIZE && <RunSteps done={run.scenes.length} />}
       {runDone && (
-        <section aria-label="내 영어 말투 결과" aria-busy={!askShown} className="mb-6">
+        <section aria-label="영어 말투 보고서" aria-busy={!askShown} className="mb-6">
           {askShown ? (
             <div className="animate-fade">
               <RunResult run={run} onShare={() => shareRun()} shareState={runShareState} />
