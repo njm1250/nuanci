@@ -1,5 +1,6 @@
 "use client";
 
+import * as THREE from "three";
 import { C } from "./palette";
 import { Box, Cyl, Flat, Gem, PixelText } from "./primitives";
 import type { Decor, DecorId } from "./types";
@@ -11,6 +12,8 @@ const R = Math.PI / 2;
 // 세트의 벽(-1.15)보다 조금 앞에 붙여서 벽 그림과 겹쳐 깜빡이지 않게 한다
 const WALL = -1.12;
 const FUR = "#f0a24a";
+const INK = "#141317";
+const PX = 0.028;
 
 type At = { x: number; y: number; z: number };
 
@@ -45,8 +48,9 @@ const DEFAULTS: Record<DecorId, { y: number; z: number }> = {
   "bill-pile": { y: 0, z: 0.1 },
   "ice-block": { y: 0, z: -0.55 },
   "snow-pile": { y: 0, z: -0.3 },
-  "xmas-tree": { y: 0, z: -0.7 },
-  wreath: { y: 2.05, z: WALL },
+  "xmas-tree": { y: 0, z: -0.22 },
+  wreath: { y: 2.88, z: WALL },
+  "xmas-garland": { y: 3.12, z: WALL },
   thermometer: { y: 2.0, z: WALL },
   "tripod-cam": { y: 0, z: 0.25 },
   "ring-light": { y: 0, z: -0.5 },
@@ -178,60 +182,344 @@ function SnowPile({ x, y, z }: At) {
   );
 }
 
-// 크리스마스트리. 원뿔 세 겹에 앞쪽으로 장식 구슬을 달고, 꼭대기 별과 밑동 선물 상자 둘
-const BAUBLES = ["#ff5533", "#ffd27a", "#8fd3f4", "#f08aa8"];
-function XmasTree({ x, y, z }: At) {
-  const green = "#2f7d4f";
-  const dark = "#246640";
-  const layers: [number, number, number][] = [
-    // 반지름, 높이, 가운데 높이
-    [0.58, 0.62, 0.62],
-    [0.45, 0.52, 1.02],
-    [0.31, 0.44, 1.36],
-  ];
-  return (
-    <>
-      <Cyl r={0.08} h={0.34} at={[x, y + 0.17, z]} color={C.woodDark} />
-      {layers.map(([r, h, cy], i) => (
-        <Cyl key={i} r={[0.02, r]} h={h} at={[x, y + cy, z]} color={i % 2 ? dark : green} sides={8} />
-      ))}
-      {/* 장식 구슬: 겹마다 아래쪽 앞면에 세 개씩. 원뿔 겉면보다 살짝 앞에 둔다 */}
-      {layers.flatMap(([r, h, cy], i) =>
-        [-0.55, 0, 0.55].map((t, j) => {
-          // 원뿔 밑에서 22% 올라간 높이의 겉면 반지름보다 조금 바깥에 단다(안쪽이면 잎에 묻힌다)
-          const yy = cy - h * 0.28;
-          const rr = r * 0.8 + 0.05;
-          return <Gem key={`${i}-${j}`} r={0.075} at={[x + Math.sin(t) * rr, y + yy, z + Math.cos(t) * rr]} color={BAUBLES[(i + j) % BAUBLES.length]} />;
-        }),
-      )}
-      {/* 꼭대기 별: 마름모 둘을 겹친 도트 별 */}
-      <Box size={[0.16, 0.16, 0.04]} at={[x, y + 1.66, z + 0.05]} color="#ffd27a" rot={[0, 0, Math.PI / 4]} />
-      <Box size={[0.08, 0.26, 0.05]} at={[x, y + 1.66, z + 0.06]} color="#ffe9a8" />
-      <Box size={[0.26, 0.08, 0.05]} at={[x, y + 1.66, z + 0.06]} color="#ffe9a8" />
-      <Box size={[0.3, 0.22, 0.26]} at={[x - 0.42, y + 0.11, z + 0.35]} color="#ff5533" />
-      <Box size={[0.05, 0.23, 0.27]} at={[x - 0.42, y + 0.115, z + 0.35]} color="#ffd27a" />
-      <Box size={[0.24, 0.18, 0.22]} at={[x + 0.44, y + 0.09, z + 0.38]} color="#8fd3f4" />
-      <Box size={[0.25, 0.19, 0.04]} at={[x + 0.44, y + 0.095, z + 0.38]} color={C.paper} />
-    </>
-  );
+// 둥글고 폭신한 소나무 가지 단(부채꼴 물결 밑단) 도형을 만든다
+function makeBoughGeo(bottomW: number, topW: number, h: number, lobes: number, pad = 0) {
+    const bw = bottomW + pad;
+    const tw = topW > 0 ? topW + pad : 0;
+    const topY = h + pad;
+    const baseY = -pad * 0.45;
+    const dip = 0.075 + pad * 0.55;
+    const shape = new THREE.Shape();
+    shape.moveTo(-bw, baseY);
+    const seg = (bw * 2) / lobes;
+    for (let i = 0; i < lobes; i++) {
+        const x0 = -bw + i * seg;
+        const x1 = x0 + seg;
+        const xm = (x0 + x1) * 0.5;
+        // 가운데 물결을 살짝 더 내려 둥근 덩어리감을 만든다
+        const extra = 1 - Math.abs((i + 0.5) / lobes - 0.5) * 0.55;
+        shape.quadraticCurveTo(xm, baseY - dip * extra, x1, baseY);
+    }
+    if (tw > 0) {
+        shape.quadraticCurveTo(bw * 0.72 + tw * 0.28, h * 0.44, tw, topY);
+        shape.lineTo(-tw, topY);
+        shape.quadraticCurveTo(-(bw * 0.72 + tw * 0.28), h * 0.44, -bw, baseY);
+    } else {
+        // 꼭대기는 뾰족한 침 대신 동글동글한 끝으로 마무리한다
+        const tipR = 0.05 + pad * 0.6;
+        shape.quadraticCurveTo(bw * 0.68, h * 0.48, tipR, topY - 0.02);
+        shape.quadraticCurveTo(0, topY + 0.03, -tipR, topY - 0.02);
+        shape.quadraticCurveTo(-bw * 0.68, h * 0.48, -bw, baseY);
+    }
+    shape.closePath();
+    return new THREE.ShapeGeometry(shape, 10);
 }
 
-// 벽에 거는 리스. 초록 고리에 빨간 리본
+// 통통한 5각 별 도형을 만든다
+function makeStarGeo(outerR: number, innerR: number) {
+    const shape = new THREE.Shape();
+    for (let i = 0; i < 10; i++) {
+        const a = Math.PI / 2 + (i * Math.PI) / 5;
+        const r = i % 2 === 0 ? outerR : innerR;
+        const px = Math.cos(a) * r;
+        const py = Math.sin(a) * r;
+        if (i === 0) shape.moveTo(px, py);
+        else shape.lineTo(px, py);
+    }
+    shape.closePath();
+    return new THREE.ShapeGeometry(shape);
+}
+
+const TREE_TIERS = [
+    { y: 0.34, bw: 0.55, tw: 0.22, h: 0.5, lobes: 4 },
+    { y: 0.68, bw: 0.44, tw: 0.16, h: 0.45, lobes: 3 },
+    { y: 1.0, bw: 0.32, tw: 0, h: 0.46, lobes: 3 },
+] as const;
+
+const TREE_GEOS = TREE_TIERS.map((t) => ({
+    outline: makeBoughGeo(t.bw, t.tw, t.h, t.lobes, PX * 1.15),
+    shade: makeBoughGeo(t.bw, t.tw, t.h, t.lobes, 0),
+    main: makeBoughGeo(t.bw * 0.91, t.tw * 0.9, t.h * 0.92, t.lobes, 0),
+}));
+
+const STAR_OUTLINE_GEO = makeStarGeo(0.165 + PX * 1.45, 0.084 + PX * 1.15);
+const STAR_FILL_GEO = makeStarGeo(0.165, 0.084);
+const STAR_GLOW_GEO = makeStarGeo(0.095, 0.052);
+
+// 도트 감성 선물 상자(외곽선·뚜껑·리본·나비매듭 포함)
+function GiftBox({
+    x,
+    w,
+    h,
+    z,
+    color,
+    shadeColor,
+    ribbon,
+    outlineZ = -0.006,
+}: {
+    x: number;
+    w: number;
+    h: number;
+    z: number;
+    color: string;
+    shadeColor: string;
+    ribbon: string;
+    outlineZ?: number;
+}) {
+    const lidH = Math.max(0.045, h * 0.24);
+    const lidW = w + 0.035;
+    const ribW = Math.max(0.042, w * 0.2);
+    const topY = h;
+    return (
+        <group position={[x, 0, z]}>
+            {/* 상자 본체 + 뚜껑 */}
+            <PixRect w={w} h={h - lidH * 0.4} at={[0, (h - lidH * 0.4) * 0.5 + 0.01, 0]} color={color} outlineZ={outlineZ} />
+            <PixRect w={w * 0.26} h={h - lidH * 0.5} at={[w * 0.35, (h - lidH * 0.4) * 0.5 + 0.01, 0.002]} color={shadeColor} outline={false} />
+            <PixRect w={lidW} h={lidH} at={[0, topY - lidH * 0.45, 0.003]} color={color} outlineZ={outlineZ - 0.003} />
+            {/* 뚜껑 아래 작은 그림자선 */}
+            <PixRect w={w} h={0.018} at={[0, topY - lidH - 0.002, 0.003]} color={shadeColor} outline={false} />
+            {/* 세로 리본 + 위쪽 나비매듭 */}
+            <PixRect w={ribW} h={h} at={[0, h * 0.5 + 0.005, 0.005]} color={ribbon} outline={false} />
+            <PixOval rx={0.042} ry={0.028} at={[-0.036, topY + 0.026, 0.004]} color={ribbon} rot={0.35} outlineZ={outlineZ - 0.004} segments={12} />
+            <PixOval rx={0.042} ry={0.028} at={[0.036, topY + 0.026, 0.004]} color={ribbon} rot={-0.35} outlineZ={outlineZ - 0.004} segments={12} />
+            <PixRect w={0.032} h={0.026} at={[0, topY + 0.016, 0.006]} color={ribbon} outline={false} />
+        </group>
+    );
+}
+
+// 2.5D 도트 치비 스타일 크리스마스트리. 캐릭터·모찌와 같은 먹선 외곽선과 둥근 솔잎 덩어리, 비대칭 구슬, 5각 별, 리본 선물 상자
+const TREE_BAUBLES: { x: number; y: number; r: number; color: string; shade: string }[] = [
+    { x: -0.32, y: 0.49, r: 0.064, color: "#ff5533", shade: "#c9341d" },
+    { x: 0.05, y: 0.43, r: 0.058, color: "#ffcb4c", shade: "#d49820" },
+    { x: 0.34, y: 0.52, r: 0.06, color: "#7ccbf0", shade: "#4a9ec7" },
+    { x: -0.21, y: 0.85, r: 0.06, color: "#f288aa", shade: "#c45b7f" },
+    { x: 0.19, y: 0.78, r: 0.064, color: "#ff5533", shade: "#c9341d" },
+    { x: -0.11, y: 1.16, r: 0.054, color: "#7ccbf0", shade: "#4a9ec7" },
+    { x: 0.12, y: 1.09, r: 0.056, color: "#ffcb4c", shade: "#d49820" },
+];
+
+const TREE_LIGHTS: [number, number][] = [
+    [-0.38, 0.62],
+    [-0.17, 0.54],
+    [0.18, 0.52],
+    [0.29, 0.63],
+    [-0.26, 0.96],
+    [-0.02, 0.89],
+    [0.23, 0.94],
+    [-0.08, 1.3],
+    [0.08, 1.24],
+];
+
+const TREE_HIGHLIGHTS: [number, number, number, number, string][] = [
+    // [x, y, rx, ry, color]
+    [-0.24, 0.62, 0.16, 0.09, "#42995f"],
+    [-0.08, 0.57, 0.14, 0.08, "#42995f"],
+    [-0.27, 0.66, 0.08, 0.05, "#5db876"],
+    [-0.18, 0.93, 0.14, 0.085, "#42995f"],
+    [-0.03, 0.89, 0.12, 0.075, "#42995f"],
+    [-0.2, 0.97, 0.075, 0.048, "#5db876"],
+    [-0.09, 1.24, 0.11, 0.08, "#42995f"],
+    [-0.04, 1.34, 0.075, 0.055, "#67c27c"],
+];
+
+function XmasTree({ x, y, z }: At) {
+    return (
+        <group position={[x, y, z]}>
+            {/* 바닥 그림자 */}
+            <PixOval rx={0.58} ry={0.05} at={[0, -0.005, -0.055]} color="#494642" outline={false} segments={20} />
+
+            {/* 나무 기둥과 원목 화분(빨간 선물 상자와 헷갈리지 않게 따뜻한 갈색 원목과 어두운 철띠로 구분한다) */}
+            <PixRect w={0.15} h={0.23} at={[0, 0.245, -0.015]} color="#7a4427" outlineZ={-0.025} />
+            <PixRect w={0.045} h={0.23} at={[0.045, 0.245, -0.012]} color="#592e18" outline={false} />
+            <PixRect w={0.2} h={0.13} at={[0, 0.08, -0.01]} color="#8b5533" outlineZ={-0.03} />
+            <PixRect w={0.05} h={0.13} at={[0.065, 0.08, -0.008]} color="#693c21" outline={false} />
+            <PixRect w={0.24} h={0.045} at={[0, 0.155, -0.007]} color="#a1663f" outlineZ={-0.033} />
+            <PixRect w={0.2} h={0.026} at={[0, 0.08, -0.006]} color="#4a4152" outline={false} />
+
+            {/* 솔잎 세 단: 먹선 외곽선 + 깊은 솔잎 그림자 + 밝은 앞면 덩어리 + 단 사이 드리운 그림자 */}
+            {TREE_TIERS.map((tier, i) => {
+                const tz = i * 0.008;
+                return (
+                    <group key={i} position={[0, tier.y, 0]}>
+                        <mesh position={[0, 0, -0.04]} geometry={TREE_GEOS[i].outline}>
+                            <meshBasicMaterial color={INK} side={THREE.DoubleSide} />
+                        </mesh>
+                        {i > 0 && (
+                            <mesh position={[0.01, -0.04, tz - 0.003]} geometry={TREE_GEOS[i].shade}>
+                                <meshBasicMaterial color="#17422a" side={THREE.DoubleSide} />
+                            </mesh>
+                        )}
+                        <mesh position={[0, 0, tz]} geometry={TREE_GEOS[i].shade}>
+                            <meshBasicMaterial color="#1e5435" side={THREE.DoubleSide} />
+                        </mesh>
+                        <mesh position={[-0.018, 0.042, tz + 0.002]} geometry={TREE_GEOS[i].main}>
+                            <meshBasicMaterial color="#2f7e4e" side={THREE.DoubleSide} />
+                        </mesh>
+                    </group>
+                );
+            })}
+
+            {/* 왼쪽 위 빛을 받는 폭신한 솔잎 하이라이트 */}
+            {TREE_HIGHLIGHTS.map(([hx, hy, rx, ry, color], i) => (
+                <PixOval key={i} rx={rx} ry={ry} at={[hx, hy, 0.02]} color={color} outline={false} segments={14} />
+            ))}
+
+            {/* 비스듬히 드리운 따뜻한 전구 점들 */}
+            {TREE_LIGHTS.map(([lx, ly], i) => (
+                <group key={i} position={[lx, ly, 0.023]}>
+                    <PixRect w={0.046} h={0.046} at={[0, 0, 0]} color="#e8b931" outline={false} />
+                    <PixRect w={0.028} h={0.028} at={[0, 0, 0.002]} color="#fff7cc" outline={false} />
+                </group>
+            ))}
+
+            {/* 비대칭 장식 구슬: 얇은 먹선 테두리 + 안쪽 그림자 + 1픽셀 반짝임 */}
+            {TREE_BAUBLES.map((b, i) => (
+                <group key={i} position={[b.x, b.y, 0.028]}>
+                    <PixOval rx={b.r + 0.02} ry={b.r + 0.02} at={[0, 0, -0.003]} color={INK} outline={false} segments={14} />
+                    <PixOval rx={b.r} ry={b.r} at={[0, 0, 0]} color={b.shade} outline={false} segments={14} />
+                    <PixOval rx={b.r * 0.84} ry={b.r * 0.84} at={[-0.008, 0.008, 0.002]} color={b.color} outline={false} segments={14} />
+                    <PixRect w={0.024} h={0.024} at={[-b.r * 0.34, b.r * 0.32, 0.004]} color="#ffffff" outline={false} />
+                    <PixRect w={0.028} h={0.018} at={[0, b.r + 0.002, 0.003]} color="#ffd27a" outline={false} />
+                </group>
+            ))}
+
+            {/* 꼭대기 통통한 5각 별 */}
+            <group position={[0, 1.55, 0.032]}>
+                <mesh position={[0, 0, -0.006]} geometry={STAR_OUTLINE_GEO}>
+                    <meshBasicMaterial color={INK} side={THREE.DoubleSide} />
+                </mesh>
+                <mesh geometry={STAR_FILL_GEO}>
+                    <meshBasicMaterial color="#ffc845" side={THREE.DoubleSide} />
+                </mesh>
+                <mesh position={[-0.01, 0.012, 0.003]} geometry={STAR_GLOW_GEO}>
+                    <meshBasicMaterial color="#fff3b5" side={THREE.DoubleSide} />
+                </mesh>
+                <PixRect w={0.028} h={0.028} at={[-0.022, 0.026, 0.005]} color="#ffffff" outline={false} />
+            </group>
+
+            {/* 밑동 선물 상자: 왼쪽 큰 빨간 상자와 오른쪽 파랑·노랑 쌍으로 여백 있게 배치 */}
+            <GiftBox x={-0.43} w={0.25} h={0.2} z={0.044} color="#eb4d3d" shadeColor="#c43326" ribbon="#ffd27a" />
+            <GiftBox x={0.41} w={0.22} h={0.22} z={0.044} color="#7ec8e8" shadeColor="#56a4c9" ribbon="#f288aa" />
+            <GiftBox x={0.26} w={0.15} h={0.13} z={0.058} color="#ffe082" shadeColor="#deb447" ribbon="#eb4d3d" />
+        </group>
+    );
+}
+
+// 벽 위쪽(말풍선 위)에 매다는 도트 리스. 먹선 외곽선의 초록 고리에 위쪽 빨간 리본과 열매 장식
+const WREATH_COUNT = 10;
+const WREATH_BERRIES: [number, number][] = [
+    [-0.19, 0.02],
+    [-0.15, -0.05],
+    [0.19, 0.0],
+    [0.15, -0.07],
+    [-0.03, -0.19],
+    [0.04, -0.19],
+];
+const WREATH_GOLDS: [number, number][] = [
+    [-0.13, 0.13],
+    [0.14, 0.12],
+    [0.0, -0.15],
+];
+
 function Wreath({ x, y, z }: At) {
-  return (
-    <>
-      {Array.from({ length: 12 }, (_, i) => {
-        const a = (i / 12) * Math.PI * 2;
-        return <Gem key={i} r={0.09} at={[x + Math.cos(a) * 0.26, y + Math.sin(a) * 0.26, z + 0.02]} color={i % 2 ? "#2f7d4f" : "#246640"} scale={[1, 1, 0.4]} />;
-      })}
-      {[0.5, 2.6, 4.7].map((a) => (
-        <Gem key={a} r={0.04} at={[x + Math.cos(a) * 0.26, y + Math.sin(a) * 0.26, z + 0.06]} color="#ff5533" />
-      ))}
-      <Box size={[0.2, 0.1, 0.03]} at={[x, y - 0.27, z + 0.07]} color="#ff5533" />
-      <Box size={[0.05, 0.16, 0.03]} at={[x - 0.05, y - 0.38, z + 0.06]} color="#d9412a" rot={[0, 0, 0.2]} />
-      <Box size={[0.05, 0.16, 0.03]} at={[x + 0.05, y - 0.38, z + 0.06]} color="#d9412a" rot={[0, 0, -0.2]} />
-    </>
-  );
+    const ringR = 0.19;
+    return (
+        <group position={[x, y, z]}>
+            {/* 천장 쪽으로 이어지는 얇은 빨간 매달기 끈 */}
+            <PixRect w={0.032} h={0.34} at={[0, 0.35, -0.008]} color="#d9412a" outlineZ={-0.015} />
+            {/* 리스 솔잎 고리: 뒤쪽 먹선 + 진초록·초록 잎 덩어리 + 밝은 하이라이트 */}
+            {Array.from({ length: WREATH_COUNT }, (_, i) => {
+                const a = (i / WREATH_COUNT) * Math.PI * 2;
+                const px = Math.cos(a) * ringR;
+                const py = Math.sin(a) * ringR;
+                return (
+                    <group key={i}>
+                        <PixOval rx={0.095} ry={0.095} at={[px, py, 0]} color={i % 2 ? "#2f7e4e" : "#22613c"} outlineZ={-0.012} segments={14} />
+                        {py > -0.06 && <PixOval rx={0.045} ry={0.04} at={[px - 0.015, py + 0.018, 0.005]} color="#49a367" outline={false} segments={10} />}
+                    </group>
+                );
+            })}
+            {/* 빨간 열매와 금색 방울 */}
+            {WREATH_BERRIES.map(([bx, by], i) => (
+                <group key={i} position={[bx, by, 0.012]}>
+                    <PixOval rx={0.034} ry={0.034} at={[0, 0, -0.002]} color={INK} outline={false} segments={10} />
+                    <PixOval rx={0.024} ry={0.024} at={[0, 0, 0]} color="#ff5533" outline={false} segments={10} />
+                </group>
+            ))}
+            {WREATH_GOLDS.map(([gx, gy], i) => (
+                <PixRect key={i} w={0.032} h={0.032} at={[gx, gy, 0.013]} color="#ffd27a" outline={false} />
+            ))}
+            {/* 위쪽 빨간 리본(아래로 늘어져 말풍선과 겹치지 않게 위쪽에 단다) */}
+            <group position={[0, 0.2, 0.018]}>
+                <PixRect w={0.048} h={0.12} at={[-0.055, -0.065, -0.002]} color="#c93622" rot={-0.28} outlineZ={-0.008} />
+                <PixRect w={0.048} h={0.12} at={[0.055, -0.065, -0.002]} color="#c93622" rot={0.28} outlineZ={-0.008} />
+                <PixOval rx={0.072} ry={0.048} at={[-0.065, 0.01, 0.002]} color="#ff5533" rot={0.25} outlineZ={-0.008} segments={12} />
+                <PixOval rx={0.072} ry={0.048} at={[0.065, 0.01, 0.002]} color="#ff5533" rot={-0.25} outlineZ={-0.008} segments={12} />
+                <PixRect w={0.048} h={0.048} at={[0, 0.005, 0.006]} color="#e04328" outlineZ={-0.008} />
+            </group>
+        </group>
+    );
+}
+
+// 벽 맨 위를 가로지르는 크리스마스 솔잎·전구 가랜드. 말풍선·에어컨보다 위에 걸려 어떤 장면에서도 가리지 않는다
+const GARLAND_SWAGS = 4;
+const GARLAND_SPAN = 5.3;
+const GARLAND_BULB_COLORS = ["#ffd27a", "#ff5533", "#7ccbf0", "#f288aa"];
+
+function XmasGarland({ x, y, z }: At) {
+    const swagW = GARLAND_SPAN / GARLAND_SWAGS;
+    const startX = -GARLAND_SPAN / 2;
+    return (
+        <group position={[x, y, z]}>
+            {Array.from({ length: GARLAND_SWAGS }, (_, s) => {
+                const sx0 = startX + s * swagW;
+                return (
+                    <group key={s}>
+                        {/* 9개의 솔잎 덩어리를 촘촘히 겹쳐 매끄러운 물결 솔잎 줄을 만든다 */}
+                        {Array.from({ length: 9 }, (_, k) => {
+                            const t = k / 8;
+                            const px = sx0 + t * swagW;
+                            const sag = Math.sin(t * Math.PI) * 0.14;
+                            const py = 0.04 - sag;
+                            return (
+                                <group key={k}>
+                                    <PixOval rx={0.125} ry={0.072} at={[px, py, 0]} color={k % 2 ? "#2f7e4e" : "#22613c"} outlineZ={-0.012} segments={12} />
+                                    <PixOval rx={0.068} ry={0.032} at={[px - 0.014, py + 0.02, 0.004]} color="#49a367" outline={false} segments={10} />
+                                </group>
+                            );
+                        })}
+                        {/* 물결마다 매달린 알록달록 전구 3개 */}
+                        {[0.25, 0.5, 0.75].map((t, j) => {
+                            const px = sx0 + t * swagW;
+                            const sag = Math.sin(t * Math.PI) * 0.14;
+                            const py = 0.04 - sag - 0.095;
+                            const color = GARLAND_BULB_COLORS[(s * 3 + j) % GARLAND_BULB_COLORS.length];
+                            return (
+                                <group key={j} position={[px, py, 0.01]}>
+                                    <PixRect w={0.022} h={0.035} at={[0, 0.035, -0.002]} color={INK} outline={false} />
+                                    <PixOval rx={0.042} ry={0.048} at={[0, 0, 0]} color={color} outlineZ={-0.008} segments={10} />
+                                    <PixRect w={0.022} h={0.022} at={[-0.01, 0.012, 0.003]} color="#ffffff" outline={false} />
+                                </group>
+                            );
+                        })}
+                    </group>
+                );
+            })}
+            {/* 물결이 만나는 꼭짓점 3곳의 작은 빨간 리본(리본 꼬리 포함) */}
+            {[1, 2, 3].map((idx) => {
+                const rx = startX + idx * swagW;
+                return (
+                    <group key={idx} position={[rx, 0.05, 0.016]}>
+                        <PixRect w={0.038} h={0.095} at={[-0.042, -0.055, -0.002]} color="#c93622" rot={-0.3} outlineZ={-0.008} />
+                        <PixRect w={0.038} h={0.095} at={[0.042, -0.055, -0.002]} color="#c93622" rot={0.3} outlineZ={-0.008} />
+                        <PixOval rx={0.062} ry={0.042} at={[-0.056, 0.008, 0.002]} color="#ff5533" rot={0.25} outlineZ={-0.008} segments={10} />
+                        <PixOval rx={0.062} ry={0.042} at={[0.056, 0.008, 0.002]} color="#ff5533" rot={-0.25} outlineZ={-0.008} segments={10} />
+                        <PixRect w={0.042} h={0.042} at={[0, 0.004, 0.005]} color="#e04328" outlineZ={-0.008} />
+                    </group>
+                );
+            })}
+        </group>
+    );
 }
 
 // 대회장 벽의 큰 온도계. 수은이 거의 바닥에 있다
@@ -650,6 +938,7 @@ const PIECES: Record<DecorId, (p: At) => React.ReactNode> = {
   "snow-pile": SnowPile,
   "xmas-tree": XmasTree,
   wreath: Wreath,
+  "xmas-garland": XmasGarland,
   thermometer: Thermometer,
   "tripod-cam": TripodCam,
   "ring-light": RingLight,

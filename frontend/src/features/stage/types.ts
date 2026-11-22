@@ -62,6 +62,7 @@ export type DecorId =
   | "snow-pile"
   | "xmas-tree"
   | "wreath"
+  | "xmas-garland"
   | "thermometer"
   | "tripod-cam"
   | "ring-light"
