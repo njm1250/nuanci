@@ -1,17 +1,20 @@
 "use client";
 
 import { pairLine, sourcesLine } from "@/features/scene/where";
-import Link from "next/link";
 import { useState } from "react";
 import { BlockLink, EntryLink } from "@/features/scene/block-ui";
 import { useCleared } from "@/features/scene/progress";
 import { sfx } from "@/features/scene/sfx";
-import { TRAP_LABELS, type Trap } from "@/features/scene/types";
+import type { Trap } from "@/features/scene/types";
 import { answerCta } from "@/features/scene/teaser";
 import { spoken, type BookEntry, type ExpressionPair } from "./pairs";
 import { MapPin } from "@/features/site/map-pin";
 import { SceneThumb, ThumbStudio } from "@/features/landing/scene-thumb";
 import type { StageSpec } from "@/features/stage/types";
+import { useFirstAnswers } from "@/features/progression/voice";
+import { groupOf, OTHER_GROUP, SCENE_GROUPS } from "@/features/landing/scene-groups";
+import { FEATURE_LIST, isFeatureSlug } from "@/features/scene/collections";
+import type { SceneCategory } from "@/features/scene/types";
 
 export function Mark({ good }: { good: boolean }) {
   return (
@@ -51,6 +54,19 @@ const TRAP_STAMP: Record<Trap, string> = {
   culture: "문화 선 넘음",
 };
 
+// 도감의 1인칭 소감: 그 질문에서 내가 처음 고른 답이 어땠는지 한 줄로. 표현(건조한 정보) 아래에 내 이야기로 붙는다
+const FIRST_TIME: Record<Trap, string> = {
+  literal: "처음엔 한국어 그대로 옮겼었지",
+  konglish: "처음엔 콩글리시로 말했었지",
+  answer: "처음엔 대답이 엇갈렸었지",
+  textbook: "처음엔 교과서처럼 말했었지",
+  blunt: "처음엔 너무 세게 말했었지",
+  formal: "처음엔 너무 딱딱하게 말했었지",
+  context: "처음엔 분위기에 안 맞게 말했었지",
+  misread: "처음엔 다른 뜻으로 들렸었지",
+  culture: "처음엔 문화 차이에 걸렸었지",
+};
+
 // 표현 한 쌍. 왼쪽(모바일은 위)에 하고 싶던 말과 그때 상황, 오른쪽에 자연스러운 말(다른 자연스러운 말은 '또는'으로) → 틀리기 쉬운 말.
 // 복습할 때 한국어와 상황을 먼저 읽고 영어를 떠올리게 한다. 영어 가리기를 켜면 카드처럼 눌러서 뒤집어 보고 다시 가릴 수 있다.
 // 출처는 필요할 때만 펼쳐 본다. 늘 펼쳐 두면 긴 사전 이름이 표현보다 길어진다
@@ -59,11 +75,14 @@ function PairRow({
   study,
   hidden,
   onToggle,
+  first,
 }: {
   pair: ExpressionPair;
   study: boolean;
   hidden: boolean;
   onToggle: () => void;
+  // 이 질문의 내 첫 답. 없으면(예전 기록) 소감을 붙이지 않는다
+  first?: Trap | "good";
 }) {
   const stamp = pair.heard ?? (pair.trap ? TRAP_STAMP[pair.trap] : null);
   return (
@@ -128,6 +147,18 @@ function PairRow({
             </span>
           )}
         </p>
+        {first && (
+          <p className="mt-2.5 flex items-center gap-1.5 text-meta text-fg-subtle">
+            {first === "good" ? (
+              <>
+                <span className="-rotate-3 inline-block border-2 border-ink bg-good px-1 py-px font-label-strong leading-none text-ink">한 번에</span>
+                처음부터 맞혔어!
+              </>
+            ) : (
+              <>{FIRST_TIME[first]}</>
+            )}
+          </p>
+        )}
         {!hidden && pair.sources && pair.sources.length > 0 && (
           <details className="group/src mt-2 pl-7 text-meta text-fg-subtle">
             <summary className="flex min-h-8 cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
@@ -171,26 +202,53 @@ function EmptyBook({ entries }: { entries: BookEntry[] }) {
   );
 }
 
-// 끝낸 장면에서 모은 표현을 최근에 한 장면부터 보여준다. 찾기, 틀리는 이유별로 거르기, 영어 가리고 복습하기를 한 화면에서 한다.
-// 안 해 본 장면은 칸을 늘어놓지 않고 장면 목록으로 보내는 한 줄로 줄인다
-export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[]; stages?: Record<string, StageSpec> }) {
+// 표현 도감. 동물의 숲 도감처럼 상황별 탭으로 나누고, 장면 순서(도감 번호)대로 늘어놓는다.
+// 한 칸의 상태는 셋: 아직 못 만남(물음표 칸, 맨 아래 격자), 만남(표현이 보임), 한 번에 맞힘('한 번에' 도장). 위에는 모은 비율 막대.
+// 찾기를 쓰면 탭과 상관없이 모은 표현 전체에서 찾고, 못 만난 칸은 숨긴다
+const ALL = "전체";
+
+function groupLabel(e: BookEntry, stages: Record<string, StageSpec>, categories: Record<string, SceneCategory>) {
+  const c = categories[e.id];
+  if (c && isFeatureSlug(c)) return FEATURE_LIST.find((f) => f.slug === c)?.name ?? OTHER_GROUP;
+  return groupOf(e.relation, stages[e.id]?.set, c);
+}
+
+export function ExpressionBook({
+  entries,
+  stages = {},
+  categories = {},
+}: {
+  entries: BookEntry[];
+  stages?: Record<string, StageSpec>;
+  categories?: Record<string, SceneCategory>;
+}) {
   const cleared = useCleared();
+  const firsts = useFirstAnswers();
   const [query, setQuery] = useState("");
-  const [trap, setTrap] = useState<Trap | null>(null);
+  const [tab, setTab] = useState(ALL);
   const [hide, setHide] = useState(false);
   const [revealed, setRevealed] = useState<string[]>([]);
 
-  const byId = new Map(entries.map((e) => [e.id, e]));
-  const open = [...cleared].reverse().flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
-  const lockedCount = entries.length - open.length;
-  const count = open.reduce((n, e) => n + e.pairs.length, 0);
-  const traps = [...new Set(open.flatMap((e) => e.pairs.flatMap((p) => (p.trap ? [p.trap] : []))))];
+  const done = new Set(cleared);
+  const labelOf = new Map(entries.map((e) => [e.id, groupLabel(e, stages, categories)]));
+  const order = [...FEATURE_LIST.map((f) => f.name), ...SCENE_GROUPS.map((g) => g.label), OTHER_GROUP];
+  const labels = [...new Set(entries.map((e) => labelOf.get(e.id)!))].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  const total = entries.reduce((n, e) => n + e.pairs.length, 0);
+  const count = entries.filter((e) => done.has(e.id)).reduce((n, e) => n + e.pairs.length, 0);
+  const tally = (label: string) => {
+    const list = entries.filter((e) => label === ALL || labelOf.get(e.id) === label);
+    return { got: list.filter((e) => done.has(e.id)).reduce((n, e) => n + e.pairs.length, 0), all: list.reduce((n, e) => n + e.pairs.length, 0) };
+  };
   const q = query.trim().toLowerCase();
-  const matches = (p: ExpressionPair) => (!trap || p.trap === trap) && (!q || [p.intent, p.right, p.wrong, p.who, p.when].some((t) => t.toLowerCase().includes(q)));
-  const shown = open.map((e) => ({ entry: e, pairs: e.pairs.filter(matches) })).filter((g) => g.pairs.length > 0);
-  const shownCount = shown.reduce((n, g) => n + g.pairs.length, 0);
-  const trapCount = new Map<Trap, number>();
-  for (const p of open.flatMap((e) => e.pairs)) if (p.trap) trapCount.set(p.trap, (trapCount.get(p.trap) ?? 0) + 1);
+  const matches = (p: ExpressionPair) => !q || [p.intent, p.right, p.wrong, p.who, p.when].some((t) => t.toLowerCase().includes(q));
+  const inTab = entries.filter((e) => q || tab === ALL || labelOf.get(e.id) === tab);
+  const shown = inTab
+    .map((e) => ({ entry: e, open: done.has(e.id), pairs: done.has(e.id) ? e.pairs.filter(matches) : [] }))
+    .filter((g) => g.open && g.pairs.length > 0);
+  // 도감 번호: 전체 장면 순서에서 몇 번째인지
+  const noOf = new Map(entries.map((e, i) => [e.id, i + 1]));
+  const locked = q ? [] : inTab.filter((e) => !done.has(e.id));
+  const stepOf = (e: BookEntry, i: number) => (e.pairs.length === 2 ? (i === 0 ? "base" : "followUp") : null);
 
   const toggleHide = () => {
     sfx.tap();
@@ -205,11 +263,23 @@ export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[];
 
   return (
     <>
-
       {count === 0 ? (
         <EmptyBook entries={entries} />
       ) : (
         <>
+          {/* 모은 비율: 도감을 얼마나 채웠는지 한 줄 막대로 */}
+          <div className="mb-4">
+            <p className="flex items-baseline justify-between text-note text-fg-muted">
+              <span>모은 표현</span>
+              <span>
+                <span className="font-bold text-fg">{count}</span> / {total}
+              </span>
+            </p>
+            <div role="progressbar" aria-label="모은 표현" aria-valuenow={count} aria-valuemax={total} className="mt-1.5 h-2.5 border-2 border-fg bg-card">
+              <div className="h-full bg-pink" style={{ width: `${Math.round((count / Math.max(total, 1)) * 100)}%` }} />
+            </div>
+          </div>
+
           {/* 찾기: 사이트의 다른 칸처럼 2px 선, 앞에 돋보기, 글이 있으면 지우기 버튼. 포커스 표시는 안쪽 입력칸이 아니라 바깥 칸 전체에 둔다 */}
           <div className="flex min-h-12 items-center gap-2 border-2 border-fg bg-card-raised px-3 text-ink focus-within:outline focus-within:outline-[3px] focus-within:outline-offset-4 focus-within:outline-pink">
             <SearchIcon />
@@ -228,22 +298,25 @@ export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[];
             )}
           </div>
 
-          {/* 틀리는 이유: 열어 봐야 보이는 목록 대신, 이유마다 몇 개인지 붙은 칸을 한 줄로 늘어놓는다. 모바일은 옆으로 넘긴다 */}
-          {traps.length > 1 && (
-            <div role="radiogroup" aria-label="어색한 이유" className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
-              {[{ value: null, label: "전체", n: count }, ...traps.map((t) => ({ value: t, label: TRAP_LABELS[t], n: trapCount.get(t) ?? 0 }))].map((o) => {
-                const on = trap === o.value;
+          {/* 상황별 탭: 누구와 어디서 말하는지로 나눈다. 탭마다 모은 수 / 전체 수. 모바일은 옆으로 넘긴다 */}
+          {!q && labels.length > 1 && (
+            <div role="tablist" aria-label="상황" className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+              {[ALL, ...labels].map((label) => {
+                const on = tab === label;
+                const t = tally(label);
                 return (
                   <button
-                    key={o.label}
+                    key={label}
                     type="button"
-                    role="radio"
-                    aria-checked={on}
-                    onClick={() => setTrap(o.value)}
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => setTab(label)}
                     className={`flex min-h-11 shrink-0 items-center gap-1.5 border-2 px-3 font-label text-ui ${on ? "border-fg bg-fg text-page" : "border-line text-fg-muted hover:border-fg hover:text-fg"}`}
                   >
-                    {o.label}
-                    <span className={`text-meta ${on ? "text-page/70" : "text-fg-subtle"}`}>{o.n}</span>
+                    {label}
+                    <span className={`text-meta ${on ? "text-page/70" : "text-fg-subtle"}`}>
+                      {t.got}/{t.all}
+                    </span>
                   </button>
                 );
               })}
@@ -258,50 +331,68 @@ export function ExpressionBook({ entries, stages = {} }: { entries: BookEntry[];
               </span>
               영어 가리기
             </button>
-            <p className="text-note text-fg-subtle">{shownCount === count ? `${count}개` : `${count}개 중 ${shownCount}개`}</p>
           </div>
 
           {shown.length === 0 ? (
-            <p className="mt-6 text-note text-fg-muted">찾는 표현이 없어요.</p>
+            q ? <p className="mt-6 text-note text-fg-muted">찾는 표현이 없어요.</p> : null
           ) : (
             <div className="stagger mt-4 grid grid-cols-1 gap-y-6">
-              {shown.map(({ entry, pairs }) => (
-                <section key={entry.id} className="border-2 border-fg">
-                  {/* 장면 묶음 머리: 작은 장면 그림과 제목으로 어느 장면에서 모은 표현인지 바로 알아보게 한다 */}
-                  <div className="flex items-center gap-2.5 border-b-2 border-fg bg-surface px-3 py-2.5 md:gap-3">
-                    {stages[entry.id] && <SceneThumb stage={stages[entry.id]} className="aspect-[4/3] w-14 shrink-0 border border-line md:w-16" />}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-meta text-fg-subtle">표현 {pairs.length}개</p>
-                      <h2 className="line-clamp-2 break-keep font-poster text-title leading-snug text-fg">{entry.title}</h2>
+              {shown.map(({ entry, open, pairs }) =>
+                open ? (
+                  <section key={entry.id} className="border-2 border-fg">
+                    {/* 장면 묶음 머리: 작은 장면 그림과 제목으로 어느 장면에서 모은 표현인지 바로 알아보게 한다 */}
+                    <div className="flex items-center gap-2.5 border-b-2 border-fg bg-surface px-3 py-2.5 md:gap-3">
+                      {stages[entry.id] && <SceneThumb stage={stages[entry.id]} className="aspect-[4/3] w-14 shrink-0 border border-line md:w-16" />}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-meta text-fg-subtle">표현 {pairs.length}개</p>
+                        <h2 className="line-clamp-2 break-keep font-poster text-title leading-snug text-fg">{entry.title}</h2>
+                      </div>
+                      <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1 px-1 font-label text-ui text-fg-muted hover:text-fg">
+                        다시 하기
+                        <Arrow />
+                      </EntryLink>
                     </div>
-                    <EntryLink href={`/scenes/${entry.number}`} entry="home" className="flex min-h-11 shrink-0 items-center gap-1 px-1 font-label text-ui text-fg-muted hover:text-fg">
-                      다시 하기
-                      <Arrow />
-                    </EntryLink>
-                  </div>
-                  <ul className="divide-y divide-line/60 bg-card">
-                    {pairs.map((p) => {
-                      const key = `${entry.id}:${p.right}`;
-                      return <PairRow key={key} pair={p} study={hide} hidden={hide && !revealed.includes(key)} onToggle={() => toggleReveal(key)} />;
-                    })}
-                  </ul>
-                </section>
-              ))}
+                    <ul className="divide-y divide-line/60 bg-card">
+                      {pairs.map((p) => {
+                        const key = `${entry.id}:${p.right}`;
+                        const step = stepOf(entry, entry.pairs.indexOf(p));
+                        return (
+                          <PairRow
+                            key={key}
+                            pair={p}
+                            study={hide}
+                            hidden={hide && !revealed.includes(key)}
+                            onToggle={() => toggleReveal(key)}
+                            first={step ? firsts[`${entry.id}:${step}`] : undefined}
+                          />
+                        );
+                      })}
+                    </ul>
+                  </section>
+                ) : null,
+              )}
             </div>
           )}
+          {/* 아직 못 만난 장면: 동물의 숲 도감의 빈 칸처럼 작은 물음표 칸을 격자로 모은다. 번호는 도감 번호(장면 순서), 누르면 그 장면으로 */}
+          {locked.length > 0 && (
+            <>
+              <p className="mt-8 text-note text-fg-muted">
+                아직 못 만난 표현 <span className="font-bold text-fg">{locked.reduce((n, e) => n + e.pairs.length, 0)}</span>개
+              </p>
+              <ul className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
+                {locked.map((e) => (
+                  <li key={e.id}>
+                    <EntryLink href={`/scenes/${e.number}`} entry="home" aria-label={`${noOf.get(e.id)}번 칸, 장면 해 보기`} className="group relative block aspect-[4/3] overflow-hidden border-2 border-dashed border-line hover:border-fg">
+                      {stages[e.id] && <SceneThumb stage={stages[e.id]} className="absolute inset-0 size-full opacity-25 grayscale" />}
+                      <span className="absolute inset-0 grid place-items-center font-poster text-title text-fg-subtle group-hover:text-fg">?</span>
+                      <span className="absolute left-1 top-0.5 text-meta text-fg-subtle">{noOf.get(e.id)}</span>
+                    </EntryLink>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </>
-      )}
-
-      {lockedCount > 0 && count > 0 && (
-        <Link href="/scenes" className="blk-btn mt-8 block">
-          <span className="blk flex items-center justify-between gap-3 bg-surface-strong px-4 py-3 text-fg">
-            <span>
-              <span className="block font-label text-ui">아직 안 해 본 장면 {lockedCount}개</span>
-              <span className="block text-note text-fg-subtle">해 보면 표현이 더 모여요</span>
-            </span>
-            <Arrow />
-          </span>
-        </Link>
       )}
       <ThumbStudio />
     </>

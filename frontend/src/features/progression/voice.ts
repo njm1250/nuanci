@@ -100,6 +100,11 @@ function voiceSnapshot() {
 }
 const emptyVoice = voiceOf(EMPTY);
 
+// 장면·단계별 첫 답 그대로("good" 또는 걸린 함정). 표현 도감이 "처음부터 맞혔는지"를 표시할 때 쓴다
+export function useFirstAnswers() {
+  return useSyncExternalStore(subscribe, snapshot, () => EMPTY);
+}
+
 export function useVoice() {
   return useSyncExternalStore(subscribe, voiceSnapshot, () => emptyVoice);
 }
