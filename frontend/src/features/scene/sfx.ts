@@ -320,9 +320,138 @@ const VOICE_CLIP: Record<"partner" | "me" | "mochi", { clip: SfxName; step: numb
   mochi: { clip: "voice-mochi", step: 0.068, vol: 0.54 },
 };
 
-// 대사가 뜨면 문장 길이만큼 성대 음절 버퍼를 억양에 맞춰 재생하고, 다음 대사로 넘기면 즉시 끊는 정리 함수를 돌려준다
-function blip(kind: "partner" | "me" | "mochi" | "narration", line = ""): () => void {
+// 실제 영어 음성. 장면마다 /voice/<장면id>.json에 단계(base·followUp)별 묶음 파일 주소와 "말한 사람|문장"별 위치(시작·길이 ms)가 있다.
+// 묶음은 Opus(webm)를 쓰고, 재생 못 하는 옛 Safari는 AAC(m4a)를 쓴다. 장면에 들어오면 받아 두고 첫 터치 때 해석한다.
+// 위치표가 없거나 그 줄이 없으면 지금처럼 웅얼거림으로 남는다
+type VoiceStep = { webm: string; m4a: string; lines: Record<string, [number, number]> };
+type VoiceEntry = { file: string; at: number; ms: number };
+let voiceIndex: Map<string, VoiceEntry> = new Map();
+let voiceScene: string | null = null;
+const voiceRaw = new Map<string, Promise<ArrayBuffer | null>>();
+const voiceBuffers = new Map<string, Promise<AudioBuffer | null>>();
+
+function voiceFormat(): "webm" | "m4a" {
+  if (typeof document === "undefined") return "m4a";
+  return document.createElement("audio").canPlayType('audio/webm; codecs="opus"') ? "webm" : "m4a";
+}
+
+function fetchVoiceRaw(file: string) {
+  let p = voiceRaw.get(file);
+  if (!p) {
+    p = fetch(file)
+      .then((r) => (r.ok ? r.arrayBuffer() : null))
+      .catch(() => null);
+    voiceRaw.set(file, p);
+  }
+  return p;
+}
+
+// 장면에 들어올 때 부른다. 위치표를 읽고 두 단계 묶음 파일을 미리 받아 둔다(해석은 소리를 낼 수 있게 된 뒤)
+export function loadVoiceScene(sceneId: string, onReady?: () => void) {
+  if (typeof window === "undefined" || voiceScene === sceneId) return;
+  voiceScene = sceneId;
+  const fmt = voiceFormat();
+  void fetch(`/voice/${sceneId}.json`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((idx: Record<string, VoiceStep> | null) => {
+      if (voiceScene !== sceneId) return;
+      const next = new Map<string, VoiceEntry>();
+      for (const step of Object.values(idx ?? {})) {
+        const file = step[fmt];
+        if (enabledSnapshot()) void fetchVoiceRaw(file);
+        for (const [k, [at, ms]] of Object.entries(step.lines)) next.set(k, { file, at, ms });
+      }
+      voiceIndex = next;
+      onReady?.();
+    })
+    .catch(() => {
+      if (voiceScene === sceneId) voiceIndex = new Map();
+    });
+}
+
+function voiceOf(speaker: string | undefined, line: string) {
+  return speaker ? (voiceIndex.get(`${speaker}|${line}`) ?? null) : null;
+}
+
+// 음성이 있는 대사의 길이(ms). 말풍선이 음성보다 먼저 내려가지 않게 머무는 시간을 맞출 때 쓴다. 소리를 끄면 0
+export function voiceMs(speaker: string | undefined, line: string | undefined) {
+  if (!line || !enabledSnapshot()) return 0;
+  return voiceOf(speaker, line)?.ms ?? 0;
+}
+
+function voiceBuffer(c: AudioContext, file: string) {
+  let p = voiceBuffers.get(file);
+  if (!p) {
+    p = fetchVoiceRaw(file)
+      .then((raw) => (raw ? c.decodeAudioData(raw.slice(0)) : null))
+      .catch(() => null);
+    voiceBuffers.set(file, p);
+  }
+  return p;
+}
+
+// 음성 앞뒤가 툭 시작하고 툭 끊기지 않게: 시작은 짧게 키우고, 넘겨서 끊을 때는 잠깐 줄인 뒤 멈춘다
+const VOICE_FADE_IN = 0.03;
+const VOICE_FADE_OUT = 0.12;
+
+function playVoice(c: AudioContext, v: VoiceEntry): () => void {
+  let stopped = false;
+  let src: AudioBufferSourceNode | null = null;
+  let gain: GainNode | null = null;
+  const cancel = () => {
+    if (stopped) return;
+    stopped = true;
+    if (src && gain) {
+      const now = c.currentTime;
+      try {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + VOICE_FADE_OUT);
+        src.stop(now + VOICE_FADE_OUT + 0.02);
+      } catch {}
+    }
+    if (activeSpeechStop === cancel) activeSpeechStop = null;
+  };
+  activeSpeechStop = cancel;
+  const p = voiceBuffer(c, v.file);
+  const requestedAt = performance.now();
+  void p.then((buf) => {
+    // 받아 오는 사이 다음 대사로 넘어갔거나 너무 늦었으면 틀지 않는다
+    if (!buf || stopped || !master || !enabledSnapshot() || performance.now() - requestedAt > 1500) return;
+    src = c.createBufferSource();
+    src.buffer = buf;
+    gain = c.createGain();
+    const now = c.currentTime;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(1, now + VOICE_FADE_IN);
+    src.connect(gain).connect(master);
+    src.onended = () => {
+      if (activeSpeechStop === cancel) activeSpeechStop = null;
+      stopped = true;
+    };
+    src.start(now, v.at / 1000, v.ms / 1000);
+  });
+  return cancel;
+}
+
+// 내가 고른 말처럼 원래 소리가 없던 자리: 음성이 있을 때만 말하고, 없으면 아무 소리도 내지 않는다
+function say(speaker: string | undefined, line: string): () => void {
+  const v = voiceOf(speaker, line);
+  const c = v ? audio() : null;
+  if (!v || !c) return () => {};
   stopSpeech();
+  return playVoice(c, v);
+}
+
+// 대사가 뜨면 문장 길이만큼 성대 음절 버퍼를 억양에 맞춰 재생하고, 다음 대사로 넘기면 즉시 끊는 정리 함수를 돌려준다.
+// 그 대사의 실제 음성이 있으면 웅얼거림 대신 음성을 튼다
+function blip(kind: "partner" | "me" | "mochi" | "narration", line = "", speaker?: string): () => void {
+  stopSpeech();
+  const v = kind === "me" || kind === "partner" ? voiceOf(speaker, line) : null;
+  if (v) {
+    const vc = audio();
+    return vc ? playVoice(vc, v) : () => {};
+  }
   if (kind === "narration" || line === "……") {
     playClip("tap", { vol: 0.16, rate: 0.78 });
     return () => {};
@@ -493,6 +622,7 @@ export const sfx = {
   whoosh: () => playClip("whoosh", { vol: 0.58 }),
 
   blip,
+  say,
 
   reward: (at = 0) => playClip("reward", { at, vol: 0.88 }),
   streak: (at = 0) => playClip("streak", { at, vol: 0.85 }),
