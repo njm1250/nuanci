@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 모델이 예측한 첫 선택 분포를 실제 첫 답과 대조한다. 지표는 결과를 보기 전에 고정했다(ADR 0031).
 # 1) 첫 답 1회당 평균 로그우도: 기준선 = 균등 분포, 정답 쏠림(정답 60%·나머지 균등)
-# 2) 1위 일치: 모델 1위 보기가 실제 최다 선택(동률 포함)인 질문 수
+# 2) 1위 일치: 모델 1위 보기가 실제 최다 선택(동률 포함)인 질문 수. 기준선 = 정답 쏠림(정답을 1위로 찍기)
 # 3) 놓친 함정: 모델이 5% 이하로 본 보기를 실제로 20% 이상 고른 경우
 # 사용: python3 score.py <truth.json> <pred.json>...   (pred 형식: {"Q1": {"A": 60, "B": 40}, ...})
 import json, math, sys
@@ -42,7 +42,7 @@ def main():
     truth = json.load(open(sys.argv[1]))
     for kind in ["균등", "정답 쏠림"]:
         ll, top, _ = score(truth, {t["item"]: baseline(t, kind) for t in truth})
-        print(f"[기준선 {kind}] 로그우도 {ll:.3f}")
+        print(f"[기준선 {kind}] 로그우도 {ll:.3f}" + (f" · 1위 일치 {top}/{len(truth)}" if kind != "균등" else ""))
     for path in sys.argv[2:]:
         ll, top, misses = score(truth, json.load(open(path)))
         print(f"[{path}] 로그우도 {ll:.3f} · 1위 일치 {top}/{len(truth)} · 놓친 함정 {len(misses)}")
