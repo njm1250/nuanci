@@ -23,9 +23,45 @@ import { PushOffer } from "@/features/push/push-offer";
 import { SceneThumb, ThumbStudio } from "@/features/landing/scene-thumb";
 import { MapPin } from "@/features/site/map-pin";
 import type { StageSpec } from "@/features/stage/types";
+import { FEATURE_LIST, type OrderItem } from "./collections";
+import { useCleared } from "./progress";
+import { useSeason } from "@/features/season/season";
+import { CoverSnow } from "@/features/season/season-decor";
 
 // 다음 장면 예고. 완료 화면 끝에 올라와 장면 사이에 홈 화면 없이 다음 장면으로 이어진다
 export type NextAsk = { number: number; title: string; place: string; stage?: StageSpec; partnerName: string; partnerLine: string };
+
+// 장면 3개 결과 아래의 보조 입구: 기간 중 특집 하나. 첫 방문자는 홈을 거치지 않고 장면에서 장면으로 가서, 흐름이 한 번 끊기는 이 자리에 갈림길을 둔다.
+// 주 버튼(다음 장면)은 그대로이고 이건 흰 카드다. 지금 장면이 이미 그 특집이면 띄우지 않는다
+function FeatureDetour({ order, current }: { order: OrderItem[]; current: string }) {
+  const season = useSeason();
+  const cleared = useCleared();
+  const here = order.find((s) => s.id === current)?.collection;
+  const lane = FEATURE_LIST.filter((f) => season.states[f.slug] === "live" && f.slug !== here)
+    .sort((a, b) => a.priority - b.priority)
+    .map((f) => ({ feature: f, scenes: order.filter((s) => s.collection === f.slug) }))
+    .find((l) => l.scenes.length > 0);
+  if (!lane) return null;
+  const target = lane.scenes.find((s) => !cleared.includes(s.id)) ?? lane.scenes[0];
+  const done = lane.scenes.filter((s) => cleared.includes(s.id)).length;
+  return (
+    <EntryLink href={`/scenes/${target.number}`} entry="next" className="blk-btn mt-4 block">
+      <span className="blk flex items-center gap-3 bg-card-raised p-2.5 pr-3 text-ink">
+        {lane.feature.cover && (
+          <span className="relative w-20 shrink-0">
+            <SceneThumb stage={lane.feature.cover} className="aspect-[4/3] w-full border-2 border-line" />
+            <CoverSnow decor={lane.feature.decor} />
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-body font-bold leading-snug">{lane.feature.name}</span>
+          <span className="mt-0.5 block text-meta text-ink-subtle">{done > 0 ? `${lane.scenes.length}개 중 ${done}개 해 봄` : `장면 ${lane.scenes.length}개`}</span>
+        </span>
+        <Arrow />
+      </span>
+    </EntryLink>
+  );
+}
 
 // 고른 말을 들은 상대가 무대에서 반응을 말하기까지의 시간. 생각 말풍선은 650ms에 떠서 3050ms에 사라진다
 export const REACT_AFTER = 1100;
@@ -75,7 +111,10 @@ export function WrapUp({
   onNext,
   runOn = false,
   onRunShared,
+  order = [],
 }: {
+  // 기간 중 특집의 보조 입구를 고르는 데 쓰는 장면 순서(모음 표시 포함)
+  order?: OrderItem[];
   onNext?: () => void;
   // 이 장면을 판(장면 셋)으로 세는지. 판이 끝나는 장면에서는 결과 장이 맨 위에 온다
   runOn?: boolean;
@@ -136,6 +175,7 @@ export function WrapUp({
           {askShown ? (
             <div className="animate-fade">
               <RunResult run={run} onShare={() => shareRun()} shareState={runShareState} />
+              <FeatureDetour order={order} current={scene.id} />
             </div>
           ) : (
             <RunResultWaiting reduced={reduced} onSkip={() => setAskShown(true)} />

@@ -13,6 +13,8 @@ import {
   useCleared,
   useSince,
 } from "@/features/scene/progress";
+import { collectionOf, upNext } from "@/features/scene/collections";
+import { isFresh, useSeason } from "@/features/season/season";
 import { hasPlayed, trackHome, visitorId, watchEngagement } from "@/features/scene/track";
 import { Mascot } from "@/features/mascot/mascot";
 import { BOARD_WIDTH, ParkBoard, stoneCenter } from "./park-board";
@@ -57,25 +59,38 @@ export type ShelfScene = {
   stage?: StageSpec;
   category?: SceneCategory;
   partnerLine?: string;
+  createdAt?: string;
 };
 
 const noop = () => () => {};
 
 // 장면 하나를 끝내면 기본 상황과 만약에에서 표현이 하나씩 모인다
-const PAIRS_PER_SCENE = 2;
+export const PAIRS_PER_SCENE = 2;
 
-function useVisitor(scenes: ShelfScene[] = []) {
+// 다음 장면 규칙(collections.upNext)에 넣을 순서. 장면마다 속한 모음(특집·연속극)을 붙인다
+export function laneOrder(scenes: ShelfScene[]) {
+  return scenes.map((s) => ({ ...s, collection: collectionOf(s) }));
+}
+
+export function useVisitor(scenes: ShelfScene[] = []) {
   const played = useSyncExternalStore(noop, hasPlayed, () => false);
   const cleared = useCleared();
   const since = useSince();
+  const { today } = useSeason();
   // 푸터의 "nuanci 소개"(/?intro)로 오면 다시 온 사람도 첫 방문 화면을 본다. 주소가 바뀔 때마다 ReturningSync가 맞춘다
   const intro = useIntroMode();
   const returning = !intro && (played || cleared.length > 0);
-  useEffect(() => rememberSince(scenes), [scenes]);
-  return { returning, cleared, fresh: newSceneIds(scenes, cleared, since) };
+  useEffect(() => {
+    if (FEATURES.episodes) rememberSince(scenes);
+  }, [scenes]);
+  // NEW는 예전 화면에서는 "내가 처음 온 뒤 추가된 장면", 지금은 "공개 후 14일 이내"다
+  const fresh = FEATURES.episodes
+    ? newSceneIds(scenes, cleared, since)
+    : scenes.filter((s) => !cleared.includes(s.id) && isFresh(s.createdAt, today)).map((s) => s.id);
+  return { returning, cleared, fresh };
 }
 
-function NewChip() {
+export function NewChip() {
   return (
     <span className="shrink-0 bg-ink px-1 py-0.5 font-label-strong text-meta leading-none text-white">
       NEW
@@ -83,7 +98,7 @@ function NewChip() {
   );
 }
 
-function Check() {
+export function Check() {
   return (
     <svg
       width="14"
@@ -101,8 +116,8 @@ function Check() {
 // 첫 방문이면 첫 장면으로, 다시 오면 아직 안 해 본 다음 장면으로 보내는 시작 버튼
 export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
   const { returning, cleared } = useVisitor(scenes);
-  // 개발자 팩은 /dev로 따로 들어오는 묶음이라, 일반 홈의 다음 장면으로는 고르지 않는다
-  const next = nextUncleared(scenes.filter((s) => s.category !== "dev"), cleared);
+  // 특집(개발자 팩 등)은 따로 들어오는 묶음이라, 일반 홈의 다음 장면으로는 고르지 않는다
+  const next = upNext(laneOrder(scenes), cleared);
   useEffect(() => {
     trackHome();
     return watchEngagement();
@@ -137,7 +152,7 @@ export function LandingCta({ scenes }: { scenes: ShelfScene[] }) {
 }
 
 // 장면 카드. 무대 썸네일과 "3화" 같은 이름으로 어떤 장면인지 보여주고, 정답 표현은 장면 안에서만 알 수 있다. 이어서 할 장면에 '다음'을 단다
-function SceneCard({
+export function SceneCard({
   scene,
   done,
   fresh = false,
@@ -149,7 +164,8 @@ function SceneCard({
   scene: ShelfScene;
   done: boolean;
   fresh?: boolean;
-  label: string;
+  // 예전 화면의 "3화" 이름표. 없으면 NEW만 단다
+  label?: string;
   next?: boolean;
   // 전체 장면 목록 안에 들어갈 때는 옆 줄과 높이를 맞추려고 썸네일과 여백을 줄과 같게 줄인다
   inRow?: boolean;
@@ -163,7 +179,7 @@ function SceneCard({
       className="blk-btn block h-full"
     >
       <span className={`blk flex h-full items-center bg-card-raised text-ink ${inRow ? "gap-2 p-1.5 pr-2" : "gap-3 p-2 pr-3"}`}>
-        {inRow && <span className={`${wide ? "w-10" : "w-7"} shrink-0 text-right font-poster text-say-lg leading-none tabular-nums`}>{tocNumber(label)}</span>}
+        {inRow && label && <span className={`${wide ? "w-10" : "w-7"} shrink-0 text-right font-poster text-say-lg leading-none tabular-nums`}>{tocNumber(label)}</span>}
         <span className="relative shrink-0">
           <SceneThumb
             stage={scene.stage}
@@ -180,7 +196,7 @@ function SceneCard({
         </span>
         <span className="min-w-0 flex-1">
           {/* 화수와 NEW를 한 줄에 둔다. NEW가 오른쪽 끝 큰 블록이면 제목보다 무거워 눈이 먼저 간다(대표 카드의 "4화 NEW"와 같은 짝) */}
-          {!inRow && (
+          {!inRow && (label || (fresh && !next)) && (
             <span className="mb-1 flex items-center gap-1.5 text-meta font-medium leading-none text-ink-subtle">
               {label}
               {fresh && !next && <NewChip />}
@@ -212,7 +228,7 @@ function tocNumber(label: string) {
 }
 
 // 전체 장면 목록의 한 줄. 썸네일은 남기고 카드 틀을 덜어서, 블록은 다음에 할 장면에만 쓴다
-function SceneRow({
+export function SceneRow({
   scene,
   done,
   fresh = false,
@@ -222,7 +238,8 @@ function SceneRow({
   scene: ShelfScene;
   done: boolean;
   fresh?: boolean;
-  label: string;
+  // 예전 화면의 목차 숫자. 없으면 번호 칸 없이 썸네일부터 시작한다
+  label?: string;
   wide?: boolean;
 }) {
   return (
@@ -232,7 +249,7 @@ function SceneRow({
       className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors duration-fast hover:bg-fg hover:text-page"
     >
       {/* 목차처럼 화수를 굵은 숫자로 왼쪽에 세운다 */}
-      <span className={`${wide ? "w-11" : "w-8"} shrink-0 text-right font-poster text-say-lg leading-none tabular-nums`}>{tocNumber(label)}</span>
+      {label && <span className={`${wide ? "w-11" : "w-8"} shrink-0 text-right font-poster text-say-lg leading-none tabular-nums`}>{tocNumber(label)}</span>}
       <span className="shrink-0">
         <SceneThumb
           stage={scene.stage}
@@ -291,9 +308,9 @@ function LockedSceneRow({
   );
 }
 
-const SCENE_ROWS_CLASS =
+export const SCENE_ROWS_CLASS =
   "stagger mt-3 grid grid-cols-1 border-t-2 border-fg md:grid-cols-2 md:gap-x-8 lg:grid-cols-3";
-const SCENE_ROW_ITEM_CLASS = "list-row-lazy border-b border-line/40";
+export const SCENE_ROW_ITEM_CLASS = "list-row-lazy border-b border-line/40";
 
 type Progress = ReturnType<typeof blockProgress<ShelfScene>>;
 
@@ -354,7 +371,7 @@ function BlockCount({ progress }: { progress: Progress }) {
   );
 }
 
-function Arrow() {
+export function Arrow() {
   return (
     <svg
       width="10"
@@ -371,14 +388,15 @@ function Arrow() {
 
 // 다시 온 방문자의 다음 장면. 시작 버튼을 카드 안에 넣어서 무엇이 시작되는지 한눈에 보이게 한다.
 // 데스크톱은 그림과 글을 나란히 둬서 버튼과 아래 목록이 첫 화면에 들어오게 한다
-function FeaturedScene({
+export function FeaturedScene({
   scene,
   fresh,
   label,
 }: {
   scene: ShelfScene;
   fresh: boolean;
-  label: string;
+  // 그림 위 딱지. 예전 화면은 "13화", 지금은 하던 3개가 있을 때 "두 장면 더 하면 내 영어 말투"
+  label?: string;
 }) {
   return (
     // 카드는 단단히 고정하고, 누르는 손맛은 분홍 키 하나가 맡는다. 카드 어디에 손을 올려도 키가 떠오르고 Mochi가 카드 위로 고개를 내민다
@@ -392,10 +410,13 @@ function FeaturedScene({
             stage={scene.stage}
             className="feat-thumb aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
           />
-          <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-label text-ui leading-none text-fg">
-            {label}
-            {fresh && <span className="ml-1.5 text-pink">NEW</span>}
-          </span>
+          {(label || fresh) && (
+            // 오른쪽 위는 상대 말풍선 자리라, 긴 딱지("두 장면 더 하면 내 영어 말투")가 겹치지 않게 왼쪽 아래에 둔다
+            <span className="absolute bottom-2 left-2 bg-ink px-1.5 py-1 font-label text-ui leading-none text-fg">
+              {label}
+              {fresh && <span className={`${label ? "ml-1.5 " : ""}text-pink`}>NEW</span>}
+            </span>
+          )}
           {/* 상대가 고르기 직전에 하는 말을 그림 위에 띄운다. 무슨 말에 답하게 될지가 버튼보다 먼저 보여 궁금증이 생긴다 */}
           {scene.partnerLine && (
             <span className="absolute right-2 top-2 max-w-[62%] border-2 border-ink bg-white px-2 py-1.5 text-ink-fixed md:right-3 md:top-3">
@@ -435,7 +456,7 @@ function FeaturedScene({
 
 // 아지트로 가는 줄. 안 연 상자가 있으면 그게 먼저다(지금 할 수 있는 일). 없으면 다음 보상 물건을 이름과 남은 장면 수로 나눠 적는다.
 // "장면 10개 더 하면 꽃 핀"처럼 한 문장에 이으면 물건 이름이 "꽃이 핀다"로 읽힐 수 있어서, 이름은 따로 굵게 둔다
-function NextGoal() {
+export function NextGoal() {
   const rewards = useRewards();
   const next = rewards?.next;
   const box = rewards?.items.some(isUnopened) ?? false;
@@ -477,7 +498,8 @@ function NextGoal() {
 }
 
 // 오늘의 목표 자리. 체크박스 대신 내 정보와 같은 도장판(최근 7일)을 작게 둔다. 장면 하나를 끝내면 오늘 칸에 도장이 찍힌다
-function TodayGoals() {
+// bare면 데스크톱 상자 틀 없이 그린다. 다른 줄과 한 상자에 묶을 때 쓴다
+export function TodayGoals({ bare = false }: { bare?: boolean }) {
   const streak = useStreak();
   const labels = weekLabels(useKstDay());
   const week = streak?.week ?? Array<boolean>(7).fill(false);
@@ -487,7 +509,7 @@ function TodayGoals() {
   const reviewed = useReviewedToday();
   const review = FEATURES.review && reviewed !== "none" ? reviewed === "done" : null;
   return (
-    <div className="lg:border-2 lg:border-ink lg:bg-card-raised lg:p-4">
+    <div className={bare ? "" : "lg:border-2 lg:border-ink lg:bg-card-raised lg:p-4"}>
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-1.5 text-body font-bold">
           <Flame lit={today} size={18} />
@@ -518,7 +540,7 @@ function TodayGoals() {
 const openCount = (list: ShelfScene[], open: Set<string>) => list.filter((s) => open.has(s.id)).length;
 
 // 상황 타일마다 따로 꾸민 무대. 묶음의 첫 장면을 쓰면 거실·소파가 겹쳐 다 같아 보여서, 그 상황을 한눈에 알 만한 세트·상대·소품을 골라 둔다
-const GROUP_STAGES: Record<string, Omit<StageSpec, "hero" | "wear">> = {
+export const GROUP_STAGES: Record<string, Omit<StageSpec, "hero" | "wear">> = {
   "병맛 대회": { set: "freezer", time: "day", partner: "mc", flags: ["blizzard"], decor: [{ id: "contest-poster", x: 1.9 }] },
   친구랑: { set: "karaoke", time: "evening", partner: "sam", flags: ["score", "mirrorball", "lights"] },
   "같이 사는 사이": { set: "living", time: "evening", partner: "mom", decor: [{ id: "bill-pile", x: -1.9 }, { id: "slippers", x: 1.2 }] },
@@ -561,7 +583,7 @@ function SituationTiles({ scenes, open }: { scenes: ShelfScene[]; open: Set<stri
 
 // 홈 순서 실험 묶음. 방문자 id 첫 글자(16진수)가 홀수면 복습을 장면 아래에 둔다. 같은 사람은 늘 같은 묶음이다
 const noSubscribe = () => () => {};
-function useReviewAfter() {
+export function useReviewAfter() {
   return useSyncExternalStore(noSubscribe, () => parseInt(visitorId()[0], 16) % 2 === 1, () => false);
 }
 

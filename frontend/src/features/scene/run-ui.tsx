@@ -61,7 +61,7 @@ function Band() {
 // 엔딩 컷이 끝나기를 기다리는 동안 결과 장 자리에 두는 틀. 머리띠는 먼저 보여서 무엇이 올지 알리고, 누르면 바로 채운다
 export function RunResultWaiting({ reduced, onSkip }: { reduced: boolean; onSkip: () => void }) {
   return (
-    <button type="button" onClick={onSkip} aria-label="결과 바로 보기" className="block w-full text-left">
+    <button type="button" onClick={onSkip} aria-label="내 영어 말투 바로 보기" className="block w-full text-left">
       <Panel className="blk-strong">
         <Band />
         <div className="px-4 pb-5 pt-4 text-ink-subtle">

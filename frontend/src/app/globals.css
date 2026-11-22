@@ -105,6 +105,8 @@
   --animate-think: think-in 260ms var(--ease-snap) both;
   --animate-burst: burst 950ms steps(4, end) 70ms both;
   --animate-soul: soul 1400ms ease-out both;
+  /* 특집 기간 홈 바탕의 눈. 도트 결에 맞게 1초에 10칸씩 끊어 떨어진다. 길이·지연·옆 흔들림은 눈송이마다 --snow-* 로 준다 */
+  --animate-snow: snow-fall var(--snow-dur, 16s) steps(160, end) var(--snow-delay, 0s) infinite;
   --font-sans: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* 버튼·라벨 글꼴. 본문과 같은 글꼴을 굵기만 달리 쓴다(label 500, label-strong 800) */
   --font-label: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
@@ -837,4 +839,30 @@ label {
 /* 무대 위에 얹는 큰 글자의 흰 테두리. 어떤 벽 색 위에서도 읽히게 여덟 방향으로 2px씩 두른다 */
 .text-outline-white {
   text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white, 2px 2px white, -2px -2px white, 2px -2px white, -2px 2px white;
+}
+
+/* 특집 기간 홈의 눈. 바탕 층에서 화면 위에서 아래로 떨어진다 */
+@keyframes snow-fall {
+  from {
+    transform: translate3d(0, -1rem, 0);
+  }
+  to {
+    transform: translate3d(var(--snow-drift, 0px), 105vh, 0);
+  }
+}
+/* 반복 움직임은 화면에 하나. 눈이 내리는 동안 홈의 다른 반복(대표 카드 화살표 콕콕, 떠 있는 그림)은 멈춘다 */
+[data-snow] .feat-arrow,
+[data-snow] .nudge,
+[data-snow] .animate-bob,
+[data-snow] .animate-bob-fast {
+  animation: none;
+}
+/* 첫 방문 홈은 무대 데모와 제목 띠가 이미 움직이므로 눈은 다시 온 사람의 홈에만 내린다 */
+:root:not([data-returning]) .snow-flake {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .snow-flake {
+    display: none;
+  }
 }

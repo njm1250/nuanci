@@ -13,6 +13,9 @@ import { FeatureRows } from "@/features/landing/feature-rows";
 import { ReturningSync } from "@/features/landing/returning-sync";
 import { Suspense } from "react";
 import { FEATURES } from "@/features/site/lean";
+import { HomeShelf } from "@/features/landing/collection-views";
+import { isFeatureSlug } from "@/features/scene/collections";
+import { BandLights, Snowfall } from "@/features/season/season-decor";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: SITE_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "nuanci", locale: "ko_KR", type: "website" } };
 
@@ -28,7 +31,9 @@ const website = {
 
 export default async function Home() {
   const [catalog, beats] = await Promise.all([getCatalog(), getReel()]);
-  const shelf = catalog.map(({ id, number, title, relation, place, stage, category, partnerLine }) => ({ id, number, title, relation, place, stage, category, partnerLine }));
+  const shelf = catalog.map(({ id, number, title, relation, place, stage, category, partnerLine, createdAt }) => ({ id, number, title, relation, place, stage, category, partnerLine, createdAt }));
+  // 장면이 공개된 특집. 시즌 장식은 이 가운데 기간 중인 특집이 있을 때만 붙는다
+  const featured = [...new Set(shelf.map((s) => s.category).filter(isFeatureSlug))];
   // 첫 장면을 아래 기능 소개의 실제 화면 조각으로 쓴다
   const first = catalog[0] ? await getScene(catalog[0].id) : null;
   // 첫 방문 홈 실험(B)에서 홈에 바로 놓을 첫 장면의 질문. 보기 순서는 장면 화면과 같게 섞는다
@@ -38,7 +43,9 @@ export default async function Home() {
       ? { number: first.number, context: base.context, intent: base.intent, partnerLine: base.partnerLine, partnerMotion: base.partnerIdle.motion, stage: base.stage, choices: base.choices.map((c) => ({ id: c.id, line: c.line })) }
       : null;
   return (
-    <div className="flex min-h-dvh flex-col bg-page text-fg break-keep">
+    // isolate: 특집 기간의 눈(Snowfall)이 페이지 바탕 바로 위, 카드와 글자 아래 층에 깔리게 한다
+    <div className="isolate flex min-h-dvh flex-col bg-page text-fg break-keep">
+      <Snowfall slugs={featured} />
       {/* 주소를 읽는 쪽은 Suspense 안에 둬야 홈 전체를 미리 만든 페이지로 유지할 수 있다 */}
       <Suspense fallback={null}>
         <ReturningSync />
@@ -52,6 +59,7 @@ export default async function Home() {
           </Link>
         }
         right={FEATURES.streak && <StreakChip />}
+        below={<BandLights slugs={featured} />}
       />
       {/* 머리줄과 푸터 사이 전부가 이 화면의 본문이다. 스크린 리더가 "본문으로 건너뛰기"로 바로 올 수 있게 main 하나로 감싼다 */}
       <main className="flex flex-col">
@@ -67,7 +75,7 @@ export default async function Home() {
 
       {/* 다시 온 방문자는 데모와 소개 대신 진행 상황과 다음 장면만 본다. 첫 방문자에게는 아무것도 그리지 않는다 */}
       <div className="mx-auto w-full max-w-[1080px] md:px-8 lg:max-w-[1200px]">
-        <SceneShelf scenes={shelf} />
+        {FEATURES.episodes ? <SceneShelf scenes={shelf} /> : <HomeShelf scenes={shelf} />}
       </div>
 
       {/* 종이 면과 검은 무대 사이에 장면 제목이 필름 띠처럼 흐른다. 어떤 이야기들이 있는지 읽지 않아도 지나가며 보인다 */}

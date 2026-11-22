@@ -27,7 +27,7 @@ async function fetchContent(kind: ContentKind | "current", hash = ""): Promise<R
 export const SCENES_TAG = "scenes";
 
 // 목차 한 줄. 목록 화면은 장면 본문 없이 이것만으로 그린다
-export type CatalogEntry = SceneSummary & { relation: string; place: string; category?: SceneCategory; stage?: StageSpec; partnerLine?: string; hash: string };
+export type CatalogEntry = SceneSummary & { relation: string; place: string; category?: SceneCategory; stage?: StageSpec; partnerLine?: string; createdAt?: string; hash: string };
 
 // 지금 목차의 해시만 짧게 확인한다. 만료는 길게 둬서, 백엔드가 응답하지 않으면 마지막으로 받은 목차를 계속 쓴다
 async function currentManifest(): Promise<string> {

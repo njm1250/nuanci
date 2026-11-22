@@ -4,7 +4,8 @@ import { ScrollHeader } from "./scroll-header";
 import { SiteMenu } from "./site-menu";
 
 // 모든 화면 공통 머리줄. 검은 띠 가운데에 로고를 두고, 왼쪽에는 그 화면의 이동을, 오른쪽에는 전체 메뉴를 둔다
-export function SiteHeader({ left, right }: { left?: React.ReactNode; right?: React.ReactNode }) {
+// below는 띠 아래 가장자리에 겹쳐 그리는 장식 자리(특집 기간의 시즌 장식)
+export function SiteHeader({ left, right, below }: { left?: React.ReactNode; right?: React.ReactNode; below?: React.ReactNode }) {
   return (
     <ScrollHeader>
       <div className="mx-auto grid h-14 w-full max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 md:h-16 md:px-8">
@@ -19,6 +20,7 @@ export function SiteHeader({ left, right }: { left?: React.ReactNode; right?: Re
           <SiteMenu />
         </div>
       </div>
+      {below}
     </ScrollHeader>
   );
 }
