@@ -1,4 +1,5 @@
 import type { Scene } from "./types";
+import type { NextAsk } from "./wrap-up";
 
 // 끝난 화면의 버튼에 다음 장면 예고로 쓴다("다음: 「이건 서비스예요!」 영어로?").
 // 장면 하나를 끝낸 멈춤 지점에서, 모르는 게 하나 보여야 이어서 누를 호기심이 생긴다.
@@ -18,4 +19,9 @@ const CTA_RELATION_MAX = 8;
 export function answerCta(relation: string) {
   const who = relation.length <= CTA_RELATION_MAX ? relation : relation.split(" ").at(-1);
   return who ? `${who} 말에 답하기` : "다음 장면 해 보기";
+}
+
+// 완료 화면의 다음 장면 예고: 장소 그림과 상대 첫마디
+export function askOf(next: Scene): NextAsk {
+  return { number: next.number, title: next.title, place: next.place, stage: next.base.stage, partnerName: next.partnerName, partnerLine: next.base.partnerLine };
 }

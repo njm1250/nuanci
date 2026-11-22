@@ -1,4 +1,5 @@
 import type { PropId, StageSpec } from "@/features/stage/types";
+import type { FeatureSlug } from "./collections";
 
 export type Expression =
   | "neutral"
@@ -117,11 +118,11 @@ export type Scene = {
   ending?: Ending;
   // 연속극 장면에서 앞 화 완료 버튼에 띄울 다음 화 예고. 없으면 대사에서 뽑는다
   teaser?: string;
-  // 상황별 보기에서 관계·장소와 상관없이 따로 묶을 장면. 병맛 대회 같은 연속극(meme)과 개발자 팩(dev)에 쓴다
+  // 상황별 보기에서 관계·장소와 상관없이 따로 묶을 장면. 병맛 대회 같은 연속극(meme)과 특집(collections.ts의 slug: dev, xmas…)에 쓴다
   category?: SceneCategory;
 };
 
-export type SceneCategory = "meme" | "dev";
+export type SceneCategory = "meme" | FeatureSlug;
 
 export type SceneSummary = {
   id: string;

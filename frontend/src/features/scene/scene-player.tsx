@@ -27,7 +27,9 @@ import { loadVoiceScene, primeAudio, sfx, voiceMs } from "./sfx";
 import { useTranslationOn } from "./translation";
 import { type Beat, type Choice, type Scene } from "./types";
 import { heardAs, Num, StakesNote, VERDICTS } from "./verdict";
-import { markCleared, nextScene } from "./progress";
+import { markCleared, useCleared } from "./progress";
+import { upNext, type OrderItem } from "./collections";
+import { nextAskOf } from "./next-ask";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
 import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
@@ -78,7 +80,7 @@ const MOCHI_TUCK_LIFT = "max-md:bottom-[calc(var(--stage-tuck)+2.25rem)]";
 // teaser는 다음 장면 예고. 페이지가 서버에서 만들어 넘겨서 브라우저가 다음 장면 본문을 받지 않는다
 // nextAsk는 다음 장면 예고. 완료 화면 아래로 밀려 올라와 다음 장면으로 잇는다
 // entry는 들어온 경로를 정해 줄 때 쓴다(첫 방문 홈에서 바로 열린 장면은 home)
-type PlayerProps = { scene: Scene; order?: { id: string; number: number }[]; teaser?: string | null; nextAsk?: NextAsk | null; preview?: boolean; entry?: "home"; packStep?: number };
+type PlayerProps = { scene: Scene; order?: OrderItem[]; teaser?: string | null; nextAsk?: NextAsk | null; preview?: boolean; entry?: "home"; packStep?: number };
 
 // Next.js는 떠난 페이지를 숨겨 두기만 해서 상태가 남는다. 링크로 새로 들어오면 처음부터, 뒤로 가기로 돌아오면 하던 곳부터 보여준다
 export function ScenePlayer(props: PlayerProps) {
@@ -123,7 +125,7 @@ function matchedOwn(line: string, same: Choice, n: number): Choice {
   return { ...same, id: `${OWN_PREFIX}${n}`, line, tags: ["내 말", heardAs(same)] };
 }
 
-function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, preview = false, entry, packStep }: PlayerProps) {
+function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nextAsk: guessAsk = null, preview = false, entry, packStep }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
   const [attemptId] = useState(uuid);
   // 개발자 팩은 PR 단계가 진행 표시라서 판으로 묶지 않는다
@@ -146,7 +148,11 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
     }
     track({ ...e, sceneId: scene.id, sceneVersion: scene.version, attemptId });
   };
-  const next = nextScene(order, scene.id);
+  // 다음 장면은 이 브라우저의 기록으로 정한다(collections.upNext). 서버가 미리 받아 둔 장면과 다르면 장면을 끝낸 뒤 그 장면의 예고를 받아 온다
+  const cleared = useCleared();
+  const next = upNext(order, cleared, scene.id);
+  const guessed = next !== null && guessAsk?.number === next.number;
+  const [fetched, setFetched] = useState<Awaited<ReturnType<typeof nextAskOf>>>(null);
   const viewedSent = useRef(false);
   useEffect(() => {
     if (preview || viewedSent.current) return;
@@ -164,6 +170,18 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   useEffect(() => loadVoiceScene(original.id, () => setVoiceReady((v) => v + 1)), [original.id]);
 
   const f = useSceneFlow(scene, send);
+  const needAsk = f.done && next !== null && !guessed && fetched?.id !== next.id ? next.id : null;
+  useEffect(() => {
+    if (!needAsk) return;
+    let live = true;
+    nextAskOf(needAsk).then((r) => live && setFetched(r), () => {});
+    return () => {
+      live = false;
+    };
+  }, [needAsk]);
+  const own = next && fetched?.id === next.id ? fetched : null;
+  const teaser = guessed ? guessTeaser : (own?.teaser ?? null);
+  const nextAsk = guessed ? guessAsk : (own?.nextAsk ?? null);
   const look = useHeroLook();
   const rewards = useRewards();
   // 보상과 연속 기록은 입구를 닫아 둔 동안 완료 화면과 무대에 띄우지 않는다(site/lean.ts)
@@ -292,6 +310,8 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
   const punch = () => {
     setEndingStep("punch");
     sfx.punch();
+    // 엔딩 한마디도 음성이 있으면 들려준다(없으면 웅얼거림)
+    if (ending) sfx.blip("partner", ending.line, ending.who === "mochi" ? "mochi" : partnerVoice);
   };
   useEffect(() => {
     if (!wrapped || !ending || endingStep === "punch") return;
@@ -804,6 +824,7 @@ function SceneRun({ scene: original, order = [], teaser = null, nextAsk = null, 
               askAt={ending && !reduced ? PUNCH_AT + PUNCH_HOLD : 600}
               onNext={() => send({ type: "next_clicked" })}
               runOn={runOn}
+              order={order}
               onRunShared={() => send({ type: "share_link_copied", choiceId: "run" })}
             />
           ) : (

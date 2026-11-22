@@ -8,6 +8,9 @@ export const FEATURES = {
   streak: true,
   // 장면 셋을 한 판으로 묶고 끝에 결과 장을 보여 준다(scene/run.ts)
   run: true,
+  // 장면을 "N화"로 부르고 10화씩 묶어 잠그던 예전 탐색(화 번호·10화 묶음·잠금·말판·열림 말풍선·순서대로/상황별 전환·개발자 팩 배너).
+  // 끄면 홈과 전체 장면이 "다음 장면 하나 + 모음"(scene/collections.ts)으로 바뀐다. 기록(nuanci.cleared)은 둘이 같이 쓴다
+  episodes: false,
 } as const;
 
 // 입구를 닫은 기능의 주소로 들어오면 홈으로 보낸다(proxy.ts)

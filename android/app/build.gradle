@@ -24,7 +24,7 @@ def twaManifest = [
     applicationId: 'app.nuanci',
     hostName: 'nuanci.app', // The domain being opened in the TWA.
     launchUrl: '/?utm_source=android_app', // The start path for the TWA. Must be relative to the domain.
-    name: 'nuanci - 영어 뉘앙스 게임', // The application name.
+    name: 'nuanci - 1분 영어 회화 게임', // The application name.
     launcherName: 'nuanci', // The name shown on the Android Launcher.
     themeColor: '#09318D', // The color used for the status bar.
     themeColorDark: '#09318D', // The color used for the dark status bar.

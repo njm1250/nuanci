@@ -29,7 +29,7 @@ function drawFaceGrid(partner: CastId, expression: Expression): Cell[][] {
   const look = CAST[partner];
   const g: Cell[][] = Array.from({ length: 16 }, () => Array<Cell>(16).fill(null));
   const ink = C.ink;
-  const skin = look.animal?.fur ?? SKIN;
+  const skin = look.animal?.fur ?? look.skin ?? SKIN;
   const hair = look.hair;
 
   // 1. 어깨(옷) — 아래쪽 2줄에 상대 셔츠 색이 살짝 보인다

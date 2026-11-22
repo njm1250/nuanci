@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 import java.security.MessageDigest
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 
 data class CatalogEntry(
@@ -19,6 +20,8 @@ data class CatalogEntry(
 	// 고르기 직전 상대가 하는 말. 홈 대표 카드의 장면 그림 위 말풍선에 쓴다
 	val partnerLine: String,
 	val partnerName: String,
+	// 장면이 처음 저장된 때(첫 버전). 목록의 NEW 표시를 "공개 후 14일 이내"로 정하는 데 쓴다
+	val createdAt: String?,
 	val hash: String,
 )
 
@@ -75,6 +78,7 @@ class SceneCatalog(
 		val byId = versions.findCurrentByStatus(SceneStatus.PUBLISHED).associateBy { it.sceneId }
 		val objects = linkedMapOf<String, String>()
 		val contents = published.map { store.read(byId.getValue(it.id)) }
+		val created = firstSaved()
 		val entries = published.zip(contents) { scene, content ->
 			// 저장할 때의 해시가 아니라 내보내는 그대로의 해시를 쓴다. 읽을 때 형식을 바꿔 주는 코드가 달라져도 주소와 내용이 어긋나지 않는다
 			// 버전은 목차에만 둔다. 본문에 넣으면 같은 내용으로 되돌려도 주소가 새로 생긴다
@@ -92,6 +96,7 @@ class SceneCatalog(
 				stage = content.path("base").path("stage").takeUnless { it.isMissingNode },
 				partnerLine = content.path("base").path("partnerLine").asString(""),
 				partnerName = content.path("partnerName").asString(""),
+				createdAt = created[scene.id]?.toString(),
 				hash = hash,
 			)
 		}
@@ -101,6 +106,12 @@ class SceneCatalog(
 		val manifest = mapper.writeValueAsString(mapOf("scenes" to entries, "views" to viewHashes))
 		return Catalog(sha256(manifest), manifest, objects, views.entries.associate { (name, json) -> viewHashes.getValue(name) to json }, entries).also(::keep)
 	}
+
+	private fun firstSaved(): Map<String, Instant> =
+		jdbc.sql("select scene_id, min(created_at) as at from scene_version group by scene_id")
+			.query { rs, _ -> rs.getString("scene_id") to rs.getTimestamp("at").toInstant() }
+			.list()
+			.toMap()
 
 	private fun sha256(text: String): String =
 		MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }

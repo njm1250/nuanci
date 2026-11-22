@@ -1,7 +1,7 @@
 {
   "packageId": "app.nuanci",
   "host": "nuanci.app",
-  "name": "nuanci - 영어 뉘앙스 게임",
+  "name": "nuanci - 1분 영어 회화 게임",
   "launcherName": "nuanci",
   "display": "standalone",
   "orientation": "portrait",

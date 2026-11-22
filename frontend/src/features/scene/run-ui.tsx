@@ -23,17 +23,24 @@ export function RunSteps({ done }: { done: number }) {
   return (
     <div className="mb-4 flex items-center gap-3 text-note text-fg-muted">
       <span className="min-w-0 flex-1">
-        {left === 1 ? "한 장면만 더 하면" : "두 장면 더 하면"} <b className="font-bold text-fg">내 영어 말투</b>
+        {left === 1 ? "한 장면만 더 하면" : "두 장면 더 하면"} <b className="font-bold text-fg">영어 말투 보고서</b>
       </span>
-      <span role="progressbar" aria-valuenow={done} aria-valuemax={RUN_SIZE} aria-label="내 영어 말투까지" className="flex shrink-0 gap-1">
-        {SLOTS.map((n) => (
-          <span key={n} className={`h-2.5 w-5 border-2 border-fg ${n <= done ? "bg-pink" : ""}`} />
-        ))}
-      </span>
+      <RunBar done={done} />
       <span className="shrink-0 text-meta tabular-nums text-fg-subtle">
         {done}/{RUN_SIZE}
       </span>
     </div>
+  );
+}
+
+// 장면 셋 중 몇 개를 끝냈는지 세 칸 막대. line은 칸 테두리 색(진한 띠 위에서는 흰 선)
+export function RunBar({ done, line = "border-fg" }: { done: number; line?: string }) {
+  return (
+    <span role="progressbar" aria-valuenow={done} aria-valuemax={RUN_SIZE} aria-label="영어 말투 보고서까지" className="flex shrink-0 gap-1">
+      {SLOTS.map((n) => (
+        <span key={n} className={`h-2.5 w-5 border-2 ${line} ${n <= done ? "bg-pink" : ""}`} />
+      ))}
+    </span>
   );
 }
 
@@ -52,7 +59,7 @@ function Band() {
   return (
     <div className="flex items-center justify-between bg-ink px-4 py-2.5 font-label text-ui text-fg">
       <span>
-        <span className="text-pink">nuanci</span> 내 영어 말투
+        <span className="text-pink">nuanci</span> 영어 말투 보고서
       </span>
     </div>
   );
@@ -61,7 +68,7 @@ function Band() {
 // 엔딩 컷이 끝나기를 기다리는 동안 결과 장 자리에 두는 틀. 머리띠는 먼저 보여서 무엇이 올지 알리고, 누르면 바로 채운다
 export function RunResultWaiting({ reduced, onSkip }: { reduced: boolean; onSkip: () => void }) {
   return (
-    <button type="button" onClick={onSkip} aria-label="결과 바로 보기" className="block w-full text-left">
+    <button type="button" onClick={onSkip} aria-label="영어 말투 보고서 바로 보기" className="block w-full text-left">
       <Panel className="blk-strong">
         <Band />
         <div className="px-4 pb-5 pt-4 text-ink-subtle">

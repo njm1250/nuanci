@@ -48,12 +48,12 @@ function sceneLd(scene: Scene) {
 
 async function SceneByNumber({ params }: { params: PageProps<"/scenes/[number]">["params"] }) {
   const { number } = await params;
-  const [scene, scenes] = await Promise.all([getSceneByNumber(number), getScenes()]);
+  const scene = await getSceneByNumber(number);
   if (!scene) notFound();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(sceneLd(scene)).replace(/</g, "\\u003c") }} />
-      <SceneRoute scene={scene} scenes={scenes} />
+      <SceneRoute scene={scene} />
     </>
   );
 }

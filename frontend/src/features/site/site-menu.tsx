@@ -6,10 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Mascot } from "@/features/mascot/mascot";
 import { FEATURES } from "./lean";
+import { FEATURE_LIST } from "@/features/scene/collections";
+import { setSnowOn, useSeason, useSnowOn } from "@/features/season/season";
 
 const ASK = "어디로 갈까?";
 const ALL_ITEMS = [
-  { href: "/scenes", title: "전체 장면", desc: "순서대로 또는 상황별로", reply: "오늘은 누구랑 얘기해 볼래?", on: true },
+  { href: "/scenes", title: "전체 장면", desc: FEATURES.episodes ? "순서대로 또는 상황별로" : "상황별로 또는 특집별로", reply: "오늘은 누구랑 얘기해 볼래?", on: true },
   { href: "/expressions", title: "표현 모음", desc: "해 본 장면의 표현 복습", reply: "그 말, 이번엔 써먹어 봐", on: true },
   { href: "/test", title: "유형 테스트", desc: "내 영어 사고 유형 찾기", reply: "넌 무슨 유형이려나~", on: FEATURES.typetest },
   { href: "/me/room", title: "아지트", desc: "옷 입히기와 방 꾸미기", reply: "내 자리도 하나 만들어 줘", on: FEATURES.rewards },
@@ -98,7 +100,25 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
           })}
         </ol>
       </nav>
+      <SnowSwitch />
     </dialog>
+  );
+}
+
+// 눈이 내리는 특집 기간에만 보이는 스위치. 끄면 홈의 눈이 멈추고 정적 장식만 남는다
+function SnowSwitch() {
+  const season = useSeason();
+  const on = useSnowOn();
+  if (!FEATURE_LIST.some((f) => f.kind === "season" && f.decor === "snow" && season.states[f.slug] === "live")) return null;
+  return (
+    <div className="mx-4 mb-8 flex items-center justify-between gap-3 border-t border-line/40 pt-4 text-ui">
+      <span id="snow-label">눈 효과</span>
+      <button type="button" role="switch" aria-checked={on} aria-labelledby="snow-label" onClick={() => setSnowOn(!on)} className="grid min-h-11 place-items-center">
+        <span className={`flex h-6 w-11 items-center p-0.5 ${on ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+          <span className={`size-5 ${on ? "bg-ink" : "bg-fg"}`} />
+        </span>
+      </button>
+    </div>
   );
 }
 

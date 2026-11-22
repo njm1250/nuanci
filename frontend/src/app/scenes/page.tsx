@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import { getCatalog } from "@/features/scene/api";
 import { SceneGrid } from "@/features/landing/landing-progress";
 import { PageShell } from "@/features/site/page-shell";
+import { AllScenes } from "@/features/landing/collection-views";
+import { FEATURES } from "@/features/site/lean";
 
 export const metadata: Metadata = { title: "영어 상황별 대화 게임 전체 장면 · nuanci", description: "친구·룸메이트·회사 동료와의 상황에서 하고 싶은 말을 영어로 골라 보세요. 선택에 따라 달라지는 상대 반응으로 영어 뉘앙스를 익혀요.", alternates: { canonical: "/scenes" } };
 
 export default async function ScenesPage() {
-  const shelf = (await getCatalog()).map(({ id, number, title, relation, place, stage, category }) => ({ id, number, title, relation, place, stage, category }));
+  const shelf = (await getCatalog()).map(({ id, number, title, relation, place, stage, category, createdAt }) => ({ id, number, title, relation, place, stage, category, createdAt }));
   return (
     <PageShell title="전체 장면" note="룸메부터 팀장님까지" backFallback="/">
-      <SceneGrid scenes={shelf} />
+      {FEATURES.episodes ? <SceneGrid scenes={shelf} /> : <AllScenes scenes={shelf} />}
     </PageShell>
   );
 }

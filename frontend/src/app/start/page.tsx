@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getCatalog, getScene, getScenes } from "@/features/scene/api";
+import { getCatalog, getScene } from "@/features/scene/api";
 import { SceneRoute } from "@/features/scene/scene-route";
 import { FirstVisitGate } from "./first-visit-gate";
 
@@ -8,10 +8,10 @@ import { FirstVisitGate } from "./first-visit-gate";
 export const metadata: Metadata = { robots: { index: false, follow: false }, alternates: { canonical: "/" } };
 
 async function FirstScene() {
-  const [catalog, scenes] = await Promise.all([getCatalog(), getScenes()]);
+  const catalog = await getCatalog();
   const scene = catalog[0] ? await getScene(catalog[0].id) : null;
   if (!scene) return null;
-  return <SceneRoute scene={scene} scenes={scenes} entry="home" />;
+  return <SceneRoute scene={scene} entry="home" />;
 }
 
 export default function StartPage() {

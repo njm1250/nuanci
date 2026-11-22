@@ -838,3 +838,34 @@ label {
 .text-outline-white {
   text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white, 2px 2px white, -2px -2px white, 2px -2px white, -2px 2px white;
 }
+
+/* 특집 기간 홈의 눈. 바탕 층에서 화면 위에서 아래로 떨어진다 */
+@keyframes snow-fall {
+  from {
+    transform: translate3d(0, -1rem, 0);
+  }
+  to {
+    transform: translate3d(var(--snow-drift, 0px), 105vh, 0);
+  }
+}
+/* 도트 결에 맞게 끊어 떨어진다. 길이·지연·옆 흔들림은 눈송이마다 --snow-* 로 준다.
+   @theme의 --animate-* 에 넣으면 var()가 :root에서 한 번만 풀려 모든 눈송이가 같은 값으로 한 줄로 떨어진다. 그래서 클래스에 직접 쓴다 */
+.snow-flake {
+  animation: snow-fall var(--snow-dur, 16s) steps(160, end) var(--snow-delay, 0s) infinite;
+}
+/* 반복 움직임은 화면에 하나. 눈이 내리는 동안 홈의 다른 반복(대표 카드 화살표 콕콕, 떠 있는 그림)은 멈춘다 */
+[data-snow] .feat-arrow,
+[data-snow] .nudge,
+[data-snow] .animate-bob,
+[data-snow] .animate-bob-fast {
+  animation: none;
+}
+/* 첫 방문 홈은 무대 데모와 제목 띠가 이미 움직이므로 눈은 다시 온 사람의 홈에만 내린다 */
+:root:not([data-returning]) .snow-flake {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .snow-flake {
+    display: none;
+  }
+}

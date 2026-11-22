@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { getCatalog, getScene, getScenes } from "@/features/scene/api";
+import { getCatalog, getScene } from "@/features/scene/api";
 import { SceneRoute } from "@/features/scene/scene-route";
 
 // 개발자 팩 "첫 PR 머지까지"의 입구. 개발자 채널에 올리는 주소는 전부 /dev?utm_source=… 이다.
@@ -16,12 +16,12 @@ export const metadata: Metadata = {
 };
 
 async function FirstDevScene() {
-  const [catalog, scenes] = await Promise.all([getCatalog(), getScenes()]);
+  const catalog = await getCatalog();
   const first = catalog.find((c) => c.category === "dev");
   const scene = first ? await getScene(first.id) : null;
   // 팩이 아직 공개되지 않았으면 홈으로 보낸다
   if (!scene) redirect("/");
-  return <SceneRoute scene={scene} scenes={scenes} entry="home" />;
+  return <SceneRoute scene={scene} entry="home" />;
 }
 
 export default function DevPage() {

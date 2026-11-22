@@ -1,34 +1,28 @@
 import { getCatalog, getScene } from "./api";
+import { collectionOf, guessNext } from "./collections";
 import { ScenePlayer } from "./scene-player";
-import { teaserOf } from "./teaser";
-import type { Scene, SceneSummary } from "./types";
-import type { NextAsk } from "./wrap-up";
+import { askOf, teaserOf } from "./teaser";
+import type { Scene } from "./types";
 
-// 장면 화면을 서버에서 준비한다. 장면 주소(/scenes/n)와 첫 방문 홈(/start)이 같이 쓴다
-export async function SceneRoute({ scene, scenes, entry }: { scene: Scene; scenes: SceneSummary[]; entry?: "home" }) {
-  // 개발자 팩(category: dev)은 따로 들어오는 묶음이다. 팩 안에서는 다음 화로 잇고 10화가 끝나면 일반 장면 첫 화로 넘긴다.
-  // 일반 장면에서는 팩을 건너뛰어, 전체 순서 끝에 붙은 팩이 일반 흐름에 섞이지 않게 한다
-  const devIds = new Set((await getCatalog()).filter((c) => c.category === "dev").map((c) => c.id));
-  const pack = scenes.filter((s) => devIds.has(s.id));
-  const general = scenes.filter((s) => !devIds.has(s.id));
-  const inPack = devIds.has(scene.id);
-  const order = inPack ? [...pack, ...general] : general;
-  // 끝난 화면의 다음 장면 예고. 다음 장면은 이 순서의 바로 다음이고(progress.nextScene과 같은 규칙), 본문은 해시 주소로 캐시돼 있다
-  const nextId = order[order.findIndex((s) => s.id === scene.id) + 1]?.id;
-  const next = nextId ? await getScene(nextId) : null;
-  // 완료 화면의 다음 장면 예고: 장소 그림과 상대 첫마디
-  const nextAsk: NextAsk | null = next
-    ? { number: next.number, title: next.title, place: next.place, stage: next.base.stage, partnerName: next.partnerName, partnerLine: next.base.partnerLine }
-    : null;
+// 장면 화면을 서버에서 준비한다. 장면 주소(/scenes/n), 첫 방문 홈(/start), 특집 입구(/dev, /xmas)가 같이 쓴다
+export async function SceneRoute({ scene, entry }: { scene: Scene; entry?: "home" }) {
+  // 다음 장면은 collections.upNext 규칙 하나로 정한다(특집·연속극 안이면 그 모음, 아니면 안 해 본 첫 장면). 기록은 브라우저에만 있어서
+  // 서버는 차례대로 해 온 사람의 다음 장면을 미리 받아 두고, 실제 기록과 다르면 장면 화면이 다시 고른다. 본문은 해시 주소로 캐시돼 있다
+  const order = (await getCatalog()).map((c) => ({ id: c.id, number: c.number, collection: collectionOf(c) }));
+  const guess = guessNext(order, scene.id);
+  const next = guess ? await getScene(guess.id) : null;
+  // 개발자 팩은 PR 단계 칩이 진행 표시라 팩 안 몇 번째인지 넘긴다
+  const pack = order.filter((s) => s.collection === "dev");
+  const packAt = pack.findIndex((s) => s.id === scene.id);
   return (
     <ScenePlayer
       key={scene.id}
       scene={scene}
-      order={order.map(({ id, number }) => ({ id, number }))}
+      order={order}
       teaser={next && teaserOf(next)}
-      nextAsk={nextAsk}
+      nextAsk={next && askOf(next)}
       entry={entry}
-      packStep={inPack ? pack.findIndex((s) => s.id === scene.id) + 1 : undefined}
+      packStep={packAt >= 0 ? packAt + 1 : undefined}
     />
   );
 }
