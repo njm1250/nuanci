@@ -109,7 +109,7 @@ function MenuDialog({ onClose }: { onClose: () => void }) {
 function SnowSwitch() {
   const season = useSeason();
   const on = useSnowOn();
-  if (!FEATURE_LIST.some((f) => f.decor === "snow" && season.states[f.slug] === "live")) return null;
+  if (!FEATURE_LIST.some((f) => f.kind === "season" && f.decor === "snow" && season.states[f.slug] === "live")) return null;
   return (
     <div className="mx-4 mb-8 flex items-center justify-between gap-3 border-t border-line/40 pt-4 text-ui">
       <span id="snow-label">눈 효과</span>

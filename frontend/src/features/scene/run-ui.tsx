@@ -25,15 +25,22 @@ export function RunSteps({ done }: { done: number }) {
       <span className="min-w-0 flex-1">
         {left === 1 ? "한 장면만 더 하면" : "두 장면 더 하면"} <b className="font-bold text-fg">내 영어 말투</b>
       </span>
-      <span role="progressbar" aria-valuenow={done} aria-valuemax={RUN_SIZE} aria-label="내 영어 말투까지" className="flex shrink-0 gap-1">
-        {SLOTS.map((n) => (
-          <span key={n} className={`h-2.5 w-5 border-2 border-fg ${n <= done ? "bg-pink" : ""}`} />
-        ))}
-      </span>
+      <RunBar done={done} />
       <span className="shrink-0 text-meta tabular-nums text-fg-subtle">
         {done}/{RUN_SIZE}
       </span>
     </div>
+  );
+}
+
+// 장면 셋 중 몇 개를 끝냈는지 세 칸 막대. line은 칸 테두리 색(진한 띠 위에서는 흰 선)
+export function RunBar({ done, line = "border-fg" }: { done: number; line?: string }) {
+  return (
+    <span role="progressbar" aria-valuenow={done} aria-valuemax={RUN_SIZE} aria-label="내 영어 말투까지" className="flex shrink-0 gap-1">
+      {SLOTS.map((n) => (
+        <span key={n} className={`h-2.5 w-5 border-2 ${line} ${n <= done ? "bg-pink" : ""}`} />
+      ))}
+    </span>
   );
 }
 

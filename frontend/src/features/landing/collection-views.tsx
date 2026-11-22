@@ -12,6 +12,7 @@ import { VoiceCard } from "@/features/progression/voice-card";
 import { ReviewToday } from "@/features/review/review-today";
 import { featuresIn, useSeason } from "@/features/season/season";
 import { CoverSnow } from "@/features/season/season-decor";
+import { DevPackBanner } from "./dev-pack-banner";
 import { FEATURES } from "@/features/site/lean";
 import type { StageSpec } from "@/features/stage/types";
 import {
@@ -42,7 +43,7 @@ type Group = { label: string; scenes: ShelfScene[] };
 const noSubscribe = () => () => {};
 const countDone = (list: ShelfScene[], cleared: string[]) => list.filter((s) => cleared.includes(s.id)).length;
 
-// 특집은 기간 중(live)과 지난 것(past)으로, 나머지 장면은 상황별로 나눈다. 특집 장면은 상황별에 다시 넣지 않는다
+// 시즌 특집은 기간 중(live)과 지난 것(past)으로, 상시 팩(packs)은 따로, 나머지 장면은 상황별로 나눈다. 특집 장면은 상황별에 다시 넣지 않는다
 function useLanes(scenes: ShelfScene[], cleared: string[]) {
   const season = useSeason();
   const of = (f: Feature) => scenes.filter((s) => s.category === f.slug);
@@ -55,7 +56,12 @@ function useLanes(scenes: ShelfScene[], cleared: string[]) {
   const groups: Group[] = [...SCENE_GROUPS.map((g) => g.label), OTHER_GROUP]
     .map((label) => ({ label, scenes: general.filter((s) => groupOf(s.relation, s.stage?.set, s.category) === label) }))
     .filter((g) => g.scenes.length > 0);
-  return { live: featuresIn(season, "live", has).map(lane), past: featuresIn(season, "past", has).map(lane), groups };
+  return {
+    live: featuresIn(season, "live", (f) => f.kind === "season" && has(f)).map(lane),
+    past: featuresIn(season, "past", has).map(lane),
+    packs: featuresIn(season, "live", (f) => f.kind === "pack" && has(f)).map(lane),
+    groups,
+  };
 }
 
 const progressNote = (total: number, done: number) => (done > 0 ? `${total}개 중 ${done}개 해 봄` : `장면 ${total}개`);
@@ -153,15 +159,15 @@ export function HomeShelf({ scenes }: { scenes: ShelfScene[] }) {
   const { returning, cleared, fresh } = useVisitor(scenes);
   const run = useRun();
   const reviewAfter = useReviewAfter();
-  const { live, groups } = useLanes(scenes, cleared);
+  const { live, packs, groups } = useLanes(scenes, cleared);
   if (!returning) return null;
   const order = laneOrder(scenes);
   // 방금 한 장면은 기록의 마지막 장면이다. 특집·연속극 안이면 그 모음을 이어 간다
   const next = upNext(order, cleared, cleared.at(-1));
   const [lead, ...rest] = live;
   const others = order.filter((s) => !isFeatureSlug(s.category) && s.id !== next?.id && !cleared.includes(s.id)).slice(0, 4);
-  // 장면 3개를 끝내면 나오는 "내 영어 말투"까지 남은 수. 완료 화면(RunSteps)과 같은 말로 적는다. 하던 판이 있을 때만 그림 위에 단다(개발자 팩은 판으로 세지 않는다)
-  const runLeft = FEATURES.run && next && next.category !== "dev" && run.scenes.length > 0 && run.scenes.length < RUN_SIZE ? RUN_SIZE - run.scenes.length : 0;
+  // 하던 장면 셋이 있을 때만 "내 영어 말투"까지의 세 칸 막대를 그림 위에 단다(개발자 팩은 셋으로 세지 않는다)
+  const runDone = FEATURES.run && next && next.category !== "dev" && run.scenes.length > 0 && run.scenes.length < RUN_SIZE ? run.scenes.length : undefined;
   const done = countDone(scenes, cleared);
   return (
     // 데스크톱은 왼쪽 넓은 칸에 할 장면과 모음을, 오른쪽 좁은 칸에 내 기록을 둔다. 모바일은 할 장면이 먼저다
@@ -169,7 +175,7 @@ export function HomeShelf({ scenes }: { scenes: ShelfScene[] }) {
       <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-1">
         <h2 className="mb-2 text-body font-bold lg:hidden">{next ? "이어서 할 장면" : "모든 장면을 다 해 봤어요"}</h2>
         {next ? (
-          <FeaturedScene scene={next} fresh={fresh.includes(next.id)} label={runLeft ? `${runLeft === 1 ? "한 장면만" : "두 장면"} 더 하면 내 영어 말투` : undefined} />
+          <FeaturedScene scene={next} fresh={fresh.includes(next.id)} run={runDone} />
         ) : (
           <BlockLink href={`/scenes/${order.find((s) => !isFeatureSlug(s.category))?.number ?? 1}`} entry="home" primary className="mt-4">
             처음부터 다시 하기
@@ -226,6 +232,8 @@ export function HomeShelf({ scenes }: { scenes: ShelfScene[] }) {
             </ul>
           </div>
         </div>
+        {/* 상시 팩은 메인 경로가 아니라 오른쪽 칸(모바일은 바로 가기 아래) 맨 아래 배너로만 둔다 */}
+        {packs.some((l) => l.key === "dev") && <DevPackBanner className="blk-strong order-6 mt-5 lg:mt-0" />}
       </div>
       <ThumbStudio />
     </section>
@@ -333,10 +341,10 @@ function GroupSection({ group, cleared, fresh, forceOpen }: { group: Group; clea
   );
 }
 
-// 전체 장면. 다음 장면 한 줄 → 모음 칩(특집이 앞) → 기간 중 특집 → 상황별 → 지난 특집
+// 전체 장면. 다음 장면 한 줄 → 칩 → 기간 중 시즌 특집 → 상황별 → 상시 팩 → 지난 특집
 export function AllScenes({ scenes }: { scenes: ShelfScene[] }) {
   const { cleared, fresh } = useVisitor(scenes);
-  const { live, past, groups } = useLanes(scenes, cleared);
+  const { live, past, packs, groups } = useLanes(scenes, cleared);
   // 홈의 타일에서 들어오면 주소의 group(상황 이름이나 특집 slug)으로 그 모음만 먼저 보여 준다. 칩을 누르면 그 뒤로는 고른 쪽을 따른다
   const linked = useSyncExternalStore(noSubscribe, () => new URLSearchParams(location.search).get("group"), () => null);
   const [picked, setOnly] = useState<string | null | undefined>(undefined);
@@ -344,7 +352,7 @@ export function AllScenes({ scenes }: { scenes: ShelfScene[] }) {
   const order = laneOrder(scenes);
   const next = upNext(order, cleared, cleared.at(-1));
   const done = countDone(scenes, cleared);
-  const chips = [...live.map((l) => ({ key: l.key, label: l.feature.name })), ...groups.map((g) => ({ key: g.label, label: g.label }))];
+  const chips = [...live.map((l) => ({ key: l.key, label: l.feature.name })), ...groups.map((g) => ({ key: g.label, label: g.label })), ...packs.map((l) => ({ key: l.key, label: l.feature.name }))];
   const shown = (key: string) => only === null || only === key;
   const pastShown = past.filter((l) => shown(l.key));
   return (
@@ -372,6 +380,9 @@ export function AllScenes({ scenes }: { scenes: ShelfScene[] }) {
       ))}
       {groups.filter((g) => shown(g.label)).map((g) => (
         <GroupSection key={g.label} group={g} cleared={cleared} fresh={fresh} forceOpen={only === g.label} />
+      ))}
+      {packs.filter((l) => shown(l.key)).map((l) => (
+        <LaneSection key={l.key} lane={l} cleared={cleared} fresh={fresh} />
       ))}
       {pastShown.length > 0 && (
         <section className="mt-14 border-t-2 border-fg pt-8">

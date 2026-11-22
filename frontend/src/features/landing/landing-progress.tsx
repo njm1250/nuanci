@@ -34,6 +34,7 @@ import type { StageSpec } from "@/features/stage/types";
 import { FEATURES } from "@/features/site/lean";
 import { VoiceCard } from "@/features/progression/voice-card";
 import { SceneThumb, ThumbStudio } from "./scene-thumb";
+import { RunBar } from "@/features/scene/run-ui";
 import {
   groupOf,
   OTHER_GROUP,
@@ -392,11 +393,14 @@ export function FeaturedScene({
   scene,
   fresh,
   label,
+  run,
 }: {
   scene: ShelfScene;
   fresh: boolean;
-  // 그림 위 딱지. 예전 화면은 "13화", 지금은 하던 3개가 있을 때 "두 장면 더 하면 내 영어 말투"
+  // 그림 위 딱지. 예전 화면의 "13화"
   label?: string;
+  // 하던 장면 셋 중 끝낸 수. 있으면 그림 아래쪽에 세 칸 막대와 "내 영어 말투까지"를 단다. 남은 수는 막대가 보여 주므로 글로 다시 적지 않는다
+  run?: number;
 }) {
   return (
     // 카드는 단단히 고정하고, 누르는 손맛은 분홍 키 하나가 맡는다. 카드 어디에 손을 올려도 키가 떠오르고 Mochi가 카드 위로 고개를 내민다
@@ -411,10 +415,15 @@ export function FeaturedScene({
             className="feat-thumb aspect-[2/1] w-full border-2 border-line md:aspect-[16/9] [&_img]:object-[center_60%]"
           />
           {(label || fresh) && (
-            // 오른쪽 위는 상대 말풍선 자리라, 긴 딱지("두 장면 더 하면 내 영어 말투")가 겹치지 않게 왼쪽 아래에 둔다
-            <span className="absolute bottom-2 left-2 bg-ink px-1.5 py-1 font-label text-ui leading-none text-fg">
+            <span className="absolute left-2 top-2 bg-ink px-1.5 py-1 font-label text-ui leading-none text-fg">
               {label}
               {fresh && <span className={`${label ? "ml-1.5 " : ""}text-pink`}>NEW</span>}
+            </span>
+          )}
+          {run !== undefined && (
+            <span className="absolute bottom-2 left-2 flex items-center gap-2 bg-ink px-2 py-1.5">
+              <RunBar done={run} line="border-white" />
+              <span className="whitespace-nowrap text-meta leading-none text-white">내 영어 말투까지</span>
             </span>
           )}
           {/* 상대가 고르기 직전에 하는 말을 그림 위에 띄운다. 무슨 말에 답하게 될지가 버튼보다 먼저 보여 궁금증이 생긴다 */}

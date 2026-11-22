@@ -5,22 +5,27 @@ import type { StageSpec } from "@/features/stage/types";
 export type FeatureSlug = "dev" | "xmas";
 export type FeatureDecor = "off" | "static" | "snow";
 
+// season: 기간 중에만 메인 경로에 오른다(홈 둘째 자리, 전체 장면 맨 위, 장면 3개 결과의 입구, 시즌 장식).
+// pack: 대상이 따로 있는 상시 묶음이라 메인 경로에 올리지 않는다. 홈 아래쪽 배너와 전체 장면의 상황별 뒤에만 둔다
+export type FeatureKind = "season" | "pack";
+
 export type Feature = {
   slug: FeatureSlug;
+  kind: FeatureKind;
   name: string;
   // 표지 무대. 없으면 특집 첫 장면의 무대를 쓴다
   cover?: Omit<StageSpec, "hero" | "wear">;
   // 한국 시각 기준. end가 없으면 계속 걸려 있다
   start: string;
   end?: string;
-  // 기간이 겹치면 숫자가 작은 쪽이 홈 둘째 자리를 맡는다
+  // 기간이 겹치면 숫자가 작은 쪽이 앞에 온다
   priority: number;
   decor: FeatureDecor;
 };
 
 export const FEATURE_LIST: Feature[] = [
-  { slug: "xmas", name: "크리스마스 특집", cover: { set: "living", time: "evening", partner: "mom" }, start: "2026-12-01T00:00:00+09:00", end: "2027-01-01T00:00:00+09:00", priority: 1, decor: "snow" },
-  { slug: "dev", name: "첫 PR 머지까지", start: "2026-11-12T00:00:00+09:00", priority: 2, decor: "off" },
+  { slug: "xmas", kind: "season", name: "크리스마스 특집", cover: { set: "living", time: "evening", partner: "mom" }, start: "2026-12-01T00:00:00+09:00", end: "2027-01-01T00:00:00+09:00", priority: 1, decor: "snow" },
+  { slug: "dev", kind: "pack", name: "첫 PR 머지까지", start: "2026-11-12T00:00:00+09:00", priority: 2, decor: "off" },
 ];
 
 const SLUGS = new Set<string>(FEATURE_LIST.map((f) => f.slug));

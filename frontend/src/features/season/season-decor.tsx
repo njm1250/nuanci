@@ -8,7 +8,7 @@ import { useSeason, useSnowOn } from "./season";
 // 지금 홈에 걸 장식 단계. 장면이 있는 기간 중 특집 가운데 우선순위가 가장 높은 것의 단계를 쓴다
 export function useLiveDecor(slugs: string[]): FeatureDecor {
   const season = useSeason();
-  const lead = FEATURE_LIST.filter((f) => season.states[f.slug] === "live" && slugs.includes(f.slug)).sort((a, b) => a.priority - b.priority)[0];
+  const lead = FEATURE_LIST.filter((f) => f.kind === "season" && season.states[f.slug] === "live" && slugs.includes(f.slug)).sort((a, b) => a.priority - b.priority)[0];
   return lead?.decor ?? "off";
 }
 

@@ -31,13 +31,13 @@ import { CoverSnow } from "@/features/season/season-decor";
 // 다음 장면 예고. 완료 화면 끝에 올라와 장면 사이에 홈 화면 없이 다음 장면으로 이어진다
 export type NextAsk = { number: number; title: string; place: string; stage?: StageSpec; partnerName: string; partnerLine: string };
 
-// 장면 3개 결과 아래의 보조 입구: 기간 중 특집 하나. 첫 방문자는 홈을 거치지 않고 장면에서 장면으로 가서, 흐름이 한 번 끊기는 이 자리에 갈림길을 둔다.
+// 장면 3개 결과 아래의 보조 입구: 기간 중 시즌 특집 하나(상시 팩은 메인 경로가 아니라 여기 두지 않는다). 첫 방문자는 홈을 거치지 않고 장면에서 장면으로 가서, 흐름이 한 번 끊기는 이 자리에 갈림길을 둔다.
 // 주 버튼(다음 장면)은 그대로이고 이건 흰 카드다. 지금 장면이 이미 그 특집이면 띄우지 않는다
 function FeatureDetour({ order, current }: { order: OrderItem[]; current: string }) {
   const season = useSeason();
   const cleared = useCleared();
   const here = order.find((s) => s.id === current)?.collection;
-  const lane = FEATURE_LIST.filter((f) => season.states[f.slug] === "live" && f.slug !== here)
+  const lane = FEATURE_LIST.filter((f) => f.kind === "season" && season.states[f.slug] === "live" && f.slug !== here)
     .sort((a, b) => a.priority - b.priority)
     .map((f) => ({ feature: f, scenes: order.filter((s) => s.collection === f.slug) }))
     .find((l) => l.scenes.length > 0);
