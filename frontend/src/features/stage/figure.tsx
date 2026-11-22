@@ -170,7 +170,7 @@ export function Figure({
     const hairStyle: Look["hairStyle"] = wornHair && isHairItem(wornHair.id) ? HAIR_ITEMS[wornHair.id][look.hero ?? "girl"].style : look.hairStyle;
     const hair = wornHair?.color ?? HAIR_DEFAULT[hairStyle] ?? look.hair;
     const softBangs = SOFT_BANGS.has(hairStyle);
-    const skin = animal?.fur ?? SKIN;
+    const skin = animal?.fur ?? look.skin ?? SKIN;
     const shirtShade = useMemo(() => shade(look.shirt, -0.18), [look.shirt]);
 
     // 상대방을 바라보는 방향(+1: 오른쪽을 봄, -1: 왼쪽을 봄)

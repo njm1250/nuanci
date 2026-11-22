@@ -17,6 +17,8 @@ export const CAST: Record<CastId, Look & { name: string }> = {
   // 동네 할아버지·골동품 가게 사장님처럼 나이 든 단역
   grandpa: { name: "Grandpa", shirt: "#8a6a4f", hair: "#dcdad4", hairStyle: "short", glasses: true },
   mom: { name: "Mom", shirt: "#b07fb5", hair: "#6b5a4f", hairStyle: "bun", apron: "#f2c6c6" },
+  // 인도에서 온 웃음 담당 친구. 고증대로 갈색 피부
+  raj: { name: "Raj", shirt: "#e07a2f", hair: "#1a1412", hairStyle: "short", skin: "#b07a52" },
   bori: { name: "Bori", shirt: "#5fb7a0", hair: "#7a4a2a", hairStyle: "none", animal: { kind: "bear", fur: "#7a4a2a", inner: "#f0d2ad" } },
 };
 

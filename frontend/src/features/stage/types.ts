@@ -1,7 +1,7 @@
 export type SetId = "dining" | "office" | "cafe" | "living" | "street" | "park" | "elevator" | "store" | "karaoke" | "gym" | "freezer" | "sleephall" | "room" | "plane" | "subway" | "classroom" | "clinic" | "pharmacy" | "bunsik" | "salon" | "boutique" | "market" | "studio";
 export type PropId = "blaster" | "phone" | "card" | "pudding" | "bag" | "mic" | "flowers" | "umbrella" | "coffee" | "cake" | "fish" | "gift" | "trophy" | "bill" | "cheque" | "clipboard" | "pillow" | "alarm" | "clip" | "pen" | "camera" | "key" | "cash";
 export type Time = "day" | "evening";
-export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong" | "max" | "mc" | "mom" | "snoozy" | "grandpa";
+export type CastId = "me" | "meGirl" | "sam" | "alex" | "barista" | "jordan" | "mochi" | "bori" | "boss" | "kong" | "max" | "mc" | "mom" | "snoozy" | "grandpa" | "raj";
 
 // 주인공. 사용자가 아지트에서 고른 모습으로 모든 장면에 나온다
 export type Hero = "boy" | "girl";
@@ -102,5 +102,7 @@ export type Look = {
   muscle?: boolean;
   wear?: Worn[];
   // 동물 캐릭터: 털색이 피부를 대신하고, 귀·꼬리·볼터치가 붙고, 머리가 커서 더 귀엽게 보인다
+  // 사람 피부색. 없으면 기본 피부색
+  skin?: string;
   animal?: { kind: "cat" | "bear" | "dog"; fur: string; inner: string };
 };
