@@ -37,6 +37,7 @@ export const DECOR_IDS = [
   "snow-pile",
   "xmas-tree",
   "wreath",
+  "xmas-garland",
   "thermometer",
   "tripod-cam",
   "ring-light",
