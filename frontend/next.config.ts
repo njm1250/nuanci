@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
   // /api 요청을 BE로 프록시해서 브라우저 입장에서는 같은 출처로 보이게 한다 (CORS 불필요)
   async rewrites() {
     return [
+      // 플레이 스토어 앱(TWA) 소유 증명. 점으로 시작하는 폴더 대신 일반 경로로 만들고 표준 주소로 연결한다
+      { source: "/.well-known/assetlinks.json", destination: "/assetlinks.json" },
       {
         source: "/api/:path*",
         destination: `${process.env.BACKEND_URL ?? "http://localhost:8080"}/api/:path*`,
