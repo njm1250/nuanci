@@ -3,8 +3,9 @@ import { ADMIN_COOKIE } from "@/features/admin/cookie";
 import { CLOSED_PATHS } from "@/features/site/lean";
 import { RETURNING_COOKIE } from "@/features/scene/track";
 
-// 검색·링크 미리보기 봇은 소개 화면을 그대로 읽게 둔다
-const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|kakaotalk-scrap|yeti|daum|embedly|lighthouse/i;
+// 검색·링크 미리보기 봇과 AI가 주소를 직접 열 때(ChatGPT-User, Claude-User, Perplexity-User 등)는 소개 화면을 그대로 읽게 둔다.
+// 'bot'이 이름에 없는 AI 열람기를 빠뜨리면 첫 장면 화면을 받아 서비스 소개를 못 읽었다
+const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|kakaotalk-scrap|yeti|daum|embedly|lighthouse|chatgpt|openai|claude|anthropic|perplexity|gemini|google-extended|bingpreview|-user\//i;
 
 export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
