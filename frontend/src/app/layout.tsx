@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   openGraph: { siteName: "nuanci", locale: "ko_KR", type: "website", title: SITE_TITLE, description: SITE_DESCRIPTION },
   twitter: { card: "summary_large_image" },
+  // 검색 엔진 소유 확인(Google Search Console, Bing Webmaster Tools). 값은 Vercel 환경 변수에 넣는다
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : undefined,
+  },
 };
 
 const RETURNING_SCRIPT = `try{var c=localStorage.getItem("nuanci.cleared");if(location.search.indexOf("intro")<0&&(localStorage.getItem("nuanci.played")==="1"||(c&&c!=="[]"))){document.documentElement.setAttribute("data-returning","");document.cookie="nuanci_r=1; path=/; max-age=31536000; samesite=lax"}}catch(e){}`;
