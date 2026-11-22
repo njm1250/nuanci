@@ -5,7 +5,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "nuanci - 영어 뉘앙스 게임",
+    name: "nuanci - 1분 영어 회화 게임",
     short_name: "nuanci",
     description: "하고 싶은 말을 영어로 골라 보면, 상대가 어떻게 알아듣는지 보여 주는 게임",
     lang: "ko",
