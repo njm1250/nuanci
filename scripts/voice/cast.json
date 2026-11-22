@@ -1,0 +1,72 @@
+{
+  "_": "캐릭터별 목소리. elevenlabs가 1순위, 막히면(결제 없음·한도 초과·키 없음) gemini로 만든다. rate는 생성 뒤 속도는 그대로 두고 음만 올리는 배율(1.12 ≈ 2반음, 1.26 ≈ 4반음). 곰·고양이·개·주인공은 아이 같고 중성적으로 들리게 높게 둔다. gemini의 style은 연기 방향(대사와 따로 DIRECTOR'S NOTES로 넘긴다), accent는 억양.",
+  "default": {
+    "elevenlabs": { "voice": "FGY2WhTYpPnrIDTdsKH5", "name": "Laura", "rate": 1.26 },
+    "gemini": { "voice": "Leda", "rate": 1.15, "style": "a cute, childlike, androgynous cartoon character talking casually" }
+  },
+  "me": {
+    "elevenlabs": { "voice": "cgSgspJ2msm6clMCkdW9", "name": "Jessica", "rate": 1.12 },
+    "gemini": { "voice": "Zephyr", "rate": 1.12, "style": "a small cute cartoon girl, childlike and a bit dorky, casual like chatting with a friend" }
+  },
+  "bori": {
+    "elevenlabs": { "voice": "FGY2WhTYpPnrIDTdsKH5", "name": "Laura", "rate": 1.26 },
+    "gemini": { "voice": "Leda", "rate": 1.15, "style": "a small round bear cub, childlike and androgynous, soft and a little clumsy" }
+  },
+  "mochi": {
+    "elevenlabs": { "voice": "FGY2WhTYpPnrIDTdsKH5", "name": "Laura", "rate": 1.38 },
+    "gemini": { "voice": "Achernar", "rate": 1.25, "style": "a tiny cat mascot, very childlike and sly, short playful lines" }
+  },
+  "kong": {
+    "elevenlabs": { "voice": "IKne3meq5aSn9XLyUdCD", "name": "Charlie", "rate": 1.26 },
+    "gemini": { "voice": "Fenrir", "rate": 1.15, "style": "an excitable puppy friend, childlike, loud and dramatic" }
+  },
+  "sam": {
+    "elevenlabs": { "voice": "bIHbv24MWmeRgasZH58o", "name": "Will", "rate": 1.3 },
+    "gemini": { "voice": "Puck", "rate": 1.12, "style": "an upbeat roommate friend, warm and teasing" }
+  },
+  "alex": {
+    "elevenlabs": { "voice": "TX3LPaxmHKxFdv7VOQHJ", "name": "Liam", "rate": 1.26 },
+    "gemini": { "voice": "Achird", "rate": 1.12, "style": "a friendly office coworker, casual and quick" }
+  },
+  "boss": {
+    "elevenlabs": { "voice": "CwhRBWXzGAHq8TQ4Fs17", "name": "Roger", "rate": 1.18 },
+    "gemini": { "voice": "Charon", "rate": 1.1, "style": "a slightly clumsy, well-meaning team leader who loves dad jokes" }
+  },
+  "jordan": {
+    "elevenlabs": { "voice": "iP95p4xoKVk53GoZ742B", "name": "Chris", "rate": 1.2 },
+    "gemini": { "voice": "Laomedeia", "rate": 1.1, "style": "a laid-back, funny best friend" }
+  },
+  "barista": {
+    "elevenlabs": { "voice": "cjVigY5qzO86Huf0OWal", "name": "Eric", "rate": 1.18 },
+    "gemini": { "voice": "Aoede", "rate": 1.1, "style": "a breezy, friendly cafe barista" }
+  },
+  "mom": {
+    "elevenlabs": { "voice": "hpp4J3VqNfWAUOO0d1Us", "name": "Bella", "rate": 1.15 },
+    "gemini": { "voice": "Sulafat", "rate": 1.1, "style": "a warm, fussy mom" }
+  },
+  "grandpa": {
+    "elevenlabs": { "voice": "pqHfZKP75CvOlQylNhV4", "name": "Bill", "rate": 1.12 },
+    "gemini": { "voice": "Gacrux", "rate": 1.05, "style": "a sweet, slow-talking grandpa" }
+  },
+  "max": {
+    "elevenlabs": { "voice": "pNInz6obpgDQGcFmaJgB", "name": "Adam", "rate": 1.12 },
+    "gemini": { "voice": "Alnilam", "rate": 1.05, "style": "an over-confident gym buff, comically intense" }
+  },
+  "mc": {
+    "elevenlabs": { "voice": "N2lVS1w4EtoT3dr4eOWO", "name": "Callum", "rate": 1.15 },
+    "gemini": { "voice": "Sadachbia", "rate": 1.1, "style": "an over-the-top contest announcer" }
+  },
+  "snoozy": {
+    "elevenlabs": { "voice": "SAz9YHcvj6GT2YYXdXww", "name": "River", "rate": 1.15 },
+    "gemini": { "voice": "Enceladus", "rate": 1.1, "style": "a sleepy, breathy character who is always half awake" }
+  },
+  "newcomer": {
+    "elevenlabs": { "voice": "nPczCjzI2devNBz1zQrb", "name": "Brian", "rate": 1.15 },
+    "gemini": { "voice": "Zubenelgenubi", "rate": 1.1, "style": "a casual, slightly nervous new open-source contributor" }
+  },
+  "raj": {
+    "_": "인도 억양 웃음 담당 조연(크리스마스 특집). ElevenLabs 기본 목소리에는 인도 억양이 없어 gemini가 1순위다. 주인공에게는 쓰지 않는다",
+    "elevenlabs": null,
+    "gemini": { "voice": "Iapetus", "rate": 1.08, "accent": "Indian English", "style": "a self-appointed party committee chair, cheerful and comically proud" }
+  }
+}

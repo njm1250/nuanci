@@ -4,8 +4,8 @@
 #     바뀌었거나 없는 줄만 ElevenLabs를 부른다. 원본이 진짜 소스라 TTS 비용은 바뀐 줄에만 든다.
 #  2) 배포: 장면 단계(base·followUp)마다 대사를 한 파일로 이어 붙인 묶음(Opus webm + 옛 Safari용 AAC m4a)과 줄별 위치표
 #     (frontend/public/voice/<장면id>.json). 묶음 파일 이름에 내용 해시를 넣어 1년 캐시해도 고치면 새 주소가 된다.
-# 사용: python3 scripts/voice/make-voices.py 장면수   (로컬 프런트 :3000 의 /api/scenes 를 읽는다, 키는 .env.local 의 ELEVENLABS_API_KEY)
-import hashlib, json, subprocess, sys, tempfile, urllib.request
+# 사용: python3 scripts/voice/make-voices.py 장면수 [--provider=gemini]   (로컬 프런트 :3000 의 /api/scenes 를 읽는다. 키: .env.local ELEVENLABS_API_KEY, .env.production NUANCI_GEMINI_API_KEY)
+import base64, hashlib, json, re, subprocess, sys, tempfile, time, urllib.error, urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -15,16 +15,17 @@ PUBLIC = ROOT / "frontend/public/voice"
 API = "http://localhost:3000/api"
 MODEL = "eleven_v3"
 SETTINGS = {"stability": 0.3}
-# 역할 → (ElevenLabs 기본 목소리, 음 올림 배율). 캐릭터는 아이 같고 중성적으로 들리게 생성 뒤 음만 올린다(속도는 그대로).
-# 1.26 ≈ 4반음, 1.12 ≈ 2반음
-CAST = {
-    "me": ("cgSgspJ2msm6clMCkdW9", 1.12),     # Jessica
-    "bori": ("FGY2WhTYpPnrIDTdsKH5", 1.26),   # Laura
-    "sam": ("bIHbv24MWmeRgasZH58o", 1.30),    # Will
-    "alex": ("TX3LPaxmHKxFdv7VOQHJ", 1.26),   # Liam
-    "boss": ("CwhRBWXzGAHq8TQ4Fs17", 1.18),   # Roger
-}
-DEFAULT_PARTNER = ("FGY2WhTYpPnrIDTdsKH5", 1.26)
+# 캐릭터별 목소리는 cast.json. elevenlabs가 1순위이고, 결제·한도·키 문제로 막히면 gemini로 만든다(--provider gemini로 강제할 수도 있다)
+CAST = json.loads((Path(__file__).parent / "cast.json").read_text())
+GEMINI_TTS = "gemini-3.8-flash-tts"
+FORCED = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--provider=")), None)
+eleven_down = FORCED == "gemini"
+
+
+def cast_of(speaker: str) -> dict:
+    return CAST.get(speaker) or CAST["default"]
+
+
 # 상대 표정 → 겉말 연기 태그. 속마음과 달리 겉으로 무엇을 말하는지가 웃음이라 표정 그대로 연기시킨다
 TAG = {"shocked": "shocked", "puzzled": "confused", "dizzy": "dazed", "awkward": "awkward", "happy": "happy", "delighted": "excited",
        "love": "touched", "angry": "annoyed", "crying": "sad", "sleepy": "sleepy", "stuffed": "full"}
@@ -52,12 +53,63 @@ def get(path):
     return json.load(urllib.request.urlopen(f"{API}{path}"))
 
 
-def tts(voice: str, text: str) -> bytes:
-    k = [l.split("=", 1)[1].strip() for l in open(ROOT / ".env.local") if l.startswith("ELEVENLABS_API_KEY=")][0]
+def env(path: Path, key: str) -> str | None:
+    if not path.exists():
+        return None
+    for l in path.read_text().splitlines():
+        if l.startswith(key + "="):
+            return l.split("=", 1)[1].strip().strip("\"'")
+    return None
+
+
+def eleven(voice: str, text: str) -> bytes:
+    k = env(ROOT / ".env.local", "ELEVENLABS_API_KEY")
+    if not k:
+        raise PermissionError("ELEVENLABS_API_KEY 없음")
     body = json.dumps({"text": text, "model_id": MODEL, "voice_settings": SETTINGS}).encode()
     req = urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{voice}?output_format=mp3_44100_128", body,
                                  {"xi-api-key": k, "Content-Type": "application/json"})
     return urllib.request.urlopen(req, timeout=120).read()
+
+
+def gemini_call(model: str, body: dict) -> dict:
+    k = env(ROOT / ".env.production", "NUANCI_GEMINI_API_KEY")
+    req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", json.dumps(body).encode(),
+                                 {"x-goog-api-key": k, "Content-Type": "application/json"})
+    for attempt in range(4):
+        try:
+            return json.load(urllib.request.urlopen(req, timeout=120))
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or attempt == 3:
+                raise
+            time.sleep(20)  # TTS 분당 한도
+    raise RuntimeError("unreachable")
+
+
+def words(t: str) -> list[str]:
+    return re.sub(r"[^a-z0-9' ]", " ", t.lower().replace("’", "'")).split()
+
+
+def gemini(cfg: dict, text: str, tag) -> bytes:
+    """Gemini TTS. 연기 지시는 DIRECTOR'S NOTES로 떼어 넘긴다(한 줄에 섞으면 지시문까지 읽었다).
+    가끔 대본에 없는 말(Um, Woo!)을 덧붙여서, 받아 적어 대본과 단어가 같을 때만 쓴다"""
+    notes = f"Character: {cfg['style']}. Style: {tag or 'natural'}, casual and unpolished, not a voice actor."
+    if cfg.get("accent"):
+        notes += f" Accent: {cfg['accent']}."
+    prompt = f"## DIRECTOR'S NOTES\n{notes}\n\n## TRANSCRIPT\n{text}"
+    check = env(ROOT / ".env.production", "NUANCI_GEMINI_MODEL")
+    for _ in range(3):
+        time.sleep(7)
+        d = gemini_call(GEMINI_TTS, {"contents": [{"parts": [{"text": prompt}]}],
+                                     "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["voice"]}}}}})
+        audio = base64.b64decode(d["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
+        heard = gemini_call(check, {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/wav", "data": base64.b64encode(audio).decode()}},
+                                                            {"text": "Transcribe exactly every word spoken. Output only the transcript."}]}]})
+        said = heard["candidates"][0]["content"]["parts"][0]["text"]
+        if words(said) == words(text):
+            return audio
+        print(f"  다시 생성(대본과 다름): {said.strip()!r}")
+    raise ValueError(f"Gemini가 대본대로 읽지 않음: {text}")
 
 
 def lines_of(scene: dict) -> dict:
@@ -85,20 +137,42 @@ def lines_of(scene: dict) -> dict:
 
 
 def ensure_master(manifest: dict, speaker: str, text: str, tag) -> int:
+    global eleven_down
     h = key(speaker, text)
-    voice, rate = CAST.get(speaker, DEFAULT_PARTNER)
-    want = {"voice": voice, "rate": rate, "model": MODEL, "settings": SETTINGS, "tag": tag}
+    cfg = cast_of(speaker)
     path = MASTERS / f"{h}.mp3"
-    if path.exists() and all(manifest.get(h, {}).get(k, want[k]) == want[k] for k in want):
-        return 0
-    said = f"[{tag}] {text}" if tag else text
-    with tempfile.NamedTemporaryFile(suffix=".mp3") as f, tempfile.NamedTemporaryFile(suffix=".wav") as w:
-        f.write(tts(voice, said))
-        f.flush()
-        run("-i", f.name, "-af", f"asetrate=44100*{rate},aresample=44100,atempo={1 / rate:.4f},{EDGES}", "-ac", "1", w.name)
-        run("-i", w.name, "-b:a", "64k", str(path))
-    manifest[h] = {"speaker": speaker, "text": text, **want}
-    return len(said)
+    old = manifest.get(h, {})
+    # 이미 만든 줄은 그때의 공급자·목소리·배율이 지금 설정과 같으면 그대로 쓴다. gemini로 만든 줄은 elevenlabs가 되살아나도 그대로 둔다
+    if path.exists():
+        prov = old.get("provider", "elevenlabs")
+        now = cfg.get(prov) or {}
+        if now and old.get("voice", now.get("voice")) == now.get("voice") and old.get("rate", now.get("rate")) == now.get("rate") and old.get("tag", tag) == tag:
+            return 0
+    order = ["gemini"] if eleven_down or not cfg.get("elevenlabs") else ["elevenlabs", "gemini"]
+    for prov in order:
+        c = cfg.get(prov)
+        if not c:
+            continue
+        try:
+            if prov == "elevenlabs":
+                raw, ext, sent = eleven(c["voice"], f"[{tag}] {text}" if tag else text), "mp3", len(text) + (len(tag) + 3 if tag else 0)
+            else:
+                raw, ext, sent = gemini(c, text, tag), "wav", 0
+        except (urllib.error.HTTPError, PermissionError) as e:
+            if prov == "elevenlabs":
+                print(f"  ElevenLabs 막힘({getattr(e, 'code', e)}) → 이후 Gemini로 만든다")
+                eleven_down = True
+                continue
+            raise
+        with tempfile.NamedTemporaryFile(suffix="." + ext) as f, tempfile.NamedTemporaryFile(suffix=".wav") as w:
+            f.write(raw)
+            f.flush()
+            rate = c["rate"]
+            run("-i", f.name, "-af", f"aresample=44100,asetrate=44100*{rate},aresample=44100,atempo={1 / rate:.4f},{EDGES}", "-ac", "1", w.name)
+            run("-i", w.name, "-b:a", "64k", str(path))
+        manifest[h] = {"speaker": speaker, "text": text, "provider": prov, "voice": c["voice"], "rate": rate, "tag": tag}
+        return sent
+    raise RuntimeError(f"목소리 설정 없음: {speaker}")
 
 
 def build_step(scene_id: str, step: str, rows: list) -> dict:
@@ -128,7 +202,8 @@ def build_step(scene_id: str, step: str, rows: list) -> dict:
 
 
 def main():
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 10
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    n = int(args[0]) if args else 10
     MASTERS.mkdir(parents=True, exist_ok=True)
     PUBLIC.mkdir(parents=True, exist_ok=True)
     manifest_path = CACHE / "manifest.json"
