@@ -138,7 +138,16 @@ def gemini(cfg: dict, text: str, tag) -> bytes:
         time.sleep(7)
         d = gemini_tts({"contents": [{"parts": [{"text": prompt}]}],
                                      "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["voice"]}}}}})
-        audio = base64.b64decode(d["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
+        inline = d["candidates"][0]["content"]["parts"][0]["inlineData"]
+        audio = base64.b64decode(inline["data"])
+        # 모델에 따라 WAV 대신 날것의 PCM(audio/L16;rate=24000)을 준다. 받아 적기와 ffmpeg가 읽게 WAV로 감싼다
+        if "wav" not in inline.get("mimeType", ""):
+            import io, wave
+            rate = int((re.search(r"rate=(\d+)", inline.get("mimeType", "")) or [None, "24000"])[1])
+            buf = io.BytesIO()
+            with wave.open(buf, "wb") as w:
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(audio)
+            audio = buf.getvalue()
         heard = gemini_call(check, {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/wav", "data": base64.b64encode(audio).decode()}},
                                                             {"text": "Transcribe exactly every word spoken. Output only the transcript."}]}]})
         said = heard["candidates"][0]["content"]["parts"][0]["text"]
