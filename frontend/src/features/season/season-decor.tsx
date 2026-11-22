@@ -14,10 +14,15 @@ export function useLiveDecor(slugs: string[]): FeatureDecor {
 
 // 머리줄 띠 아래 가장자리에 다는 도트 전구 줄. 전선 한 줄에 네모 전구가 세 가지 색으로 번갈아 달린다. 움직이지 않는다
 export function BandLights({ slugs }: { slugs: string[] }) {
-  const id = useId();
   if (useLiveDecor(slugs) === "off") return null;
+  return <LightString className="bottom-0" />;
+}
+
+// 전구 줄 한 가닥. 특집 카드 위 가장자리에도 건다
+export function LightString({ className = "" }: { className?: string }) {
+  const id = useId();
   return (
-    <svg aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-2 w-full" shapeRendering="crispEdges">
+    <svg aria-hidden className={`pointer-events-none absolute inset-x-0 h-2 w-full ${className}`} shapeRendering="crispEdges">
       <defs>
         <pattern id={id} width="36" height="8" patternUnits="userSpaceOnUse">
           <rect x="0" y="1" width="36" height="1" className="fill-white/40" />
@@ -61,11 +66,21 @@ const COVER_FLAKES: [number, number, number][] = [
   [90, 60, 2],
 ];
 
-// 내리는 눈송이. 자리·크기·속도는 고정 값이라 그릴 때마다 같다. 음수 지연으로 처음부터 화면 곳곳에 떠 있다
-const FLAKES = Array.from({ length: 26 }, (_, i) => {
-  const r = (n: number) => ((i * 9301 + n * 49297) % 233280) / 233280;
-  return { left: r(1) * 100, size: r(2) > 0.7 ? 6 : 4, dur: 12 + r(3) * 10, delay: -r(4) * 20, drift: (r(5) - 0.5) * 60 };
-});
+// 내리는 눈송이. 자리·크기·속도는 고정 씨앗에서 뽑아 그릴 때마다 같다. 음수 지연으로 처음부터 화면 곳곳에 떠 있다.
+// 값마다 따로 섞는 난수(mulberry32)를 쓴다. i에 비례하는 식으로 만들면 자리와 지연이 같이 늘어 눈이 대각선 한 줄로 떨어진다
+function seeded(seed: number) {
+  let a = seed;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const FLAKES = (() => {
+  const r = seeded(20261225);
+  return Array.from({ length: 26 }, () => ({ left: r() * 100, size: r() > 0.7 ? 6 : 4, dur: 12 + r() * 10, delay: -r() * 20, drift: (r() - 0.5) * 60 }));
+})();
 
 const mounted = () => true;
 const noSubscribe = () => () => {};
@@ -89,7 +104,7 @@ export function Snowfall({ slugs }: { slugs: string[] }) {
       {FLAKES.map((f, i) => (
         <span
           key={i}
-          className="snow-flake absolute top-0 block animate-snow bg-fg/30 light:bg-line/70"
+          className="snow-flake absolute top-0 block bg-fg/30 light:bg-line/70"
           style={{ left: `${f.left}%`, width: f.size, height: f.size, ["--snow-dur" as string]: `${f.dur}s`, ["--snow-delay" as string]: `${f.delay}s`, ["--snow-drift" as string]: `${f.drift}px` }}
         />
       ))}

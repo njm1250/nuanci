@@ -12,6 +12,7 @@ import { VoiceCard } from "@/features/progression/voice-card";
 import { ReviewToday } from "@/features/review/review-today";
 import { featuresIn, useSeason } from "@/features/season/season";
 import { CoverSnow } from "@/features/season/season-decor";
+import { XmasBanner } from "@/features/season/xmas-banner";
 import { DevPackBanner } from "./dev-pack-banner";
 import { FEATURES } from "@/features/site/lean";
 import type { StageSpec } from "@/features/stage/types";
@@ -182,7 +183,11 @@ export function HomeShelf({ scenes }: { scenes: ShelfScene[] }) {
           </BlockLink>
         )}
         {lead ? (
-          <FeatureCard lane={lead} className="mt-8" />
+          lead.feature.slug === "xmas" ? (
+            <XmasBanner scenes={lead.scenes} next={lead.next} done={lead.done} className="mt-8" />
+          ) : (
+            <FeatureCard lane={lead} className="mt-8" />
+          )
         ) : (
           others.length > 0 && (
             <>

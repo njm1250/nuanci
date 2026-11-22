@@ -24,7 +24,7 @@ export type Feature = {
 };
 
 export const FEATURE_LIST: Feature[] = [
-  { slug: "xmas", kind: "season", name: "크리스마스 특집", cover: { set: "living", time: "evening", partner: "mom" }, start: "2026-12-01T00:00:00+09:00", end: "2027-01-01T00:00:00+09:00", priority: 1, decor: "snow" },
+  { slug: "xmas", kind: "season", name: "크리스마스 특집", cover: { set: "street", time: "evening", partner: "raj", decor: [{ id: "snow-pile", x: -1.9 }, { id: "snow-pile", x: 2.1 }] }, start: "2026-11-22T00:00:00+09:00", end: "2027-01-01T00:00:00+09:00", priority: 1, decor: "snow" },
   { slug: "dev", kind: "pack", name: "첫 PR 머지까지", start: "2026-11-12T00:00:00+09:00", priority: 2, decor: "off" },
 ];
 

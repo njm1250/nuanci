@@ -105,8 +105,6 @@
   --animate-think: think-in 260ms var(--ease-snap) both;
   --animate-burst: burst 950ms steps(4, end) 70ms both;
   --animate-soul: soul 1400ms ease-out both;
-  /* 특집 기간 홈 바탕의 눈. 도트 결에 맞게 1초에 10칸씩 끊어 떨어진다. 길이·지연·옆 흔들림은 눈송이마다 --snow-* 로 준다 */
-  --animate-snow: snow-fall var(--snow-dur, 16s) steps(160, end) var(--snow-delay, 0s) infinite;
   --font-sans: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   /* 버튼·라벨 글꼴. 본문과 같은 글꼴을 굵기만 달리 쓴다(label 500, label-strong 800) */
   --font-label: var(--font-text), "Pretendard Variable", Pretendard, system-ui, sans-serif;
@@ -849,6 +847,11 @@ label {
   to {
     transform: translate3d(var(--snow-drift, 0px), 105vh, 0);
   }
+}
+/* 도트 결에 맞게 끊어 떨어진다. 길이·지연·옆 흔들림은 눈송이마다 --snow-* 로 준다.
+   @theme의 --animate-* 에 넣으면 var()가 :root에서 한 번만 풀려 모든 눈송이가 같은 값으로 한 줄로 떨어진다. 그래서 클래스에 직접 쓴다 */
+.snow-flake {
+  animation: snow-fall var(--snow-dur, 16s) steps(160, end) var(--snow-delay, 0s) infinite;
 }
 /* 반복 움직임은 화면에 하나. 눈이 내리는 동안 홈의 다른 반복(대표 카드 화살표 콕콕, 떠 있는 그림)은 멈춘다 */
 [data-snow] .feat-arrow,
