@@ -1,0 +1,27 @@
+{
+  "_": "캐릭터별 목소리 설정 예시. 실제 파일(cast.json)은 제작 자산이라 저장소에 올리지 않는다. elevenlabs가 1순위, 막히면 gemini. rate는 속도는 두고 음만 올리는 배율",
+  "default": {
+    "elevenlabs": {
+      "voice": "<ElevenLabs voice id>",
+      "name": "<이름>",
+      "rate": 1.0
+    },
+    "gemini": {
+      "voice": "<Gemini voice>",
+      "rate": 1.1,
+      "style": "<연기 방향>"
+    }
+  },
+  "me": {
+    "elevenlabs": {
+      "voice": "<ElevenLabs voice id>",
+      "name": "<이름>",
+      "rate": 1.0
+    },
+    "gemini": {
+      "voice": "<Gemini voice>",
+      "rate": 1.1,
+      "style": "<연기 방향>"
+    }
+  }
+}
