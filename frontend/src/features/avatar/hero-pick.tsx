@@ -32,7 +32,7 @@ export function HeroPick() {
   const [picked, setPicked] = useState(false);
   if (!show) return null;
   const pick = (hero: Hero) => {
-    sfx.tap();
+    sfx.heroHi(hero);
     try {
       localStorage.setItem(KEY, hero);
     } catch {}

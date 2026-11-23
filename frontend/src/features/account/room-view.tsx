@@ -293,7 +293,7 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
                   <button
                     key={hero}
                     type="button"
-                    onClick={() => setAvatar({ ...avatar, hero }, member)}
+                    onClick={() => (sfx.heroHi(hero), setAvatar({ ...avatar, hero }, member))}
                     aria-pressed={avatar.hero === hero}
                     className={`min-h-11 font-label text-ui ${avatar.hero === hero ? "bg-fg text-page" : "text-fg-muted hover:text-fg"}`}
                   >
