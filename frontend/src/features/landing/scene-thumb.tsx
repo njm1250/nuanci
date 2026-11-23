@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useHeroLook } from "@/features/rewards/hero-look";
 import { C } from "@/features/stage/palette";
 import { useThumb, useThumbJobs } from "@/features/stage/thumb-cache";
-import type { StageSpec } from "@/features/stage/types";
+import type { Hero, StageSpec } from "@/features/stage/types";
 import { SET_WALLS } from "@/features/stage/walls";
 import { useIdle } from "./use-idle";
 
@@ -32,10 +32,12 @@ function useNear(ref: React.RefObject<HTMLElement | null>) {
 }
 
 // 장면 카드의 무대 썸네일. 주인공은 아지트에서 고른 모습 그대로 나온다
-export function SceneThumb({ stage, className = "" }: { stage?: StageSpec; className?: string }) {
+// hero를 주면 내가 고른 모습 대신 그 모습으로 그린다(모습 고르기에서 두 모습을 나란히 보여 줄 때)
+export function SceneThumb({ stage, className = "", hero }: { stage?: StageSpec; className?: string; hero?: Hero }) {
   const look = useHeroLook();
-  const wearKey = JSON.stringify(look.wear);
-  const spec = useMemo(() => (stage ? { ...stage, hero: look.hero, wear: JSON.parse(wearKey) } : null), [stage, look.hero, wearKey]);
+  const wearKey = JSON.stringify(hero ? [] : look.wear);
+  const shownHero = hero ?? look.hero;
+  const spec = useMemo(() => (stage ? { ...stage, hero: shownHero, wear: JSON.parse(wearKey) } : null), [stage, shownHero, wearKey]);
   const box = useRef<HTMLSpanElement>(null);
   const url = useThumb(spec, useNear(box));
   const wall = stage ? SET_WALLS[stage.set][stage.time] : C.paper;
