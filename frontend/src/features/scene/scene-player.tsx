@@ -637,16 +637,16 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
         {/* 모바일은 머리줄과 무대를 검은 띠로 묶고, 데스크톱은 다른 화면처럼 머리줄만 화면 너비로 검게 둔다 */}
         <div className="shrink-0 md:contents">
         <header className="relative isolate flex h-14 shrink-0 items-center gap-2 bg-ink px-4 font-label text-ui text-fg md:col-span-2 md:h-16 md:bg-transparent md:px-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:-z-10 md:before:w-screen md:before:-translate-x-1/2 md:before:bg-ink">
-          {/* 다른 화면 머리줄과 같은 마크+글자 로고. 제목 자리가 좁아서 조금 작게 둔다. 첫 방문 중에는 소개 화면으로 간다(LogoLink) */}
+          {/* 다른 화면 머리줄과 같은 마크+글자 로고. 첫 방문 중에는 소개 화면으로 간다(LogoLink) */}
           {preview ? (
             <Link href={`/admin/scenes/${scene.id}`} className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
               <span className="logo">검수</span>
             </Link>
           ) : (
             <LogoLink className="-ml-2 flex h-11 shrink-0 items-center gap-1.5 px-2">
-              <span aria-hidden className="block size-6 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
-              {/* 좁은 폰에서는 글자 로고를 빼고 마크만 둔다. 뜻 보기 버튼까지 서면 장면 제목이 "유튜브 …"로 잘려 무슨 장면인지 안 보였다 */}
-              <span aria-hidden className="block h-[18px] w-[67px] max-[419px]:hidden [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
+              <span aria-hidden className="block h-7 w-[26px] [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: logoSvg() }} />
+              {/* 폰에서는 글자 로고를 빼고 마크만 둔다. 뜻 보기 버튼까지 서면 장면 제목이 "유튜브 …"로 잘려 무슨 장면인지 안 보였다 */}
+              <span aria-hidden className="block h-[22px] w-[89px] max-md:hidden [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: wordmarkSvg() }} />
             </LogoLink>
           )}
           <h1 className="min-w-0 truncate text-fg">{scene.title}</h1>

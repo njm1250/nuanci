@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { CSSProperties, ReactNode } from "react";
 import { ImageResponse } from "next/og";
 import { MOCHI_SIZE, mochiSvg } from "@/features/mascot/mochi";
-import { LOGO_SIZE, logoDataUrl, WORDMARK_SIZE, wordmarkDataUrl } from "@/features/site/logo";
+import { LOGO_SIZE, logoDataUrl, WORDMARK_DROP, WORDMARK_SIZE, wordmarkDataUrl } from "@/features/site/logo";
 
 export const CARD_SIZE = { width: 1200, height: 630 };
 
@@ -84,13 +84,16 @@ export function Marker({ children, style }: { children: ReactNode; style?: CSSPr
   );
 }
 
+// 마크와 글자가 같은 칸 크기를 쓴다. 글자는 마크 몸통 밑줄에 맞춰 내린다
+const LOCKUP_CELL = 2;
+
 export function Lockup() {
   return (
-    <div style={{ display: "flex", alignItems: "center" }}>
+    <div style={{ display: "flex", alignItems: "flex-start" }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logo} width={LOGO_SIZE.w * 4} height={LOGO_SIZE.h * 4} alt="" style={{ marginTop: 4 }} />
+      <img src={logo} width={LOGO_SIZE.w * LOCKUP_CELL} height={LOGO_SIZE.h * LOCKUP_CELL} alt="" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={wordmark} width={WORDMARK_SIZE.w * 4} height={WORDMARK_SIZE.h * 4} alt="nuanci" style={{ marginLeft: 22, marginTop: 8 }} />
+      <img src={wordmark} width={WORDMARK_SIZE.w * LOCKUP_CELL} height={WORDMARK_SIZE.h * LOCKUP_CELL} alt="nuanci" style={{ marginLeft: 6 * LOCKUP_CELL, marginTop: WORDMARK_DROP * LOCKUP_CELL }} />
     </div>
   );
 }
