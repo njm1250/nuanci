@@ -28,8 +28,8 @@ import { useAccount } from "./account";
 import { GoogleButton } from "./google-button";
 
 const noop = () => () => {};
-// 성별 낱말 대신 모습으로 부른다(첫 장면 뒤 모습 고르기와 같은 말)
-const HERO_LABELS: Record<Hero, string> = { boy: "짧은 머리", girl: "긴 머리" };
+// 아지트 설정은 여자·남자로 분명하게 부른다. 첫 장면 뒤 무대 위 질문만 성별 낱말 없이 "어느 쪽이 너랑 더 닮았어?"로 묻는다
+const HERO_LABELS: Record<Hero, string> = { boy: "남자", girl: "여자" };
 
 const TABS = [
   { id: "wear", label: "옷장" },
