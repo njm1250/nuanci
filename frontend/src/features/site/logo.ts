@@ -1,86 +1,113 @@
-// 로고 마크: Mochi 귀가 달린 핑크 말풍선. 파비콘, 앱 아이콘, 공유 카드가 같은 격자를 쓴다
+// 로고 마크: 고개를 갸웃한 귀 달린 핑크 말풍선. 파비콘, 앱 아이콘, 공유 카드가 같은 그림을 쓴다
 const PALETTE: Record<string, string> = {
-  k: "#141317",
   o: "#fd91cc",
-  b: "#e5509a",
+  k: "#0b1a44",
 };
 
+// 오른쪽 귀와 눈이 두 칸 낮다. 모서리는 한두 칸씩 깎아 둥글게 보이게 한다
 const LOGO = [
-  "..k..........k..",
-  ".kok........kok.",
-  ".kook......kook.",
-  ".koookkkkkkoook.",
-  "kooooooooooooook",
-  "kooooooooooooook",
-  "kookkooooookkook",
-  "kookkooooookkook",
-  "kobboooooooobbok",
-  "kooooookkooooook",
-  ".kooooooooooook.",
-  "..kookkkkkkkkk..",
-  "..kok...........",
-  ".kok............",
-  ".kk.............",
-  "................",
+  ".oo.......................",
+  "oooo......................",
+  "ooooo..................oo.",
+  "oooooo................oooo",
+  "ooooooo..............ooooo",
+  "oooooooo............oooooo",
+  "ooooooooo..........ooooooo",
+  "oooooooooooooooooooooooooo",
+  "oooooooooooooooooooooooooo",
+  "oooooooooooooooooooooooooo",
+  "oooooooooooooooooooooooooo",
+  "oooooooooooooooooooooooooo",
+  "oooooooooooooooooooooooooo",
+  "oooookkkkooooooooooooooooo",
+  "oooookkkkooooooooooooooooo",
+  "oooookkkkooooooookkkkooooo",
+  "oooookkkkooooooookkkkooooo",
+  "oooooooooooooooookkkkooooo",
+  "oooooooooooooooookkkkooooo",
+  "oooooooooooooooooooooooooo",
+  ".ooooooooooooooooooooooooo",
+  ".ooooooooooooooooooooooooo",
+  "..ooooooooooooooooooooooo.",
+  "...oooooooooooooooooooooo.",
+  "...ooooooooooooooooooooo..",
+  "...oooooo.....oooooooo....",
+  "...oooo...................",
+  "...oo.....................",
 ];
 
-export const LOGO_SIZE = { w: 16, h: LOGO.length };
+// 32px 이하에서 쓰는 작은 그림. 큰 그림을 줄이면 눈이 뭉개져서 굵은 격자로 따로 그렸다
+const LOGO_SMALL = [
+  "o...........o.",
+  "oo.........oo.",
+  "ooo.......ooo.",
+  "oooo......oooo",
+  "oooooooooooooo",
+  "oooooooooooooo",
+  "ookkooooookkoo",
+  "ookkooooookkoo",
+  "oooooooooooooo",
+  "oooooooooooooo",
+  ".oooooooooooo.",
+  "..ooo.........",
+  ".oo...........",
+];
+
+export const LOGO_SIZE = { w: LOGO[0].length, h: LOGO.length };
+export const LOGO_SMALL_SIZE = { w: LOGO_SMALL[0].length, h: LOGO_SMALL.length };
 
 // 같은 색이 이어진 칸을 한 줄로 묶어서 색마다 path 하나로 그린다. 파비콘으로 받는 크기를 줄이려고
-export function logoSvg() {
+function gridSvg(rows: string[], palette: Record<string, string>) {
   const runs = new Map<string, string>();
-  LOGO.forEach((row, y) => {
+  rows.forEach((row, y) => {
     for (let x = 0; x < row.length; ) {
       let n = 1;
       while (row[x + n] === row[x]) n++;
-      if (PALETTE[row[x]]) runs.set(row[x], `${runs.get(row[x]) ?? ""}M${x} ${y}h${n}v1h-${n}z`);
+      if (palette[row[x]]) runs.set(row[x], `${runs.get(row[x]) ?? ""}M${x} ${y}h${n}v1h-${n}z`);
       x += n;
     }
   });
-  const paths = [...runs].map(([ch, d]) => `<path fill="${PALETTE[ch]}" d="${d}"/>`).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${LOGO_SIZE.w} ${LOGO_SIZE.h}" shape-rendering="crispEdges">${paths}</svg>`;
+  const paths = [...runs].map(([ch, d]) => `<path fill="${palette[ch]}" d="${d}"/>`).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${rows[0].length} ${rows.length}" shape-rendering="crispEdges">${paths}</svg>`;
 }
 
-export function logoDataUrl() {
-  return `data:image/svg+xml;base64,${Buffer.from(logoSvg()).toString("base64")}`;
-}
+const dataUrl = (svg: string) => `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 
-// 글자 로고 "nuanci". 마크와 같은 도트 격자에 직접 그려서 획 두께가 마크 외곽선과 맞는다. 글꼴 파일 없이 SVG로 그린다
-// x-높이 7칸, 획 2칸, 글자 사이 1칸. i의 점은 위로 2칸 띄워 올린다
-const GLYPHS: Record<string, string[]> = {
-  n: ["xxxxx.", "xxxxxx", "xx..xx", "xx..xx", "xx..xx", "xx..xx", "xx..xx"],
-  u: ["xx..xx", "xx..xx", "xx..xx", "xx..xx", "xx..xx", "xxxxxx", ".xxxxx"],
-  a: [".xxxx.", "....xx", ".xxxxx", "xx..xx", "xx..xx", "xxxxxx", ".xxxxx"],
-  c: [".xxxxx", "xxxxxx", "xx....", "xx....", "xx....", "xxxxxx", ".xxxxx"],
-  i: ["xx", "xx", "xx", "xx", "xx", "xx", "xx"],
-};
-const DOT = 2;
-const TOP = DOT + 1;
-const WORD = (() => {
-  let x = 0;
-  let d = "";
-  for (const ch of "nuanci") {
-    const g = GLYPHS[ch];
-    g.forEach((row, y) => {
-      for (let c = 0; c < row.length; ) {
-        let n = 0;
-        while (row[c + n] === "x") n++;
-        if (n) d += `M${x + c} ${TOP + y}h${n}v1h-${n}z`;
-        c += n || 1;
-      }
-    });
-    if (ch === "i") d += `M${x} 0h2v${DOT}h-2z`;
-    x += g[0].length + 1;
-  }
-  return { d, w: x - 1, h: TOP + GLYPHS.n.length };
-})();
+export const logoSvg = () => gridSvg(LOGO, PALETTE);
+export const logoDataUrl = () => dataUrl(logoSvg());
+export const logoSmallSvg = () => gridSvg(LOGO_SMALL, PALETTE);
+export const logoSmallDataUrl = () => dataUrl(logoSmallSvg());
 
-export const WORDMARK_SIZE = { w: WORD.w, h: WORD.h };
+// 글자 로고 "nuanci". 제목 글꼴(던파 비트비트체 v2, NEOPLE)의 글자를 고치지 않고 격자 그대로 옮겼다. 글꼴 파일 없이 SVG로 그린다
+// 마크와 칸 크기가 같다. 글자 밑줄은 마크의 26번째 줄(몸통 밑)에 맞춘다
+const WORDMARK = [
+  ".....................................................................................xxx.",
+  "....................................................................................xxxxx",
+  "....................................................................................xxxxx",
+  "....................................................................................xxxxx",
+  ".....................................................................................xxx.",
+  ".xxx.xxxxxxx......xxxx......xxx.....xxxxxxxxxxx.....xxx.xxxxxxx.........xxxxxxxxx........",
+  "xxxxxxxxxxxxx....xxxxxx....xxxxx...xxxxxxxxxxxxx...xxxxxxxxxxxxx......xxxxxxxxxxxx.......",
+  "xxxxxxxxxxxxxx...xxxxxx....xxxxx...xxxxxxxxxxxxxx..xxxxxxxxxxxxxx....xxxxxxxxxxxxx...xxx.",
+  "xxxxxxxxxxxxxxx..xxxxxx....xxxxx....xxxxxxxxxxxxx..xxxxxxxxxxxxxxx..xxxxxxxxxxxxxx..xxxxx",
+  "xxxxxxxxxxxxxxx..xxxxxx....xxxxx............xxxxx..xxxxxxxxxxxxxxx..xxxxxxxxxxxxx...xxxxx",
+  "xxxxxx...xxxxxx..xxxxxx....xxxxx............xxxxx..xxxxxx...xxxxxx..xxxxxxx.........xxxxx",
+  "xxxxx.....xxxxx..xxxxxx....xxxxx.....xxxxxxxxxxxx..xxxxx.....xxxxx..xxxxxx..........xxxxx",
+  "xxxxx.....xxxxx..xxxxxx....xxxxx....xxxxxxxxxxxxx..xxxxx.....xxxxx..xxxxxx..........xxxxx",
+  "xxxxx.....xxxxx..xxxxxx....xxxxx...xxxxxxxxxxxxxx..xxxxx.....xxxxx..xxxxxx..........xxxxx",
+  "xxxxx.....xxxxx..xxxxxx....xxxxx..xxxxxxxxxxxxxxx..xxxxx.....xxxxx..xxxxxx..........xxxxx",
+  "xxxxx.....xxxxx..xxxxxx....xxxxx..xxxxxx....xxxxx..xxxxx.....xxxxx..xxxxxx..........xxxxx",
+  "xxxxx.....xxxxx..xxxxxxx..xxxxxx..xxxxx.....xxxxx..xxxxx.....xxxxx..xxxxxxx.........xxxxx",
+  "xxxxx.....xxxxx..xxxxxxxxxxxxxxx..xxxxxx....xxxxx..xxxxx.....xxxxx..xxxxxxxxxxxxx...xxxxx",
+  "xxxxx.....xxxxx...xxxxxxxxxxxxxx..xxxxxxxxxxxxxxx..xxxxx.....xxxxx..xxxxxxxxxxxxxx..xxxxx",
+  "xxxxx.....xxxxx...xxxxxxxxxxxxxx...xxxxxxxxxxxxxx..xxxxx.....xxxxx...xxxxxxxxxxxxx..xxxxx",
+  "xxxxx.....xxxxx....xxxxxxxxxxxxx....xxxxxxxxxxxxx..xxxxx.....xxxxx....xxxxxxxxxxxx..xxxxx",
+  ".xxx.......xxx.......xxxxxx.xxx......xxxxxxxxxxx....xxx.......xxx.......xxxxxxxxx....xxx.",
+];
 
-export function wordmarkSvg(color = PALETTE.o) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WORD.w} ${WORD.h}" shape-rendering="crispEdges"><path fill="${color}" d="${WORD.d}"/></svg>`;
-}
+export const WORDMARK_SIZE = { w: WORDMARK[0].length, h: WORDMARK.length };
+// 마크와 나란히 둘 때 글자를 마크 위에서 몇 칸 내리는지
+export const WORDMARK_DROP = 3;
 
-export function wordmarkDataUrl(color?: string) {
-  return `data:image/svg+xml;base64,${Buffer.from(wordmarkSvg(color)).toString("base64")}`;
-}
+export const wordmarkSvg = (color = PALETTE.o) => gridSvg(WORDMARK, { x: color });
+export const wordmarkDataUrl = (color?: string) => dataUrl(wordmarkSvg(color));
