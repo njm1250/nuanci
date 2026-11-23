@@ -25,6 +25,7 @@ import { MapPin } from "@/features/site/map-pin";
 import type { StageSpec } from "@/features/stage/types";
 import { FEATURE_LIST, type OrderItem } from "./collections";
 import { useCleared } from "./progress";
+import { HeroPick } from "@/features/avatar/hero-pick";
 import { useSeason } from "@/features/season/season";
 import { CoverSnow } from "@/features/season/season-decor";
 
@@ -151,6 +152,8 @@ export function WrapUp({
   }, [nextAsk, runDone, askAt]);
   // 개발자 팩에서는 팩 안의 답만 센 "내 리뷰 말투"를 보여 준다
   const pack = scene.category === "dev";
+  // 첫 장면을 막 끝냈는지(이 장면이 이미 끝낸 목록에 들어간 뒤라 1 이하)
+  const firstScene = useCleared().length <= 1;
   const allVoice = useVoice();
   const packVoice = usePackVoice();
   const voice = pack ? packVoice : allVoice;
@@ -165,6 +168,8 @@ export function WrapUp({
   useEffect(() => playStreak(), [streak]);
   return (
     <div className="animate-rise">
+      {/* 첫 장면을 끝낸 사람에게만 한 번: 어느 모습이 나와 닮았는지 */}
+      {firstScene && <HeroPick />}
       {/* 끝났다는 말을 크게 두면 화면을 닫는 신호로 읽혀서(첫 방문 9명 중 2명이 여기서 나감), 다음 장면이 있으면 그 예고를 맨 위 주인공으로 둔다.
           예고는 엔딩 컷을 본 뒤 올라오되, 자리는 미리 잡아 두어 아래 카드가 밀려 내려가지 않게 한다 */}
       {/* 판을 끝낸 장면에서는 결과 장이 주인공이다. 엔딩 컷을 본 뒤에 올라오고, 다음 판의 첫 질문은 그 아래로 내려간다 */}
