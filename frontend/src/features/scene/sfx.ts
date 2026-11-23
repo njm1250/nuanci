@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { Expression } from "./types";
+import { currentAvatar } from "@/features/avatar/avatar";
 
 // 악기 소리는 실제 악기 녹음 사운드폰트(GeneralUser GS, 상업 이용 자유)로 연주해 scripts/sfx/make.py로 다듬은 /sfx/*.mp3, 말소리는 포만트 성대 음절이다. 이 에셋을 Web Audio 버퍼로 재생해
 // 오실레이터 특유의 기계적 '띠링' 없이 자연스러운 나무·악기 촉감과 동물의숲식 말소리를 낸다
@@ -15,6 +16,8 @@ type DecodedClip = {
 
 type SfxName =
   | "tap"
+  | "hero-girl"
+  | "hero-boy"
   | "good"
   | "good-sparkle"
   | "meh"
@@ -371,8 +374,14 @@ export function loadVoiceScene(sceneId: string, onReady?: () => void) {
     });
 }
 
+// 주인공 대사는 고른 모습에 맞춰 짧은 머리면 meBoy 목소리로. 그 줄이 아직 없으면 기본 주인공 목소리로 나온다
 function voiceOf(speaker: string | undefined, line: string) {
-  return speaker ? (voiceIndex.get(`${speaker}|${line}`) ?? null) : null;
+  if (!speaker) return null;
+  if (speaker === "me" && currentAvatar().hero === "boy") {
+    const boy = voiceIndex.get(`meBoy|${line}`);
+    if (boy) return boy;
+  }
+  return voiceIndex.get(`${speaker}|${line}`) ?? null;
 }
 
 // 음성이 있는 대사의 길이(ms). 말풍선이 음성보다 먼저 내려가지 않게 머무는 시간을 맞출 때 쓴다. 소리를 끄면 0
@@ -611,6 +620,8 @@ export const sfx = {
 
   // 클릭: 짧고 명쾌한 나무 블록 탭(연타 시 미세 피치 변화)
   tap: () => playClip("tap", { vol: 0.45, rate: 0.96 + Math.random() * 0.08 }),
+  // 주인공 모습을 고를 때 그 목소리로 "Hi! That's me!"를 짧게 들려준다
+  heroHi: (hero: "girl" | "boy") => playClip(hero === "boy" ? "hero-boy" : "hero-girl", { vol: 0.9 }),
 
   // 캐릭터나 Mochi를 직접 찌를 때의 짧은 입소리 대답
   poke: (who: "me" | "partner") => {

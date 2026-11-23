@@ -15,6 +15,10 @@ import { playStreak, useStreakMoment } from "@/features/streak/streak";
 // 장면 화면은 상대 대사가 무대 말풍선에만 있어서 three.js를 이 파일을 읽자마자 받기 시작한다.
 // 다만 페이지 묶음에는 넣지 않아서, 받는 동안에도 글자와 선택지는 먼저 그려지고 누를 수 있다
 import { preloadStage, Stage } from "@/features/stage/stage";
+import type { StageState } from "@/features/stage/pixel-stage";
+import { HeroAsk, heroAsked, markHeroAsked } from "@/features/avatar/hero-ask";
+import { currentAvatar, setAvatar } from "@/features/avatar/avatar";
+import { useAccount } from "@/features/account/account";
 import { PartnerFace } from "@/features/stage/partner-face";
 import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
@@ -183,6 +187,20 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const teaser = guessed ? guessTeaser : (own?.teaser ?? null);
   const nextAsk = guessed ? guessAsk : (own?.nextAsk ?? null);
   const look = useHeroLook();
+  // 첫 장면 뒤 무대 위 모습 고르기(동물의 숲식 대화 선택지). off → ask(엔딩 컷 뒤) → done(고른 직후 한마디) → off
+  const [heroAsk, setHeroAsk] = useState<"off" | "ask" | "done">("off");
+  const account = useAccount();
+  const pickHero = (side: "left" | "right") => {
+    const hero = side === "left" ? look.hero : look.hero === "boy" ? "girl" : "boy";
+    sfx.heroHi(hero);
+    markHeroAsked(hero);
+    setAvatar({ ...currentAvatar(), hero }, account.status === "member");
+    setHeroAsk("done");
+    window.setTimeout(() => setHeroAsk("off"), 1600);
+  };
+  // 고르는 동안 무대의 상대 말·소품·반응은 비운다(두 모습만 나란히)
+  const maskForAsk = (st: StageState): StageState =>
+    heroAsk !== "off" ? { ...st, partnerLine: undefined, partnerSpeaks: undefined, partnerSays: undefined, partnerProp: undefined, reaction: null, meNote: undefined, meLine: undefined } : st;
   const rewards = useRewards();
   // 보상과 연속 기록은 입구를 닫아 둔 동안 완료 화면과 무대에 띄우지 않는다(site/lean.ts)
   const pendingRewards = usePendingRewards(scene.id);
@@ -321,6 +339,13 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   }, [wrapped, ending, endingStep, reduced]);
   const endingOn = wrapped && ending !== undefined && endingStep !== "off";
   const partnerEnds = endingOn && ending.who === "partner";
+  // 첫 장면(끝낸 장면이 이 장면뿐)의 엔딩 컷이 터지고 잠시 뒤, 한 번도 안 물어봤으면 무대 위에서 모습을 묻는다
+  const firstScene = cleared.length <= 1;
+  useEffect(() => {
+    if (!wrapped || endingStep !== "punch" || !firstScene || heroAsked() || preview) return;
+    const t = window.setTimeout(() => setHeroAsk("ask"), reduced ? 0 : 2200);
+    return () => clearTimeout(t);
+  }, [wrapped, endingStep, firstScene, preview, reduced]);
   const stageKey = f.reactionKey * 100 + (endingOn ? (endingStep === "beat" ? 10 : 20) : 0) + (beat ? 40 + leadIdx * 2 : 0) + (later ? 1 : 0) + (wrapped ? 5 : 0);
   // 고른 뒤 상대 말풍선을 질문에서 상대 반응으로 바꿔, 판정만이 아니라 "그래서 상대가 뭐래?"까지 무대에서 이어진다.
   // 생각 말풍선(imagine)이 있으면 그게 사라진 뒤에 바꾼다. 같은 자리 근처라 겹치면 둘 다 안 읽힌다
@@ -423,8 +448,10 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const spec = useMemo<StageSpec>(() => {
     const base = stageSituation.stage!;
     // 주인공은 아지트에서 고른 모습으로 나온다. 아이템은 겉모습만 바꾼다
-    return { ...base, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? []), ...(leadFlags ? leadFlags.split(",") : [])] };
-  }, [stageSituation, stageChoice, look.hero, wearKey, leadFlags]);
+    // 첫 장면 뒤 모습 고르기 중에는 상대 자리에 다른 모습의 주인공을 세워 두 모습을 나란히 보여 준다
+    const partner = heroAsk === "ask" ? (look.hero === "boy" ? "meGirl" : "me") : base.partner;
+    return { ...base, partner, hero: look.hero, wear: JSON.parse(wearKey), flags: [...(base.flags ?? []), ...(stageChoice?.flags ?? []), ...(leadFlags ? leadFlags.split(",") : [])] };
+  }, [stageSituation, stageChoice, look.hero, wearKey, leadFlags, heroAsk]);
 
   const scroller = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -679,7 +706,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 spec={spec}
                 reduced={reduced}
                 bubbleScale={bubbleScale}
-                state={{
+                state={maskForAsk({
                   meMotion: prizeOn ? "bounce" : celebrate ? "clap" : beat?.who === "me" && beat.motion ? beat.motion : (stageChoice?.meMotion ?? stageSituation.meIdle?.motion),
                   meKey: prizeOn ? stageKey + 1000 : fl ? 5000 + freeKey : stageKey,
                   // 방에 둘 물건과 상자는 선물 상자를 들고 받는다
@@ -723,7 +750,8 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                   meThink: spoken(stageSituation.intent),
                   meTry: liveDraft || trying?.line,
                   cutIn,
-                }}
+                })}
+                onPick={heroAsk === "ask" ? (who) => pickHero(who === "me" ? "left" : "right") : undefined}
               />
               {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} className={MOCHI_TUCK_LIFT} />}
               {beat && <BeatDots total={lead.length} at={leadIdx} />}
@@ -746,9 +774,10 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                   </svg>
                 </div>
               )}
-              {endingOn && ending.who === "mochi" && <MochiCameo step={endingStep} line={ending.line} className={MOCHI_TUCK_LIFT} />}
+              {endingOn && ending.who === "mochi" && heroAsk === "off" && <MochiCameo step={endingStep} line={ending.line} className={MOCHI_TUCK_LIFT} />}
+              {heroAsk !== "off" && <HeroAsk done={heroAsk === "done"} onPick={pickHero} />}
               {/* 펀치라인은 장면의 웃음이라 뜻 보기와 상관없이 늘 자막을 붙인다. 못 알아들으면 끝맛이 사라진다 */}
-              {endingOn && endingStep === "punch" && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
+              {endingOn && endingStep === "punch" && heroAsk === "off" && <Subtitle text={ending.meaning} className={STAGE_TUCK_LIFT} />}
               {later && !endingOn && !beat && (
                 <p className="pointer-events-none absolute right-2 top-2 animate-fade bg-ink px-2 py-1 font-label text-meta leading-none text-fg">
                   {timeCue ?? (

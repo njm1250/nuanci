@@ -185,7 +185,8 @@ def lines_of(scene: dict) -> dict:
             if (r[0], r[1]) not in seen:
                 seen.add((r[0], r[1]))
                 uniq.append(r)
-        out[st] = uniq
+        # 주인공 대사는 짧은 머리 주인공(meBoy) 목소리로도 만든다. 화면은 고른 모습에 맞춰 둘 중 하나를 튼다
+        out[st] = uniq + [("meBoy", t, g) for w, t, g in uniq if w == "me"]
     # 엔딩 한마디는 마지막 단계 묶음에 넣는다
     e = scene.get("ending")
     if e and e.get("line") and e["who"] in ("partner", "mochi"):
@@ -282,6 +283,9 @@ def main():
         for step, rows in lines_of(scene).items():
             made = []
             for speaker, text, tag in rows:
+                # --no-new-boy: 짧은 머리 주인공 목소리는 이미 만든 줄만 쓰고 새로 만들지 않는다(한 장면 먼저 들어 본 뒤 나머지를 만들 때까지)
+                if speaker == "meBoy" and "--no-new-boy" in sys.argv and not (MASTERS / f"{key(speaker, text)}.mp3").exists():
+                    continue
                 try:
                     spent += ensure_master(manifest, speaker, text, tag)
                     made.append((speaker, text, tag))
