@@ -206,7 +206,8 @@ def ensure_master(manifest: dict, speaker: str, text: str, tag) -> int:
         now = cfg.get(prov) or {}
         if now and old.get("voice", now.get("voice")) == now.get("voice") and old.get("rate", now.get("rate")) == now.get("rate") and old.get("tag", tag) == tag:
             return 0
-    order = ["gemini"] if eleven_down or not cfg.get("elevenlabs") else ["elevenlabs", "gemini"]
+    # elevenlabs 목소리가 없는 캐릭터도 --provider=gemini 없이는 Gemini로 만들지 않는다(지출 상한 사고 뒤)
+    order = ["gemini"] if FORCED == "gemini" else ["elevenlabs"]
     for prov in order:
         c = cfg.get(prov)
         if not c:
@@ -218,7 +219,10 @@ def ensure_master(manifest: dict, speaker: str, text: str, tag) -> int:
                 raw, ext, sent = gemini(c, text, tag), "wav", 0
         except (urllib.error.HTTPError, PermissionError) as e:
             if prov == "elevenlabs":
-                print(f"  ElevenLabs 막힘({getattr(e, 'code', e)}) → 이후 Gemini로 만든다")
+                # Gemini TTS로 저절로 넘어가지 않는다. 11/22 Gemini TTS로 대사 수백 줄을 만들다 운영과 같은 프로젝트의 월 지출 상한을 다 써서
+                # "내 말로 해 보기"까지 막혔다. Gemini로 만들려면 --provider=gemini 를 직접 붙인다
+                if FORCED != "gemini":
+                    raise SystemExit(f"ElevenLabs 막힘({getattr(e, 'code', e)}). 크레딧·키를 확인한다. Gemini로 만들려면 --provider=gemini")
                 eleven_down = True
                 continue
             raise
