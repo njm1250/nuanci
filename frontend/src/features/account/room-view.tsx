@@ -28,7 +28,8 @@ import { useAccount } from "./account";
 import { GoogleButton } from "./google-button";
 
 const noop = () => () => {};
-const HERO_LABELS: Record<Hero, string> = { boy: "남자", girl: "여자" };
+// 성별 낱말 대신 모습으로 부른다(첫 장면 뒤 모습 고르기와 같은 말)
+const HERO_LABELS: Record<Hero, string> = { boy: "짧은 머리", girl: "긴 머리" };
 
 const TABS = [
   { id: "wear", label: "옷장" },
