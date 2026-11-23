@@ -135,7 +135,7 @@ export async function render(children: ReactNode, size: { width: number; height:
   );
 }
 
-// 메인 주소를 공유했을 때 보이는 카드. 직역 한 줄이 오해로 이어지는 걸 한 장면으로 보여준다
+// 메인 주소를 공유했을 때 보이는 카드. 내 영어가 상대에게 어떻게 들리는지 보여 주는 곳이라는 걸 한 줄로
 // 카드 그리는 엔진(satori)은 flex: 1 칸의 너비를 글자 줄바꿈에 반영하지 못해서, 칸마다 너비를 정해 둔다
 export function homeCard() {
   return render(
@@ -143,10 +143,10 @@ export function homeCard() {
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 570 }}>
         <Lockup />
         <div style={{ display: "flex", flexDirection: "column", fontSize: 72, lineHeight: 1.25 }}>
-          <div style={{ display: "flex" }}>직역하면</div>
+          <div style={{ display: "flex" }}>내 영어,</div>
           <div style={{ display: "flex" }}>
-            <Marker>오해받는</Marker>
-            <div style={{ display: "flex", marginLeft: 24 }}>순간들</div>
+            <Marker>어떻게</Marker>
+            <div style={{ display: "flex", marginLeft: 24 }}>들릴까?</div>
           </div>
           <div style={{ display: "flex", marginTop: 20, fontSize: 28, lineHeight: 1.4, color: SUBTLE }}>영어 보기를 고르면 상대 속마음이 보여요</div>
         </div>

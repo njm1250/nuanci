@@ -65,8 +65,8 @@ export default async function Home() {
       <main className="flex flex-col">
       <div className="relative mx-auto w-full max-w-[1440px] px-4 pb-6 pt-3 md:px-8 min-[960px]:pb-6 returning:max-w-[1080px] returning:pb-0 returning:pt-6 lg:returning:max-w-[1200px]">
         <h1 className="poster-home font-poster text-fg returning:text-say returning:leading-none md:returning:text-display-sm">
-          <span className="poster-rise block min-[960px]:inline-block returning:inline">직역하면</span>{" "}
-          <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block returning:inline">오해받는 순간들</span>
+          <span className="poster-rise block min-[960px]:inline-block returning:inline">내 영어,</span>{" "}
+          <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block returning:inline">어떻게 들릴까?</span>
         </h1>
         <p aria-hidden className="poster-scrawl absolute right-4 top-3 font-scrawl text-[clamp(32px,6vw,60px)] leading-none text-fg [--lean:-4deg] md:right-8 min-[960px]:hidden returning:hidden">
           골라 보면 알아요
