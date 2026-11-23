@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/readme/banner.webp" alt="nuanci 로고와 '내 영어, 어떻게 들릴까?' 문구, 장면 질문·상대 반응·표현 모음 화면" width="100%">
+<img src=".github/readme/banner-2026-11.webp" alt="nuanci 로고와 '내 영어, 어떻게 들릴까?' 문구, 장면 질문·상대 반응·표현 모음 화면" width="100%">
 
 외국어를 배운다는 건, 다른 방식으로 생각해 보는 일이에요.<br>
 짧은 장면에서 영어 한마디를 고르면, 그 말이 상대에게 어떻게 들렸는지 바로 보여요.
