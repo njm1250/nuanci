@@ -23,11 +23,14 @@ import { sfx } from "@/features/scene/sfx";
 import { useReducedMotion } from "@/features/scene/use-scene-flow";
 import { Stage } from "@/features/stage/stage";
 import type { Motion } from "@/features/scene/types";
-import type { AccessoryId, Hero } from "@/features/stage/types";
+import type { AccessoryId, Hero, StageSpec } from "@/features/stage/types";
+import { SceneThumb, ThumbStudio } from "@/features/landing/scene-thumb";
 import { useAccount } from "./account";
 import { GoogleButton } from "./google-button";
 
 const noop = () => () => {};
+// 모습 고르기는 그림으로 하고, 이 이름은 화면 낭독기에만 읽힌다
+const HERO_STAGE: StageSpec = { set: "room", time: "day", partner: "mochi", flags: ["bare"] };
 const HERO_LABELS: Record<Hero, string> = { boy: "남자", girl: "여자" };
 
 const TABS = [
@@ -284,23 +287,31 @@ export function RoomView({ memories }: { memories: Record<string, SceneMemory> }
 
         <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="mt-4">
           {tab === "wear" && (
-            <div className="mb-4 flex items-center gap-3">
+            <div className="mb-4">
               <span id="hero-label" className="font-label text-ui text-fg-muted">
-                주인공
+                내 모습
               </span>
-              <div role="group" aria-labelledby="hero-label" className="grid flex-1 grid-cols-2 border-2 border-fg-subtle/40">
-                {(["girl", "boy"] as const).map((hero) => (
-                  <button
-                    key={hero}
-                    type="button"
-                    onClick={() => (sfx.heroHi(hero), setAvatar({ ...avatar, hero }, member))}
-                    aria-pressed={avatar.hero === hero}
-                    className={`min-h-11 font-label text-ui ${avatar.hero === hero ? "bg-fg text-page" : "text-fg-muted hover:text-fg"}`}
-                  >
-                    {HERO_LABELS[hero]}
-                  </button>
-                ))}
+              {/* 포켓몬 9세대처럼 성별 글자 없이 모습 그림으로 고른다. 화면 낭독기에는 여자·남자로 읽힌다 */}
+              <div role="group" aria-labelledby="hero-label" className="mt-2 grid grid-cols-2 gap-2.5">
+                {(["girl", "boy"] as const).map((hero) => {
+                  const on = avatar.hero === hero;
+                  return (
+                    <button
+                      key={hero}
+                      type="button"
+                      aria-label={HERO_LABELS[hero]}
+                      onClick={() => (sfx.heroHi(hero), setAvatar({ ...avatar, hero }, member))}
+                      aria-pressed={on}
+                      className={`relative block aspect-[4/3] overflow-hidden border-2 transition-colors duration-fast ${on ? "border-fg" : "border-line hover:border-fg"}`}
+                    >
+                      {/* 아지트 무대 그림을 주인공 쪽으로 크게 잘라 얼굴과 몸이 보이게 한다 */}
+                      <SceneThumb stage={HERO_STAGE} hero={hero} className="absolute left-[-18%] top-[-62%] h-[200%] w-[200%]" />
+                      {on && <span aria-hidden className="absolute right-1.5 top-1.5 grid size-5 place-items-center bg-fg font-label text-meta leading-none text-page">✓</span>}
+                    </button>
+                  );
+                })}
               </div>
+              <ThumbStudio />
             </div>
           )}
 
