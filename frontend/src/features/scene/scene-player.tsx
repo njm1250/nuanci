@@ -356,8 +356,8 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const [repeatView, setRepeatView] = useState(false);
   // 고른 말을 주인공이 소리 내어 말하면(음성이 있을 때) 그 말이 끝난 뒤에 상대가 반응한다
   const meSaysMs = stageChoice && !endingOn && !beat && !wrapped ? voiceMs("me", stageChoice.line) : 0;
-  // 내 말이 끝나기 조금 전(0.3초)에 상대가 받기 시작한다. 실제 대화처럼 살짝 겹치고, 고른 뒤 기다림이 줄어든다
-  const reactWait = !stageChoice || endingOn || beat || wrapped ? null : reduced ? 0 : Math.max(repeatView ? REACT_AGAIN : stageChoice.imagine ? REACT_AFTER_IMAGINE : REACT_AFTER, meSaysMs ? meSaysMs - 300 : 0);
+  // 상대는 내 말이 다 끝난 뒤(0.15초 쉼) 받는다. 목소리는 한 번에 하나만 나와서, 겹치면 내 말 끝 단어가 잘렸다("Say again"의 again)
+  const reactWait = !stageChoice || endingOn || beat || wrapped ? null : reduced ? 0 : Math.max(repeatView ? REACT_AGAIN : stageChoice.imagine ? REACT_AFTER_IMAGINE : REACT_AFTER, meSaysMs ? meSaysMs + 150 : 0);
   const meLine = stageChoice && !endingOn && !beat && !wrapped ? stageChoice.line : null;
   useEffect(() => {
     if (!meLine) return;
@@ -386,6 +386,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   // 판정 카드는 상대가 입을 여는 순간 채운다. 예전엔 겉말이 끝난 뒤였는데, 내 목소리까지 더해져 고른 뒤 3~4초를 빈 카드로 기다렸다(지인 테스트에서 지루해 보임).
   // "맞았나?"의 답을 먼저 주고, 상대의 영어 대답과 속마음은 그 뒤로 이어지는 구경거리가 된다
   // 상상 그림(imagine)이 있는 보기는 상대 반응이 3초 뒤라, 판정은 그와 따로 내 말이 끝날 즈음(늦어도 1.1초)에 띄운다
+  // 판정 카드는 소리와 따로 화면에만 뜨니, 내 말 끝나기 0.3초 전에 미리 채워도 목소리를 끊지 않는다
   const revealWait = reactWait === null ? null : Math.min(reactWait, Math.max(repeatView ? REACT_AGAIN : REACT_AFTER, meSaysMs ? meSaysMs - 300 : 0));
   const [revealKey, setRevealKey] = useState<number | null>(null);
   useEffect(() => {
