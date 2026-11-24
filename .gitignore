@@ -35,3 +35,7 @@ scripts/voice/cast.json
 
 # 실험·평가 코드와 데이터·프롬프트(비공개 저장소 njm1250/nuanci-lab, 이 폴더 안에 따로 git)
 scripts/eval/
+
+# Claude Code 개인 설정과 작업 폴더
+.claude/settings.local.json
+.claude/worktrees/
