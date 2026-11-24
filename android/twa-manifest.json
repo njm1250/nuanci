@@ -11,15 +11,15 @@
   "navigationColorDark": "#000000",
   "navigationDividerColor": "#FFFFFF",
   "navigationDividerColorDark": "#000000",
-  "backgroundColor": "#FFFFFF",
+  "backgroundColor": "#09318D",
   "enableNotifications": true,
   "startUrl": "/?utm_source=android_app",
   "iconUrl": "https://nuanci.app/app-icon/512",
   "maskableIconUrl": "https://nuanci.app/app-icon/maskable-512",
   "splashScreenFadeOutDuration": 300,
   "signingKey": { "path": "/Users/jun/.android-keys/nuanci-upload.jks", "alias": "upload" },
-  "appVersionName": "1.0.1",
-  "appVersionCode": 2,
+  "appVersionName": "1.0.2",
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://nuanci.app/manifest.webmanifest",
@@ -34,5 +34,5 @@
   "fingerprints": [],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
-  "appVersion": "1.0.1"
+  "appVersion": "1.0.2"
 }
