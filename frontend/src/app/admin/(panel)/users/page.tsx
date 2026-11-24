@@ -14,7 +14,7 @@ import {
   number,
 } from "@/features/admin/ui";
 
-export const metadata: Metadata = { title: "유저 탐색 · nuanci" };
+export const metadata: Metadata = { title: "사용자 탐색 · nuanci" };
 const scalar = (value: string | string[] | undefined) =>
   typeof value === "string" ? value : "";
 
@@ -48,7 +48,7 @@ async function Content({ searchParams }: PageProps<"/admin/users">) {
     page: String(page),
   });
   const data = await getAdminJson<UserDirectory>(`/api/admin/users?${query}`);
-  if (!data) throw new Error("유저 목록을 불러오지 못했습니다.");
+  if (!data) throw new Error("사용자 목록을 불러오지 못했습니다.");
   const href = (values: Record<string, string>) => {
     const next = new URLSearchParams(query);
     Object.entries(values).forEach(([key, value]) => next.set(key, value));
@@ -60,7 +60,7 @@ async function Content({ searchParams }: PageProps<"/admin/users">) {
   return (
     <>
       <div className="adm-toolbar-group" style={{ marginBottom: 20 }}>
-        <nav className="adm-tabs" aria-label="유저 식별 기준">
+        <nav className="adm-tabs" aria-label="사용자 식별 기준">
           <Link
             href={href({ kind: "accounts", page: "1" })}
             aria-current={accounts ? "page" : undefined}
@@ -127,7 +127,7 @@ async function Content({ searchParams }: PageProps<"/admin/users">) {
               placeholder={
                 accounts ? "이름 · 이메일 · 계정 ID" : "브라우저 ID · 유입 경로"
               }
-              aria-label="유저 검색"
+              aria-label="사용자 검색"
               maxLength={200}
             />
             <select
@@ -146,7 +146,7 @@ async function Content({ searchParams }: PageProps<"/admin/users">) {
               className="adm-select"
               name="sort"
               defaultValue={sort}
-              aria-label="유저 정렬"
+              aria-label="사용자 정렬"
             >
               <option value="recent">최근 활동순</option>
               <option value="created">
@@ -304,8 +304,8 @@ export default function UsersPage(props: PageProps<"/admin/users">) {
   return (
     <>
       <AdminHeader
-        title="유저 탐색"
-        description="누가 이용하고, 어디서 멈추고, 다시 찾아오는지 실제 활동 기록으로 확인하세요."
+        title="사용자 탐색"
+        description="사용자별 이용 내역, 이탈 지점, 재방문을 활동 기록으로 확인합니다."
       />
       <Suspense fallback={<AdminLoading />}>
         <Content {...props} />

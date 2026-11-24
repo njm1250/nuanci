@@ -33,7 +33,7 @@ export async function adminFetch(path: string, init: RequestInit = {}) {
 async function json<T>(path: string): Promise<T | null> {
   const res = await adminFetch(path);
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`관리자 데이터를 불러오지 못했어요 (${res.status})`);
+  if (!res.ok) throw new Error(`관리자 데이터를 불러오지 못했습니다 (${res.status})`);
   return res.json();
 }
 

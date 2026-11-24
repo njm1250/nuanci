@@ -113,7 +113,7 @@ async function Dashboard() {
           <div className="adm-compact-list">
             <Link href="/admin/users?kind=accounts&activity=no_completion">
               <span>시도했지만 완료 기록이 없는 회원 확인</span>
-              <span className="adm-badge adm-badge-informative">유저 탐색 →</span>
+              <span className="adm-badge adm-badge-informative">사용자 탐색 →</span>
             </Link>
             <Link href="/admin/metrics?period=7d">
               <span>최근 7일의 활동 · 신규 브라우저 추이</span>
@@ -160,7 +160,7 @@ async function Dashboard() {
       </div>
       <div className="adm-grid adm-grid-2">
         <AdminPanel
-          title="많이 열린 장면"
+          title="조회 상위 장면"
           description="노출·완료는 장면 시도 기준 · 누적"
           action={
             <Link href="/admin/metrics" className="adm-btn adm-btn-sm">

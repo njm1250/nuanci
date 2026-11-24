@@ -19,7 +19,7 @@ import {
   number,
 } from "@/features/admin/ui";
 
-export const metadata: Metadata = { title: "유저 상세 · nuanci" };
+export const metadata: Metadata = { title: "사용자 상세 · nuanci" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const authLabels: Record<string, string> = {
   guest: "비로그인",
@@ -67,7 +67,7 @@ async function Content({
         actions={
           <div className="adm-actions">
             <Link className="adm-btn" href={`/admin/users?kind=${kind}`}>
-              ← 유저 목록
+              ← 사용자 목록
             </Link>
             {!accounts && (
               <InternalVisitorButton id={id} internal={u.internal} />

@@ -44,14 +44,14 @@ export async function logout() {
 
 async function putScene(scene: unknown, body: string, dryRun: boolean): Promise<SceneResult> {
   const id = (scene as { id?: unknown } | null)?.id;
-  if (typeof id !== "string" || !id) return { id: "?", error: "id가 없어요" };
+  if (typeof id !== "string" || !id) return { id: "?", error: "ID가 없습니다" };
   const res = await adminFetch(`/api/admin/scenes/${encodeURIComponent(id)}?dryRun=${dryRun}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body,
   });
   const result = await res.json().catch(() => ({}));
-  if (!res.ok) return { id, error: result.message ?? `저장하지 못했어요 (${res.status})` };
+  if (!res.ok) return { id, error: result.message ?? `저장하지 못했습니다 (${res.status})` };
   const what = result.created ? "새 장면" : result.changed ? `새 버전(v${result.version})` : "바뀐 내용 없음";
   return { id, ok: dryRun ? `검사 통과 · 저장하면 ${what}` : `저장 · ${what}`, warnings: result.warnings };
 }
@@ -64,7 +64,7 @@ export async function saveScene(_: FormState, form: FormData): Promise<FormState
   try {
     parsed = JSON.parse(text);
   } catch {
-    return { error: "JSON 형식이 올바르지 않아요" };
+    return { error: "JSON 형식이 올바르지 않습니다" };
   }
 
   if (!Array.isArray(parsed)) {
@@ -75,7 +75,7 @@ export async function saveScene(_: FormState, form: FormData): Promise<FormState
     redirect(`/admin/scenes/${result.id}?saved=1`);
   }
 
-  if (parsed.length === 0) return { error: "장면이 없어요" };
+  if (parsed.length === 0) return { error: "장면이 없습니다" };
   const results: SceneResult[] = [];
   for (const scene of parsed) results.push(await putScene(scene, JSON.stringify(scene), dryRun));
   if (!dryRun && results.some((r) => !r.error)) updateTag(SCENES_TAG);
@@ -121,7 +121,7 @@ export async function reorderScenes(ids: string[]): Promise<{ error?: string }> 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids }),
   });
-  if (!res.ok) return { error: (await res.json().catch(() => ({}))).message ?? `저장하지 못했어요 (${res.status})` };
+  if (!res.ok) return { error: (await res.json().catch(() => ({}))).message ?? `저장하지 못했습니다 (${res.status})` };
   updateTag(SCENES_TAG);
   return {};
 }
