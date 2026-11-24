@@ -155,13 +155,13 @@ const KNOWN_OUTCOMES = [
 ] as const;
 
 const REACH_ROWS: Array<{ key: keyof ReachMetrics; label: string }> = [
-    { key: "humans", label: "외부 사람 수" },
-    { key: "picked", label: "첫 답 고른 사람" },
+    { key: "humans", label: "방문자 수" },
+    { key: "picked", label: "보기 선택" },
     { key: "done1Plus", label: "장면 1개 이상 완료" },
-    { key: "done2Plus", label: "서로 다른 장면 2개+ 완료" },
-    { key: "done3Plus", label: "서로 다른 장면 3개+ 완료" },
-    { key: "returned2Days", label: "다른 날 다시 온 사람 (2일+)" },
-    { key: "returned3Days", label: "다른 날 다시 온 사람 (3일+)" },
+    { key: "done2Plus", label: "장면 2개 이상 완료" },
+    { key: "done3Plus", label: "장면 3개 이상 완료" },
+    { key: "returned2Days", label: "재방문 (2일 이상)" },
+    { key: "returned3Days", label: "재방문 (3일 이상)" },
 ];
 
 function ratioPeople(part: number, whole: number) {
@@ -183,7 +183,7 @@ function visitorKindBadge(kind: string) {
     return { label: "외부", className: "adm-badge adm-badge-informative" };
 }
 
-// 1. 외부 사람 도달·완료 깊이·재방문과 최근 14일 일별 추이 섹션
+// 1. 방문자 도달·완료 깊이·재방문과 최근 14일 일별 추이 섹션
 export function ReachSection({ data }: { data: InsightsResponse }) {
     const hasPivot = Boolean(data.pivot && data.beforeReach && data.afterReach);
     return (
@@ -191,13 +191,13 @@ export function ReachSection({ data }: { data: InsightsResponse }) {
             {!hasPivot && (
                 <div className="adm-stats adm-stats-four">
                     <AdminStat
-                        label="외부 사람 수"
+                        label="방문자 수"
                         tone="informative"
                         value={`${number(data.reach.humans)}명`}
                         note={`${data.since} ~ 지금`}
                     />
                     <AdminStat
-                        label="첫 답 고른 사람"
+                        label="보기 선택"
                         value={`${number(data.reach.picked)}명`}
                         note={ratioPeople(data.reach.picked, data.reach.humans)}
                     />
@@ -208,7 +208,7 @@ export function ReachSection({ data }: { data: InsightsResponse }) {
                         note={ratioPeople(data.reach.done1Plus, data.reach.humans)}
                     />
                     <AdminStat
-                        label="다른 날 다시 온 사람 (2일+)"
+                        label="재방문 (2일 이상)"
                         value={`${number(data.reach.returned2Days)}명`}
                         note={ratioPeople(data.reach.returned2Days, data.reach.humans)}
                     />
@@ -217,11 +217,11 @@ export function ReachSection({ data }: { data: InsightsResponse }) {
 
             <div className="adm-grid adm-grid-2">
                 <AdminPanel
-                    title="1. 진짜 사람은 어디까지 가고, 다시 오나"
+                    title="1. 단계별 도달과 재방문"
                     description={
                         hasPivot
-                            ? `기준일 ${data.pivot} 전/후 비교 · 외부 사람 대비 비율(분모 10 미만은 % 생략)`
-                            : `${data.since} 이후 외부 사람 기준 · 분모 10 미만은 % 생략`
+                            ? `기준일 ${data.pivot} 전/후 비교 · 방문자 대비 비율(분모 10 미만은 % 생략)`
+                            : `${data.since} 이후 방문자 기준 · 분모 10 미만은 % 생략`
                     }
                 >
                     <div className="adm-table-scroll">
@@ -240,8 +240,8 @@ export function ReachSection({ data }: { data: InsightsResponse }) {
                                         </>
                                     ) : (
                                         <>
-                                            <th className="adm-numeric">사람 수</th>
-                                            <th className="adm-numeric">외부 사람 대비</th>
+                                            <th className="adm-numeric">방문자 수</th>
+                                            <th className="adm-numeric">방문자 대비</th>
                                         </>
                                     )}
                                 </tr>
@@ -282,17 +282,17 @@ export function ReachSection({ data }: { data: InsightsResponse }) {
 
                 <AdminPanel
                     title="일별 추이 (최근 14일)"
-                    description="Asia/Seoul 기준 · 새 외부 사람과 그날 유입 상위 source 1개"
+                    description="Asia/Seoul 기준 · 신규 방문자와 그날의 주요 유입 경로 1개"
                 >
                     <div className="adm-table-scroll">
                         <table className="adm-table">
                             <thead>
                                 <tr>
                                     <th>날짜</th>
-                                    <th className="adm-numeric">새 외부 사람</th>
-                                    <th className="adm-numeric">첫 답</th>
-                                    <th className="adm-numeric">완료한 사람</th>
-                                    <th>상위 source</th>
+                                    <th className="adm-numeric">신규 방문자</th>
+                                    <th className="adm-numeric">보기 선택</th>
+                                    <th className="adm-numeric">완료</th>
+                                    <th>주요 유입 경로</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -330,7 +330,7 @@ export function ScenesSection({ scenes, since }: { scenes: SceneInsightRow[]; si
         <div className="adm-section-space">
             <AdminPanel
                 title="2. 장면별"
-                description={`${since} 이후 외부 사람 기준 · 공개 장면 순서(sort_order) · 오답률 35~65% 밖 경고(5명 미만 -) · 행을 누르면 이용 지표 장면 상세로 이동`}
+                description={`${since} 이후 방문자 기준 · 공개 장면 순서(sort_order) · 오답률 35~65% 밖 경고(5명 미만 -) · 행을 선택하면 이용 지표의 장면 상세로 이동`}
             >
                 <InsightsSceneTable rows={scenes} />
             </AdminPanel>
@@ -349,19 +349,19 @@ export function NewFeaturesSection({ data }: { data: InsightsResponse }) {
     return (
         <div className="adm-section-space">
             <AdminPanel
-                title="3. 새 장치가 쓰이나 — 내 말로 해 보기"
-                description={`${data.since} 이후 외부 사람 기준 · 칸 열기 → 제출 → outcome → own- 선택 → 그 장면 완료`}
+                title="3. 신규 기능 사용 현황: 내 말로 해 보기"
+                description={`${data.since} 이후 방문자 기준 · 입력 칸 열기 → 제출 → outcome → own- 선택 → 해당 장면 완료`}
             >
                 <div className="adm-panel-body">
                     <div className="adm-stats adm-stats-four">
                         <AdminStat
-                            label="내 말로 열기"
+                            label="입력 칸 열기"
                             tone="informative"
                             value={`${number(freeLine.openedPeople)}명`}
                             note="free_line_opened"
                         />
                         <AdminStat
-                            label="직접 써서 제출"
+                            label="입력 제출"
                             value={`${number(freeLine.submittedPeople)}명`}
                             note={ratioPeople(freeLine.submittedPeople, freeLine.openedPeople)}
                         />
@@ -371,7 +371,7 @@ export function NewFeaturesSection({ data }: { data: InsightsResponse }) {
                             note={ratioPeople(freeLine.ownPickedPeople, freeLine.submittedPeople)}
                         />
                         <AdminStat
-                            label="그 장면 완료"
+                            label="해당 장면 완료"
                             tone="positive"
                             value={`${number(freeLine.ownCompletedPeople)}명`}
                             note={ratioPeople(freeLine.ownCompletedPeople, freeLine.ownPickedPeople)}
@@ -396,7 +396,7 @@ export function NewFeaturesSection({ data }: { data: InsightsResponse }) {
                     </div>
                 </div>
                 {freeLine.recentIntents.length === 0 ? (
-                    <AdminEmpty>기간 내 외부 사람이 남긴 missing_intent 원문이 없습니다.</AdminEmpty>
+                    <AdminEmpty>기간 내 방문자가 남긴 missing_intent 원문이 없습니다.</AdminEmpty>
                 ) : (
                     <div className="adm-table-scroll">
                         <table className="adm-table">
@@ -404,9 +404,9 @@ export function NewFeaturesSection({ data }: { data: InsightsResponse }) {
                                 <tr>
                                     <th>시각</th>
                                     <th>장면</th>
-                                    <th>쓴 말</th>
+                                    <th>입력한 문장</th>
                                     <th>outcome</th>
-                                    <th>붙은 보기 / 판정</th>
+                                    <th>매칭된 보기 / 판정</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -495,7 +495,7 @@ export function NewFeaturesSection({ data }: { data: InsightsResponse }) {
 
                 <AdminPanel
                     title="공유 · 답장"
-                    description={`${data.since} 이후 외부 사람 기준 · 공유 유입은 복사한 본인 제외`}
+                    description={`${data.since} 이후 방문자 기준 · 공유 유입은 복사한 본인 제외`}
                 >
                     <div className="adm-panel-body">
                         <div className="adm-stats adm-stats-four" style={{ marginBottom: 0 }}>
@@ -505,7 +505,7 @@ export function NewFeaturesSection({ data }: { data: InsightsResponse }) {
                                 note="share_link_copied"
                             />
                             <AdminStat
-                                label="공유 유입 새 사람"
+                                label="공유 유입 신규 방문자"
                                 tone="informative"
                                 value={`${number(share.shareArrivedNewPeople)}명`}
                                 note="entry=share · 본인 제외"
@@ -529,7 +529,7 @@ export function NewFeaturesSection({ data }: { data: InsightsResponse }) {
             <div className="adm-section-space">
                 <AdminPanel
                     title="웹 푸시"
-                    description={`${data.since} 이후 외부 사람 퍼널 + 현재 활성·발송 구독 현황`}
+                    description={`${data.since} 이후 방문자 퍼널 + 현재 활성·발송 구독 현황`}
                 >
                     <div className="adm-panel-body">
                         <div className="adm-stats">
@@ -588,8 +588,8 @@ export function HygieneSection({ hygiene, since }: { hygiene: HygieneInsights; s
     return (
         <div className="adm-section-space">
             <AdminPanel
-                title="4. 데이터 위생"
-                description={`${since} 이후 내부 방문 제외 기준 · 봇으로 분류됐는데 사람 신호를 남긴 방문자 점검`}
+                title="4. 봇 필터 점검"
+                description={`${since} 이후 내부 방문 제외 기준 · 봇으로 분류됐으나 상호작용이 있는 방문자 점검`}
                 action={
                     hygiene.botHumanCount > 0 ? (
                         <span className="adm-badge adm-badge-warning">
@@ -601,7 +601,7 @@ export function HygieneSection({ hygiene, since }: { hygiene: HygieneInsights; s
                 }
             >
                 {hygiene.botHumans.length === 0 ? (
-                    <AdminEmpty>봇으로 분류된 방문자 중 사람 신호를 남긴 기록이 없습니다.</AdminEmpty>
+                    <AdminEmpty>봇으로 분류된 방문자 중 상호작용이 있는 기록이 없습니다.</AdminEmpty>
                 ) : (
                     <div className="adm-table-scroll">
                         <table className="adm-table">
@@ -609,7 +609,7 @@ export function HygieneSection({ hygiene, since }: { hygiene: HygieneInsights; s
                                 <tr>
                                     <th>visitor_id</th>
                                     <th>user_agent</th>
-                                    <th className="adm-numeric">사람 신호 수</th>
+                                    <th className="adm-numeric">상호작용 수</th>
                                     <th>마지막 시각</th>
                                 </tr>
                             </thead>
@@ -648,8 +648,8 @@ export function HygieneSection({ hygiene, since }: { hygiene: HygieneInsights; s
                                 <thead>
                                     <tr>
                                         <th>client</th>
-                                        <th className="adm-numeric">visitor 수</th>
-                                        <th className="adm-numeric">사람 신호 남긴 수</th>
+                                        <th className="adm-numeric">방문자 수</th>
+                                        <th className="adm-numeric">상호작용 있음</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -728,18 +728,18 @@ export function PromotionSection({ data }: { data: InsightsResponse }) {
     return (
         <div className="adm-section-space">
             <AdminPanel
-                title="보기 후보 — 보기에 없어 직접 쓴 말"
-                description={`${data.since} 이후 외부 사람 · 매칭되지 않은 입력을 장면·단계·같은 문장으로 묶음 · 2명 이상이면 출처를 확인해 보기로 올릴 후보`}
+                title="보기 후보: 보기에 없어 직접 입력한 문장"
+                description={`${data.since} 이후 방문자 · 매칭되지 않은 입력을 장면·단계·같은 문장으로 묶음 · 2명 이상이면 출처 확인 후 보기로 추가할 후보`}
             >
                 {candidates.length === 0 ? (
-                    <AdminEmpty>아직 보기에 붙지 못한 직접 입력이 없습니다.</AdminEmpty>
+                    <AdminEmpty>매칭되지 않은 직접 입력이 없습니다.</AdminEmpty>
                 ) : (
                     <div className="adm-table-scroll">
                         <table className="adm-table">
                             <thead>
                                 <tr>
-                                    <th>사람</th>
-                                    <th>쓴 말</th>
+                                    <th>방문자</th>
+                                    <th>입력한 문장</th>
                                     <th>장면 · 단계</th>
                                     <th>AI 판정</th>
                                     <th>마지막</th>
@@ -773,11 +773,11 @@ export function PromotionSection({ data }: { data: InsightsResponse }) {
                 )}
             </AdminPanel>
             <AdminPanel
-                title="올린 보기가 쓰이나"
-                description="사용자 입력에서 올린 보기(origin.kind = user) · 올린 날 이후 외부 사람 기준 · 구경 / 선택 / 같은 말로 다시 붙은 입력"
+                title="추가한 보기의 사용 현황"
+                description="사용자 입력에서 추가한 보기(origin.kind = user) · 추가일 이후 방문자 기준 · 열람 / 선택 / 같은 표현으로 매칭된 입력"
             >
                 {promoted.length === 0 ? (
-                    <AdminEmpty>아직 사용자 입력에서 올린 보기가 없습니다.</AdminEmpty>
+                    <AdminEmpty>사용자 입력에서 추가한 보기가 없습니다.</AdminEmpty>
                 ) : (
                     <div className="adm-table-scroll">
                         <table className="adm-table">
@@ -785,10 +785,10 @@ export function PromotionSection({ data }: { data: InsightsResponse }) {
                                 <tr>
                                     <th>보기</th>
                                     <th>장면 · 단계</th>
-                                    <th>올린 날 · 근거</th>
-                                    <th>구경한 사람</th>
-                                    <th>고른 사람</th>
-                                    <th>다시 붙은 입력</th>
+                                    <th>추가일 · 근거</th>
+                                    <th>열람</th>
+                                    <th>선택</th>
+                                    <th>재매칭 입력</th>
                                 </tr>
                             </thead>
                             <tbody>

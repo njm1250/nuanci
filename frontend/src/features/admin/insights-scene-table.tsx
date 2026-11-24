@@ -35,12 +35,12 @@ export function InsightsSceneTable({ rows }: { rows: SceneInsightRow[] }) {
                     <tr>
                         <th className="adm-numeric">순서</th>
                         <th>id / 제목</th>
-                        <th className="adm-numeric">연 사람</th>
-                        <th className="adm-numeric">첫 답 고른 사람</th>
-                        <th className="adm-numeric">1단계 첫 답 오답률</th>
-                        <th className="adm-numeric">완료한 사람</th>
-                        <th className="adm-numeric">완료 / 연 사람</th>
-                        <th className="adm-numeric">내 말로 연 사람</th>
+                        <th className="adm-numeric">진입</th>
+                        <th className="adm-numeric">보기 선택</th>
+                        <th className="adm-numeric">1단계 첫 선택 오답률</th>
+                        <th className="adm-numeric">완료</th>
+                        <th className="adm-numeric">완료 / 진입</th>
+                        <th className="adm-numeric">입력 칸 열기</th>
                     </tr>
                 </thead>
                 <tbody>

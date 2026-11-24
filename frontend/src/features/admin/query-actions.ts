@@ -28,7 +28,7 @@ export async function runQuery(
   const body = await res.json().catch(() => ({}));
   if (!res.ok)
     return {
-      error: body.message ?? body.detail ?? `조회하지 못했어요 (${res.status})`,
+      error: body.message ?? body.detail ?? `조회하지 못했습니다 (${res.status})`,
     };
   return { result: body, sql };
 }

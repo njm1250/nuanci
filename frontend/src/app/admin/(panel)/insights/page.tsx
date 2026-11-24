@@ -12,7 +12,7 @@ import {
 } from "@/features/admin/insights-sections";
 import { AdminHeader, AdminLoading, AdminPanel } from "@/features/admin/ui";
 
-export const metadata: Metadata = { title: "핵심 질문 · nuanci" };
+export const metadata: Metadata = { title: "핵심 지표 · nuanci" };
 
 const DEFAULT_SINCE = "2026-10-23";
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -30,7 +30,7 @@ async function Content({ searchParams }: PageProps<"/admin/insights">) {
     if (pivot) query.set("pivot", pivot);
 
     const data = await getAdminJson<InsightsResponse>(`/api/admin/insights?${query}`);
-    if (!data) throw new Error("핵심 질문 지표를 불러오지 못했습니다.");
+    if (!data) throw new Error("핵심 지표를 불러오지 못했습니다.");
 
     return (
         <>
@@ -70,7 +70,7 @@ async function Content({ searchParams }: PageProps<"/admin/insights">) {
                         )}
                     </div>
                     <span className="adm-muted">
-                        외부 사람 = 내부·봇 제외 + 사람 신호 1회 이상 · 날짜 기준 Asia/Seoul
+                        방문자 = 내부·봇 제외 + 상호작용 1회 이상 · 날짜 기준 Asia/Seoul
                     </span>
                 </form>
             </AdminPanel>
@@ -88,8 +88,8 @@ export default function InsightsPage(props: PageProps<"/admin/insights">) {
     return (
         <>
             <AdminHeader
-                title="핵심 질문"
-                description="외부 사람 도달·재방문, 장면별 난이도, 새 장치 사용 현황과 데이터 위생을 한 화면에서 확인합니다."
+                title="핵심 지표"
+                description="방문자 도달과 재방문, 장면별 난이도, 신규 기능 사용 현황, 봇 필터 상태를 한 화면에서 확인합니다."
             />
             <Suspense fallback={<AdminLoading />}>
                 <Content {...props} />

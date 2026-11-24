@@ -23,7 +23,7 @@ const COLUMNS = [
   { key: "followUpChosen", label: "후속 선택" },
   { key: "completed", label: "답변 완료" },
   { key: "rate", label: "완료 / 노출" },
-  { key: "wrongRate", label: "첫 답 오답률" },
+  { key: "wrongRate", label: "첫 선택 오답률" },
   { key: "wrapViewed", label: "정리 화면" },
   { key: "nextClicked", label: "다음 클릭" },
   { key: "alternativesViewed", label: "다른 표현" },
@@ -306,28 +306,28 @@ function SceneDetail({ row }: { row: SceneMetrics | undefined }) {
 function JourneyPanel({ journey: j }: { journey: Journey }) {
   const stages = [
     [
-      "홈에서 반응 없이 나감",
+      "홈에서 상호작용 없이 이탈",
       j.silentHome,
-      "누르거나 스크롤하지 않음 · 잠깐 보고 닫았거나 봇",
+      "클릭·스크롤 없음 · 짧은 방문이거나 봇",
     ],
-    ["홈만 둘러보고 나감", j.browsed, "반응은 했지만 장면을 열지 않음"],
+    ["홈만 탐색하고 이탈", j.browsed, "상호작용은 있으나 장면을 열지 않음"],
     [
-      "장면을 열고 반응 없이 나감",
+      "장면 진입 후 상호작용 없이 이탈",
       j.silentScene,
-      "링크로 바로 열고 닫음 · 봇일 수 있음",
+      "링크로 직접 진입 후 종료 · 봇 가능성",
     ],
-    ["빌드업 대사 중에 나감", j.leftInLead, "대사가 끝나기 전에 떠남"],
-    ["질문에서 나감", j.leftAtQuestion, "대사는 다 봤지만 답을 안 고름"],
-    ["답을 고르고 장면 중간에 나감", j.leftMidScene, "장면을 끝내지 않음"],
-    ["장면 1개 끝냄", j.oneScene, ""],
-    ["장면 2개 이상 끝냄", j.moreScenes, "다시 하고 싶었던 사람"],
+    ["도입 대사 중 이탈", j.leftInLead, "대사가 끝나기 전에 이탈"],
+    ["질문에서 이탈", j.leftAtQuestion, "대사는 끝까지 봤으나 보기를 선택하지 않음"],
+    ["보기 선택 후 장면 중간 이탈", j.leftMidScene, "장면을 완료하지 않음"],
+    ["장면 1개 완료", j.oneScene, ""],
+    ["장면 2개 이상 완료", j.moreScenes, "이어서 진행한 방문자"],
   ] as const;
   const total = stages.reduce((n, [, v]) => n + v, 0);
   const max = Math.max(...stages.map(([, v]) => v), 1);
   return (
     <AdminPanel
-      title="사람 방문자는 어디까지 갔나"
-      description="가장 깊이 간 단계 하나로 셈 · 내부·봇 제외 · 선택 기간"
+      title="방문자 최대 도달 단계"
+      description="방문자별 최대 도달 단계 1개로 집계 · 내부·봇 제외 · 선택 기간"
     >
       <div className="adm-panel-body">
         {stages.map(([label, n, note], i) => (
@@ -346,8 +346,8 @@ function JourneyPanel({ journey: j }: { journey: Journey }) {
         ))}
         <p className="adm-muted" style={{ marginTop: 12 }}>
           {j.engagementTracked
-            ? "반응은 화면을 처음 누르거나 스크롤한 순간입니다. 대사 단계는 빌드업이 끝날 때 남깁니다."
-            : "이 기간에는 반응·대사 기록이 아직 없어서 답을 안 고른 방문이 모두 ‘반응 없이 나감’으로 잡힙니다. 기록을 넣은 뒤부터 정확해집니다."}
+            ? "상호작용은 화면을 처음 클릭하거나 스크롤한 시점에 기록합니다. 대사 단계는 도입 대사가 끝날 때 기록합니다."
+            : "이 기간에는 상호작용·대사 기록이 없어, 보기를 선택하지 않은 방문이 모두 ‘상호작용 없이 이탈’로 집계됩니다. 기록을 추가한 시점 이후부터 정확합니다."}
         </p>
       </div>
     </AdminPanel>
@@ -362,7 +362,7 @@ function DevicePanel({ devices }: { devices: DeviceMetrics[] }) {
   return (
     <AdminPanel
       title="이용 기기"
-      description="브라우저 User-Agent 기준 · 내부·봇 제외 · 선택 기간 · iPad 사파리는 데스크톱으로 잡힘"
+      description="브라우저 User-Agent 기준 · 내부·봇 제외 · 선택 기간 · iPad Safari는 데스크톱으로 분류됨"
     >
       <div className="adm-panel-body">
         {devices.map((d) => (
@@ -439,13 +439,13 @@ export function MetricsDashboard({
     <>
       <div className="adm-stats">
         <AdminStat
-          label="사람 브라우저"
+          label="상호작용 브라우저"
           tone="informative"
           value={m.humanVisitors ?? m.visitors}
           note={
             m.humanVisitors === undefined
               ? "저장 ID 기준 · 내부 방문 제외"
-              : `화면을 누르거나 답을 고른 브라우저 · 열리기만 한 것까지 ${number(m.visitors)}`
+              : `화면을 클릭하거나 보기를 선택한 브라우저 · 열기만 한 브라우저 포함 시 ${number(m.visitors)}`
           }
         />
         <AdminStat
@@ -470,7 +470,7 @@ export function MetricsDashboard({
         />
         {m.botVisitors !== undefined && (
           <AdminStat
-            label="봇으로 거른 브라우저"
+            label="봇으로 판정한 브라우저"
             value={m.botVisitors}
             note="크롤러·미리보기·자동화 · 전체 누적"
           />
@@ -593,7 +593,7 @@ export function MetricsDashboard({
       </div>
       <AdminPanel
         title="유입 채널"
-        description="최초 utm_source, 없으면 리퍼러 기준 · 반응은 화면을 누르거나 답을 고른 브라우저 · 최대 30개"
+        description="최초 utm_source, 없으면 리퍼러 기준 · 상호작용은 화면을 클릭하거나 보기를 선택한 브라우저 · 최대 30개"
       >
         <div className="adm-table-scroll" style={{ maxHeight: 320 }}>
           <table className="adm-table" style={{ minWidth: 800 }}>
@@ -602,7 +602,7 @@ export function MetricsDashboard({
                 <th>채널</th>
                 {[
                   "브라우저",
-                  "반응",
+                  "상호작용",
                   "장면 시작",
                   "장면 완료",
                   "완료 / 시작",

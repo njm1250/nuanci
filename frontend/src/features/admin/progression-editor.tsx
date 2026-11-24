@@ -290,7 +290,7 @@ export function ProgressionEditor({ initial }: { initial: ProgressionAdmin }) {
               </button>
               <p className="adm-muted" style={{ marginTop: 12 }}>
                 직급은 새 기준으로 다시 계산됩니다. 기준을 높이거나 단계를
-                삭제하면 기존 유저의 직급이 내려갈 수 있습니다.
+                삭제하면 기존 사용자의 직급이 내려갈 수 있습니다.
               </p>
             </div>
           </AdminPanel>
@@ -441,7 +441,7 @@ export function ProgressionEditor({ initial }: { initial: ProgressionAdmin }) {
               </button>
               <p className="adm-muted" style={{ marginTop: 12 }}>
                 이미 지급한 상자는 차감하지 않습니다. 예를 들어 2개를 받은
-                유저는 변경 후 3번째 기준부터 다음 상자를 받습니다.
+                사용자는 변경 후 3번째 기준부터 다음 상자를 받습니다.
               </p>
             </div>
           </AdminPanel>
@@ -453,7 +453,7 @@ export function ProgressionEditor({ initial }: { initial: ProgressionAdmin }) {
           >
             <div className="adm-panel-body">
               <label htmlFor="progression-preview-count" className="adm-muted">
-                유저가 완료한 서로 다른 장면
+                사용자가 완료한 서로 다른 장면
               </label>
               <label className="adm-settings-number" style={{ marginTop: 10 }}>
                 <input

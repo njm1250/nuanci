@@ -15,7 +15,7 @@ const DESCRIPTIONS: Record<string, string> = {
     "이용 이벤트 · visitor_id는 브라우저, user_id는 이벤트 당시 로그인 계정",
   app_user: "가입 계정 · id로 이벤트·완료 기록과 연결",
   user_visitor:
-    "브라우저와 마지막 로그인 계정 연결 · 과거 이벤트 당시 상태와 다를 수 있어요",
+    "브라우저와 마지막 로그인 계정 연결 · 과거 이벤트 당시 상태와 다를 수 있습니다",
   user_cleared: "계정별 완료 장면",
   internal_visitor: "지표에서 제외하는 관리자 브라우저",
 };

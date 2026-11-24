@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "SQL 조회 · nuanci" };
 
 async function QueryBody() {
   const tables = await getAdminJson<QueryTable[]>("/api/admin/query/schema");
-  if (!tables) throw new Error("테이블 정보를 불러오지 못했어요");
+  if (!tables) throw new Error("테이블 정보를 불러오지 못했습니다");
   return <QueryConsole tables={tables} />;
 }
 
