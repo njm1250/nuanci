@@ -25,18 +25,19 @@ export function FeatureRows({ scene }: { scene: Scene }) {
   ];
   return (
     <section className="mx-auto w-full max-w-[1080px] px-4 py-14 md:px-8 md:py-20 returning:hidden">
-      <ul className="space-y-16 md:space-y-24">
+      {/* 줄마다 제목(h2)이 있는 독립된 소개 단락이라 목록(ul/li)이 아니라 단락으로 둔다 */}
+      <div className="space-y-16 md:space-y-24">
         {rows.map((r, i) => (
           // 데스크톱은 그림과 글을 한 줄씩 좌우를 바꿔 가며 놓아, 같은 모양이 세 번 반복돼 보이지 않게 한다
-          <li key={r.title} className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-14">
+          <section key={r.title} className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-14">
             <div className={`w-full max-w-[460px] justify-self-center ${i % 2 ? "md:order-2" : ""}`}>{r.art}</div>
             <div>
               <h2 className="font-poster text-display-sm leading-[1.25] md:text-display">{r.title}</h2>
               <p className="mt-3 max-w-[420px] text-body leading-relaxed text-fg-muted">{r.body}</p>
             </div>
-          </li>
+          </section>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

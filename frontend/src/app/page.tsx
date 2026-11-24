@@ -81,15 +81,20 @@ export default async function Home() {
       {/* 종이 면과 검은 무대 사이에 장면 제목이 필름 띠처럼 흐른다. 어떤 이야기들이 있는지 읽지 않아도 지나가며 보인다 */}
       <div aria-hidden className="overflow-hidden border-b border-fg/15 bg-ink py-2.5 returning:hidden">
         <div className="ticker flex w-max whitespace-nowrap font-label text-ui text-white/70">
-          {[0, 1].map((k) => (
-            <span key={k} className="flex">
-              {shelf.slice(0, 15).map((x) => (
-                <span key={x.id} className="px-5">
-                  {x.title}
-                </span>
-              ))}
-            </span>
-          ))}
+          {/* 끊김 없이 돌리려고 같은 줄을 두 번 놓는다. 두 번째 줄은 글자를 data-t에 두고 CSS로만 그려서,
+              HTML 본문에는 장면 제목이 한 번만 들어간다(검색엔진·AI가 페이지 글을 읽을 때 목록이 두 번 잡히지 않게) */}
+          <span className="flex">
+            {shelf.slice(0, 15).map((x) => (
+              <span key={x.id} className="px-5">
+                {x.title}
+              </span>
+            ))}
+          </span>
+          <span className="flex">
+            {shelf.slice(0, 15).map((x) => (
+              <span key={x.id} data-t={x.title} className="px-5 before:content-[attr(data-t)]" />
+            ))}
+          </span>
         </div>
       </div>
 
@@ -106,9 +111,12 @@ export default async function Home() {
           )}
 
           <div className="order-2 max-w-[440px] px-4 pt-5 min-[960px]:col-start-2 min-[960px]:row-start-1 min-[960px]:self-end min-[960px]:px-0 min-[960px]:pt-0">
-            <p aria-hidden className="poster-scrawl mb-6 hidden origin-left font-scrawl text-display-xl leading-none text-fg [--lean:-4deg] min-[960px]:block">
-              골라 보면 알아요
-            </p>
+            {/* 같은 문구가 위쪽(좁은 화면용)에도 있어서, 넓은 화면용 이 줄은 글자를 CSS로만 그려 HTML 본문에 두 번 들어가지 않게 한다 */}
+            <p
+              aria-hidden
+              data-t="골라 보면 알아요"
+              className="poster-scrawl mb-6 hidden origin-left font-scrawl text-display-xl leading-none text-fg [--lean:-4deg] before:content-[attr(data-t)] min-[960px]:block"
+            />
             <HeroAsk first={pick}>
               <p className="text-body leading-relaxed text-fg-muted">하고 싶은 말을 영어 보기 중에 고르면 상대의 표정과 속마음이 나와요.</p>
             </HeroAsk>

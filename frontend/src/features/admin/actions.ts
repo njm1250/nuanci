@@ -23,6 +23,7 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
     body: JSON.stringify({ id: form.get("id"), password: form.get("password") }),
     cache: "no-store",
   });
+  if (res.status === 429) return { error: "로그인 실패가 너무 많아요. 15분 뒤에 다시 해 주세요", id: String(form.get("id") ?? "") };
   if (!res.ok) return { error: "아이디나 비밀번호가 맞지 않아요", id: String(form.get("id") ?? "") };
   const { token } = await res.json();
   (await cookies()).set(ADMIN_COOKIE, token, {
