@@ -258,6 +258,17 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const speakerOf = (who: "partner" | "me" | "mochi") => (who === "me" ? "me" : who === "partner" ? partnerVoice : undefined);
   // 대사 한 줄이 머무는 시간. 음성이 있으면 음성이 끝나고 읽을 틈까지 기다린다
   const beatTime = beat ? Math.max(beatMs(beat), voiceMs(speakerOf(beat.who), beat.line) + 900) : 0;
+  // 시험(주소에 ?hear가 있을 때만): 상대의 영어 대사를 소리로 먼저 듣고, 소리가 끝난 뒤에 글자가 뜬다. 소리를 껐거나 음성이 없는 대사는 지금처럼 바로 뜬다
+  const hearFirst = useSyncExternalStore(noSubscribe, () => new URLSearchParams(location.search).has("hear"), () => false);
+  const hearMs = hearFirst && beat?.who === "partner" && beat.line !== "……" ? voiceMs(partnerVoice, beat.line) : 0;
+  const hearKey = `${step}-${leadIdx}`;
+  const [heardKey, setHeardKey] = useState("");
+  useEffect(() => {
+    if (!hearMs) return;
+    const t = window.setTimeout(() => setHeardKey(hearKey), hearMs);
+    return () => clearTimeout(t);
+  }, [hearMs, hearKey]);
+  const holdLine = hearMs > 0 && heardKey !== hearKey;
   const played = phase === "transition" ? [] : lead.slice(0, leading ? leadIdx + 1 : lead.length);
   const leadFlags = played.flatMap((b) => b.flags ?? []).join(",");
   // 소품은 대사가 흐르는 동안 마지막으로 든 것을 계속 들고 있는다
@@ -742,7 +753,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                   meLine: beat ? (beat.who === "me" && beat.line !== "……" ? beat.line : undefined) : endingOn ? undefined : (fl?.line ?? stageChoice?.line),
                   partnerLine: beat
                     ? beat.who === "partner" && beat.line !== "……"
-                      ? beat.line
+                      ? holdLine
+                        ? "……"
+                        : beat.line
                       : undefined
                     : endingOn
                       ? partnerEnds
