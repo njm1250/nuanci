@@ -24,7 +24,7 @@ import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { CORE_CHOICES, shuffleChoices } from "./choice-order";
-import { BEAT_AT, MeaningCaption, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
+import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 
 import { loadVoiceScene, primeAudio, sfx, voiceMs } from "./sfx";
@@ -254,6 +254,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const beat = leading && introDone ? lead[leadIdx] : null;
   // 고르는 동안: 상대가 방금 한 말의 번역(도입 대사에 그 말이 있을 때). 무대의 뜻 보기가 이 번역과 보기의 뜻을 함께 연다
   const askMeaning = lead.findLast((b) => b.who === "partner" && b.line === situation.partnerLine)?.meaning;
+  // 도입 대사의 뜻은 줄마다 따로 연다. 다음 줄로 넘어가면 다시 닫혀서, 새 영어 문장은 늘 번역 없이 먼저 만난다
+  const leadKey = `${step}-${leadIdx}`;
+  const [meaningAt, setMeaningAt] = useState<string | null>(null);
   // 실제 영어 음성(시험판)은 "말한 사람" 이름으로 찾는다. 나는 me, 상대는 장면의 상대 이름
   const partnerVoice = scene.partnerName?.toLowerCase();
   const speakerOf = (who: "partner" | "me" | "mochi") => (who === "me" ? "me" : who === "partner" ? partnerVoice : undefined);
@@ -676,6 +679,18 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const isFriend = (c: Choice) => friendOn && c.id === friendId;
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
+  // 보기의 뜻을 여는 작은 글자 버튼. 고르는 동안 "앞 대화 다시 보기"와 같은 줄 오른쪽 끝에 둔다(작은 동작은 한 줄 양 끝에 모은다)
+  const meaningLink = asking ? (
+    <button
+      type="button"
+      onClick={() => setShowMeaning((v) => !v)}
+      aria-pressed={showMeaning}
+      className="-mx-1 flex min-h-9 shrink-0 items-center px-1 text-meta text-fg-subtle underline decoration-fg-subtle/40 underline-offset-4 hover:text-fg"
+    >
+      {showMeaning ? "뜻 숨기기" : "뜻 보기"}
+    </button>
+  ) : null;
+
   // 직접 말하는 칸. 한 번 답해 본 사람에게는 보기보다 앞에, 처음 온 사람의 첫 질문에서는 보기 뒤에 둔다
   const freeSlot =
     !choice && !preview ? (
@@ -787,6 +802,10 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                   // "내 말로 해 보기"로 말했으면 무대에서 내가 그 말을 하고, 상대가 상상한 반응(표정·속마음)으로 받는다
                   reaction: endingOn ? null : fl?.outcome === "reacted" ? (fl.expression ?? null) : (stageChoice?.expression ?? null),
                   meLine: beat ? (beat.who === "me" && beat.line !== "……" ? beat.line : undefined) : endingOn ? undefined : (fl?.line ?? stageChoice?.line),
+                  // 번역은 기본으로 가려 두고, 영어 말풍선을 누르면 그 안에서 열린다. 늘 번역을 켜 둔 사람은 지금처럼 자막으로 본다
+                  meMeaning: beat && !translate && beat.who === "me" && beat.line !== "……" ? beat.meaning : undefined,
+                  partnerMeaning: translate ? undefined : beat ? (beat.who === "partner" && beat.line !== "……" ? beat.meaning : undefined) : asking ? askMeaning : undefined,
+                  meaningOpen: beat ? meaningAt === leadKey : showMeaning,
                   partnerLine: beat
                     ? beat.who === "partner" && beat.line !== "……"
                       ? beat.line
@@ -809,6 +828,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                   cutIn,
                 })}
                 onPick={heroAsk === "ask" ? (who) => pickHero(who === "me" ? "left" : "right") : undefined}
+                onMeaning={() => (beat ? setMeaningAt((k) => (k === leadKey ? null : leadKey)) : setShowMeaning((v) => !v))}
               />
               {beat?.who === "mochi" && <MochiCameo step="punch" line={beat.line} className={MOCHI_TUCK_LIFT} />}
               {beat && <BeatDots total={lead.length} at={leadIdx} />}
@@ -823,9 +843,6 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
               {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
-              {/* 번역은 기본으로 가려 둔다. 번역이 뜰 자막 자리에 뜻 보기를 둬서, 못 알아들었을 때 그 자리에서 연다. 고르는 동안에는 상대가 한 말과 보기의 뜻을 함께 연다 */}
-              {beat && !translate && beat.line !== "……" && beat.who !== "mochi" && <MeaningCaption key={`cap-${leadIdx}`} text={beat.meaning} open={showMeaning} onToggle={() => setShowMeaning((v) => !v)} className={STAGE_TUCK_LIFT} />}
-              {asking && <MeaningCaption text={askMeaning} open={showMeaning} onToggle={() => setShowMeaning((v) => !v)} className={STAGE_TUCK_LIFT} />}
               {/* 두 번째 말부터는 무대가 가볍게 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !keyPick && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/25">
@@ -925,9 +942,10 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               <p className="text-note leading-normal text-fg-muted md:hidden">
                 <NowLast text={situation.context} />
               </p>
+              {!leading && lead.length === 0 && meaningLink && <div className="mt-1.5 flex justify-end md:hidden">{meaningLink}</div>}
               {!leading && lead.length > 0 && (
                 <div className="md:hidden">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} aside={meaningLink} />
                 </div>
               )}
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
@@ -1148,9 +1166,10 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 </div>
               )}
               {/* 데스크톱은 Mochi와 보기가 칸 맨 위에 붙어 있도록 앞 대화 다시 보기를 보기 아래에 둔다 */}
+              {!leading && lead.length === 0 && meaningLink && <div className="mt-1.5 hidden justify-end md:flex">{meaningLink}</div>}
               {!leading && lead.length > 0 && (
                 <div className="hidden md:block">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} aside={meaningLink} />
                 </div>
               )}
             </div>

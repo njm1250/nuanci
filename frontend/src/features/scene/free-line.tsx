@@ -148,7 +148,7 @@ export function FreeLineSlot({
         spellCheck={false}
         enterKeyHint="send"
         aria-label="내 말로 해 보기: 떠올린 영어"
-        placeholder={lead ? "떠올린 영어 그대로 말해 보기" : "e.g. Break a leg!"}
+        placeholder={lead ? "내 말로 해 보기" : "e.g. Break a leg!"}
         className="min-w-0 flex-1 bg-transparent px-3 py-2 font-line text-say leading-snug text-ink caret-ink outline-none placeholder:text-ink-subtle/60 focus-ring-off"
       />
       <button
