@@ -36,7 +36,7 @@ import { upNext, type OrderItem } from "./collections";
 import { nextAskOf } from "./next-ask";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
-import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
+import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent, hasAnswered, markAnswered, onAnswered } from "./track";
 import { FreeLineSlot, type FreeLine } from "./free-line";
 import { replyMessage, shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 import { BoldQuoted, NowLast } from "./emphasis";
@@ -140,6 +140,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
     if (preview) return;
     // 질문마다 첫 답이 어떤 함정에 걸렸는지 "내 영어 말투"에 모은다
     if (e.type === "choice_selected" && e.step && e.choiceId) {
+      markAnswered();
       const situation = e.step === "base" ? scene.base : scene.followUp;
       const picked = situation.choices.find((c) => c.id === e.choiceId);
       recordVoice(scene.id, e.step, picked?.trap);
@@ -251,6 +252,8 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
     return () => clearTimeout(t);
   }, [introDone]);
   const beat = leading && introDone ? lead[leadIdx] : null;
+  // 고르는 동안: 상대가 방금 한 말의 번역(도입 대사에 그 말이 있을 때). 무대의 뜻 보기가 이 번역과 보기의 뜻을 함께 연다
+  const askMeaning = lead.findLast((b) => b.who === "partner" && b.line === situation.partnerLine)?.meaning;
   // 실제 영어 음성(시험판)은 "말한 사람" 이름으로 찾는다. 나는 me, 상대는 장면의 상대 이름
   const partnerVoice = scene.partnerName?.toLowerCase();
   const speakerOf = (who: "partner" | "me" | "mochi") => (who === "me" ? "me" : who === "partner" ? partnerVoice : undefined);
@@ -605,9 +608,14 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const [freeDraft, setFreeDraft] = useState<{ step: "base" | "followUp"; text: string }>({ step: "base", text: "" });
   const fl = !choice && free?.step === stepNow ? free : null;
   const liveDraft = !choice && !fl && freeOpenStep === stepNow && freeDraft.step === stepNow ? freeDraft.text.trim() : "";
+  // 보기를 고르는 동안(직접 쓰는 중이나 직접 쓴 말의 반응이 나온 뒤는 빼고)에만 무대에 뜻 보기를 둔다
+  const asking = !choice && !fl && !liveDraft && !wrapped && !leading && phase !== "transition" && heroAsk === "off";
   // 내 말이 어떻게 들렸는지 기다리는 동안 칩튠을 깐다. 결과가 오면 끊긴다
   const freePending = fl?.outcome === "pending";
   useEffect(() => (freePending ? sfx.thinking() : undefined), [freePending]);
+  // 처음 온 사람의 첫 질문은 보기를 먼저 둔다(계속할지 정하는 순간에 타자부터 요구하지 않는다). 한 번 답해 본 뒤로는 직접 말하는 칸을 보기보다 앞에 둔다
+  const answered = useSyncExternalStore(onAnswered, hasAnswered, () => false);
+  const freeFirst = answered || cleared.length > 0;
   const openFree = () => {
     if (freeOpenStep === stepNow) return;
     setFreeOpenStep(stepNow);
@@ -620,7 +628,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.target instanceof Element && e.target.closest("input, textarea, select, dialog")) return;
-      if (!preview && Number(e.key) === shown.length + 1) {
+      if (!preview && !freeFirst && Number(e.key) === shown.length + 1) {
         e.preventDefault();
         return openFree();
       }
@@ -668,6 +676,49 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const isFriend = (c: Choice) => friendOn && c.id === friendId;
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
 
+  // 직접 말하는 칸. 한 번 답해 본 사람에게는 보기보다 앞에, 처음 온 사람의 첫 질문에서는 보기 뒤에 둔다
+  const freeSlot =
+    !choice && !preview ? (
+                      <li className="animate-rise" style={{ animationDelay: `${freeFirst ? 40 : 40 + shown.length * 40}ms` }}>
+                        <FreeLineSlot
+                          n={shown.length + 1}
+                          lead={freeFirst}
+                          open={freeFirst || freeOpenStep === stepNow}
+                          onOpen={openFree}
+                          sceneId={scene.id}
+                          sceneVersion={scene.version}
+                          step={stepNow}
+                          free={fl}
+                          numberOf={(id) => {
+                            // 보기가 넷 이상이면 첫 답 전에는 앞 셋만 보인다. 안 보이는 보기에 붙어도 그 보기를 고르게 하고 번호는 0으로 둔다
+                            const c = situation.choices.find((x) => x.id === id);
+                            return c ? { n: shown.findIndex((x) => x.id === id) + 1, line: c.line } : null;
+                          }}
+                          onSay={(line) => (setFreeDraft({ step: stepNow, text: "" }), setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
+                          onResult={(r, line) => {
+                            setFreeKey((k) => k + 1);
+                            // 판정까지 받은 말은 보기 하나로 더해 바로 고른다. 도장·이펙트·비교·다음으로 넘어가기가 다른 보기와 같다
+                            if (r.outcome === "reacted") {
+                              f.addOwn(ownChoice(line, r, situation.choices, freeKey));
+                              setFree(null);
+                              return;
+                            }
+                            // 보기와 같은 표현이면 그 보기로 보내지 않고, 내가 한 말 그대로 두고 그 보기의 반응·판정·해설을 잇는다
+                            const same = r.outcome === "matched" ? situation.choices.find((x) => x.id === r.choiceId) : undefined;
+                            if (same) {
+                              send({ type: "free_line_pick", step: stepNow, choiceId: same.id });
+                              f.addOwn(matchedOwn(line, same, freeKey));
+                              setFree(null);
+                              return;
+                            }
+                            setFree((x) => (x ? { ...x, ...r } : x));
+                          }}
+                          onReset={() => (setFreeDraft({ step: stepNow, text: "" }), setFree(null))}
+                          onDraftChange={(text) => setFreeDraft({ step: stepNow, text })}
+                        />
+                      </li>
+                    ) : null;
+
   return (
     <div className="flex min-h-dvh justify-center overflow-x-clip bg-page break-keep text-ink">
       {/* 데스크톱은 전체 높이를 820px까지 쓰고 세로 가운데에 둔다. 오른쪽 선택 영역이 무대 높이에 묶이지 않아 보기와 결과 카드가 잘리지 않는다 */}
@@ -693,11 +744,15 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
           {packStep !== undefined && <PrStatus step={packStep} />}
           {/* 끝이 어디인지 처음부터 보이게, 세 장면 중 몇 번째인지 둔다 */}
           {runOn && <RunChip at={runFresh ? 1 : runPosition(run, scene.id)} />}
-          {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
+          {/* 뜻은 소리와 나란히 머리줄 오른쪽에 스위치로 둔다. 대사가 넘어가도 자리가 그대로라 쫓기지 않고, 한 번 켜면 이 장면 동안 계속 켜져 있다.
+              글자 버튼에 색만 채우면 켜진 건지 꺼진 건지 따로 읽어야 해서, 손잡이 위치와 색으로 한눈에 보이는 스위치를 쓴다(내 정보의 스위치와 같은 모양). 이름은 동작이 아니라 켜고 끄는 대상이다 */}
           <div className="ml-auto flex shrink-0 items-center">
-            {!choice && !wrapped && !leading && phase !== "transition" && (
-              <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
-                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-ink-fixed" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
+            {!choice && !wrapped && phase !== "transition" && (
+              <button type="button" role="switch" aria-checked={showMeaning} onClick={() => setShowMeaning((v) => !v)} className="flex min-h-11 items-center gap-1.5 px-2 font-label text-ui text-fg">
+                뜻
+                <span aria-hidden className={`flex h-6 w-11 items-center p-0.5 transition-colors duration-fast ${showMeaning ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+                  <span className="size-5 bg-white" />
+                </span>
               </button>
             )}
             <SoundToggle />
@@ -777,7 +832,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 />
               )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
-              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
+              {beat && (translate || showMeaning || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
+              {/* 고르는 동안 뜻 보기를 켜 두면, 상대가 방금 한 말의 번역도 같은 자막 자리에 둔다(도입 대사에 그 말이 있을 때) */}
+              {asking && askMeaning && (translate || showMeaning) && <Subtitle text={askMeaning} className={STAGE_TUCK_LIFT} />}
               {/* 두 번째 말부터는 무대가 가볍게 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !keyPick && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/25">
@@ -879,7 +936,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               </p>
               {!leading && lead.length > 0 && (
                 <div className="md:hidden">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} />
                 </div>
               )}
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
@@ -986,6 +1043,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                       </div>
                     )}
                     <ul className="mt-2 space-y-2.5">
+                    {freeFirst && freeSlot}
                     {shown.map((c, i) => (
                       <li
                         key={c.id}
@@ -1081,46 +1139,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                         )}
                       </li>
                     ))}
-                    {/* 마지막 칸: 떠올린 영어가 보기에 없을 때 직접 말하기. 보기와 같은 줄에 둬서 놓치지 않게 하고, 점선으로 보기와 갈라 둔다 */}
-                    {!choice && !preview && (
-                      <li className="animate-rise" style={{ animationDelay: `${40 + shown.length * 40}ms` }}>
-                        <FreeLineSlot
-                          n={shown.length + 1}
-                          open={freeOpenStep === stepNow}
-                          onOpen={openFree}
-                          sceneId={scene.id}
-                          sceneVersion={scene.version}
-                          step={stepNow}
-                          free={fl}
-                          numberOf={(id) => {
-                            // 보기가 넷 이상이면 첫 답 전에는 앞 셋만 보인다. 안 보이는 보기에 붙어도 그 보기를 고르게 하고 번호는 0으로 둔다
-                            const c = situation.choices.find((x) => x.id === id);
-                            return c ? { n: shown.findIndex((x) => x.id === id) + 1, line: c.line } : null;
-                          }}
-                          onSay={(line) => (setFreeDraft({ step: stepNow, text: "" }), setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
-                          onResult={(r, line) => {
-                            setFreeKey((k) => k + 1);
-                            // 판정까지 받은 말은 보기 하나로 더해 바로 고른다. 도장·이펙트·비교·다음으로 넘어가기가 다른 보기와 같다
-                            if (r.outcome === "reacted") {
-                              f.addOwn(ownChoice(line, r, situation.choices, freeKey));
-                              setFree(null);
-                              return;
-                            }
-                            // 보기와 같은 표현이면 그 보기로 보내지 않고, 내가 한 말 그대로 두고 그 보기의 반응·판정·해설을 잇는다
-                            const same = r.outcome === "matched" ? situation.choices.find((x) => x.id === r.choiceId) : undefined;
-                            if (same) {
-                              send({ type: "free_line_pick", step: stepNow, choiceId: same.id });
-                              f.addOwn(matchedOwn(line, same, freeKey));
-                              setFree(null);
-                              return;
-                            }
-                            setFree((x) => (x ? { ...x, ...r } : x));
-                          }}
-                          onReset={() => (setFreeDraft({ step: stepNow, text: "" }), setFree(null))}
-                          onDraftChange={(text) => setFreeDraft({ step: stepNow, text })}
-                        />
-                      </li>
-                    )}
+                    {!freeFirst && freeSlot}
                   </ul>
                   </>
                 )}
@@ -1140,7 +1159,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               {/* 데스크톱은 Mochi와 보기가 칸 맨 위에 붙어 있도록 앞 대화 다시 보기를 보기 아래에 둔다 */}
               {!leading && lead.length > 0 && (
                 <div className="hidden md:block">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} />
                 </div>
               )}
             </div>

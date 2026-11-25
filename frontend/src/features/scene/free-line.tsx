@@ -24,6 +24,7 @@ export function FreeLineSlot({
   onResult,
   onReset,
   onDraftChange,
+  lead = false,
 }: {
   n: number;
   open: boolean;
@@ -39,7 +40,16 @@ export function FreeLineSlot({
   onResult: (r: Omit<FreeLine, "step" | "line">, line: string) => void;
   onReset: () => void;
   onDraftChange?: (draft: string) => void;
+  // 보기보다 앞에 둘 때. 눌러서 여는 단계 없이 처음부터 쓰는 칸으로 두고, 번호 대신 연필을 붙인다(번호는 보기의 것이다). 화면에 뜨자마자 자판이 올라오지 않게 자동으로 잡지 않는다
+  lead?: boolean;
 }) {
+  const mark = lead ? (
+    <svg width="14" height="14" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden className="fill-current">
+      <path d="M6 0h1v1h1v1h-1v1h-1v1h-1v1h-1v1h-1v1h-2v-2h1v-1h1v-1h1v-1h1v-1h1z" />
+    </svg>
+  ) : (
+    n
+  );
   const [text, setText] = useState("");
 
   const updateText = (v: string) => {
@@ -93,7 +103,7 @@ export function FreeLineSlot({
       <div className="border-2 border-fg bg-card-raised px-3 py-3 text-ink animate-fade">
         <p className="flex items-start gap-3">
           <span aria-hidden className="grid size-6 shrink-0 place-items-center bg-ink font-label text-ui text-white">
-            {n}
+            {mark}
           </span>
           <span className="min-w-0 flex-1 font-line text-say leading-snug">{free.line}</span>
         </p>
@@ -124,20 +134,21 @@ export function FreeLineSlot({
       className="flex min-h-14 items-stretch border-2 border-fg bg-card-raised text-ink animate-fade focus-within:outline focus-within:outline-[3px] focus-within:outline-offset-4 focus-within:outline-pink"
     >
       <span aria-hidden className="ml-3 grid size-6 shrink-0 place-items-center self-center bg-ink font-label text-ui text-white">
-        {n}
+        {mark}
       </span>
       <input
         value={text}
         onChange={(e) => updateText(e.target.value)}
         maxLength={200}
-        autoFocus
+        autoFocus={!lead}
+        onFocus={lead ? onOpen : undefined}
         lang="en"
         autoCapitalize="sentences"
         autoComplete="off"
         spellCheck={false}
         enterKeyHint="send"
         aria-label="내 말로 해 보기: 떠올린 영어"
-        placeholder="e.g. Break a leg!"
+        placeholder={lead ? "내 말로 해 보기" : "e.g. Break a leg!"}
         className="min-w-0 flex-1 bg-transparent px-3 py-2 font-line text-say leading-snug text-ink caret-ink outline-none placeholder:text-ink-subtle/60 focus-ring-off"
       />
       <button

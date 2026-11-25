@@ -68,6 +68,8 @@ export default async function Home() {
           <span className="poster-rise block min-[960px]:inline-block returning:inline">내 영어,</span>{" "}
           <span className="poster-rise block [animation-delay:90ms] min-[960px]:inline-block returning:inline">어떻게 들릴까?</span>
         </h1>
+        {/* 제목은 얻는 것을, 이 한 줄은 방법을 말한다. 다시 온 사람의 작은 머리에서는 뺀다 */}
+        <p className="mt-2 text-title font-label text-fg-muted returning:hidden md:mt-3 md:text-display-sm">외우는 영어 말고, 부딪히는 영어</p>
         <p aria-hidden className="poster-scrawl absolute right-4 top-3 font-scrawl text-[clamp(32px,6vw,60px)] leading-none text-fg [--lean:-4deg] md:right-8 min-[960px]:hidden returning:hidden">
           골라 보면 알아요
         </p>

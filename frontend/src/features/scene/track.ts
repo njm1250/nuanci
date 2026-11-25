@@ -125,6 +125,30 @@ export function markPlayed() {
   document.documentElement.setAttribute("data-returning", "");
 }
 
+// 질문에 한 번이라도 답해 본 사람인지. 처음 온 사람의 첫 질문만 보기를 먼저 두고, 그 뒤로는 직접 말하는 칸을 앞에 두는 데 쓴다
+const ANSWERED_KEY = "nuanci.answered";
+const answeredListeners = new Set<() => void>();
+export function hasAnswered() {
+  try {
+    return localStorage.getItem(ANSWERED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+export function markAnswered() {
+  try {
+    if (localStorage.getItem(ANSWERED_KEY) === "1") return;
+    localStorage.setItem(ANSWERED_KEY, "1");
+  } catch {}
+  answeredListeners.forEach((l) => l());
+}
+export function onAnswered(listener: () => void) {
+  answeredListeners.add(listener);
+  return () => {
+    answeredListeners.delete(listener);
+  };
+}
+
 export function hasPlayed() {
   try {
     return localStorage.getItem(PLAYED_KEY) === "1";
