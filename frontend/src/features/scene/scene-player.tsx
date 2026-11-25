@@ -1062,7 +1062,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                             <Num n={i + 1} hover />
                             <span className="min-w-0 flex-1">
                               <span className="block font-line text-say leading-snug">{c.line}</span>
-                              {showMeaning && <span className="mt-0.5 block text-note text-ink-subtle">{c.meaning}</span>}
+                              {/* 고르기 전에는 보기의 뜻을 띄우지 않는다. 판단할 문장의 뜻이 곧 답의 힌트라서다. 뜻 스위치는 상대 대사만 연다 */}
                             </span>
                             {preview && (
                               <span className="text-ink-subtle">
