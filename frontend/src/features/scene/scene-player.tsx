@@ -24,7 +24,7 @@ import { useBubbleScale } from "@/features/stage/stage-px";
 import type { AccessoryId, StageSpec, Worn } from "@/features/stage/types";
 import { BlockButton, BlockLink, Panel } from "./block-ui";
 import { CORE_CHOICES, shuffleChoices } from "./choice-order";
-import { BEAT_AT, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
+import { BEAT_AT, MeaningCaption, MochiCameo, PUNCH_AT, PUNCH_HOLD, PUNCH_SOUND_MS, Subtitle, type EndingStep } from "./ending";
 import { ImagineBubble } from "./imagine-bubble";
 
 import { loadVoiceScene, primeAudio, sfx, voiceMs } from "./sfx";
@@ -251,6 +251,8 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
     return () => clearTimeout(t);
   }, [introDone]);
   const beat = leading && introDone ? lead[leadIdx] : null;
+  // 고르는 동안: 상대가 방금 한 말의 번역(도입 대사에 그 말이 있을 때). 무대의 뜻 보기가 이 번역과 보기의 뜻을 함께 연다
+  const askMeaning = lead.findLast((b) => b.who === "partner" && b.line === situation.partnerLine)?.meaning;
   // 실제 영어 음성(시험판)은 "말한 사람" 이름으로 찾는다. 나는 me, 상대는 장면의 상대 이름
   const partnerVoice = scene.partnerName?.toLowerCase();
   const speakerOf = (who: "partner" | "me" | "mochi") => (who === "me" ? "me" : who === "partner" ? partnerVoice : undefined);
@@ -605,6 +607,8 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const [freeDraft, setFreeDraft] = useState<{ step: "base" | "followUp"; text: string }>({ step: "base", text: "" });
   const fl = !choice && free?.step === stepNow ? free : null;
   const liveDraft = !choice && !fl && freeOpenStep === stepNow && freeDraft.step === stepNow ? freeDraft.text.trim() : "";
+  // 보기를 고르는 동안(직접 쓰는 중이나 직접 쓴 말의 반응이 나온 뒤는 빼고)에만 무대에 뜻 보기를 둔다
+  const asking = !choice && !fl && !liveDraft && !wrapped && !leading && phase !== "transition" && heroAsk === "off";
   // 내 말이 어떻게 들렸는지 기다리는 동안 칩튠을 깐다. 결과가 오면 끊긴다
   const freePending = fl?.outcome === "pending";
   useEffect(() => (freePending ? sfx.thinking() : undefined), [freePending]);
@@ -693,13 +697,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
           {packStep !== undefined && <PrStatus step={packStep} />}
           {/* 끝이 어디인지 처음부터 보이게, 세 장면 중 몇 번째인지 둔다 */}
           {runOn && <RunChip at={runFresh ? 1 : runPosition(run, scene.id)} />}
-          {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 대사가 흐를 때부터 고를 때까지 보인다. 대사 번역은 기본으로 꺼 두고, 못 알아들었을 때 이 버튼으로 켠다 */}
           <div className="ml-auto flex shrink-0 items-center">
-            {!choice && !wrapped && phase !== "transition" && (
-              <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
-                <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-ink-fixed" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
-              </button>
-            )}
             <SoundToggle />
           </div>
         </header>
@@ -777,7 +775,10 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 />
               )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
-              {beat && (translate || showMeaning || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
+              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
+              {/* 번역은 기본으로 가려 둔다. 번역이 뜰 자막 자리에 뜻 보기를 둬서, 못 알아들었을 때 그 자리에서 연다. 고르는 동안에는 상대가 한 말과 보기의 뜻을 함께 연다 */}
+              {beat && !translate && beat.line !== "……" && beat.who !== "mochi" && <MeaningCaption key={`cap-${leadIdx}`} text={beat.meaning} open={showMeaning} onToggle={() => setShowMeaning((v) => !v)} className={STAGE_TUCK_LIFT} />}
+              {asking && <MeaningCaption text={askMeaning} open={showMeaning} onToggle={() => setShowMeaning((v) => !v)} className={STAGE_TUCK_LIFT} />}
               {/* 두 번째 말부터는 무대가 가볍게 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !keyPick && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/25">

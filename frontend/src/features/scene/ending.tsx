@@ -25,6 +25,40 @@ export function Subtitle({ text, narration = false, className = "" }: { text: st
   );
 }
 
+// 무대 자막 자리에 두는 뜻 보기. 번역이 뜰 바로 그 자리에 버튼을 둬서, 누르면 무엇이 나오는지 자리로 알게 한다.
+// 켜면 버튼이 번역 자막으로 바뀌고, 자막을 다시 누르면 닫힌다. 번역할 대사가 없는 자리(보기 뜻만 여는 때)는 칸의 글자만 바뀐다
+export function MeaningCaption({ text, open, onToggle, className = "" }: { text?: string; open: boolean; onToggle: () => void; className?: string }) {
+  const shown = open && !!text;
+  return (
+    <p className={`absolute inset-x-2 bottom-2 text-center md:bottom-5 ${className}`}>
+      <button
+        type="button"
+        aria-pressed={open}
+        aria-label={shown ? `뜻 숨기기: ${text}` : undefined}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        className="inline-flex min-h-11 items-center"
+      >
+        {shown ? (
+          <span className="inline-flex animate-fade items-center gap-2 bg-ink px-2 py-1 text-left font-label text-ui leading-snug text-fg md:px-3 md:py-1.5 md:text-title">
+            {text}
+            <svg width="10" height="10" viewBox="0 0 5 5" shapeRendering="crispEdges" fill="currentColor" aria-hidden className="shrink-0 opacity-70">
+              <path d="M0 0h1v1H0zM4 0h1v1H4zM1 1h1v1H1zM3 1h1v1H3zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3zM0 4h1v1H0zM4 4h1v1H4z" />
+            </svg>
+          </span>
+        ) : (
+          // 바깥 칸이 먹선과 그림자를, 안쪽 칸이 흰 면을 맡는다(BlockButton과 같은 짜임). 무대 안에서는 fg가 밝은 값이라 먹선 색을 흰 칸용 글자색으로 고정한다
+          <span className={open ? "inline-block" : "blk-btn inline-block [--color-fg:var(--color-ink-fixed)]"}>
+            <span className={`blk block px-2.5 py-1 font-label text-ui leading-snug ${open ? "bg-ink text-fg" : "bg-white text-ink-fixed"}`}>{open ? "뜻 숨기기" : "뜻 보기"}</span>
+          </span>
+        )}
+      </button>
+    </p>
+  );
+}
+
 // Mochi가 무대 오른쪽 아래 구석에서 불쑥 올라와 한마디 던진다
 export function MochiCameo({ step, line, className = "" }: { step: EndingStep; line: string; className?: string }) {
   return (
