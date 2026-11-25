@@ -693,9 +693,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
           {packStep !== undefined && <PrStatus step={packStep} />}
           {/* 끝이 어디인지 처음부터 보이게, 세 장면 중 몇 번째인지 둔다 */}
           {runOn && <RunChip at={runFresh ? 1 : runPosition(run, scene.id)} />}
-          {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 고르는 동안에만 보인다 */}
+          {/* 선택지 위 한 줄을 아끼려고 뜻 보기는 머리줄에 둔다. 대사가 흐를 때부터 고를 때까지 보인다. 대사 번역은 기본으로 꺼 두고, 못 알아들었을 때 이 버튼으로 켠다 */}
           <div className="ml-auto flex shrink-0 items-center">
-            {!choice && !wrapped && !leading && phase !== "transition" && (
+            {!choice && !wrapped && phase !== "transition" && (
               <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
                 <span className={`border-2 px-1.5 py-1 text-note leading-none ${showMeaning ? "border-fg bg-fg text-ink-fixed" : "border-fg-subtle text-fg-muted"}`}>{showMeaning ? "뜻 숨기기" : "뜻 보기"}</span>
               </button>
@@ -777,7 +777,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 />
               )}
               {/* 대화 기록을 아래에 따로 쌓지 않고, 번역은 무대 위 자막으로 얹는다. 상황 묘사("……")는 번역이 아니라서 늘 보인다 */}
-              {beat && (translate || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
+              {beat && (translate || showMeaning || beat.line === "……") && beat.who !== "mochi" && <Subtitle key={`sub-${leadIdx}`} text={beat.meaning} narration={beat.line === "……"} className={STAGE_TUCK_LIFT} />}
               {/* 두 번째 말부터는 무대가 가볍게 한 번 뒤로 감긴 뒤 다른 말로 다시 재생된다 */}
               {seenIds.length > 1 && !keyPick && !wrapped && !reduced && phase !== "transition" && (
                 <div key={`rewind-${f.reactionKey}`} aria-hidden className="pointer-events-none absolute inset-0 grid animate-rewind place-items-center bg-ink/25">
@@ -879,7 +879,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               </p>
               {!leading && lead.length > 0 && (
                 <div className="md:hidden">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} />
                 </div>
               )}
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
@@ -1140,7 +1140,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               {/* 데스크톱은 Mochi와 보기가 칸 맨 위에 붙어 있도록 앞 대화 다시 보기를 보기 아래에 둔다 */}
               {!leading && lead.length > 0 && (
                 <div className="hidden md:block">
-                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate} />
+                  <LeadRecap beats={lead} partnerName={scene.partnerName} translate={translate || showMeaning} />
                 </div>
               )}
             </div>
