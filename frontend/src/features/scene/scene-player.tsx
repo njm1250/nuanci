@@ -36,7 +36,7 @@ import { upNext, type OrderItem } from "./collections";
 import { nextAskOf } from "./next-ask";
 import { completeRunScene, recordRunPick, RUN_SIZE, runPosition, useRun } from "./run";
 import { RunChip } from "./run-ui";
-import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent } from "./track";
+import { FRIEND_PARAM, friendPick, markPlayed, openedAsReply, PICK_PARAM, REPLY_PARAM, SHARE_PARAM, takeEntry, track, uuid, watchEngagement, type TrackEvent, hasAnswered, markAnswered, onAnswered } from "./track";
 import { FreeLineSlot, type FreeLine } from "./free-line";
 import { replyMessage, shareMessage, useReducedMotion, useSceneFlow, useShare } from "./use-scene-flow";
 import { BoldQuoted, NowLast } from "./emphasis";
@@ -140,6 +140,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
     if (preview) return;
     // 질문마다 첫 답이 어떤 함정에 걸렸는지 "내 영어 말투"에 모은다
     if (e.type === "choice_selected" && e.step && e.choiceId) {
+      markAnswered();
       const situation = e.step === "base" ? scene.base : scene.followUp;
       const picked = situation.choices.find((c) => c.id === e.choiceId);
       recordVoice(scene.id, e.step, picked?.trap);
@@ -612,6 +613,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   // 내 말이 어떻게 들렸는지 기다리는 동안 칩튠을 깐다. 결과가 오면 끊긴다
   const freePending = fl?.outcome === "pending";
   useEffect(() => (freePending ? sfx.thinking() : undefined), [freePending]);
+  // 처음 온 사람의 첫 질문은 보기를 먼저 둔다(계속할지 정하는 순간에 타자부터 요구하지 않는다). 한 번 답해 본 뒤로는 직접 말하는 칸을 보기보다 앞에 둔다
+  const answered = useSyncExternalStore(onAnswered, hasAnswered, () => false);
+  const freeFirst = answered || cleared.length > 0;
   const openFree = () => {
     if (freeOpenStep === stepNow) return;
     setFreeOpenStep(stepNow);
@@ -624,7 +628,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.target instanceof Element && e.target.closest("input, textarea, select, dialog")) return;
-      if (!preview && Number(e.key) === shown.length + 1) {
+      if (!preview && !freeFirst && Number(e.key) === shown.length + 1) {
         e.preventDefault();
         return openFree();
       }
@@ -671,6 +675,49 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const friendOn = friendId !== null && !later;
   const isFriend = (c: Choice) => friendOn && c.id === friendId;
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
+
+  // 직접 말하는 칸. 한 번 답해 본 사람에게는 보기보다 앞에, 처음 온 사람의 첫 질문에서는 보기 뒤에 둔다
+  const freeSlot =
+    !choice && !preview ? (
+                      <li className="animate-rise" style={{ animationDelay: `${freeFirst ? 40 : 40 + shown.length * 40}ms` }}>
+                        <FreeLineSlot
+                          n={shown.length + 1}
+                          lead={freeFirst}
+                          open={freeFirst || freeOpenStep === stepNow}
+                          onOpen={openFree}
+                          sceneId={scene.id}
+                          sceneVersion={scene.version}
+                          step={stepNow}
+                          free={fl}
+                          numberOf={(id) => {
+                            // 보기가 넷 이상이면 첫 답 전에는 앞 셋만 보인다. 안 보이는 보기에 붙어도 그 보기를 고르게 하고 번호는 0으로 둔다
+                            const c = situation.choices.find((x) => x.id === id);
+                            return c ? { n: shown.findIndex((x) => x.id === id) + 1, line: c.line } : null;
+                          }}
+                          onSay={(line) => (setFreeDraft({ step: stepNow, text: "" }), setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
+                          onResult={(r, line) => {
+                            setFreeKey((k) => k + 1);
+                            // 판정까지 받은 말은 보기 하나로 더해 바로 고른다. 도장·이펙트·비교·다음으로 넘어가기가 다른 보기와 같다
+                            if (r.outcome === "reacted") {
+                              f.addOwn(ownChoice(line, r, situation.choices, freeKey));
+                              setFree(null);
+                              return;
+                            }
+                            // 보기와 같은 표현이면 그 보기로 보내지 않고, 내가 한 말 그대로 두고 그 보기의 반응·판정·해설을 잇는다
+                            const same = r.outcome === "matched" ? situation.choices.find((x) => x.id === r.choiceId) : undefined;
+                            if (same) {
+                              send({ type: "free_line_pick", step: stepNow, choiceId: same.id });
+                              f.addOwn(matchedOwn(line, same, freeKey));
+                              setFree(null);
+                              return;
+                            }
+                            setFree((x) => (x ? { ...x, ...r } : x));
+                          }}
+                          onReset={() => (setFreeDraft({ step: stepNow, text: "" }), setFree(null))}
+                          onDraftChange={(text) => setFreeDraft({ step: stepNow, text })}
+                        />
+                      </li>
+                    ) : null;
 
   return (
     <div className="flex min-h-dvh justify-center overflow-x-clip bg-page break-keep text-ink">
@@ -987,6 +1034,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                       </div>
                     )}
                     <ul className="mt-2 space-y-2.5">
+                    {freeFirst && freeSlot}
                     {shown.map((c, i) => (
                       <li
                         key={c.id}
@@ -1082,46 +1130,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                         )}
                       </li>
                     ))}
-                    {/* 마지막 칸: 떠올린 영어가 보기에 없을 때 직접 말하기. 보기와 같은 줄에 둬서 놓치지 않게 하고, 점선으로 보기와 갈라 둔다 */}
-                    {!choice && !preview && (
-                      <li className="animate-rise" style={{ animationDelay: `${40 + shown.length * 40}ms` }}>
-                        <FreeLineSlot
-                          n={shown.length + 1}
-                          open={freeOpenStep === stepNow}
-                          onOpen={openFree}
-                          sceneId={scene.id}
-                          sceneVersion={scene.version}
-                          step={stepNow}
-                          free={fl}
-                          numberOf={(id) => {
-                            // 보기가 넷 이상이면 첫 답 전에는 앞 셋만 보인다. 안 보이는 보기에 붙어도 그 보기를 고르게 하고 번호는 0으로 둔다
-                            const c = situation.choices.find((x) => x.id === id);
-                            return c ? { n: shown.findIndex((x) => x.id === id) + 1, line: c.line } : null;
-                          }}
-                          onSay={(line) => (setFreeDraft({ step: stepNow, text: "" }), setFree({ step: stepNow, line, outcome: "pending" }), setFreeKey((k) => k + 1))}
-                          onResult={(r, line) => {
-                            setFreeKey((k) => k + 1);
-                            // 판정까지 받은 말은 보기 하나로 더해 바로 고른다. 도장·이펙트·비교·다음으로 넘어가기가 다른 보기와 같다
-                            if (r.outcome === "reacted") {
-                              f.addOwn(ownChoice(line, r, situation.choices, freeKey));
-                              setFree(null);
-                              return;
-                            }
-                            // 보기와 같은 표현이면 그 보기로 보내지 않고, 내가 한 말 그대로 두고 그 보기의 반응·판정·해설을 잇는다
-                            const same = r.outcome === "matched" ? situation.choices.find((x) => x.id === r.choiceId) : undefined;
-                            if (same) {
-                              send({ type: "free_line_pick", step: stepNow, choiceId: same.id });
-                              f.addOwn(matchedOwn(line, same, freeKey));
-                              setFree(null);
-                              return;
-                            }
-                            setFree((x) => (x ? { ...x, ...r } : x));
-                          }}
-                          onReset={() => (setFreeDraft({ step: stepNow, text: "" }), setFree(null))}
-                          onDraftChange={(text) => setFreeDraft({ step: stepNow, text })}
-                        />
-                      </li>
-                    )}
+                    {!freeFirst && freeSlot}
                   </ul>
                   </>
                 )}
