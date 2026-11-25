@@ -289,11 +289,6 @@ export type StageState = {
   meNote?: React.ReactNode;
   meNoteKey?: string;
   partnerLine?: string;
-  // 영어 대사의 한국어 뜻. 넘기면 그 말풍선 끝에 작은 "뜻" 표시가 붙고 말풍선을 누를 수 있다. meaningOpen이면 대사 아래에 뜻이 붙는다.
-  // 번역을 무대 아래에 따로 띄우지 않고 읽던 말풍선 안에서 열어, 눈이 대사에서 떠나지 않게 한다
-  partnerMeaning?: string;
-  meMeaning?: string;
-  meaningOpen?: boolean;
   // 고른 말을 들은 뒤 상대가 하는 반응. 있으면 반응 기호 대신 말풍선으로 띄운다.
   // 반응은 한국어 속마음이라 생각 풍선으로 그린다. 입으로 하는 말(영어)은 말풍선, 머릿속 말(한국어)은 생각 풍선이다
   partnerSays?: string;
@@ -370,7 +365,6 @@ export function PixelStage({
   onSnapshot,
   snapshotKey,
   onPick,
-  onMeaning,
   bubbleScale = 1,
 }: {
   spec: StageSpec;
@@ -384,8 +378,6 @@ export function PixelStage({
   snapshotKey?: string;
   // 주인공이나 상대를 누르면 누가 눌렸는지 알려 준다. 넘기면 그 캐릭터 위에서 손 모양 커서가 된다
   onPick?: (who: "me" | "partner") => void;
-  // 뜻이 붙은 말풍선을 눌렀을 때. 열고 닫는 상태는 부르는 쪽이 갖는다
-  onMeaning?: () => void;
 }) {
   const set = SETS[spec.set];
   const evening = spec.time === "evening";
@@ -426,32 +418,6 @@ export function PixelStage({
 
   // think는 생각 풍선. 말풍선(흰 바탕, 계단 모서리, 뾰족한 꼬리)과 같은 도트 결이되, 위·아래가 도트 구름 혹으로 울퉁불퉁한 테두리(ThinkCloud), 옅은 회청색 바탕, 작아지는 도트 동그라미 꼬리로 갈라 보이게 그린다.
   // 무대 위 말풍선이라 밤 화면에서도 같은 색을 쓴다
-  // 뜻을 열 수 있는 영어 대사. 닫혀 있으면 대사 끝에 작은 "뜻" 표시만, 열면 점선 아래에 뜻이 붙는다(내 속마음 아래 얹는 말과 같은 짜임)
-  const withMeaning = (line: string, meaning: string | undefined) =>
-    meaning && onMeaning ? (
-      <button
-        type="button"
-        aria-expanded={!!state?.meaningOpen}
-        aria-label={state?.meaningOpen ? `${line} 뜻 숨기기` : `${line} 뜻 보기`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onMeaning();
-        }}
-        className="pointer-events-auto block text-left"
-      >
-        {line}
-        {state?.meaningOpen ? (
-          <span className="mt-1 block animate-fade border-t border-dashed border-ink-fixed/40 pt-1 font-label text-meta leading-snug text-ink-muted">{meaning}</span>
-        ) : (
-          <span aria-hidden className="ml-1.5 inline-block border border-ink-fixed/50 px-1 align-[1px] font-label text-meta leading-tight text-ink-muted">
-            뜻
-          </span>
-        )}
-      </button>
-    ) : (
-      line
-    );
-
   const bubble = (who: Who, text: React.ReactNode, key: string, think = false) => (
     <div ref={(el) => void (slots.current[who].wrap = el)} className="absolute left-0 top-0">
       {text && (
@@ -561,7 +527,7 @@ export function PixelStage({
           {state.meNote
             ? bubble("me", state.meNote, `note-${state.meNoteKey ?? ""}`)
             : state.meLine
-              ? bubble("me", withMeaning(state.meLine, state.meMeaning), state.meLine)
+              ? bubble("me", state.meLine, state.meLine)
               : state.meTurn && state.meThink
                 ? bubble(
                     "me",
@@ -597,7 +563,7 @@ export function PixelStage({
               </div>
             </div>
           ) : (
-            bubble("partner", state.partnerLine ? withMeaning(state.partnerLine, state.partnerMeaning) : undefined, state.partnerLine ?? "")
+            bubble("partner", state.partnerLine, state.partnerLine ?? "")
           )}
         </div>
       )}
