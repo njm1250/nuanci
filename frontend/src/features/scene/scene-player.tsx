@@ -744,12 +744,15 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
           {packStep !== undefined && <PrStatus step={packStep} />}
           {/* 끝이 어디인지 처음부터 보이게, 세 장면 중 몇 번째인지 둔다 */}
           {runOn && <RunChip at={runFresh ? 1 : runPosition(run, scene.id)} />}
-          {/* 뜻 보기는 소리와 나란히 머리줄 오른쪽에 둔다. 대사가 넘어가도 자리가 그대로라 쫓기지 않고, 한 번 켜면 이 장면 동안 계속 켜져 있다.
-              켜진 상태는 글자를 바꾸지 않고 색으로 보인다(켜진 토글의 핑크). 대사가 흐를 때부터 고를 때까지 보인다 */}
+          {/* 뜻은 소리와 나란히 머리줄 오른쪽에 스위치로 둔다. 대사가 넘어가도 자리가 그대로라 쫓기지 않고, 한 번 켜면 이 장면 동안 계속 켜져 있다.
+              글자 버튼에 색만 채우면 켜진 건지 꺼진 건지 따로 읽어야 해서, 손잡이 위치와 색으로 한눈에 보이는 스위치를 쓴다(내 정보의 스위치와 같은 모양). 이름은 동작이 아니라 켜고 끄는 대상이다 */}
           <div className="ml-auto flex shrink-0 items-center">
             {!choice && !wrapped && phase !== "transition" && (
-              <button type="button" onClick={() => setShowMeaning((v) => !v)} aria-pressed={showMeaning} className="flex min-h-11 items-center px-2">
-                <span className={`border-2 px-2 py-1 font-label text-ui leading-none transition-colors duration-fast ${showMeaning ? "border-pink bg-pink text-ink-fixed" : "border-fg text-fg"}`}>뜻 보기</span>
+              <button type="button" role="switch" aria-checked={showMeaning} onClick={() => setShowMeaning((v) => !v)} className="flex min-h-11 items-center gap-1.5 px-2 font-label text-ui text-fg">
+                뜻
+                <span aria-hidden className={`flex h-6 w-11 items-center p-0.5 transition-colors duration-fast ${showMeaning ? "justify-end bg-pink" : "justify-start bg-fg/20"}`}>
+                  <span className="size-5 bg-white" />
+                </span>
               </button>
             )}
             <SoundToggle />
