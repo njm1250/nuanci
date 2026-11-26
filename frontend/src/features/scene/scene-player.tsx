@@ -131,7 +131,9 @@ function matchedOwn(line: string, same: Choice, n: number): Choice {
 
 function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nextAsk: guessAsk = null, preview = false, entry, packStep }: PlayerProps) {
   const scene = useMemo(() => shuffleChoices(original), [original]);
-  const [attemptId] = useState(uuid);
+  // 시도 번호는 브라우저에서만 만든다. 서버가 미리 그리는 중에 무작위 값을 만들면 Next가 장면 본문을 통째로 브라우저에 넘겨서,
+  // 첫 HTML에 본문이 빠지고 휴대폰은 JS를 다 받은 뒤에야 글자를 그렸다(모바일 LCP 7.8초). 번호는 이벤트에만 쓰고 화면에는 안 나온다
+  const [attemptId] = useState(() => (typeof window === "undefined" ? "" : uuid()));
   // 개발자 팩은 PR 단계가 진행 표시라서 판으로 묶지 않는다
   const runOn = FEATURES.run && !preview && original.category !== "dev";
   const run = useRun();

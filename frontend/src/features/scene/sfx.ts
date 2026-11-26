@@ -156,11 +156,19 @@ function detectOnset(buf: AudioBuffer) {
   return 0;
 }
 
+// 소리는 사용자가 화면을 한 번 누르기 전에는 낼 수 없다(브라우저 자동 재생 정책). 그래서 효과음·음성 파일은 첫 화면에 필요한
+// 글꼴·코드와 같은 순간에 받지 않고, 페이지가 다 뜬 뒤 낮은 우선순위로 받는다. 첫 방문 장면은 이 파일들이 약 530KB다
+const LOW: RequestInit = { priority: "low" };
+function afterLoad(run: () => void) {
+  if (document.readyState === "complete") run();
+  else window.addEventListener("load", run, { once: true });
+}
+
 function fetchRaw(name: SfxName): Promise<ArrayBuffer | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
   let p = rawCache.get(name);
   if (!p) {
-    p = fetch(`/sfx/${name}.mp3`)
+    p = fetch(`/sfx/${name}.mp3`, LOW)
       .then((r) => (r.ok ? r.arrayBuffer() : null))
       .catch(() => null);
     rawCache.set(name, p);
@@ -215,10 +223,12 @@ function warmUpAll() {
   for (const name of ALL_CLIPS) void loadClip(ctx, name);
 }
 
-// 화면 진입 직후 작은 오디오 파일을 미리 받아 두고, 첫 사용자 입력 순간 AudioContext를 열어 바로 디코딩한다
+// 페이지가 다 뜬 뒤 작은 오디오 파일을 미리 받아 두고, 첫 사용자 입력 순간 AudioContext를 열어 바로 디코딩한다
 export function primeAudio() {
   if (enabledSnapshot()) {
-    for (const name of CORE_PREFETCH) void fetchRaw(name);
+    afterLoad(() => {
+      for (const name of CORE_PREFETCH) void fetchRaw(name);
+    });
   }
   window.addEventListener("pointerdown", warmUpAll, { once: true, capture: true });
   window.addEventListener("keydown", warmUpAll, { once: true, capture: true });
@@ -343,7 +353,7 @@ function voiceFormat(): "webm" | "m4a" {
 function fetchVoiceRaw(file: string) {
   let p = voiceRaw.get(file);
   if (!p) {
-    p = fetch(VOICE_BASE + file)
+    p = fetch(VOICE_BASE + file, LOW)
       .then((r) => (r.ok ? r.arrayBuffer() : null))
       .catch(() => null);
     voiceRaw.set(file, p);
@@ -363,7 +373,7 @@ export function loadVoiceScene(sceneId: string, onReady?: () => void) {
       const next = new Map<string, VoiceEntry>();
       for (const step of Object.values(idx ?? {})) {
         const file = step[fmt];
-        if (enabledSnapshot()) void fetchVoiceRaw(file);
+        if (enabledSnapshot()) afterLoad(() => void fetchVoiceRaw(file));
         for (const [k, [at, ms]] of Object.entries(step.lines)) next.set(k, { file, at, ms });
       }
       voiceIndex = next;
