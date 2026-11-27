@@ -97,6 +97,7 @@ export const EVENT_LABELS: Record<string, string> = {
   alternative_viewed: "다른 표현 탐색",
   scene_completed: "답변 완료",
   wrap_viewed: "정리 화면",
+  page_left: "페이지 떠남",
   next_clicked: "다음 장면 클릭",
   share_link_copied: "장면 링크 복사",
   reward_shown: "보상 확인",

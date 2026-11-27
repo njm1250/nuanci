@@ -104,6 +104,7 @@ export function trackHome() {
 // scroll은 코드가 위치를 옮겨도 생겨서 쓰지 않고, 손이 닿아야 생기는 입력(휠·터치·클릭·키)만 본다. 정리 함수를 돌려주어 effect에서 쓴다
 const ENGAGE_EVENTS = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
 export function watchEngagement(extra: Record<string, unknown> = {}) {
+  watchLeave();
   const stop = () => ENGAGE_EVENTS.forEach((t) => window.removeEventListener(t, once, true));
   const once = () => {
     stop();
@@ -111,6 +112,28 @@ export function watchEngagement(extra: Record<string, unknown> = {}) {
   };
   ENGAGE_EVENTS.forEach((t) => window.addEventListener(t, once, { capture: true, passive: true }));
   return stop;
+}
+
+// 페이지를 떠나는 순간(탭을 닫거나 다른 곳으로 가거나 화면이 가려질 때)을 문서 하나에 한 번 알린다. 열어 둔 시간(초)을 choiceId 자리에 싣는다.
+// 화면을 건드리지 않고 나간 방문이 열자마자 닫은 것인지 읽고 나간 것인지, 판정을 본 뒤 얼마나 머물렀는지를 가르려는 것이다.
+// 모바일은 탭을 닫아도 pagehide가 안 올 때가 있어 화면이 가려지는 순간도 같이 본다. 먼저 온 쪽만 보낸다. 장면을 옮겨 다녀도 문서는 그대로라 한 번만 건다
+const LEAVE_MAX_SECONDS = 30 * 60;
+let leaveWatched = false;
+function watchLeave() {
+  if (leaveWatched) return;
+  leaveWatched = true;
+  let sent = false;
+  const send = () => {
+    if (sent) return;
+    sent = true;
+    const seconds = Math.round(performance.now() / 1000);
+    // 오래 열어 둔 탭을 다음 날 닫으면 그날 다시 온 사람처럼 기록이 남는다. 머문 시간으로 볼 수 없는 긴 값은 보내지 않는다
+    if (seconds <= LEAVE_MAX_SECONDS) sendEvent({ type: "page_left", choiceId: String(seconds) });
+  };
+  window.addEventListener("pagehide", send);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") send();
+  });
 }
 
 // 다시 온 사람인지 서버(proxy.ts)가 알 수 있게 남기는 쿠키. 이게 없으면 홈 주소에서 소개 화면 대신 첫 장면을 바로 보여 준다
