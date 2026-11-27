@@ -7,6 +7,7 @@ import * as THREE from "three";
 import type { Expression, Motion } from "@/features/scene/types";
 import { CAST, HEROES } from "./cast";
 import { DecorPieces } from "./decor";
+import { StaticBatch } from "./static-batch";
 import { Figure, headTop } from "./figure";
 import { C, shade } from "./palette";
 import { REACTION_SYMBOLS } from "./reactions";
@@ -402,8 +403,10 @@ export function PixelStage({
     () => (
       <>
         <Backdrop wall={wall} floor={set.floor} indoor={!OUTDOOR.has(spec.set)} />
-        <set.Scenery evening={evening} flags={flags} />
-        <DecorPieces items={decor} />
+        <StaticBatch>
+          <set.Scenery evening={evening} flags={flags} />
+          <DecorPieces items={decor} />
+        </StaticBatch>
       </>
     ),
     [set, wall, evening, flags, decor, spec.set],
