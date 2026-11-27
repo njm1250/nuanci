@@ -196,6 +196,8 @@ class SceneApiTest {
 		post(event("scene_viewed", attempt) + ("visitorId" to person), iphone)
 		post(event("lead_finished", attempt, step = "base", choiceId = "skipped") + ("visitorId" to person), iphone)
 		post(event("choice_selected", attempt, step = "base", choiceId = "eat-a-lot") + ("visitorId" to person), iphone)
+		// 페이지를 떠난 기록(머문 시간 12초)은 장면 없이 받고, 어디까지 갔는지 세는 값을 바꾸지 않는다
+		post(mapOf("type" to "page_left", "visitorId" to person, "choiceId" to "12"), iphone)
 
 		mvc.get("/api/scenes/eat-a-lot/picks").andExpect { jsonPath("$.base.total") { value(1) } }
 		val body = mapper.readTree(mvc.get("/api/admin/metrics") { header("Authorization", "Bearer $token") }.andReturn().response.contentAsString)
