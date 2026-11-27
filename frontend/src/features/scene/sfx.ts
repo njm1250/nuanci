@@ -365,6 +365,10 @@ function fetchVoiceRaw(file: string) {
 export function loadVoiceScene(sceneId: string, onReady?: () => void) {
   if (typeof window === "undefined" || voiceScene === sceneId) return;
   voiceScene = sceneId;
+  // 지난 장면의 음성은 놓아준다. 해석한 버퍼는 첫 장면 두 파일만 13MB쯤이라 장면을 이어 할수록 쌓인다.
+  // 재생 중인 소리는 끝날 때까지 버퍼를 쥐고 있고, 그 장면으로 돌아오면 HTTP 캐시에서 다시 읽는다
+  voiceRaw.clear();
+  voiceBuffers.clear();
   const fmt = voiceFormat();
   void fetch(`${VOICE_BASE}/voice/${sceneId}.json`)
     .then((r) => (r.ok ? r.json() : null))
