@@ -8,6 +8,7 @@ import { sfx, toggleSound, useSoundEnabled } from "./sfx";
 import { TRAP_LABELS, type Choice, type Expression } from "./types";
 import { BoldQuoted } from "./emphasis";
 import { heardAs, Num, VerdictNote, VerdictStamp } from "./verdict";
+import { WaitDots } from "./run-ui";
 
 // 검수 미리보기에서만 보이는 함정 유형 표시
 export function TrapChip({ choice }: { choice: Choice }) {
@@ -88,11 +89,12 @@ export function Caret({ open }: { open: boolean }) {
 
 // 결과 목록의 한 줄. 대사와 상대 반응을 함께 보여주고, 지금 무대에 올린 줄은 어둡게 강조한다
 // 아직 무대에서 들어 보지 않은 답은 반응을 가려 두고, 눌렀을 때 캐릭터 연출과 함께 보여준다
-export function HiddenReaction() {
+// retry: 아직 통하는 말을 못 찾은 동안에는 나머지 보기가 '구경할 반응'이 아니라 '다시 할 말'이다
+export function HiddenReaction({ retry = false }: { retry?: boolean }) {
   return (
     <span className="mt-1.5 flex items-center gap-2 text-note leading-snug text-ink-subtle">
       <span className="grid size-[18px] shrink-0 place-items-center border-2 border-ink-subtle font-label text-ui leading-none">?</span>
-      반응 보기
+      {retry ? "이렇게 말해 보기" : "반응 보기"}
     </span>
   );
 }
@@ -136,7 +138,13 @@ export function ResultBody({
   partnerName,
   friend = false,
   reduced = false,
+  retry = false,
+  whyDelay = 0,
 }: {
+  // 아직 통하는 말을 못 찾았을 때 나머지 보기의 안내를 '이렇게 말해 보기'로 바꾼다
+  retry?: boolean;
+  // 해설(왜 그렇게 들리나)을 도장보다 이만큼(ms) 늦게 띄운다. 도장과 해설이 한꺼번에 뜨면 궁금해하기 전에 답이 다 나와 그 자리에서 끝난 것처럼 읽힌다
+  whyDelay?: number;
   // 문제를 낸 친구가 처음 고른 보기. 아직 안 들어 본 보기여도 표시해서 눌러 보게 한다
   friend?: boolean;
   // 지금 펼친 카드에서 "하고 싶던 말 → 들린 느낌" 줄을 만드는 데 쓴다
@@ -179,11 +187,7 @@ export function ResultBody({
         {active && waiting && (
           <span className="mt-2 flex items-center gap-2 text-note text-ink-subtle">
             <span className="shrink-0">{`${partnerName || "상대"} 듣는 중`}</span>
-            <span aria-hidden className="flex items-center gap-1">
-              {[0, 1, 2].map((i) => (
-                <span key={i} className={`size-1.5 bg-current ${reduced ? "" : "animate-typing"}`} style={{ animationDelay: `${i * 160}ms` }} />
-              ))}
-            </span>
+            <WaitDots reduced={reduced} />
           </span>
         )}
         {active ? null : revealed ? (
@@ -194,7 +198,7 @@ export function ResultBody({
             {choice.reaction}
           </span>
         ) : (
-          <HiddenReaction />
+          <HiddenReaction retry={retry} />
         )}
         {/* 지금 고른 말의 주인공: 이 영어가 어떻게 들렸나(도장) → 왜 그렇게 들리나(영어권의 문화·언어적 이유). 판정은 도장 옆에 작게.
             한국어 '하려던 말'은 고르기 전에 이미 보였으니 여기서 다시 주인공으로 세우지 않는다(한국어 문장이 그렇게 들린 것처럼 읽혔다) */}
@@ -204,11 +208,7 @@ export function ResultBody({
               <VerdictStamp choice={choice} pop={!reduced} delay={heardAt} />
               <VerdictNote choice={choice} />
             </span>
-            {choice.why && (
-              <span className="mt-2.5 block text-ui leading-[1.6] text-ink-muted">
-                <BoldQuoted text={choice.why} />
-              </span>
-            )}
+            {choice.why && <LateWhy text={choice.why} delay={whyDelay} reduced={reduced} />}
           </span>
         )}
         {!active && revealed && <span className="mt-1 block text-meta text-ink-subtle">→ {heardAs(choice)}</span>}
@@ -218,6 +218,34 @@ export function ResultBody({
   );
 }
 
+
+// 해설(왜 그렇게 들리나)을 도장보다 늦게 띄운다. 기다리는 동안 자리를 비워 두지 않고 "왜 그렇게 들렸냐면"과 점 셋을 먼저 둔다.
+// 빈 칸은 끝난 화면처럼 읽히고, 이 줄은 아직 나올 것이 있다는 것과 '왜?'라는 물음을 같이 남긴다. 기다리기 싫으면 누르면 바로 채워진다.
+// 해설 글은 처음부터 자리를 잡고 있어(보이지만 않는다) 나타날 때 아래 보기들이 밀리지 않는다
+function LateWhy({ text, delay, reduced }: { text: string; delay: number; reduced: boolean }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (delay <= 0) return;
+    const timer = window.setTimeout(() => setReady(true), delay);
+    return () => window.clearTimeout(timer);
+  }, [delay]);
+  const shown = ready || delay <= 0;
+  return (
+    <span className="relative mt-2.5 block text-ui leading-[1.6] text-ink-muted">
+      <span className={shown ? (delay > 0 ? "block animate-fade" : "block") : "invisible block"} aria-hidden={!shown || undefined}>
+        <BoldQuoted text={text} />
+      </span>
+      {!shown && (
+        <button type="button" onClick={() => setReady(true)} className="absolute inset-0 flex items-start gap-2 text-left text-note text-ink-subtle">
+          <span className="shrink-0">왜 그렇게 들렸냐면</span>
+          <span className="mt-2">
+            <WaitDots reduced={reduced} />
+          </span>
+        </button>
+      )}
+    </span>
+  );
+}
 
 // 내가 고른 보기인지, 첫 답으로 몇 %가 골랐는지. 본문보다 두 단계 작고 흐리게 둔다
 export function PickMeta({ mine, friend = false, share, className = "" }: { mine: boolean; friend?: boolean; share?: number; className?: string }) {

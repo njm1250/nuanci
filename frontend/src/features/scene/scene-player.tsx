@@ -94,6 +94,11 @@ export function ScenePlayer(props: PlayerProps) {
 
 // 장면 하나를 처음 질문부터 정리까지 진행하는 화면. 검수 미리보기에서는 이벤트를 보내지 않고 함정 유형을 보여준다
 // "내 말로 해 보기" 결과마다 Mochi의 한마디. 무엇이 일어났는지만 말하고 다음 할 일은 칸이 보여 준다
+// 통하지 않은 말의 해설을 도장보다 늦게 띄우는 시간. 그 사이 화면에는 상대의 반응과 "다시 말해 볼래?"만 남는다
+const WHY_DELAY = 3000;
+// 맞힌 사람에게 틀린 말을 집어 물을 때, 말풍선에 그대로 넣는 대사의 최대 길이
+const TEASE_MAX = 22;
+
 const FREE_MOCHI: Record<FreeLine["outcome"], (n: number) => string> = {
   pending: () => "어떻게 들렸을까…",
   // 0이면 첫 답 전이라 아직 안 보이는 구경용 보기에 붙은 것
@@ -554,6 +559,12 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const core = situation.choices.filter((c) => coreIds.has(c.id) || c.id.startsWith(OWN_PREFIX));
   const extra = situation.choices.filter((c) => !coreIds.has(c.id) && !c.id.startsWith(OWN_PREFIX));
   const shown = settled || preview ? [...core, ...extra] : core;
+  // 아직 통하는 말을 못 찾은 상태: 지금 한 말이 통하지 않았고, 이 질문에서 통한 말을 한 번도 못 들었다.
+  // 이때 화면이 채점 결과로 읽히면 '한 문제 풀었다'로 끝난다. 오해가 남은 대화로 읽히게 안내·보기·다음 버튼을 바꾼다
+  const foundGood = situation.choices.some((c) => c.verdict === "good" && heardIds.includes(c.id));
+  const unresolved = settled && Boolean(choice) && !preview && !foundGood;
+  // 못 통한 말을 먼저 하고 나서 통하는 말을 찾아낸 순간
+  const justResolved = settled && choice?.verdict === "good" && heardIds.length > 1 && heardIds[0] !== choice.id;
 
   // 상대가 반응해 결과가 채워지는 순간: 판정 소리, X면 무대 흔들림, 틀린 말이면 짧은 진동(지원하는 기기만), 그리고 카드가 다 보이게 맞춘다
   // 상대가 반응하는 순간(효과음 글자가 터지는 때) 표정에 맞춘 리액션 소리를 낸다. 놀라거나 당황한 반응이면 무대도 짧게 흔든다
@@ -677,6 +688,13 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
   const friendOn = friendId !== null && !later;
   const isFriend = (c: Choice) => friendOn && c.id === friendId;
   const shareOf = (c: Choice) => (stepPicks && stepPicks.total >= MIN_PICKS ? Math.round(((stepPicks.picks[c.id] ?? 0) / stepPicks.total) * 100) : undefined);
+  // 통하는 말을 처음에 골랐고 다른 말은 아직 안 해 본 상태. 웃긴 반응은 틀린 말 쪽에 있는데, 맞힌 사람은 다른 보기를 거의 눌러 보지 않고 끝낸다
+  // (2026-11-27 첫 장면 기준 평균 0.7번, 틀린 말을 고른 사람은 2.1번). 그 질문에서 가장 많이 고른 틀린 말 하나를 Mochi가 집어서 묻는다.
+  // 고른 비율이 아직 안 모였으면 목록에서 가장 앞에 있는 틀린 말을 집는다
+  const tease =
+    settled && choice?.verdict === "good" && heardIds.length <= 1 && !fl && !preview
+      ? (shown.filter((c) => c.verdict !== "good" && !c.id.startsWith(OWN_PREFIX)).sort((x, y) => (shareOf(y) ?? -1) - (shareOf(x) ?? -1))[0] ?? null)
+      : null;
 
   // 직접 말하는 칸. 한 번 답해 본 사람에게는 보기보다 앞에, 처음 온 사람의 첫 질문에서는 보기 뒤에 둔다
   const freeSlot =
@@ -944,8 +962,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
               {/* 상대 말은 무대 말풍선, 하고 싶은 말은 내 머리 위 생각 풍선에 있다. 아래에는 Mochi의 한마디와 보기만 둬서 고르기 전에 읽을 덩어리를 줄인다 */}
               <div className={leading ? "hidden md:block" : undefined} onClick={leading ? (e) => e.stopPropagation() : undefined}>
                 {/* 세 가지 말을 다 해 보는 게 이 화면의 놀이다. 몇 개를 들어 봤는지 같이 보여 주고, 하나 더 들을 때마다 Mochi가 콩 뛴다 */}
-                <MochiAsk className={leading ? "" : settled && choice && !fl ? "mt-3 max-md:hidden md:mt-0" : "mt-3 md:mt-0"} cheer={reduced ? 0 : heardIds.length} cheerTwice={!reduced && heardIds.length >= situation.choices.length}>
-                  <span key={leading ? "watch" : settled ? "count" : choice ? "wait" : "ask"} className="block md:animate-fade">
+                {/* 모바일은 결과가 뜨면 Mochi의 한마디를 감추고 칩 줄에 맡기지만, 다시 말하기(unresolved)와 틀린 말 권하기(tease)는 Mochi가 묻는 말이 곧 다음에 할 일이라 남긴다 */}
+                <MochiAsk className={leading ? "" : settled && choice && !fl && !unresolved && !tease ? "mt-3 max-md:hidden md:mt-0" : "mt-3 md:mt-0"} cheer={reduced ? 0 : heardIds.length} cheerTwice={!reduced && heardIds.length >= situation.choices.length}>
+                  <span key={leading ? "watch" : tease ? "tease" : unresolved ? "retry" : justResolved ? "resolved" : settled ? "count" : choice ? "wait" : "ask"} className="block md:animate-fade">
                     {leading ? (
                       "무슨 일인지 먼저 볼까?"
                     ) : fl ? (
@@ -965,6 +984,14 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                       <>
                         친구가 한 말도 들어 볼래? <span className="tabular-nums text-ink-subtle">{heardIds.length}/{situation.choices.length}</span>
                       </>
+                    ) : tease ? (
+                      // 긴 대사는 말풍선이 세 줄로 꺾여서 대사 없이 묻는다
+                      tease.line.length <= TEASE_MAX ? <>통했어! 「{tease.line}」 했으면 어떻게 됐을까?</> : "통했어! 다른 말 했으면 어떻게 됐을까?"
+                    ) : unresolved ? (
+                      // 개수(1/5)는 풀어야 할 양처럼 읽혀서 뺀다. 지금 남은 일은 하나다: 다시 말하기
+                      choice?.verdict === "meh" ? "음, 좀 어색했나 봐. 다시 말해 볼래?" : "앗, 다르게 들렸나 봐. 다시 말해 볼래?"
+                    ) : justResolved ? (
+                      "이번엔 통했어!"
                     ) : heardIds.length < situation.choices.length ? (
                       <>
                         다른 말도 해 볼래? <span className="tabular-nums text-ink-subtle">{heardIds.length}/{situation.choices.length}</span>
@@ -1018,7 +1045,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                     {choice && (
                       // 모바일은 결과가 뜨면 Mochi의 '다른 말도 해 볼래? 1/4' 대신 이 줄 하나가 비교를 맡는다(칩이 이미 다음 탭을 권하고, 1/4은 맞힌 개수처럼 읽혔다)
                       <div role="group" aria-label="다른 보기 반응 바로 보기" aria-hidden={!settled || undefined} className={`mt-3 flex items-center gap-1.5 md:hidden ${settled ? "animate-fade" : "invisible"}`}>
-                        <span className="shrink-0 pr-1 text-meta text-fg-subtle">다른 표현</span>
+                        <span className="shrink-0 pr-1 text-meta text-fg-subtle">{unresolved ? "다시 말하기" : "다른 표현"}</span>
                         {shown.map((c, i) => {
                           const active = c.id === choice.id;
                           const seen = heardIds.includes(c.id);
@@ -1081,7 +1108,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                                 <span key={`tint-${f.reactionKey}`} aria-hidden className={`pointer-events-none absolute inset-0 animate-tint ${VERDICTS[c.verdict].color}`} />
                               )}
                               <span className="relative block">
-                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} partnerName={scene.partnerName} reduced={reduced} />
+                                <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active showTrap={preview} showMeaning={showMeaning} revealed verdictKey={f.reactionKey} share={shareOf(c)} meta={false} intent={situation.intent} waiting={!cardRevealed} partnerName={scene.partnerName} reduced={reduced} whyDelay={unresolved && !reduced ? WHY_DELAY : 0} />
                                 {/* 카드 맨 아래는 두 줄로 나눈다. 윗줄은 읽는 것(내 선택, 고른 비율), 아랫줄은 누르는 것(더 보기, 문제 내기). 판정은 도장 아래로 옮겼다.
                                     한 줄에 섞으면 좁은 폰에서 "왜 그런지 더 보기"가 두 줄로 꺾인다 */}
                                 {/* 반응이 오기 전에는 고른 말과 점 셋만 둔다. 빈 카드에 '내 선택'·'더 보기'만 먼저 보이면 무엇을 기다리는지 모른다 */}
@@ -1136,7 +1163,7 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                           </Panel>
                         ) : (
                           <BlockButton onClick={() => play(c)} className="w-full text-left">
-                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} showMeaning={showMeaning} revealed={heardIds.includes(c.id)} share={shareOf(c)} friend={isFriend(c)} reduced={reduced} />
+                            <ResultBody choice={c} n={i + 1} mine={c.id === pickedId} active={false} showTrap={preview} showMeaning={showMeaning} revealed={heardIds.includes(c.id)} share={shareOf(c)} friend={isFriend(c)} reduced={reduced} retry={unresolved} />
                           </BlockButton>
                         )}
                       </li>
@@ -1214,8 +1241,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                 </BlockLink>
               )
             ) : (
+              // 통하는 말을 아직 못 찾았으면 '다음'을 주 버튼으로 세우지 않는다. 핑크 버튼이 마무리하는 말이면 판정이 뜨는 순간이 끝으로 읽힌다. 넘어갈 길은 같은 자리에 흰 칸으로 남긴다
               <BlockButton
-                primary
+                primary={!unresolved}
                 onClick={() => {
                   const good = scene.base.choices.find((c) => c.verdict === "good");
                   setRecover(timeCue && good && choice?.verdict !== "good" ? { who: "me", line: good.line, meaning: `(정신 차리고) ${good.meaning}` } : null);
@@ -1223,9 +1251,9 @@ function SceneRun({ scene: original, order = [], teaser: guessTeaser = null, nex
                   f.startTransition();
                 }}
                 className="w-full"
-                faceClassName="py-3.5 text-center"
+                faceClassName={unresolved ? "py-3 text-center text-body font-bold" : "py-3.5 text-center"}
               >
-                {timeCue ? "좋아, 다음!" : "만약에 상황이 바뀐다면?"}
+                {unresolved ? "그냥 넘어갈래" : timeCue ? "좋아, 다음!" : "만약에 상황이 바뀐다면?"}
               </BlockButton>
             )}
           </footer>
