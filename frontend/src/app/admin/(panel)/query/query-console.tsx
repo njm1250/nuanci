@@ -3,6 +3,8 @@
 import { useActionState, useRef, useState } from "react";
 import { AdminEmpty, AdminPanel } from "@/features/admin/ui";
 import { runQuery } from "@/features/admin/query-actions";
+import { QueryChart, type ChartConfig } from "@/features/admin/query-chart";
+import { saveChart, type AdminChart } from "@/features/admin/chart-actions";
 
 export type QueryTable = {
   name: string;
@@ -34,10 +36,16 @@ const EXAMPLES = [
   },
 ];
 
-export function QueryConsole({ tables }: { tables: QueryTable[] }) {
-  const [sql, setSql] = useState(EXAMPLES[0].sql);
+export function QueryConsole({ tables, chart: editing }: { tables: QueryTable[]; chart?: AdminChart | null }) {
+  const [sql, setSql] = useState(editing?.sql ?? EXAMPLES[0].sql);
+  const [days, setDays] = useState("14");
   const [search, setSearch] = useState("");
   const [state, action, pending] = useActionState(runQuery, null);
+  // 결과를 표로만 볼지 차트도 같이 볼지. 조회를 다시 돌려도 유지한다. 보드의 차트를 고치러 왔으면 처음부터 연다
+  const [chart, setChart] = useState(Boolean(editing));
+  // 지금 차트 설정. 보드에 저장할 때 그대로 보낸다
+  const [config, setConfig] = useState<ChartConfig>(editing ? { kind: editing.kind, xCol: editing.xCol, yCol: editing.yCol, splitCol: editing.splitCol } : { kind: "bar" });
+  const [saveState, save, saving] = useActionState(saveChart, null);
   const editor = useRef<HTMLTextAreaElement>(null);
   const form = useRef<HTMLFormElement>(null);
   const insert = (name: string) => {
@@ -141,6 +149,16 @@ export function QueryConsole({ tables }: { tables: QueryTable[] }) {
             }}
           >
             <div className="adm-toolbar">
+              <label className="adm-qchart-field">
+                {"{{since}}"} 기간
+                <select name="days" className="adm-select" value={days} onChange={(e) => setDays(e.target.value)}>
+                  <option value="1">오늘</option>
+                  <option value="7">7일</option>
+                  <option value="14">14일</option>
+                  <option value="30">30일</option>
+                  <option value="0">전체</option>
+                </select>
+              </label>
               <div className="adm-toolbar-group">
                 <span className="adm-muted">예제</span>
                 {EXAMPLES.map((example) => (
@@ -217,11 +235,61 @@ export function QueryConsole({ tables }: { tables: QueryTable[] }) {
               title="조회 결과"
               description={`${state.result.rows.length}행 · ${state.result.columns.length}컬럼${pending ? " · 이전 조회 결과" : ""}`}
               action={
-                state.result.truncated ? (
-                  <span className="adm-badge adm-badge-warning">일부 결과</span>
-                ) : undefined
+                <span className="adm-toolbar-group">
+                  {state.result.truncated && (
+                    <span className="adm-badge adm-badge-warning">일부 결과</span>
+                  )}
+                  {state.result.rows.length > 0 && (
+                    <button
+                      type="button"
+                      className="adm-btn adm-btn-sm"
+                      aria-pressed={chart}
+                      onClick={() => setChart((v) => !v)}
+                    >
+                      {chart ? "차트 닫기" : "차트로 보기"}
+                    </button>
+                  )}
+                </span>
               }
             >
+              {chart && state.result.rows.length > 0 && (
+                <>
+                  <QueryChart
+                    key={state.sql}
+                    columns={state.result.columns}
+                    rows={state.result.rows}
+                    config={config}
+                    onChange={setConfig}
+                  />
+                  {/* 지금 조회와 차트 설정을 보드에 고정한다. 기간은 SQL의 {{since}}로 남겨 두면 보드에서 고른 기간을 따른다 */}
+                  <form action={save} className="adm-toolbar adm-qchart-save">
+                    <input type="hidden" name="id" value={editing?.id ?? ""} />
+                    <input type="hidden" name="sql" value={state.sql ?? ""} />
+                    <input type="hidden" name="kind" value={config.kind} />
+                    <input type="hidden" name="xCol" value={config.xCol ?? ""} />
+                    <input type="hidden" name="yCol" value={config.yCol ?? ""} />
+                    <input type="hidden" name="splitCol" value={config.splitCol ?? ""} />
+                    <div className="adm-toolbar-group" style={{ flex: 1 }}>
+                      <input name="title" required maxLength={200} defaultValue={editing?.title} className="adm-input" placeholder="차트 이름" aria-label="차트 이름" style={{ flex: "1 1 200px" }} />
+                      <input name="description" maxLength={500} defaultValue={editing?.description ?? ""} className="adm-input" placeholder="무엇을 센 것인지(사람 수, 횟수 등)" aria-label="차트 설명" style={{ flex: "2 1 260px" }} />
+                      <label className="adm-qchart-field">
+                        너비
+                        <select name="width" className="adm-select" defaultValue={String(editing?.width ?? (config.kind === "number" ? 1 : 2))}>
+                          <option value="1">1/4</option>
+                          <option value="2">1/2</option>
+                          <option value="3">3/4</option>
+                          <option value="4">전체</option>
+                        </select>
+                      </label>
+                    </div>
+                    <button disabled={saving || state.sql !== sql} className="adm-btn adm-btn-primary adm-btn-sm">
+                      {saving ? "저장 중…" : editing ? "보드 차트 고치기" : "보드에 저장"}
+                    </button>
+                    {state.sql !== sql && <span className="adm-muted">SQL을 바꿨으면 먼저 다시 실행해 주세요</span>}
+                    {saveState?.error && <span role="alert" className="adm-badge adm-badge-critical">{saveState.error}</span>}
+                  </form>
+                </>
+              )}
               {state.sql !== sql && (
                 <p
                   className="adm-notice adm-notice-warning"
