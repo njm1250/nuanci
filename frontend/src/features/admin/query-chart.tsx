@@ -12,7 +12,8 @@ type Cell = string | null;
 // 어두운 패널(#1a1e25) 위에서 이웃한 색이 색각 이상에서도 구분되는지 검증한 8색. 순서를 바꾸거나 아홉 번째 색을 더하지 않는다
 const PALETTE = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#0ca30c", "#9085e9", "#e66767"];
 const OTHER = "#7c8594";
-// 판정과 호출 결과는 상태라서 어느 조회에서든 같은 색을 쓴다
+// 이름에 색을 고정한다. 기간을 바꿔 항목이 늘거나 줄어도 같은 이름은 같은 색이다.
+// 판정과 호출 결과는 상태 색(통함 초록, 애매함 노랑, 다르게 들림 빨강), 경로는 팔레트의 정해진 자리, 출처를 모르는 것은 회색
 const FIXED: Record<string, string> = {
   통함: "#0ca30c",
   good: "#0ca30c",
@@ -20,11 +21,24 @@ const FIXED: Record<string, string> = {
   meh: "#fab219",
   "다르게 들림": "#d03b3b",
   bad: "#d03b3b",
-  ok: "#0ca30c",
-  blocked: "#fab219",
-  failed: "#d03b3b",
+  응답함: "#0ca30c",
+  "심한 말로 걸러짐": "#fab219",
+  실패: "#d03b3b",
   "직접 입력": "#7c8594",
   "알 수 없음": "#5b6372",
+  긱뉴스: "#3987e5",
+  "지인 공유": "#d95926",
+  검색: "#199e70",
+  "AI 검색": "#c98500",
+  SNS: "#d55181",
+  디스콰이엇: "#9085e9",
+  "안드로이드 앱": "#e66767",
+  "기록 없음": "#7c8594",
+  기타: "#6b7483",
+  "같은 장면 안": "#3987e5",
+  "장면이 바뀜": "#d95926",
+  "보기를 고름": "#3987e5",
+  "안 고름": "#7c8594",
 };
 const MAX_SERIES = 8;
 // 날짜 축은 석 달 남짓까지 그린다. 축 글자는 솎아서 적는다
@@ -148,10 +162,13 @@ export function QueryChart({
     }
     // 색은 이름에 붙인다(가나다순 자리). 기간을 바꿔 다시 조회해도 같은 이름이 같은 색을 갖는다
     const ordered = y === "all" || split === null ? names : names.filter((n) => n !== "기타").sort((a, b) => a.localeCompare(b, "ko")).concat(folded ? ["기타"] : []);
+    // 고정색이 이미 쓴 색은 나머지 이름에 다시 주지 않는다(한 차트에서 두 이름이 같은 색이 되지 않게)
+    const taken = new Set(ordered.map((name) => FIXED[name]).filter(Boolean));
+    const free = PALETTE.filter((c) => !taken.has(c));
     let slot = 0;
     const series = ordered.map((name) => ({
       name,
-      color: name === "기타" && folded ? OTHER : (FIXED[name] ?? PALETTE[slot++ % PALETTE.length]),
+      color: name === "기타" && folded ? OTHER : (FIXED[name] ?? (free.length ? free[slot++ % free.length] : PALETTE[slot++ % PALETTE.length])),
       values: shown.map((_, i) => values.get(name)?.[i] ?? 0),
     }));
     return { cats: shown, series, cut: cats.length > MAX_POINTS, total: cats.length, folded, stacked: split !== null };
@@ -214,10 +231,13 @@ export function QueryChart({
     // 숫자 하나를 읽는 일에는 차트가 아니라 숫자를 크게 둔다. 첫 행의 값을 쓴다
     const col = y === "all" ? numericIdx[0] : y;
     const v = num(rows[0]?.[col] ?? null);
+    // 숫자만 있으면 큰지 작은지 알 수 없다. 조회의 다른 열에 적은 기준("방문자 93명 중 56%")을 아래에 붙인다
+    const basis = columns.map((_, i) => i).filter((i) => i !== col && !numeric[i]).map((i) => rows[0]?.[i]).find(Boolean);
     body = (
       <div className={compact ? "adm-qchart-number adm-qchart-number-compact" : "adm-qchart-number"}>
         <strong>{v === null ? "–" : fmt(v)}</strong>
         {!compact && <span>{columns[col]}</span>}
+        {basis && <span>{basis}</span>}
       </div>
     );
   } else if (!data || !data.cats.length) {
@@ -286,8 +306,9 @@ function Plot({
   const thick = Math.max(2, Math.min(24, (band * 0.72 - (groups - 1) * 2) / groups));
   const scale = (v: number) => (v / top) * (horizontal ? iw : ih);
   const center = (i: number) => (horizontal ? m.t : m.l) + band * (i + 0.5);
-  // 축 글자는 한 글자당 약 56px을 잡아 겹치지 않을 만큼만 적는다
-  const every = horizontal ? Math.ceil(n / 30) : Math.max(1, Math.ceil(n / Math.max(4, Math.floor(iw / 56))));
+  // 축 글자는 가장 긴 글자가 겹치지 않을 만큼만 솎아 적는다(문항 번호는 다, 날짜는 띄엄띄엄)
+  const widest = Math.max(...cats.map((c) => short(c, 9).length));
+  const every = horizontal ? Math.ceil(n / 30) : Math.max(1, Math.ceil(n / Math.max(4, Math.floor(iw / (widest * 7 + 20)))));
   // 값은 하나를 셀 때(또는 쌓은 합계)만, 칸이 넉넉할 때만 적는다. 나머지는 올렸을 때 나오는 상자와 표가 맡는다
   const labelAll = (series.length === 1 || stacked) && n <= (horizontal ? 30 : 16);
 

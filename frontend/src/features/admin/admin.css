@@ -1606,6 +1606,9 @@
   background-repeat: no-repeat;
   background-size: 100% 60%;
   background-position: 0 50%;
+  /* 막대를 칸의 안쪽 여백 안에만 그려, 옆 칸의 막대와 이어져 보이지 않게 한다 */
+  background-origin: content-box;
+  background-clip: content-box;
 }
 .adm-qchart-table td {
   white-space: nowrap;
@@ -1624,6 +1627,10 @@
 }
 .adm-board-cell {
   overflow: visible;
+}
+/* 숫자판은 한 줄에서 키를 맞춘다(기준 줄이 있는 칸과 없는 칸의 높이가 달라 보이지 않게) */
+.adm-board-number {
+  align-self: stretch;
 }
 .adm-board-head {
   display: flex;
