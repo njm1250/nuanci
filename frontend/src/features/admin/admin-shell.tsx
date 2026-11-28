@@ -10,6 +10,7 @@ const GROUPS = [
     label: "분석",
     links: [
       { href: "/admin", label: "운영 대시보드", icon: "overview" },
+      { href: "/admin/board", label: "지표 보드", icon: "chart" },
       { href: "/admin/insights", label: "핵심 지표", icon: "chart" },
       { href: "/admin/metrics", label: "이용 지표", icon: "chart" },
       { href: "/admin/users", label: "사용자 탐색", icon: "users" },
