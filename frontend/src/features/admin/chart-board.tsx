@@ -21,7 +21,7 @@ export function ChartBoard({ board }: { board: Board }) {
   return (
     <>
       <p className="adm-muted adm-board-since">
-        {board.days === 0 ? "전체 기간" : `${board.since}부터 오늘까지`} · SQL의 {"{{since}}"}가 이 시작일로 바뀝니다
+        {board.days === 0 ? "전체 기간" : `${board.since}부터 오늘까지`}
       </p>
       <div className="adm-board">
         {board.charts.map(({ chart, result, error }, i) => (

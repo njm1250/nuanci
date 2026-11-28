@@ -150,7 +150,7 @@ export function QueryConsole({ tables, chart: editing }: { tables: QueryTable[];
           >
             <div className="adm-toolbar">
               <label className="adm-qchart-field">
-                {"{{since}}"} 기간
+                기간(SQL의 {"{{since}}"}가 시작일로 바뀜)
                 <select name="days" className="adm-select" value={days} onChange={(e) => setDays(e.target.value)}>
                   <option value="1">오늘</option>
                   <option value="7">7일</option>
